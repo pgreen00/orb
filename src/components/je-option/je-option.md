@@ -18,12 +18,12 @@ sidebar_label: 'Option'
 
 ### Used by
 
- - [je-select](../je-select)
+ - [je-combobox](../je-combobox)
 
 ### Graph
 ```mermaid
 graph TD;
-  je-select --> je-option
+  je-combobox --> je-option
   style je-option fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

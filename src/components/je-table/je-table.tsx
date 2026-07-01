@@ -13,7 +13,11 @@ import { Component, Element, h, Host, Prop, Watch } from "@stencil/core";
 //trees (less important)
 //loading state (less important)
 //empty state (less important)
-//server side support (least important)
+
+//ideas
+//programmtic api can utilitze template elements and document fragments
+//api should include event listenrs like cell clicked and row clicked
+//a context menu slot would be neat
 
 @Component({
   tag: "je-table",
@@ -23,7 +27,7 @@ import { Component, Element, h, Host, Prop, Watch } from "@stencil/core";
 export class JeTable {
   @Element() host: HTMLElement;
   @Prop() columns?: number;
-  @Prop() pagination?: number;
+  @Prop() data: string[][];
 
   @Watch("columns", { immediate: true })
   onColumnsChange() {
@@ -31,6 +35,30 @@ export class JeTable {
       this.columns ??
       this.host.querySelectorAll(":scope > je-tr[type=header] > je-tc").length;
     this.host.style.setProperty("--columns", columns.toString());
+  }
+
+  @Watch("data", { immediate: true })
+  onDataChange() {
+    const template =
+      this.host.querySelector<HTMLTemplateElement>(":scope > template");
+    const fragment = new DocumentFragment();
+
+    const header = this.host.querySelector(":scope > je-tr[type=header]");
+    if (header) fragment.append(header);
+
+    for (const row of this.data) {
+      const rowFragment = document.importNode(template.content, true);
+      const cols = Array.from(rowFragment.querySelectorAll("je-tc"));
+      for (let i = 0; i < cols.length; i++) {
+        cols[i].textContent = row[i];
+      }
+      fragment.append(rowFragment);
+    }
+
+    const footer = this.host.querySelector(":scope > je-tr[type=footer]");
+    if (footer) fragment.append(footer);
+
+    this.host.replaceChildren(fragment);
   }
 
   render() {

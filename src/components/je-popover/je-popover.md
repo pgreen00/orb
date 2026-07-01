@@ -96,13 +96,13 @@ Type: `Promise<void>`
 ### Used by
 
  - [je-datepicker](../je-datepicker)
- - [je-select](../je-select)
+ - [je-combobox](../je-combobox)
 
 ### Graph
 ```mermaid
 graph TD;
   je-datepicker --> je-popover
-  je-select --> je-popover
+  je-combobox --> je-popover
   style je-popover fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

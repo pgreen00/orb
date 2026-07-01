@@ -10,13 +10,11 @@ import { OverlayData } from "./components/je-overlay/je-overlay";
 import { OverlayData as OverlayData1 } from "./components/je-overlay/je-overlay";
 import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/je-rich-text/je-rich-text";
-import { InputMaskOptions } from "./utils/input-mask";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/je-overlay/je-overlay";
 export { OverlayData as OverlayData1 } from "./components/je-overlay/je-overlay";
 export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/je-rich-text/je-rich-text";
-export { InputMaskOptions } from "./utils/input-mask";
 export namespace Components {
     /**
      * Accordions are wrappers for <je-link href="../je-details">JeDetails</je-link>. When an inner detail is opened, the others are automatically closed.
@@ -91,9 +89,9 @@ export namespace Components {
         "expand": boolean;
         /**
           * Button fill
-          * @default 'solid'
+          * @default "solid"
          */
-        "fill": 'solid' | 'outline' | 'clear';
+        "fill": "solid" | "outline" | "clear";
         /**
           * Can set form id to participate in forms. Use this if you need to place submit/reset button outside the form element
          */
@@ -105,13 +103,13 @@ export namespace Components {
         "pending": boolean;
         /**
           * Button size
-          * @default 'md'
+          * @default "md"
          */
-        "size": 'md' | 'lg' | 'sm';
+        "size": "md" | "lg" | "sm";
         /**
           * Can set to submit or reset to participate in forms
          */
-        "type"?: 'submit' | 'reset';
+        "type"?: "submit" | "reset";
     }
     interface JeButtonGroup {
     }
@@ -162,6 +160,33 @@ export namespace Components {
           * Color in light mode
          */
         "light"?: Color;
+    }
+    interface JeCombobox {
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default false
+         */
+        "editable": boolean;
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "multiple": boolean;
+        "note"?: string;
+        "placeholder"?: string;
+        /**
+          * @default false
+         */
+        "required": boolean;
+        "searchTerm": string;
+        /**
+          * @default "md"
+         */
+        "size": "sm" | "md" | "lg";
+        "value": any;
     }
     interface JeComp {
     }
@@ -215,7 +240,6 @@ export namespace Components {
     interface JeEq {
     }
     interface JeForm {
-        "addInvalidSubmission": (element: HTMLElement) => Promise<boolean>;
     }
     interface JeGrid {
         "space"?: | "3xs"
@@ -504,30 +528,6 @@ export namespace Components {
          */
         "value": string;
     }
-    interface JeSelect {
-        /**
-          * @default false
-         */
-        "disabled": boolean;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "multiple": boolean;
-        "note"?: string;
-        "options"?: { value: any; label: string }[];
-        "originalValue": any;
-        "placeholder"?: string;
-        /**
-          * @default false
-         */
-        "required": boolean;
-        /**
-          * @default "md"
-         */
-        "size": "md" | "lg" | "sm";
-        "value": any;
-    }
     interface JeSplitPanel {
     }
     interface JeSplitView {
@@ -563,7 +563,7 @@ export namespace Components {
     }
     interface JeTable {
         "columns"?: number;
-        "pagination"?: number;
+        "data": string[][];
     }
     interface JeTabs {
         /**
@@ -580,7 +580,7 @@ export namespace Components {
         "copy": boolean;
         "rowSpan"?: number;
     }
-    interface JeTextfield {
+    interface JeTextbox {
         /**
           * Optional debounce of the didInput event
           * @default 0
@@ -591,12 +591,10 @@ export namespace Components {
           * @default false
          */
         "disabled": boolean;
-        "isTouched": () => Promise<boolean>;
         /**
           * Text above the control
          */
         "label"?: string;
-        "markAsTouched": () => Promise<void>;
         /**
           * Passed to native input
          */
@@ -623,10 +621,6 @@ export namespace Components {
          */
         "note"?: string;
         /**
-          * The default value the control will reset to in a form. If not set, will default to the inital value of the "value" property.
-         */
-        "originalValue"?: any;
-        /**
           * Passed to native input
          */
         "pattern"?: string;
@@ -646,30 +640,30 @@ export namespace Components {
         "required": boolean;
         /**
           * Container size
-          * @default 'md'
+          * @default "md"
          */
-        "size": 'md' | 'lg' | 'sm';
+        "size": "md" | "lg" | "sm";
         /**
           * Passed to native input
          */
         "step"?: string;
         /**
-          * @default 'text'
+          * @default "text"
          */
-        "type": 'text'
-    | 'number'
-    | 'search'
-    | 'email'
-    | 'phone'
-    | 'url'
-    | 'money'
-    | 'date'
-    | 'time'
-    | 'datetime'
-    | 'daterange'
-    | 'password'
-    | 'ssn'
-    | Omit<InputMaskOptions, 'inputElement'>;
+        "type": | "text"
+    | "number"
+    | "search"
+    | "email"
+    | "phone"
+    | "url"
+    | "money"
+    | "date"
+    | "time"
+    | "datetime"
+    | "daterange"
+    | "password"
+    | "ssn"
+    | InputMaskOptions;
         /**
           * Current value of the input
          */
@@ -785,6 +779,10 @@ export interface JeCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeCheckboxElement;
 }
+export interface JeComboboxCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLJeComboboxElement;
+}
 export interface JeDatepickerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeDatepickerElement;
@@ -817,17 +815,13 @@ export interface JeRichTextCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeRichTextElement;
 }
-export interface JeSelectCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLJeSelectElement;
-}
 export interface JeTabsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeTabsElement;
 }
-export interface JeTextfieldCustomEvent<T> extends CustomEvent<T> {
+export interface JeTextboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeTextfieldElement;
+    target: HTMLJeTextboxElement;
 }
 export interface JeToggleCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -945,6 +939,24 @@ declare global {
     var HTMLJeColorElement: {
         prototype: HTMLJeColorElement;
         new (): HTMLJeColorElement;
+    };
+    interface HTMLJeComboboxElementEventMap {
+        "valueChange": any;
+        "searchTermChange": any;
+    }
+    interface HTMLJeComboboxElement extends Components.JeCombobox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLJeComboboxElementEventMap>(type: K, listener: (this: HTMLJeComboboxElement, ev: JeComboboxCustomEvent<HTMLJeComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLJeComboboxElementEventMap>(type: K, listener: (this: HTMLJeComboboxElement, ev: JeComboboxCustomEvent<HTMLJeComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLJeComboboxElement: {
+        prototype: HTMLJeComboboxElement;
+        new (): HTMLJeComboboxElement;
     };
     interface HTMLJeCompElement extends Components.JeComp, HTMLStencilElement {
     }
@@ -1234,23 +1246,6 @@ declare global {
         prototype: HTMLJeRichTextElement;
         new (): HTMLJeRichTextElement;
     };
-    interface HTMLJeSelectElementEventMap {
-        "valueChange": any;
-    }
-    interface HTMLJeSelectElement extends Components.JeSelect, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeSelectElementEventMap>(type: K, listener: (this: HTMLJeSelectElement, ev: JeSelectCustomEvent<HTMLJeSelectElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeSelectElementEventMap>(type: K, listener: (this: HTMLJeSelectElement, ev: JeSelectCustomEvent<HTMLJeSelectElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLJeSelectElement: {
-        prototype: HTMLJeSelectElement;
-        new (): HTMLJeSelectElement;
-    };
     interface HTMLJeSplitPanelElement extends Components.JeSplitPanel, HTMLStencilElement {
     }
     var HTMLJeSplitPanelElement: {
@@ -1310,22 +1305,22 @@ declare global {
         prototype: HTMLJeTcElement;
         new (): HTMLJeTcElement;
     };
-    interface HTMLJeTextfieldElementEventMap {
+    interface HTMLJeTextboxElementEventMap {
         "valueChange": any;
     }
-    interface HTMLJeTextfieldElement extends Components.JeTextfield, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeTextfieldElementEventMap>(type: K, listener: (this: HTMLJeTextfieldElement, ev: JeTextfieldCustomEvent<HTMLJeTextfieldElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLJeTextboxElement extends Components.JeTextbox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLJeTextboxElementEventMap>(type: K, listener: (this: HTMLJeTextboxElement, ev: JeTextboxCustomEvent<HTMLJeTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeTextfieldElementEventMap>(type: K, listener: (this: HTMLJeTextfieldElement, ev: JeTextfieldCustomEvent<HTMLJeTextfieldElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLJeTextboxElementEventMap>(type: K, listener: (this: HTMLJeTextboxElement, ev: JeTextboxCustomEvent<HTMLJeTextboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeTextfieldElement: {
-        prototype: HTMLJeTextfieldElement;
-        new (): HTMLJeTextfieldElement;
+    var HTMLJeTextboxElement: {
+        prototype: HTMLJeTextboxElement;
+        new (): HTMLJeTextboxElement;
     };
     interface HTMLJeTocElement extends Components.JeToc, HTMLStencilElement {
     }
@@ -1427,6 +1422,7 @@ declare global {
         "je-card": HTMLJeCardElement;
         "je-checkbox": HTMLJeCheckboxElement;
         "je-color": HTMLJeColorElement;
+        "je-combobox": HTMLJeComboboxElement;
         "je-comp": HTMLJeCompElement;
         "je-control": HTMLJeControlElement;
         "je-datepicker": HTMLJeDatepickerElement;
@@ -1459,7 +1455,6 @@ declare global {
         "je-reorder-item": HTMLJeReorderItemElement;
         "je-reorder-list": HTMLJeReorderListElement;
         "je-rich-text": HTMLJeRichTextElement;
-        "je-select": HTMLJeSelectElement;
         "je-split-panel": HTMLJeSplitPanelElement;
         "je-split-view": HTMLJeSplitViewElement;
         "je-stack": HTMLJeStackElement;
@@ -1468,7 +1463,7 @@ declare global {
         "je-table": HTMLJeTableElement;
         "je-tabs": HTMLJeTabsElement;
         "je-tc": HTMLJeTcElement;
-        "je-textfield": HTMLJeTextfieldElement;
+        "je-textbox": HTMLJeTextboxElement;
         "je-toc": HTMLJeTocElement;
         "je-toggle": HTMLJeToggleElement;
         "je-toolbar": HTMLJeToolbarElement;
@@ -1553,9 +1548,9 @@ declare namespace LocalJSX {
         "expand"?: boolean;
         /**
           * Button fill
-          * @default 'solid'
+          * @default "solid"
          */
-        "fill"?: 'solid' | 'outline' | 'clear';
+        "fill"?: "solid" | "outline" | "clear";
         /**
           * Can set form id to participate in forms. Use this if you need to place submit/reset button outside the form element
          */
@@ -1567,13 +1562,13 @@ declare namespace LocalJSX {
         "pending"?: boolean;
         /**
           * Button size
-          * @default 'md'
+          * @default "md"
          */
-        "size"?: 'md' | 'lg' | 'sm';
+        "size"?: "md" | "lg" | "sm";
         /**
           * Can set to submit or reset to participate in forms
          */
-        "type"?: 'submit' | 'reset';
+        "type"?: "submit" | "reset";
     }
     interface JeButtonGroup {
     }
@@ -1640,6 +1635,43 @@ declare namespace LocalJSX {
           * Color in light mode
          */
         "light"?: Color;
+    }
+    interface JeCombobox {
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default false
+         */
+        "editable"?: boolean;
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "multiple"?: boolean;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
+        "note"?: string;
+        "onSearchTermChange"?: (event: JeComboboxCustomEvent<any>) => void;
+        "onValueChange"?: (event: JeComboboxCustomEvent<any>) => void;
+        "placeholder"?: string;
+        /**
+          * @default false
+         */
+        "required"?: boolean;
+        "searchTerm"?: string;
+        /**
+          * @default "md"
+         */
+        "size"?: "sm" | "md" | "lg";
+        "value"?: any;
     }
     interface JeComp {
     }
@@ -2021,39 +2053,6 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
-    interface JeSelect {
-        /**
-          * @default false
-         */
-        "disabled"?: boolean;
-        /**
-          * The `id` of a `<form>` element to associate this element with.
-         */
-        "form"?: string;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "multiple"?: boolean;
-        /**
-          * The name of the element, used when submitting an HTML form.
-         */
-        "name"?: string;
-        "note"?: string;
-        "onValueChange"?: (event: JeSelectCustomEvent<any>) => void;
-        "options"?: { value: any; label: string }[];
-        "originalValue"?: any;
-        "placeholder"?: string;
-        /**
-          * @default false
-         */
-        "required"?: boolean;
-        /**
-          * @default "md"
-         */
-        "size"?: "md" | "lg" | "sm";
-        "value"?: any;
-    }
     interface JeSplitPanel {
     }
     interface JeSplitView {
@@ -2101,7 +2100,7 @@ declare namespace LocalJSX {
     }
     interface JeTable {
         "columns"?: number;
-        "pagination"?: number;
+        "data"?: string[][];
     }
     interface JeTabs {
         /**
@@ -2119,7 +2118,7 @@ declare namespace LocalJSX {
         "copy"?: boolean;
         "rowSpan"?: number;
     }
-    interface JeTextfield {
+    interface JeTextbox {
         /**
           * Optional debounce of the didInput event
           * @default 0
@@ -2170,11 +2169,7 @@ declare namespace LocalJSX {
         /**
           * Emits as the user types
          */
-        "onValueChange"?: (event: JeTextfieldCustomEvent<any>) => void;
-        /**
-          * The default value the control will reset to in a form. If not set, will default to the inital value of the "value" property.
-         */
-        "originalValue"?: any;
+        "onValueChange"?: (event: JeTextboxCustomEvent<any>) => void;
         /**
           * Passed to native input
          */
@@ -2195,30 +2190,30 @@ declare namespace LocalJSX {
         "required"?: boolean;
         /**
           * Container size
-          * @default 'md'
+          * @default "md"
          */
-        "size"?: 'md' | 'lg' | 'sm';
+        "size"?: "md" | "lg" | "sm";
         /**
           * Passed to native input
          */
         "step"?: string;
         /**
-          * @default 'text'
+          * @default "text"
          */
-        "type"?: 'text'
-    | 'number'
-    | 'search'
-    | 'email'
-    | 'phone'
-    | 'url'
-    | 'money'
-    | 'date'
-    | 'time'
-    | 'datetime'
-    | 'daterange'
-    | 'password'
-    | 'ssn'
-    | Omit<InputMaskOptions, 'inputElement'>;
+        "type"?: | "text"
+    | "number"
+    | "search"
+    | "email"
+    | "phone"
+    | "url"
+    | "money"
+    | "date"
+    | "time"
+    | "datetime"
+    | "daterange"
+    | "password"
+    | "ssn"
+    | InputMaskOptions;
         /**
           * Current value of the input
          */
@@ -2358,12 +2353,12 @@ declare namespace LocalJSX {
     }
     interface JeButtonAttributes {
         "disabled": boolean;
-        "type": 'submit' | 'reset';
+        "type": "submit" | "reset";
         "form": string;
         "expand": boolean;
         "pending": boolean;
-        "fill": 'solid' | 'outline' | 'clear';
-        "size": 'md' | 'lg' | 'sm';
+        "fill": "solid" | "outline" | "clear";
+        "size": "md" | "lg" | "sm";
         "color": Color;
     }
     interface JeCardAttributes {
@@ -2381,6 +2376,18 @@ declare namespace LocalJSX {
         "color": Color;
         "light": Color;
         "dark": Color;
+    }
+    interface JeComboboxAttributes {
+        "value": string;
+        "label": string;
+        "note": string;
+        "disabled": boolean;
+        "placeholder": string;
+        "required": boolean;
+        "multiple": boolean;
+        "editable": boolean;
+        "size": "sm" | "md" | "lg";
+        "searchTerm": string;
     }
     interface JeDatepickerAttributes {
         "type": "date" | "datetime" | "time";
@@ -2485,17 +2492,6 @@ declare namespace LocalJSX {
         "maxHeight": string;
         "showWordCount": boolean;
     }
-    interface JeSelectAttributes {
-        "value": string;
-        "label": string;
-        "disabled": boolean;
-        "required": boolean;
-        "placeholder": string;
-        "note": string;
-        "multiple": boolean;
-        "originalValue": string;
-        "size": "md" | "lg" | "sm";
-    }
     interface JeStackAttributes {
         "mode": "row" | "column";
         "align": string;
@@ -2516,7 +2512,6 @@ declare namespace LocalJSX {
     }
     interface JeTableAttributes {
         "columns": number;
-        "pagination": number;
     }
     interface JeTabsAttributes {
         "mode": 'mobile' | 'pill' | 'segment';
@@ -2527,26 +2522,25 @@ declare namespace LocalJSX {
         "rowSpan": number;
         "copy": boolean;
     }
-    interface JeTextfieldAttributes {
-        "type": 'text'
-    | 'number'
-    | 'search'
-    | 'email'
-    | 'phone'
-    | 'url'
-    | 'money'
-    | 'date'
-    | 'time'
-    | 'datetime'
-    | 'daterange'
-    | 'password'
-    | 'ssn'
-    | Omit<InputMaskOptions, 'inputElement'>;
-        "originalValue": string;
+    interface JeTextboxAttributes {
+        "type": | "text"
+    | "number"
+    | "search"
+    | "email"
+    | "phone"
+    | "url"
+    | "money"
+    | "date"
+    | "time"
+    | "datetime"
+    | "daterange"
+    | "password"
+    | "ssn"
+    | InputMaskOptions;
         "value": string;
         "label": string;
         "note": string;
-        "size": 'md' | 'lg' | 'sm';
+        "size": "md" | "lg" | "sm";
         "placeholder": string;
         "debounce": number;
         "disabled": boolean;
@@ -2609,6 +2603,7 @@ declare namespace LocalJSX {
         "je-card": Omit<JeCard, keyof JeCardAttributes> & { [K in keyof JeCard & keyof JeCardAttributes]?: JeCard[K] } & { [K in keyof JeCard & keyof JeCardAttributes as `attr:${K}`]?: JeCardAttributes[K] } & { [K in keyof JeCard & keyof JeCardAttributes as `prop:${K}`]?: JeCard[K] };
         "je-checkbox": Omit<JeCheckbox, keyof JeCheckboxAttributes> & { [K in keyof JeCheckbox & keyof JeCheckboxAttributes]?: JeCheckbox[K] } & { [K in keyof JeCheckbox & keyof JeCheckboxAttributes as `attr:${K}`]?: JeCheckboxAttributes[K] } & { [K in keyof JeCheckbox & keyof JeCheckboxAttributes as `prop:${K}`]?: JeCheckbox[K] };
         "je-color": Omit<JeColor, keyof JeColorAttributes> & { [K in keyof JeColor & keyof JeColorAttributes]?: JeColor[K] } & { [K in keyof JeColor & keyof JeColorAttributes as `attr:${K}`]?: JeColorAttributes[K] } & { [K in keyof JeColor & keyof JeColorAttributes as `prop:${K}`]?: JeColor[K] };
+        "je-combobox": Omit<JeCombobox, keyof JeComboboxAttributes> & { [K in keyof JeCombobox & keyof JeComboboxAttributes]?: JeCombobox[K] } & { [K in keyof JeCombobox & keyof JeComboboxAttributes as `attr:${K}`]?: JeComboboxAttributes[K] } & { [K in keyof JeCombobox & keyof JeComboboxAttributes as `prop:${K}`]?: JeCombobox[K] };
         "je-comp": JeComp;
         "je-control": JeControl;
         "je-datepicker": Omit<JeDatepicker, keyof JeDatepickerAttributes> & { [K in keyof JeDatepicker & keyof JeDatepickerAttributes]?: JeDatepicker[K] } & { [K in keyof JeDatepicker & keyof JeDatepickerAttributes as `attr:${K}`]?: JeDatepickerAttributes[K] } & { [K in keyof JeDatepicker & keyof JeDatepickerAttributes as `prop:${K}`]?: JeDatepicker[K] };
@@ -2641,7 +2636,6 @@ declare namespace LocalJSX {
         "je-reorder-item": JeReorderItem;
         "je-reorder-list": JeReorderList;
         "je-rich-text": Omit<JeRichText, keyof JeRichTextAttributes> & { [K in keyof JeRichText & keyof JeRichTextAttributes]?: JeRichText[K] } & { [K in keyof JeRichText & keyof JeRichTextAttributes as `attr:${K}`]?: JeRichTextAttributes[K] } & { [K in keyof JeRichText & keyof JeRichTextAttributes as `prop:${K}`]?: JeRichText[K] };
-        "je-select": Omit<JeSelect, keyof JeSelectAttributes> & { [K in keyof JeSelect & keyof JeSelectAttributes]?: JeSelect[K] } & { [K in keyof JeSelect & keyof JeSelectAttributes as `attr:${K}`]?: JeSelectAttributes[K] } & { [K in keyof JeSelect & keyof JeSelectAttributes as `prop:${K}`]?: JeSelect[K] };
         "je-split-panel": JeSplitPanel;
         "je-split-view": JeSplitView;
         "je-stack": Omit<JeStack, keyof JeStackAttributes> & { [K in keyof JeStack & keyof JeStackAttributes]?: JeStack[K] } & { [K in keyof JeStack & keyof JeStackAttributes as `attr:${K}`]?: JeStackAttributes[K] } & { [K in keyof JeStack & keyof JeStackAttributes as `prop:${K}`]?: JeStack[K] };
@@ -2650,7 +2644,7 @@ declare namespace LocalJSX {
         "je-table": Omit<JeTable, keyof JeTableAttributes> & { [K in keyof JeTable & keyof JeTableAttributes]?: JeTable[K] } & { [K in keyof JeTable & keyof JeTableAttributes as `attr:${K}`]?: JeTableAttributes[K] } & { [K in keyof JeTable & keyof JeTableAttributes as `prop:${K}`]?: JeTable[K] };
         "je-tabs": Omit<JeTabs, keyof JeTabsAttributes> & { [K in keyof JeTabs & keyof JeTabsAttributes]?: JeTabs[K] } & { [K in keyof JeTabs & keyof JeTabsAttributes as `attr:${K}`]?: JeTabsAttributes[K] } & { [K in keyof JeTabs & keyof JeTabsAttributes as `prop:${K}`]?: JeTabs[K] };
         "je-tc": Omit<JeTc, keyof JeTcAttributes> & { [K in keyof JeTc & keyof JeTcAttributes]?: JeTc[K] } & { [K in keyof JeTc & keyof JeTcAttributes as `attr:${K}`]?: JeTcAttributes[K] } & { [K in keyof JeTc & keyof JeTcAttributes as `prop:${K}`]?: JeTc[K] };
-        "je-textfield": Omit<JeTextfield, keyof JeTextfieldAttributes> & { [K in keyof JeTextfield & keyof JeTextfieldAttributes]?: JeTextfield[K] } & { [K in keyof JeTextfield & keyof JeTextfieldAttributes as `attr:${K}`]?: JeTextfieldAttributes[K] } & { [K in keyof JeTextfield & keyof JeTextfieldAttributes as `prop:${K}`]?: JeTextfield[K] };
+        "je-textbox": Omit<JeTextbox, keyof JeTextboxAttributes> & { [K in keyof JeTextbox & keyof JeTextboxAttributes]?: JeTextbox[K] } & { [K in keyof JeTextbox & keyof JeTextboxAttributes as `attr:${K}`]?: JeTextboxAttributes[K] } & { [K in keyof JeTextbox & keyof JeTextboxAttributes as `prop:${K}`]?: JeTextbox[K] };
         "je-toc": JeToc;
         "je-toggle": Omit<JeToggle, keyof JeToggleAttributes> & { [K in keyof JeToggle & keyof JeToggleAttributes]?: JeToggle[K] } & { [K in keyof JeToggle & keyof JeToggleAttributes as `attr:${K}`]?: JeToggleAttributes[K] } & { [K in keyof JeToggle & keyof JeToggleAttributes as `prop:${K}`]?: JeToggle[K] };
         "je-toolbar": Omit<JeToolbar, keyof JeToolbarAttributes> & { [K in keyof JeToolbar & keyof JeToolbarAttributes]?: JeToolbar[K] } & { [K in keyof JeToolbar & keyof JeToolbarAttributes as `attr:${K}`]?: JeToolbarAttributes[K] } & { [K in keyof JeToolbar & keyof JeToolbarAttributes as `prop:${K}`]?: JeToolbar[K] };
@@ -2681,6 +2675,7 @@ declare module "@stencil/core" {
             "je-card": LocalJSX.IntrinsicElements["je-card"] & JSXBase.HTMLAttributes<HTMLJeCardElement>;
             "je-checkbox": LocalJSX.IntrinsicElements["je-checkbox"] & JSXBase.HTMLAttributes<HTMLJeCheckboxElement>;
             "je-color": LocalJSX.IntrinsicElements["je-color"] & JSXBase.HTMLAttributes<HTMLJeColorElement>;
+            "je-combobox": LocalJSX.IntrinsicElements["je-combobox"] & JSXBase.HTMLAttributes<HTMLJeComboboxElement>;
             "je-comp": LocalJSX.IntrinsicElements["je-comp"] & JSXBase.HTMLAttributes<HTMLJeCompElement>;
             "je-control": LocalJSX.IntrinsicElements["je-control"] & JSXBase.HTMLAttributes<HTMLJeControlElement>;
             "je-datepicker": LocalJSX.IntrinsicElements["je-datepicker"] & JSXBase.HTMLAttributes<HTMLJeDatepickerElement>;
@@ -2713,7 +2708,6 @@ declare module "@stencil/core" {
             "je-reorder-item": LocalJSX.IntrinsicElements["je-reorder-item"] & JSXBase.HTMLAttributes<HTMLJeReorderItemElement>;
             "je-reorder-list": LocalJSX.IntrinsicElements["je-reorder-list"] & JSXBase.HTMLAttributes<HTMLJeReorderListElement>;
             "je-rich-text": LocalJSX.IntrinsicElements["je-rich-text"] & JSXBase.HTMLAttributes<HTMLJeRichTextElement>;
-            "je-select": LocalJSX.IntrinsicElements["je-select"] & JSXBase.HTMLAttributes<HTMLJeSelectElement>;
             "je-split-panel": LocalJSX.IntrinsicElements["je-split-panel"] & JSXBase.HTMLAttributes<HTMLJeSplitPanelElement>;
             "je-split-view": LocalJSX.IntrinsicElements["je-split-view"] & JSXBase.HTMLAttributes<HTMLJeSplitViewElement>;
             "je-stack": LocalJSX.IntrinsicElements["je-stack"] & JSXBase.HTMLAttributes<HTMLJeStackElement>;
@@ -2722,7 +2716,7 @@ declare module "@stencil/core" {
             "je-table": LocalJSX.IntrinsicElements["je-table"] & JSXBase.HTMLAttributes<HTMLJeTableElement>;
             "je-tabs": LocalJSX.IntrinsicElements["je-tabs"] & JSXBase.HTMLAttributes<HTMLJeTabsElement>;
             "je-tc": LocalJSX.IntrinsicElements["je-tc"] & JSXBase.HTMLAttributes<HTMLJeTcElement>;
-            "je-textfield": LocalJSX.IntrinsicElements["je-textfield"] & JSXBase.HTMLAttributes<HTMLJeTextfieldElement>;
+            "je-textbox": LocalJSX.IntrinsicElements["je-textbox"] & JSXBase.HTMLAttributes<HTMLJeTextboxElement>;
             "je-toc": LocalJSX.IntrinsicElements["je-toc"] & JSXBase.HTMLAttributes<HTMLJeTocElement>;
             "je-toggle": LocalJSX.IntrinsicElements["je-toggle"] & JSXBase.HTMLAttributes<HTMLJeToggleElement>;
             "je-toolbar": LocalJSX.IntrinsicElements["je-toolbar"] & JSXBase.HTMLAttributes<HTMLJeToolbarElement>;

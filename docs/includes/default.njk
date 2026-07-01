@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/hex-tag.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, user-scalable=no"
+  />
   <title>Jebamo</title>
   <style>@view-transition{navigation: auto;}</style>
   <link rel="stylesheet" href="/styles.css" />
@@ -91,14 +94,13 @@
       </script>
     </nav>
   </aside>
-  <main style="display: flex; flex-direction: column; gap: 1.5rem;">
-    {% block content %}
-      {{ content | safe }}
-    {% endblock %}
+  <main>
+    <je-toc>
+      {% block content %}
+        {{ content | safe }}
+      {% endblock %}
+    </je-toc>
   </main>
-  <aside style="width: 300px">
-    <je-toc aria-label="Table of contents"></je-toc>
-  </aside>
 </body>
 
 <script>

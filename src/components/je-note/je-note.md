@@ -17,15 +17,15 @@ sidebar_label: 'Note'
 ### Used by
 
  - [je-radio-group](../je-radio-group)
- - [je-select](../je-select)
- - [je-textfield](../je-textfield)
+ - [je-combobox](../je-combobox)
+ - [je-textbox](../je-textbox)
 
 ### Graph
 ```mermaid
 graph TD;
   je-radio-group --> je-note
-  je-select --> je-note
-  je-textfield --> je-note
+  je-combobox --> je-note
+  je-textbox --> je-note
   style je-note fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

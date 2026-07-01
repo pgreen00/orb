@@ -17,9 +17,8 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-
-      # Build and publish
+      - name: Install Deps
+        run: npm ci
       - name: Build core
         run: npm run build
       - name: Publish core

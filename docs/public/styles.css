@@ -75,7 +75,7 @@ a.header-anchor {
   }
 }
 
-code {
+code:not(code[class*="language-"]) {
   padding: 0.15rem 0.3rem;
   background-color: light-dark(var(--je-neutral-200), var(--je-neutral-950));
   border-radius: var(--je-radius-md);
@@ -84,10 +84,8 @@ code {
   font-family: inherit;
 }
 
-table:not(je-table > table) {
-  width: 100%;
+table {
   border-collapse: collapse;
-  margin: 1rem 0;
 
   th,
   td {
@@ -119,4 +117,8 @@ main {
   h3:has(a:empty) {
     display: none;
   }
+}
+
+:has(a.header-anchor) {
+  scroll-margin-top: var(--head-height);
 }

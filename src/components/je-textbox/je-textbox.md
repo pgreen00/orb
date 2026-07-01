@@ -1,6 +1,6 @@
 ---
-title: "JeTextfield | <je-textfield>"
-sidebar_label: "Textfield"
+title: "JeTextbox | <je-textbox>"
+sidebar_label: "Textbox"
 ---
 
 <!-- Auto Generated Below -->
@@ -13,23 +13,66 @@ sidebar_label: "Textfield"
 ::: live-code-demo
 
 ```html
-<je-textfield type="phone" value="2705569657" label="Phone number"></je-textfield>
-<je-textfield required placeholder="Type your name..." label="Full Name"></je-textfield>
-<je-textfield type="password" label="Password"></je-textfield>
-<je-textfield type="money" label="Money"></je-textfield>
-<je-textfield type="ssn" label="SSN"></je-textfield>
-<je-textfield type="number" label="Number"></je-textfield>
-<je-textfield type="time" label="Time"></je-textfield>
-<je-textfield type="date" label="Date"></je-textfield>
-<je-textfield type="datetime" label="Date & Time"></je-textfield>
-<je-textfield type="daterange" label="Date Range"></je-textfield>
-<je-textfield type="email" label="Email"></je-textfield>
-<je-textfield type="url" label="URL"></je-textfield>
+<je-stack>
+  <je-textbox type="phone" value="2705569657">
+    <je-label slot="label">Phone number</je-label>
+  </je-textbox>
+  <je-textbox required placeholder="Type your name..." label="Full Name"></je-textbox>
+  <je-textbox type="password" label="Password"></je-textbox>
+  <je-textbox type="money" label="Money"></je-textbox>
+  <je-textbox type="ssn" label="SSN"></je-textbox>
+  <je-textbox type="number" label="Number"></je-textbox>
+  <je-textbox type="time" label="Time"></je-textbox>
+  <je-textbox type="date" label="Date"></je-textbox>
+  <je-textbox type="datetime" label="Date & Time"></je-textbox>
+  <je-textbox type="daterange" label="Date Range"></je-textbox>
+  <je-textbox type="email" label="Email"></je-textbox>
+  <je-textbox type="url" label="URL"></je-textbox>
+</je-stack>  
+```
+
+:::
+
+::: live-code-demo
+
+```html
+<form id="test-form">
+  <je-stack>
+    <je-textbox name="name" required placeholder="Type your name..." label="Full Name"></je-textbox>
+    <label>
+      <span>Are you under 18?</span>
+      <input type="checkbox" name="isMinor" value="yes"/>
+    </label>
+    <je-stack>
+      <je-label>Colors</je-label>
+      <label>
+        <span>Red</span>
+        <input type="checkbox" name="colors[]" value="red"/>
+      </label>
+      <label>
+        <span>Blue</span>
+        <input type="checkbox" name="colors[]" value="blue"/>
+      </label>
+      <label>
+        <span>Green</span>
+        <input type="checkbox" name="colors[]" value="green"/>
+      </label>
+    </je-stack>
+    <button type="submit">Submit</button>
+  </je-stack>  
+</form>
 ```
 
 ```javascript
-const pw = document.querySelector('je-textfield[type=password]')
-pw.addEventListener('valueChange', ({detail}) => console.log(detail))
+const form = document.querySelector('#test-form')
+form.addEventListener('submit', ev => {
+  ev.preventDefault()
+  console.log(Array.from(ev.target.elements))
+  const formData = new FormData(form)
+  for (const [key, value] of formData.entries()) 
+    console.log(key, value)
+})
+form.oninvalid = console.log
 ```
 
 :::
@@ -114,11 +157,11 @@ Type: `Promise<void>`
 ### Graph
 ```mermaid
 graph TD;
-  je-textfield --> je-label
-  je-textfield --> je-button
-  je-textfield --> je-note
+  je-textbox --> je-label
+  je-textbox --> je-button
+  je-textbox --> je-note
   je-button --> je-loading
-  style je-textfield fill:#f9f,stroke:#333,stroke-width:4px
+  style je-textbox fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

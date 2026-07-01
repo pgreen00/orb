@@ -1,6 +1,6 @@
 ---
-title: 'JeSelect | <je-select>'
-sidebar_label: 'Select'
+title: 'JeCombobox | <je-combobox>'
+sidebar_label: 'Combobox'
 ---
 <!-- Auto Generated Below -->
 
@@ -12,10 +12,15 @@ sidebar_label: 'Select'
 ::: live-code-demo
 
 ```html
-<je-popover>
-  <je-button slot="trigger">Open Popover</je-button>
-  <span>Hello there</span>
-</je-popover>
+<je-combobox label="Items" placeholder="Select an item..." editable note="Select the item that you vibe with the most">
+  <je-option>Item 1</je-option>
+  <je-option>Item 2</je-option>
+  <je-option>Item 3</je-option>
+  <je-option>Item 4</je-option>
+  <je-button slot="after" class="icon-only">
+    <je-icon fill>edit</je-icon>
+  </je-button>
+</je-combobox>
 ```
 
 :::
@@ -65,12 +70,12 @@ sidebar_label: 'Select'
 ### Graph
 ```mermaid
 graph TD;
-  je-select --> je-popover
-  je-select --> je-label
-  je-select --> je-icon
-  je-select --> je-option
-  je-select --> je-note
-  style je-select fill:#f9f,stroke:#333,stroke-width:4px
+  je-combobox --> je-popover
+  je-combobox --> je-label
+  je-combobox --> je-icon
+  je-combobox --> je-option
+  je-combobox --> je-note
+  style je-combobox fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

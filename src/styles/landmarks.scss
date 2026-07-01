@@ -1,6 +1,6 @@
 html {
-  height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100svw;
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -92,15 +92,5 @@ body {
   &>main+aside {
     grid-area: right;
     border-left: solid 1px var(--border-color);
-
-    &:has(je-toc:only-child) {
-      top: calc(var(--head-height, 0px) + 0.5rem);
-      height: fit-content;
-    }
-  }
-
-  &[condense]>main {
-    max-width: 768px;
-    margin: auto;
   }
 }

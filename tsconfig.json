@@ -9,7 +9,7 @@
       "ESNext",
       "dom.iterable"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "esnext",
     "target": "esnext",
     "noUnusedLocals": true,
@@ -17,12 +17,12 @@
     "skipLibCheck": true,
     "jsx": "react",
     "jsxFactory": "h",
-    //"strict": true
+    "strict": false
   },
   "include": [
     "src"
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
 }

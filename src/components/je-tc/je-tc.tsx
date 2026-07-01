@@ -26,9 +26,10 @@ export class JeTc {
   }
 
   render() {
+    const style = this.styles();
     return (
       <Host>
-        {this.styles()}
+        {style}
         {this.copy ? (
           <je-toolbar
             onMouseEnter={() => (this.hover = true)}

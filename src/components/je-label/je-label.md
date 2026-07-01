@@ -17,15 +17,15 @@ sidebar_label: 'Label'
 ### Used by
 
  - [je-radio-group](../je-radio-group)
- - [je-select](../je-select)
- - [je-textfield](../je-textfield)
+ - [je-combobox](../je-combobox)
+ - [je-textbox](../je-textbox)
 
 ### Graph
 ```mermaid
 graph TD;
   je-radio-group --> je-label
-  je-select --> je-label
-  je-textfield --> je-label
+  je-combobox --> je-label
+  je-textbox --> je-label
   style je-label fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

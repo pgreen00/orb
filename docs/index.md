@@ -1,5 +1,41 @@
 ## Welcome to Jebamo
 
+<div class="textbox-container">
+  <style>
+    @scope {
+      :scope {
+        position: relative;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0.5rem;
+        &:focus-within {
+          border-color: #0066cc;
+          outline: 2px solid #0066cc;
+        }
+      }
+      .inline-label {
+        font-size: 0.75rem;
+        color: #666;
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+      .inline-input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 1rem;
+      }
+    }
+  </style>
+  <label for="username" class="inline-label">Username</label>
+  <input 
+    type="text" 
+    id="username" 
+    class="inline-input"
+    placeholder=" "
+  />
+</div>
+
 <div class="je-elevation-md je-radius-md">
   <style>
     @scope {
@@ -27,7 +63,7 @@
 <input id="ssn" placeholder="ssn" />
 
 <select>
-<optgroup label="Theropods">
+  <optgroup label="Theropods">
     <option>Tyrannosaurus</option>
     <option>Velociraptor</option>
     <option>Deinonychus</option>

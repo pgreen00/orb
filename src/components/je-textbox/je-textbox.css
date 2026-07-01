@@ -1,28 +1,28 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: var(--je-spacing-3xs);
+  gap: var(--je-spacing-xs);
 }
 
-:host(:state(--user-invalid)) div[part=container] {
+:host(:state(--user-invalid)) div[part="container"] {
   border-color: light-dark(var(--je-danger-400), var(--je-danger-300));
 }
 
 je-note {
-  margin-left: var(--je-spacing-xs);
+  margin-left: var(--je-spacing-sm);
 }
 
-div[part=container] {
+div[part="container"] {
   position: relative;
   box-sizing: border-box;
   display: flex;
-  gap: var(--je-spacing-xs);
+  gap: var(--je-spacing-sm);
   border-radius: var(--je-radius-md);
   border: solid 1px light-dark(var(--je-neutral-500), var(--je-neutral-400));
   align-items: center;
   background-color: transparent;
   color: inherit;
-  padding-inline: var(--je-spacing-xs);
+  padding-inline: var(--je-spacing-sm);
 
   &.sm {
     height: 2.5rem;
@@ -63,7 +63,7 @@ div[part=container] {
   }
 }
 
-[part=input] {
+[part="input"] {
   background-color: inherit;
   color: inherit;
   font-family: inherit;
@@ -88,4 +88,14 @@ div[part=container] {
     color: light-dark(var(--je-neutral-700), var(--je-neutral-600));
     cursor: inherit;
   }
+}
+
+:host(:state(--user-invalid))::after {
+  display: inline-flex;
+  font-weight: var(--je-font-light);
+  color: light-dark(var(--je-danger-400), var(--je-danger-300));
+  font-size: var(--je-font-sm);
+  gap: var(--je-spacing-2xs);
+  margin-left: var(--je-spacing-sm);
+  content: attr(data-error);
 }

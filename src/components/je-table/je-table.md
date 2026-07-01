@@ -5,7 +5,58 @@ sidebar_label: "Table"
 
 ## Usage
 
-<je-table style="max-height: 800px">
+<je-table id="da-table">
+  <je-tr type="header">
+    <je-tc sticky>
+      <je-table-filter type="text">ID</je-table-filter>
+    </je-tc>
+    <je-tc>Name</je-tc>
+    <je-tc>Department</je-tc>
+    <je-tc>Position</je-tc>
+    <je-tc>Salary</je-tc>
+    <je-tc>Status</je-tc>
+  </je-tr>
+  <template>
+    <je-tr>
+      <je-tc copy sticky></je-tc>
+      <je-tc></je-tc>
+      <je-tc></je-tc>
+      <je-tc></je-tc>
+      <je-tc></je-tc>
+      <je-tc></je-tc>
+    </je-tr>
+  </template>
+  <je-tr type="footer">
+    <je-tc col-span="6">
+      <je-toolbar>
+        <span slot="end">1 to 10 of 83</span>
+        <je-stack mode="row" space="none" slot="end">
+          <je-button fill="clear" class="icon-only">
+            <je-icon>first_page</je-icon>
+          </je-button>
+          <je-button fill="clear" class="icon-only">
+            <je-icon>chevron_left</je-icon>
+          </je-button>
+          <span>Page 1 of 9</span>
+          <je-button fill="clear" class="icon-only">
+            <je-icon>chevron_right</je-icon>
+          </je-button>
+          <je-button fill="clear" class="icon-only">
+            <je-icon>last_page</je-icon>
+          </je-button>
+        </je-stack>
+      </je-toolbar>
+    </je-tc>
+  </je-tr>
+</je-table>
+
+<script type="module">
+const employees = await fetch('/employees.json').then(t => t.json());
+await customElements.whenDefined('je-table')
+document.querySelector('#da-table').data = employees
+</script>
+
+<je-table>
   <je-tr type="header">
     <je-tc sticky>
       <je-table-filter type="text">ID</je-table-filter>
@@ -17,15 +68,12 @@ sidebar_label: "Table"
     <je-tc>Status</je-tc>
   </je-tr>
   <je-tr>
-    <je-tc copy sticky>001</je-tc>
+    <je-tc row-span="2" copy sticky>001</je-tc>
     <je-tc>Alice Johnson</je-tc>
     <je-tc>Engineering</je-tc>
     <je-tc>Senior Developer</je-tc>
     <je-tc>$95,000</je-tc>
     <je-tc>Active</je-tc>
-  </je-tr>
-  <je-tr>
-    <je-tc copy sticky>002</je-tc>
     <je-tc>Bob Smith</je-tc>
     <je-tc>Marketing</je-tc>
     <je-tc>Marketing Manager</je-tc>
