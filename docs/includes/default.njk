@@ -8,82 +8,82 @@
     name="viewport"
     content="width=device-width, user-scalable=no"
   />
-  <title>Jebamo</title>
+  <title>Orb Design System</title>
   <style>@view-transition{navigation: auto;}</style>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/prism.css" />
-  <link rel="stylesheet" href="/build/jebamo/styles/core.css" />
-  <link rel="stylesheet" href="/build/jebamo/styles/landmarks.css" />
-  <link rel="stylesheet" href="/build/jebamo/styles/classes.css" />
-  <script type="module" src="/build/jebamo/dist/loader.js"></script>
+  <link rel="stylesheet" href="/build/orb/styles/core.css" />
+  <link rel="stylesheet" href="/build/orb/styles/landmarks.css" />
+  <link rel="stylesheet" href="/build/orb/styles/classes.css" />
+  <script type="module" src="/build/orb/dist/loader.js"></script>
   <script type="module" src="/mermaid.js"></script>
 </head>
 
 <body condense>
   <header>
-    <je-toolbar>
+    <orb-toolbar>
       <style>@scope {:scope {height: 100%;}}</style>
       <img src="/hex-tag.svg" alt="logo" height="60" width="60" />
-      <h1>Jebamo</h1>
-      <je-link href="https://github.com/pgreen00/jebamo" target="_blank" slot="end">
+      <h1>Orb Design System</h1>
+      <orb-link href="https://github.com/pgreen00/orb" target="_blank" slot="end">
         <svg height="32" width="32" viewBox="0 0 24 24" version="1.1" fill="currentcolor" stroke="currentcolor">
           <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"></path>
         </svg>
-      </je-link>
-      <je-popover slot="end" placement="bottom-end" trigger-action="hover">
-        <je-button class="icon-only" slot="trigger">
-          <je-icon fill>home</je-icon>
-        </je-button>
-        <je-stack space="xs">
-          <je-button fill="clear" onclick="setTheme('system')">System</je-button>
-          <je-button fill="clear" onclick="setTheme('light')">Light</je-button>
-          <je-button fill="clear" onclick="setTheme('dark')">Dark</je-button>
-        </je-stack>
-      </je-popover>
-    </je-toolbar>
+      </orb-link>
+      <orb-popover slot="end" placement="bottom-end" trigger-action="hover">
+        <orb-button class="icon-only" slot="trigger">
+          <orb-icon fill>home</orb-icon>
+        </orb-button>
+        <orb-stack space="xs">
+          <orb-button fill="clear" onclick="setTheme('system')">System</orb-button>
+          <orb-button fill="clear" onclick="setTheme('light')">Light</orb-button>
+          <orb-button fill="clear" onclick="setTheme('dark')">Dark</orb-button>
+        </orb-stack>
+      </orb-popover>
+    </orb-toolbar>
   </header>
   <aside style="width: 300px;">
     <nav aria-label="Main navigation">
-      <je-tree id="main-nav-tree">
-        <je-branch href="/" label="Home"></je-branch>
-        <je-branch label="Installation"></je-branch>
-        <je-branch label="Tutorials" open>
-          <je-branch label="Forms"></je-branch>
-          <je-branch label="Data Tables"></je-branch>
-          <je-branch label="Sessions"></je-branch>
-          <je-branch label="Design Patterns">
-            <je-branch label="Loading State"></je-branch>
-            <je-branch label="Permissions"></je-branch>
-            <je-branch label="Simple Entities"></je-branch>
-            <je-branch label="Advanced Entities">
-              <je-branch label="List View"></je-branch>
-              <je-branch label="Creation Wizard"></je-branch>
-              <je-branch label="Details View"></je-branch>
-            </je-branch>
-            <je-branch label="Nested Relationships"></je-branch>
-          </je-branch>
-        </je-branch>
-        <je-branch label="Components" open>
+      <orb-tree id="main-nav-tree">
+        <orb-branch href="/" label="Home"></orb-branch>
+        <orb-branch label="Installation"></orb-branch>
+        <orb-branch label="Tutorials" open>
+          <orb-branch label="Forms"></orb-branch>
+          <orb-branch label="Data Tables"></orb-branch>
+          <orb-branch label="Sessions"></orb-branch>
+          <orb-branch label="Design Patterns">
+            <orb-branch label="Loading State"></orb-branch>
+            <orb-branch label="Permissions"></orb-branch>
+            <orb-branch label="Simple Entities"></orb-branch>
+            <orb-branch label="Advanced Entities">
+              <orb-branch label="List View"></orb-branch>
+              <orb-branch label="Creation Wizard"></orb-branch>
+              <orb-branch label="Details View"></orb-branch>
+            </orb-branch>
+            <orb-branch label="Nested Relationships"></orb-branch>
+          </orb-branch>
+        </orb-branch>
+        <orb-branch label="Components" open>
           {% for component in collections.componentsNav %}
-            <je-branch label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></je-branch>
+            <orb-branch label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-branch>
           {% endfor %}
-        </je-branch>
-        <je-branch label="Design Tokens" open>
-          <je-branch label="Colors"></je-branch>
-          <je-branch label="Elevation"></je-branch>
-          <je-branch label="Font"></je-branch>
-          <je-branch label="Radius"></je-branch>
-          <je-branch label="Spacing"></je-branch>
-          <je-branch label="Transition"></je-branch>
-        </je-branch>
-        <je-branch label="CSS Classes"></je-branch>
-        <je-branch label="Changelog"></je-branch>
-      </je-tree>
+        </orb-branch>
+        <orb-branch label="Design Tokens" open>
+          <orb-branch label="Colors"></orb-branch>
+          <orb-branch label="Elevation"></orb-branch>
+          <orb-branch label="Font"></orb-branch>
+          <orb-branch label="Radius"></orb-branch>
+          <orb-branch label="Spacing"></orb-branch>
+          <orb-branch label="Transition"></orb-branch>
+        </orb-branch>
+        <orb-branch label="CSS Classes"></orb-branch>
+        <orb-branch label="Changelog"></orb-branch>
+      </orb-tree>
       <script type="module">
-        await customElements.whenDefined('je-tree')
-        await customElements.whenDefined('je-branch')
-        const tree = document.querySelector('je-tree#main-nav-tree')
-        const branches = Array.from(tree.querySelectorAll('je-branch'))
+        await customElements.whenDefined('orb-tree')
+        await customElements.whenDefined('orb-branch')
+        const tree = document.querySelector('orb-tree#main-nav-tree')
+        const branches = Array.from(tree.querySelectorAll('orb-branch'))
         const currentPath = window.location.href.replace(window.location.origin, '')
         const currentBranch = branches.find(b => b.href == currentPath)
         tree.value = currentBranch?.label
@@ -95,22 +95,22 @@
     </nav>
   </aside>
   <main>
-    <je-toc>
+    <orb-toc>
       {% block content %}
         {{ content | safe }}
       {% endblock %}
-    </je-toc>
+    </orb-toc>
   </main>
 </body>
 
 <script>
   function setTheme(theme) {
     const htmlEl = document.querySelector('html')
-    localStorage.setItem('jebamo__theme', theme ?? 'system')
-    htmlEl.classList.toggle('je-theme-light', theme === 'light')
-    htmlEl.classList.toggle('je-theme-dark', theme === 'dark')
+    localStorage.setItem('orb__theme', theme ?? 'system')
+    htmlEl.classList.toggle('orb-theme-light', theme === 'light')
+    htmlEl.classList.toggle('orb-theme-dark', theme === 'dark')
   }
-  setTheme(localStorage.getItem('jebamo__theme'))
+  setTheme(localStorage.getItem('orb__theme'))
 </script>
 
 </html>

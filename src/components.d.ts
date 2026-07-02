@@ -10,11 +10,13 @@ import { OverlayData } from "./components/je-overlay/je-overlay";
 import { OverlayData as OverlayData1 } from "./components/je-overlay/je-overlay";
 import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/je-rich-text/je-rich-text";
+import { ShaderErrorDetail } from "./components/je-shader-canvas/je-shader-canvas";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/je-overlay/je-overlay";
 export { OverlayData as OverlayData1 } from "./components/je-overlay/je-overlay";
 export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/je-rich-text/je-rich-text";
+export { ShaderErrorDetail } from "./components/je-shader-canvas/je-shader-canvas";
 export namespace Components {
     /**
      * Accordions are wrappers for <je-link href="../je-details">JeDetails</je-link>. When an inner detail is opened, the others are automatically closed.
@@ -56,7 +58,7 @@ export namespace Components {
           * @default false
          */
         "selected": boolean | null;
-        "selection"?: 'single' | 'multiple' | 'leaf';
+        "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
     interface JeBreadcrumb {
@@ -227,19 +229,17 @@ export namespace Components {
     }
     interface JeDivider {
         /**
-          * @default 'md'
+          * @default "md"
          */
-        "spacing": 'sm' | 'md' | 'lg' | 'none';
+        "spacing": "sm" | "md" | "lg" | "none";
         /**
-          * @default 'horizontal'
+          * @default "horizontal"
          */
-        "type": 'horizontal' | 'vertical';
+        "type": "horizontal" | "vertical";
     }
     interface JeDropzone {
     }
     interface JeEq {
-    }
-    interface JeForm {
     }
     interface JeGrid {
         "space"?: | "3xs"
@@ -364,6 +364,8 @@ export namespace Components {
           * @default false
          */
         "outline": boolean;
+    }
+    interface JePillGroup {
     }
     interface JePlaceholder {
         /**
@@ -528,6 +530,58 @@ export namespace Components {
          */
         "value": string;
     }
+    /**
+     * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+     * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
+     * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
+     * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
+     * and a full-screen vertex stage are injected for you — you only write the fragment.
+     */
+    interface JeShaderCanvas {
+        /**
+          * Pixel density multiplier applied to the backing store. Increase for sharper output.
+          * @default 1
+         */
+        "dpr": number;
+        /**
+          * Name of the fragment entry point in the supplied shader.
+          * @default "main"
+         */
+        "fragmentEntry": string;
+        /**
+          * Read the shader source currently in use.
+         */
+        "getShader": () => Promise<string>;
+        /**
+          * Backing-store height in pixels. When unset, the canvas fills its container.
+         */
+        "height"?: number;
+        /**
+          * Pause the render loop, keeping the last frame on screen.
+         */
+        "pause": () => Promise<void>;
+        /**
+          * Freezes time and stops the render loop while keeping the last frame on screen.
+          * @default false
+         */
+        "paused": boolean;
+        /**
+          * Resume the render loop (equivalent to `paused = false`).
+         */
+        "play": () => Promise<void>;
+        /**
+          * Reset elapsed time and the frame counter to zero.
+         */
+        "reset": () => Promise<void>;
+        /**
+          * Replace the shader source at runtime, recompiling the pipeline.
+         */
+        "setShader": (source: string) => Promise<void>;
+        /**
+          * Backing-store width in pixels. When unset, the canvas fills its container.
+         */
+        "width"?: number;
+    }
     interface JeSplitPanel {
     }
     interface JeSplitView {
@@ -580,6 +634,9 @@ export namespace Components {
         "copy": boolean;
         "rowSpan"?: number;
     }
+    /**
+     * its a textbox
+     */
     interface JeTextbox {
         /**
           * Optional debounce of the didInput event
@@ -795,10 +852,6 @@ export interface JeDropzoneCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeDropzoneElement;
 }
-export interface JeFormCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLJeFormElement;
-}
 export interface JeOverlayCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeOverlayElement;
@@ -814,6 +867,10 @@ export interface JeRadioGroupCustomEvent<T> extends CustomEvent<T> {
 export interface JeRichTextCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLJeRichTextElement;
+}
+export interface JeShaderCanvasCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLJeShaderCanvasElement;
 }
 export interface JeTabsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1046,23 +1103,6 @@ declare global {
         prototype: HTMLJeEqElement;
         new (): HTMLJeEqElement;
     };
-    interface HTMLJeFormElementEventMap {
-        "dataSubmit": Record<string, any>;
-    }
-    interface HTMLJeFormElement extends Components.JeForm, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeFormElementEventMap>(type: K, listener: (this: HTMLJeFormElement, ev: JeFormCustomEvent<HTMLJeFormElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeFormElementEventMap>(type: K, listener: (this: HTMLJeFormElement, ev: JeFormCustomEvent<HTMLJeFormElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLJeFormElement: {
-        prototype: HTMLJeFormElement;
-        new (): HTMLJeFormElement;
-    };
     interface HTMLJeGridElement extends Components.JeGrid, HTMLStencilElement {
     }
     var HTMLJeGridElement: {
@@ -1152,6 +1192,12 @@ declare global {
     var HTMLJePillElement: {
         prototype: HTMLJePillElement;
         new (): HTMLJePillElement;
+    };
+    interface HTMLJePillGroupElement extends Components.JePillGroup, HTMLStencilElement {
+    }
+    var HTMLJePillGroupElement: {
+        prototype: HTMLJePillGroupElement;
+        new (): HTMLJePillGroupElement;
     };
     interface HTMLJePlaceholderElement extends Components.JePlaceholder, HTMLStencilElement {
     }
@@ -1246,6 +1292,31 @@ declare global {
         prototype: HTMLJeRichTextElement;
         new (): HTMLJeRichTextElement;
     };
+    interface HTMLJeShaderCanvasElementEventMap {
+        "ready": void;
+        "shaderError": ShaderErrorDetail;
+    }
+    /**
+     * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+     * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
+     * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
+     * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
+     * and a full-screen vertex stage are injected for you — you only write the fragment.
+     */
+    interface HTMLJeShaderCanvasElement extends Components.JeShaderCanvas, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLJeShaderCanvasElementEventMap>(type: K, listener: (this: HTMLJeShaderCanvasElement, ev: JeShaderCanvasCustomEvent<HTMLJeShaderCanvasElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLJeShaderCanvasElementEventMap>(type: K, listener: (this: HTMLJeShaderCanvasElement, ev: JeShaderCanvasCustomEvent<HTMLJeShaderCanvasElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLJeShaderCanvasElement: {
+        prototype: HTMLJeShaderCanvasElement;
+        new (): HTMLJeShaderCanvasElement;
+    };
     interface HTMLJeSplitPanelElement extends Components.JeSplitPanel, HTMLStencilElement {
     }
     var HTMLJeSplitPanelElement: {
@@ -1308,6 +1379,9 @@ declare global {
     interface HTMLJeTextboxElementEventMap {
         "valueChange": any;
     }
+    /**
+     * its a textbox
+     */
     interface HTMLJeTextboxElement extends Components.JeTextbox, HTMLStencilElement {
         addEventListener<K extends keyof HTMLJeTextboxElementEventMap>(type: K, listener: (this: HTMLJeTextboxElement, ev: JeTextboxCustomEvent<HTMLJeTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1432,7 +1506,6 @@ declare global {
         "je-divider": HTMLJeDividerElement;
         "je-dropzone": HTMLJeDropzoneElement;
         "je-eq": HTMLJeEqElement;
-        "je-form": HTMLJeFormElement;
         "je-grid": HTMLJeGridElement;
         "je-icon": HTMLJeIconElement;
         "je-item": HTMLJeItemElement;
@@ -1446,6 +1519,7 @@ declare global {
         "je-option": HTMLJeOptionElement;
         "je-overlay": HTMLJeOverlayElement;
         "je-pill": HTMLJePillElement;
+        "je-pill-group": HTMLJePillGroupElement;
         "je-placeholder": HTMLJePlaceholderElement;
         "je-popover": HTMLJePopoverElement;
         "je-radio": HTMLJeRadioElement;
@@ -1455,6 +1529,7 @@ declare global {
         "je-reorder-item": HTMLJeReorderItemElement;
         "je-reorder-list": HTMLJeReorderListElement;
         "je-rich-text": HTMLJeRichTextElement;
+        "je-shader-canvas": HTMLJeShaderCanvasElement;
         "je-split-panel": HTMLJeSplitPanelElement;
         "je-split-view": HTMLJeSplitViewElement;
         "je-stack": HTMLJeStackElement;
@@ -1514,7 +1589,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "selected"?: boolean | null;
-        "selection"?: 'single' | 'multiple' | 'leaf';
+        "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
     interface JeBreadcrumb {
@@ -1715,21 +1790,18 @@ declare namespace LocalJSX {
     }
     interface JeDivider {
         /**
-          * @default 'md'
+          * @default "md"
          */
-        "spacing"?: 'sm' | 'md' | 'lg' | 'none';
+        "spacing"?: "sm" | "md" | "lg" | "none";
         /**
-          * @default 'horizontal'
+          * @default "horizontal"
          */
-        "type"?: 'horizontal' | 'vertical';
+        "type"?: "horizontal" | "vertical";
     }
     interface JeDropzone {
         "onDataDrop"?: (event: JeDropzoneCustomEvent<DataTransfer>) => void;
     }
     interface JeEq {
-    }
-    interface JeForm {
-        "onDataSubmit"?: (event: JeFormCustomEvent<Record<string, any>>) => void;
     }
     interface JeGrid {
         "space"?: | "3xs"
@@ -1860,6 +1932,8 @@ declare namespace LocalJSX {
           * @default false
          */
         "outline"?: boolean;
+    }
+    interface JePillGroup {
     }
     interface JePlaceholder {
         /**
@@ -2053,6 +2127,46 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
+    /**
+     * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+     * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
+     * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
+     * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
+     * and a full-screen vertex stage are injected for you — you only write the fragment.
+     */
+    interface JeShaderCanvas {
+        /**
+          * Pixel density multiplier applied to the backing store. Increase for sharper output.
+          * @default 1
+         */
+        "dpr"?: number;
+        /**
+          * Name of the fragment entry point in the supplied shader.
+          * @default "main"
+         */
+        "fragmentEntry"?: string;
+        /**
+          * Backing-store height in pixels. When unset, the canvas fills its container.
+         */
+        "height"?: number;
+        /**
+          * Fires once the GPU device is ready and the first frame has rendered.
+         */
+        "onReady"?: (event: JeShaderCanvasCustomEvent<void>) => void;
+        /**
+          * Fires when the shader fails to compile/validate or WebGPU is unavailable.
+         */
+        "onShaderError"?: (event: JeShaderCanvasCustomEvent<ShaderErrorDetail>) => void;
+        /**
+          * Freezes time and stops the render loop while keeping the last frame on screen.
+          * @default false
+         */
+        "paused"?: boolean;
+        /**
+          * Backing-store width in pixels. When unset, the canvas fills its container.
+         */
+        "width"?: number;
+    }
     interface JeSplitPanel {
     }
     interface JeSplitView {
@@ -2118,6 +2232,9 @@ declare namespace LocalJSX {
         "copy"?: boolean;
         "rowSpan"?: number;
     }
+    /**
+     * its a textbox
+     */
     interface JeTextbox {
         /**
           * Optional debounce of the didInput event
@@ -2338,7 +2455,7 @@ declare namespace LocalJSX {
         "open": boolean;
     }
     interface JeBranchAttributes {
-        "selection": 'single' | 'multiple' | 'leaf';
+        "selection": "single" | "multiple" | "leaf";
         "indentation": boolean;
         "open": boolean;
         "value": string;
@@ -2403,8 +2520,8 @@ declare namespace LocalJSX {
         "iconSide": "left" | "right";
     }
     interface JeDividerAttributes {
-        "type": 'horizontal' | 'vertical';
-        "spacing": 'sm' | 'md' | 'lg' | 'none';
+        "type": "horizontal" | "vertical";
+        "spacing": "sm" | "md" | "lg" | "none";
     }
     interface JeGridAttributes {
         "space": | "3xs"
@@ -2491,6 +2608,13 @@ declare namespace LocalJSX {
         "minHeight": string;
         "maxHeight": string;
         "showWordCount": boolean;
+    }
+    interface JeShaderCanvasAttributes {
+        "width": number;
+        "height": number;
+        "fragmentEntry": string;
+        "dpr": number;
+        "paused": boolean;
     }
     interface JeStackAttributes {
         "mode": "row" | "column";
@@ -2613,7 +2737,6 @@ declare namespace LocalJSX {
         "je-divider": Omit<JeDivider, keyof JeDividerAttributes> & { [K in keyof JeDivider & keyof JeDividerAttributes]?: JeDivider[K] } & { [K in keyof JeDivider & keyof JeDividerAttributes as `attr:${K}`]?: JeDividerAttributes[K] } & { [K in keyof JeDivider & keyof JeDividerAttributes as `prop:${K}`]?: JeDivider[K] };
         "je-dropzone": JeDropzone;
         "je-eq": JeEq;
-        "je-form": JeForm;
         "je-grid": Omit<JeGrid, keyof JeGridAttributes> & { [K in keyof JeGrid & keyof JeGridAttributes]?: JeGrid[K] } & { [K in keyof JeGrid & keyof JeGridAttributes as `attr:${K}`]?: JeGridAttributes[K] } & { [K in keyof JeGrid & keyof JeGridAttributes as `prop:${K}`]?: JeGrid[K] };
         "je-icon": Omit<JeIcon, keyof JeIconAttributes> & { [K in keyof JeIcon & keyof JeIconAttributes]?: JeIcon[K] } & { [K in keyof JeIcon & keyof JeIconAttributes as `attr:${K}`]?: JeIconAttributes[K] } & { [K in keyof JeIcon & keyof JeIconAttributes as `prop:${K}`]?: JeIcon[K] };
         "je-item": JeItem;
@@ -2627,6 +2750,7 @@ declare namespace LocalJSX {
         "je-option": Omit<JeOption, keyof JeOptionAttributes> & { [K in keyof JeOption & keyof JeOptionAttributes]?: JeOption[K] } & { [K in keyof JeOption & keyof JeOptionAttributes as `attr:${K}`]?: JeOptionAttributes[K] } & { [K in keyof JeOption & keyof JeOptionAttributes as `prop:${K}`]?: JeOption[K] };
         "je-overlay": Omit<JeOverlay, keyof JeOverlayAttributes> & { [K in keyof JeOverlay & keyof JeOverlayAttributes]?: JeOverlay[K] } & { [K in keyof JeOverlay & keyof JeOverlayAttributes as `attr:${K}`]?: JeOverlayAttributes[K] } & { [K in keyof JeOverlay & keyof JeOverlayAttributes as `prop:${K}`]?: JeOverlay[K] };
         "je-pill": Omit<JePill, keyof JePillAttributes> & { [K in keyof JePill & keyof JePillAttributes]?: JePill[K] } & { [K in keyof JePill & keyof JePillAttributes as `attr:${K}`]?: JePillAttributes[K] } & { [K in keyof JePill & keyof JePillAttributes as `prop:${K}`]?: JePill[K] };
+        "je-pill-group": JePillGroup;
         "je-placeholder": Omit<JePlaceholder, keyof JePlaceholderAttributes> & { [K in keyof JePlaceholder & keyof JePlaceholderAttributes]?: JePlaceholder[K] } & { [K in keyof JePlaceholder & keyof JePlaceholderAttributes as `attr:${K}`]?: JePlaceholderAttributes[K] } & { [K in keyof JePlaceholder & keyof JePlaceholderAttributes as `prop:${K}`]?: JePlaceholder[K] };
         "je-popover": Omit<JePopover, keyof JePopoverAttributes> & { [K in keyof JePopover & keyof JePopoverAttributes]?: JePopover[K] } & { [K in keyof JePopover & keyof JePopoverAttributes as `attr:${K}`]?: JePopoverAttributes[K] } & { [K in keyof JePopover & keyof JePopoverAttributes as `prop:${K}`]?: JePopover[K] };
         "je-radio": Omit<JeRadio, keyof JeRadioAttributes> & { [K in keyof JeRadio & keyof JeRadioAttributes]?: JeRadio[K] } & { [K in keyof JeRadio & keyof JeRadioAttributes as `attr:${K}`]?: JeRadioAttributes[K] } & { [K in keyof JeRadio & keyof JeRadioAttributes as `prop:${K}`]?: JeRadio[K] };
@@ -2636,6 +2760,7 @@ declare namespace LocalJSX {
         "je-reorder-item": JeReorderItem;
         "je-reorder-list": JeReorderList;
         "je-rich-text": Omit<JeRichText, keyof JeRichTextAttributes> & { [K in keyof JeRichText & keyof JeRichTextAttributes]?: JeRichText[K] } & { [K in keyof JeRichText & keyof JeRichTextAttributes as `attr:${K}`]?: JeRichTextAttributes[K] } & { [K in keyof JeRichText & keyof JeRichTextAttributes as `prop:${K}`]?: JeRichText[K] };
+        "je-shader-canvas": Omit<JeShaderCanvas, keyof JeShaderCanvasAttributes> & { [K in keyof JeShaderCanvas & keyof JeShaderCanvasAttributes]?: JeShaderCanvas[K] } & { [K in keyof JeShaderCanvas & keyof JeShaderCanvasAttributes as `attr:${K}`]?: JeShaderCanvasAttributes[K] } & { [K in keyof JeShaderCanvas & keyof JeShaderCanvasAttributes as `prop:${K}`]?: JeShaderCanvas[K] };
         "je-split-panel": JeSplitPanel;
         "je-split-view": JeSplitView;
         "je-stack": Omit<JeStack, keyof JeStackAttributes> & { [K in keyof JeStack & keyof JeStackAttributes]?: JeStack[K] } & { [K in keyof JeStack & keyof JeStackAttributes as `attr:${K}`]?: JeStackAttributes[K] } & { [K in keyof JeStack & keyof JeStackAttributes as `prop:${K}`]?: JeStack[K] };
@@ -2685,7 +2810,6 @@ declare module "@stencil/core" {
             "je-divider": LocalJSX.IntrinsicElements["je-divider"] & JSXBase.HTMLAttributes<HTMLJeDividerElement>;
             "je-dropzone": LocalJSX.IntrinsicElements["je-dropzone"] & JSXBase.HTMLAttributes<HTMLJeDropzoneElement>;
             "je-eq": LocalJSX.IntrinsicElements["je-eq"] & JSXBase.HTMLAttributes<HTMLJeEqElement>;
-            "je-form": LocalJSX.IntrinsicElements["je-form"] & JSXBase.HTMLAttributes<HTMLJeFormElement>;
             "je-grid": LocalJSX.IntrinsicElements["je-grid"] & JSXBase.HTMLAttributes<HTMLJeGridElement>;
             "je-icon": LocalJSX.IntrinsicElements["je-icon"] & JSXBase.HTMLAttributes<HTMLJeIconElement>;
             "je-item": LocalJSX.IntrinsicElements["je-item"] & JSXBase.HTMLAttributes<HTMLJeItemElement>;
@@ -2699,6 +2823,7 @@ declare module "@stencil/core" {
             "je-option": LocalJSX.IntrinsicElements["je-option"] & JSXBase.HTMLAttributes<HTMLJeOptionElement>;
             "je-overlay": LocalJSX.IntrinsicElements["je-overlay"] & JSXBase.HTMLAttributes<HTMLJeOverlayElement>;
             "je-pill": LocalJSX.IntrinsicElements["je-pill"] & JSXBase.HTMLAttributes<HTMLJePillElement>;
+            "je-pill-group": LocalJSX.IntrinsicElements["je-pill-group"] & JSXBase.HTMLAttributes<HTMLJePillGroupElement>;
             "je-placeholder": LocalJSX.IntrinsicElements["je-placeholder"] & JSXBase.HTMLAttributes<HTMLJePlaceholderElement>;
             "je-popover": LocalJSX.IntrinsicElements["je-popover"] & JSXBase.HTMLAttributes<HTMLJePopoverElement>;
             "je-radio": LocalJSX.IntrinsicElements["je-radio"] & JSXBase.HTMLAttributes<HTMLJeRadioElement>;
@@ -2708,6 +2833,14 @@ declare module "@stencil/core" {
             "je-reorder-item": LocalJSX.IntrinsicElements["je-reorder-item"] & JSXBase.HTMLAttributes<HTMLJeReorderItemElement>;
             "je-reorder-list": LocalJSX.IntrinsicElements["je-reorder-list"] & JSXBase.HTMLAttributes<HTMLJeReorderListElement>;
             "je-rich-text": LocalJSX.IntrinsicElements["je-rich-text"] & JSXBase.HTMLAttributes<HTMLJeRichTextElement>;
+            /**
+             * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+             * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
+             * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
+             * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
+             * and a full-screen vertex stage are injected for you — you only write the fragment.
+             */
+            "je-shader-canvas": LocalJSX.IntrinsicElements["je-shader-canvas"] & JSXBase.HTMLAttributes<HTMLJeShaderCanvasElement>;
             "je-split-panel": LocalJSX.IntrinsicElements["je-split-panel"] & JSXBase.HTMLAttributes<HTMLJeSplitPanelElement>;
             "je-split-view": LocalJSX.IntrinsicElements["je-split-view"] & JSXBase.HTMLAttributes<HTMLJeSplitViewElement>;
             "je-stack": LocalJSX.IntrinsicElements["je-stack"] & JSXBase.HTMLAttributes<HTMLJeStackElement>;
@@ -2716,6 +2849,9 @@ declare module "@stencil/core" {
             "je-table": LocalJSX.IntrinsicElements["je-table"] & JSXBase.HTMLAttributes<HTMLJeTableElement>;
             "je-tabs": LocalJSX.IntrinsicElements["je-tabs"] & JSXBase.HTMLAttributes<HTMLJeTabsElement>;
             "je-tc": LocalJSX.IntrinsicElements["je-tc"] & JSXBase.HTMLAttributes<HTMLJeTcElement>;
+            /**
+             * its a textbox
+             */
             "je-textbox": LocalJSX.IntrinsicElements["je-textbox"] & JSXBase.HTMLAttributes<HTMLJeTextboxElement>;
             "je-toc": LocalJSX.IntrinsicElements["je-toc"] & JSXBase.HTMLAttributes<HTMLJeTocElement>;
             "je-toggle": LocalJSX.IntrinsicElements["je-toggle"] & JSXBase.HTMLAttributes<HTMLJeToggleElement>;

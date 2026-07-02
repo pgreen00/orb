@@ -1,10 +1,10 @@
 {
-  "name": "jebamo",
-  "version": "0.0.20",
-  "description": "Jebamo web component library",
+  "name": "orb-style",
+  "version": "0.0.1",
+  "description": "Orb design system",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pgreen00/jebamo"
+    "url": "https://github.com/pgreen00/orb"
   },
   "keywords": [
     "web",
@@ -12,7 +12,7 @@
     "library",
     "typescript",
     "stencil",
-    "jebamo"
+    "orb"
   ],
   "author": "Peter Green",
   "exports": {
@@ -23,9 +23,9 @@
     "./loader": {
       "default": "./dist/loader.js"
     },
-    "./je-*": {
-      "types": "./dist/je-*.d.ts",
-      "default": "./dist/je-*.js"
+    "./orb-*": {
+      "types": "./dist/orb-*.d.ts",
+      "default": "./dist/orb-*.js"
     }
   },
   "files": [

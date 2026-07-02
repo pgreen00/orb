@@ -60,23 +60,23 @@ export default async function (eleventyConfig) {
 
         const id = `code-demo-${Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join("")}`;
         return `
-          <div id="${id}" class="je-radius-lg" style="box-sizing:border-box;border:solid 1px light-dark(var(--je-neutral-500), var(--je-neutral-800));">
-            <div class="demo-result je-padding">
+          <div id="${id}" class="orb-radius-lg" style="box-sizing:border-box;border:solid 1px light-dark(var(--orb-neutral-500), var(--orb-neutral-800));">
+            <div class="demo-result orb-padding">
               ${html?.content ?? ""}
               ${js ? `<script type="module">${js.content}</script>` : ""}
             </div>
-            <je-divider spacing="none"></je-divider>
-            <div class="je-padding">
-            <je-tabs id="${id}-tabs" value="HTML">
-              ${html ? "<je-tab>HTML</je-tab>" : ""}
-              ${js ? "<je-tab>Javascript</je-tab>" : ""}
-            </je-tabs>
+            <orb-divider spacing="none"></orb-divider>
+            <div class="orb-padding">
+            <orb-tabs id="${id}-tabs" value="HTML">
+              ${html ? "<orb-tab>HTML</orb-tab>" : ""}
+              ${js ? "<orb-tab>Javascript</orb-tab>" : ""}
+            </orb-tabs>
             <div id="${id}-tab-content"></div>
             </div>
           </div>
           <script type="module">
-          await customElements.whenDefined('je-tabs')
-          const tabs = document.querySelector('je-tabs#${id}-tabs')
+          await customElements.whenDefined('orb-tabs')
+          const tabs = document.querySelector('orb-tabs#${id}-tabs')
           const root = document.querySelector('div#${id}-tab-content')
           const htmlTemplate = \`${html.original}\`
           const jsTemplate = \`${js?.original || ""}\`
@@ -114,8 +114,8 @@ export default async function (eleventyConfig) {
   eleventyConfig.addFilter("markdown", (content) => md.render(content));
   eleventyConfig.addGlobalData("layout", "default");
   eleventyConfig.addPassthroughCopy({
-    "./dist": "build/jebamo/dist/",
-    "./styles": "build/jebamo/styles/",
+    "./dist": "build/orb/dist/",
+    "./styles": "build/orb/styles/",
     "./docs/public": "/",
   });
 

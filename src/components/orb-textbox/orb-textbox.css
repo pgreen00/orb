@@ -1,0 +1,103 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--je-spacing-xs);
+}
+
+:host(:state(--user-invalid)) div[part="container"] {
+  border-color: light-dark(var(--je-danger-400), var(--je-danger-300));
+}
+
+je-note {
+  margin-left: var(--je-spacing-md);
+}
+
+div[part="container"] {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--je-spacing-md);
+  border-radius: var(--je-radius-md);
+  border: solid 1px light-dark(var(--je-neutral-500), var(--je-neutral-400));
+  align-items: center;
+  background-color: transparent;
+  color: inherit;
+  padding-inline: var(--je-spacing-md);
+  cursor: text;
+
+  &.sm {
+    height: 2.5rem;
+
+    textarea {
+      height: 6rem;
+    }
+  }
+
+  &.md {
+    height: 3rem;
+
+    textarea {
+      height: 8rem;
+    }
+  }
+
+  &.lg {
+    height: 3.5rem;
+
+    textarea {
+      height: 10rem;
+    }
+  }
+
+  &.multiline {
+    align-items: baseline;
+    height: fit-content;
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:focus-within {
+    border-color: light-dark(var(--je-primary-500), var(--je-primary-200));
+  }
+}
+
+[part="input"] {
+  background-color: inherit;
+  color: inherit;
+  font-family: inherit;
+  box-shadow: none;
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  outline: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  font-size: var(--je-font-md);
+  font-weight: var(--je-font-light);
+  white-space: nowrap;
+  overflow-y: hidden;
+  overflow-x: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: inherit;
+
+  &[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: light-dark(var(--je-neutral-700), var(--je-neutral-600));
+    cursor: inherit;
+  }
+}
+
+:host(:state(--user-invalid))::after {
+  display: inline-flex;
+  font-weight: var(--je-font-light);
+  color: light-dark(var(--je-danger-400), var(--je-danger-300));
+  font-size: var(--je-font-sm);
+  gap: var(--je-spacing-2xs);
+  margin-left: var(--je-spacing-md);
+  content: attr(data-error);
+}
