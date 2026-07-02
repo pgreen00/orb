@@ -20,7 +20,8 @@
     "strict": false
   },
   "include": [
-    "src"
+    "src",
+    "e2e/utils.ts"
   ],
   "exclude": [
     "node_modules"

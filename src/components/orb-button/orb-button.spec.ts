@@ -1,13 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { mount } from "../../../e2e/utils";
 
 test.describe("orb-button", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-  });
-
   // Basic rendering test
   test("renders with text content", async ({ page }) => {
-    await page.setContent("<orb-button>Hello world!</orb-button>");
+    await mount(page, "<orb-button>Hello world!</orb-button>");
     const button = page.locator("orb-button");
 
     await expect(button).toBeVisible();
@@ -16,15 +13,17 @@ test.describe("orb-button", () => {
 
   // Testing attributes and properties
   test("sets and reads attributes", async ({ page }) => {
-    await page.setContent(
-      '<orb-button disabled="true" variant="primary">Button</orb-button>',
+    await mount(
+      page,
+      '<orb-button disabled="true" color="primary">Button</orb-button>',
     );
     const button = page.locator("orb-button");
 
     await expect(button).toHaveAttribute("disabled", "true");
-    await expect(button).toHaveAttribute("variant", "primary");
+    await expect(button).toHaveAttribute("color", "primary");
 
-    // Test property access
+    // mount() already waited for the element to upgrade, so the JS property
+    // getter is available.
     const isDisabled = await button.evaluate<any, any>((el) => el.disabled);
     expect(isDisabled).toBe(true);
   });
