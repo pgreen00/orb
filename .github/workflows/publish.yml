@@ -21,8 +21,8 @@ jobs:
         run: npm ci
       - name: Build core
         run: npm run build
-      #- name: Publish core
-      #  run: npm publish
+      - name: Publish core
+        run: npm publish
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
