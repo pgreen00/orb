@@ -1,4 +1,4 @@
 ---
-title: 'JeRadioButton | <je-radio-button>'
+title: 'OrbRadioButton | <orb-radio-button>'
 sidebar_label: 'Radio Button'
 ---

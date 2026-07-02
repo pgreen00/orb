@@ -1,4 +1,4 @@
 ---
-title: 'JeSplitView | <je-split-view>'
+title: 'OrbSplitView | <orb-split-view>'
 sidebar_label: 'Split View'
 ---

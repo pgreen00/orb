@@ -1,24 +1,24 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-item',
-  styleUrl: 'je-item.css',
+  tag: "orb-item",
+  styleUrl: "orb-item.css",
   shadow: {
-    delegatesFocus: true
+    delegatesFocus: true,
   },
 })
-export class JeItem {
+export class OrbItem {
   render() {
     return (
       <Host>
         <div>
-          <slot name='start'/>
+          <slot name="start" />
         </div>
-        <button type='button'>
+        <button type="button">
           <slot />
         </button>
         <div>
-        <slot name='end'/>
+          <slot name="end" />
         </div>
       </Host>
     );

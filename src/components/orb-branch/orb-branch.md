@@ -1,4 +1,4 @@
 ---
-title: 'JeBranch | <je-branch>'
+title: 'OrbBranch | <orb-branch>'
 sidebar_label: 'Branch'
 ---

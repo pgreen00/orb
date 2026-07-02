@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-control',
-  styleUrl: 'je-control.css',
+  tag: "orb-control",
+  styleUrl: "orb-control.css",
   shadow: true,
 })
-export class JeControl {
+export class OrbControl {
   render() {
     return (
       <Host>

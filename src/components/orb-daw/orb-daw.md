@@ -1,4 +1,4 @@
 ---
-title: 'JeDaw | <je-daw>'
+title: 'OrbDaw | <orb-daw>'
 sidebar_label: 'Audio Workspace'
 ---

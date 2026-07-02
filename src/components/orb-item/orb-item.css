@@ -1,20 +1,20 @@
 :host {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  border-radius: var(--je-radius-md);
+  border-radius: var(--orb-radius-md);
   box-sizing: border-box;
   align-items: center;
   transition: background-color 75ms ease-in-out;
 }
 
 :host(:hover) {
-  background-color: light-dark(var(--je-primary-100), var(--je-primary-900));
+  background-color: light-dark(var(--orb-primary-100), var(--orb-primary-900));
 }
 
 div {
   display: flex;
   align-items: center;
-  padding-inline: var(--je-spacing-3xs);
+  padding-inline: var(--orb-spacing-3xs);
 }
 
 button {
@@ -25,7 +25,7 @@ button {
   border: 0;
   box-sizing: border-box;
   font-family: inherit;
-  padding-inline: var(--je-spacing-xs);
+  padding-inline: var(--orb-spacing-xs);
   cursor: pointer;
   background-color: transparent;
   color: inherit;

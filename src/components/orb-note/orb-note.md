@@ -1,4 +1,4 @@
 ---
-title: 'JeNote | <je-note>'
+title: 'OrbNote | <orb-note>'
 sidebar_label: 'Note'
 ---

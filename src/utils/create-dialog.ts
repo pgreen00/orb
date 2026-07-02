@@ -18,7 +18,7 @@ export type DialogButton = {
   color?: Color;
   type?: "submit" | "reset";
   size?: "sm" | "md" | "lg";
-  handler?: (dialog: HTMLJeOverlayElement) => void | Promise<void>;
+  handler?: (dialog: HTMLOrbOverlayElement) => void | Promise<void>;
 };
 
 export type CreateDialogOptions = {
@@ -31,11 +31,11 @@ export type CreateDialogOptions = {
 };
 
 export const createDialog = (options: CreateDialogOptions) => {
-  const dialog = document.createElement("je-overlay");
+  const dialog = document.createElement("orb-overlay");
   dialog.size = "sm";
   dialog.setHTMLUnsafe(`
-    <je-form>
-      <div class="je-dialog-container">
+    <orb-form>
+      <div class="orb-dialog-container">
         <template shadowrootmode="open">
           <style>
             :host {
@@ -46,23 +46,23 @@ export const createDialog = (options: CreateDialogOptions) => {
               box-sizing: border-box;
             }
           </style>
-          <je-toolbar>
+          <orb-toolbar>
             <slot name="icon"></slot>
             <slot name="header"></slot>
-            <je-button slot="end">
-              <je-icon>close</je-icon
-            </je-button>
-          </je-toolbar>
+            <orb-button slot="end">
+              <orb-icon>close</orb-icon
+            </orb-button>
+          </orb-toolbar>
           <slot name="message"></slot>
           <slot name="controls"></slot>
           <slot name="buttons"></slot>
         </template>
       </div>
-    </je-form>
+    </orb-form>
   `);
   dialog.backdropDismiss = options.backdropDismiss;
   document.body.append(dialog);
-  const container = dialog.querySelector(".je-dialog-container");
+  const container = dialog.querySelector(".orb-dialog-container");
   if (options.header) {
     container.insertAdjacentHTML(
       "afterbegin",
@@ -75,7 +75,7 @@ export const createDialog = (options: CreateDialogOptions) => {
     container.insertAdjacentHTML(
       "beforeend",
       `
-      <je-label slot="message">${options.message}</je-label>
+      <orb-label slot="message">${options.message}</orb-label>
     `,
     );
   }
@@ -83,7 +83,7 @@ export const createDialog = (options: CreateDialogOptions) => {
     container.insertAdjacentHTML(
       "afterbegin",
       `
-      <je-icon fill slot="icon">${options.icon}</je-icon>
+      <orb-icon fill slot="icon">${options.icon}</orb-icon>
     `,
     );
   }
@@ -91,12 +91,12 @@ export const createDialog = (options: CreateDialogOptions) => {
     container.insertAdjacentHTML(
       "beforeend",
       `
-      <div slot="controls" class="je-dialog-controls"></div>
+      <div slot="controls" class="orb-dialog-controls"></div>
     `,
     );
-    const controls = container.querySelector(".je-dialog-controls");
+    const controls = container.querySelector(".orb-dialog-controls");
     options.controls.forEach((control) => {
-      const input = document.createElement("je-textbox");
+      const input = document.createElement("orb-textbox");
       input.label = control.label;
       input.placeholder = control.placeholder;
       //input.validators = control.validators;
@@ -113,12 +113,12 @@ export const createDialog = (options: CreateDialogOptions) => {
     container.insertAdjacentHTML(
       "beforeend",
       `
-      <je-toolbar slot="buttons" class="je-dialog-buttons"></je-toolbar>
+      <orb-toolbar slot="buttons" class="orb-dialog-buttons"></orb-toolbar>
     `,
     );
-    const buttons = container.querySelector(".je-dialog-buttons");
+    const buttons = container.querySelector(".orb-dialog-buttons");
     options.buttons.forEach((button) => {
-      const btn = document.createElement("je-button");
+      const btn = document.createElement("orb-button");
       btn.textContent = button.text;
       btn.fill = button.fill;
       btn.color = button.color;
@@ -130,9 +130,9 @@ export const createDialog = (options: CreateDialogOptions) => {
       buttons.append(btn);
     });
   }
-  const closeButton = container.shadowRoot.querySelector("je-button");
+  const closeButton = container.shadowRoot.querySelector("orb-button");
   closeButton.addEventListener("click", () => dialog.hide(), { once: true });
-  const form = dialog.querySelector("je-form");
+  const form = dialog.querySelector("orb-form");
   form.addEventListener("submit", () => dialog.hide(), { once: true });
   dialog.addEventListener("dismiss", () => dialog.remove(), { once: true });
   return [dialog, form] as const;

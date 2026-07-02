@@ -1,33 +1,33 @@
 :host {
   box-sizing: border-box;
   display: block;
-  padding: var(--je-spacing-sm);
-  box-shadow: var(--je-shadow-sm);
-  border: 1px solid light-dark(transparent, var(--je-neutral-800));
-  background-color: light-dark(white, var(--je-neutral-900));
-  border-radius: var(--je-radius-md);
+  padding: var(--orb-spacing-sm);
+  box-shadow: var(--orb-shadow-sm);
+  border: 1px solid light-dark(transparent, var(--orb-neutral-800));
+  background-color: light-dark(white, var(--orb-neutral-900));
+  border-radius: var(--orb-radius-md);
 }
 
 :host([color="primary"]) {
-  color: var(--je-neutral-75);
-  background-color: var(--je-primary-500);
+  color: var(--orb-neutral-75);
+  background-color: var(--orb-primary-500);
   border-color: transparent;
 }
 
 :host([color="success"]) {
-  color: var(--je-neutral-925);
-  background-color: var(--je-success-500);
+  color: var(--orb-neutral-925);
+  background-color: var(--orb-success-500);
   border-color: transparent;
 }
 
 :host([color="warning"]) {
-  color: var(--je-neutral-925);
-  background-color: var(--je-warning-500);
+  color: var(--orb-neutral-925);
+  background-color: var(--orb-warning-500);
   border-color: transparent;
 }
 
 :host([color="danger"]) {
-  color: var(--je-neutral-75);
-  background-color: var(--je-danger-500);
+  color: var(--orb-neutral-75);
+  background-color: var(--orb-danger-500);
   border-color: transparent;
 }

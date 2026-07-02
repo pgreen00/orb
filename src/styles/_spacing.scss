@@ -13,28 +13,28 @@ $spacing: (
 @mixin classes($property) {
   @each $name, $value in $spacing {
     @if $name == md {
-      .je-#{$property} { #{$property}: var(--je-spacing-#{$name}); }
-      .je-#{$property}-top { #{$property}-top: var(--je-spacing-#{$name}); }
-      .je-#{$property}-right { #{$property}-right: var(--je-spacing-#{$name}); }
-      .je-#{$property}-bottom { #{$property}-bottom: var(--je-spacing-#{$name}); }
-      .je-#{$property}-left { #{$property}-left: var(--je-spacing-#{$name}); }
-      .je-#{$property}-horizontal { #{$property}-inline: var(--je-spacing-#{$name}); }
-      .je-#{$property}-vertical { #{$property}-block: var(--je-spacing-#{$name}); }
+      .orb-#{$property} { #{$property}: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-top { #{$property}-top: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-right { #{$property}-right: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-bottom { #{$property}-bottom: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-left { #{$property}-left: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-horizontal { #{$property}-inline: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-vertical { #{$property}-block: var(--orb-spacing-#{$name}); }
     } @else {
-      .je-#{$property}-#{$name} { #{$property}: var(--je-spacing-#{$name}); }
-      .je-#{$property}-top-#{$name} { #{$property}-top: var(--je-spacing-#{$name}); }
-      .je-#{$property}-right-#{$name} { #{$property}-right: var(--je-spacing-#{$name}); }
-      .je-#{$property}-bottom-#{$name} { #{$property}-bottom: var(--je-spacing-#{$name}); }
-      .je-#{$property}-left-#{$name} { #{$property}-left: var(--je-spacing-#{$name}); }
-      .je-#{$property}-horizontal-#{$name} { #{$property}-inline: var(--je-spacing-#{$name}); }
-      .je-#{$property}-vertical-#{$name} { #{$property}-block: var(--je-spacing-#{$name}); }
+      .orb-#{$property}-#{$name} { #{$property}: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-top-#{$name} { #{$property}-top: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-right-#{$name} { #{$property}-right: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-bottom-#{$name} { #{$property}-bottom: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-left-#{$name} { #{$property}-left: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-horizontal-#{$name} { #{$property}-inline: var(--orb-spacing-#{$name}); }
+      .orb-#{$property}-vertical-#{$name} { #{$property}-block: var(--orb-spacing-#{$name}); }
     }
   }
-  .je-no-#{$property} { #{$property}: 0 !important; }
-  .je-no-#{$property}-top { #{$property}-top: 0 !important; }
-  .je-no-#{$property}-right { #{$property}-right: 0 !important; }
-  .je-no-#{$property}-bottom { #{$property}-bottom: 0 !important; }
-  .je-no-#{$property}-left { #{$property}-left: 0 !important; }
-  .je-no-#{$property}-horizontal { #{$property}-inline: 0 !important; }
-  .je-no-#{$property}-vertical { #{$property}-block: 0 !important; }
+  .orb-no-#{$property} { #{$property}: 0 !important; }
+  .orb-no-#{$property}-top { #{$property}-top: 0 !important; }
+  .orb-no-#{$property}-right { #{$property}-right: 0 !important; }
+  .orb-no-#{$property}-bottom { #{$property}-bottom: 0 !important; }
+  .orb-no-#{$property}-left { #{$property}-left: 0 !important; }
+  .orb-no-#{$property}-horizontal { #{$property}-inline: 0 !important; }
+  .orb-no-#{$property}-vertical { #{$property}-block: 0 !important; }
 }

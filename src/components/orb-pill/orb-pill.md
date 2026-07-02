@@ -1,4 +1,4 @@
 ---
-title: 'JePill | <je-pill>'
+title: 'OrbPill | <orb-pill>'
 sidebar_label: 'Pill'
 ---

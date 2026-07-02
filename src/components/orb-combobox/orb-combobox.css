@@ -1,14 +1,14 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: var(--je-spacing-xs);
+  gap: var(--orb-spacing-xs);
   box-sizing: border-box;
   flex-shrink: 0;
 }
 
 .outer-container {
   display: flex;
-  gap: var(--je-spacing-sm);
+  gap: var(--orb-spacing-sm);
   align-items: center;
   box-sizing: border-box;
   flex-shrink: 0;
@@ -16,21 +16,21 @@
 
 .inner-container {
   display: flex;
-  gap: var(--je-spacing-sm);
+  gap: var(--orb-spacing-sm);
   align-items: center;
-  padding-inline: var(--je-spacing-sm);
+  padding-inline: var(--orb-spacing-sm);
   height: 2.5rem;
   box-sizing: border-box;
-  border-radius: var(--je-radius-md);
+  border-radius: var(--orb-radius-md);
   border: solid 1px;
-  border-color: light-dark(var(--je-neutral-500), var(--je-neutral-400));
+  border-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-400));
   anchor-name: --anchor;
   flex: 1;
   flex-shrink: 0;
   cursor: pointer;
 
   &:focus-within {
-    border-color: light-dark(var(--je-primary-500), var(--je-primary-200));
+    border-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
   }
 }
 
@@ -46,8 +46,8 @@
   border: 0;
   margin: 0;
   padding: 0;
-  font-size: var(--je-font-md);
-  font-weight: var(--je-font-light);
+  font-size: var(--orb-font-md);
+  font-weight: var(--orb-font-light);
   white-space: nowrap;
   overflow-y: hidden;
   overflow-x: auto;
@@ -56,25 +56,25 @@
 
   &[data-placeholder]:empty::before {
     content: attr(data-placeholder);
-    color: light-dark(var(--je-neutral-700), var(--je-neutral-600));
+    color: light-dark(var(--orb-neutral-700), var(--orb-neutral-600));
     cursor: inherit;
   }
 }
 
 [role="listbox"] {
-  box-shadow: var(--je-shadow-lg);
+  box-shadow: var(--orb-shadow-lg);
   box-sizing: border-box;
   margin: 0;
-  border-radius: var(--je-radius-md);
+  border-radius: var(--orb-radius-md);
   border: solid 1px light-dark(rgb(197, 200, 204), rgb(86, 87, 90));
   overflow: auto;
   font: inherit;
   background-color: light-dark(rgb(233, 236, 236), rgb(41, 45, 46));
-  color: light-dark(var(--je-neutral-900), var(--je-neutral-50));
-  padding: var(--je-spacing-xs);
+  color: light-dark(var(--orb-neutral-900), var(--orb-neutral-50));
+  padding: var(--orb-spacing-xs);
 }
 
 ::slotted([slot="note"]),
-slot > je-note {
-  margin-left: var(--je-spacing-sm);
+slot > orb-note {
+  margin-left: var(--orb-spacing-sm);
 }

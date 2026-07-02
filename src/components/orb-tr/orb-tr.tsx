@@ -1,11 +1,11 @@
 import { Component, Element, Host, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: "je-tr",
-  styleUrl: "je-tr.css",
+  tag: "orb-tr",
+  styleUrl: "orb-tr.css",
   shadow: true,
 })
-export class JeTr {
+export class OrbTr {
   @Element() host: HTMLElement;
   @Prop({ reflect: true }) type: "header" | "body" | "footer" = "body";
 

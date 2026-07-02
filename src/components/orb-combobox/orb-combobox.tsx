@@ -20,14 +20,14 @@ import {
 import { AsyncSubject } from "rxjs";
 
 @Component({
-  tag: "je-combobox",
-  styleUrl: "je-combobox.css",
+  tag: "orb-combobox",
+  styleUrl: "orb-combobox.css",
   shadow: {
     delegatesFocus: true,
   },
   formAssociated: true,
 })
-export class JeCombobox {
+export class OrbCombobox {
   private contentEl$ = new AsyncSubject<HTMLElement>();
   private listboxEl: HTMLElement;
   private containerEl: HTMLElement;
@@ -67,7 +67,7 @@ export class JeCombobox {
 
   @Listen("click")
   onClick(ev: Event) {
-    const option = (ev.target as HTMLElement).closest("je-option");
+    const option = (ev.target as HTMLElement).closest("orb-option");
     if (option) {
       this.value = option.value;
       this.valueChange.emit(this.value);
@@ -153,7 +153,7 @@ export class JeCombobox {
           >
             <slot name="label">
               {this.label && (
-                <je-label required={this.required}>{this.label}</je-label>
+                <orb-label required={this.required}>{this.label}</orb-label>
               )}
             </slot>
             <span
@@ -170,12 +170,12 @@ export class JeCombobox {
               data-placeholder={this.placeholder || null}
               onKeyDown={(e) => e.key == "Enter" && e.preventDefault()}
             />
-            <je-icon>keyboard_arrow_down</je-icon>
+            <orb-icon>keyboard_arrow_down</orb-icon>
           </div>
           <slot name="after" />
         </div>
 
-        <slot name="note">{this.note && <je-note>{this.note}</je-note>}</slot>
+        <slot name="note">{this.note && <orb-note>{this.note}</orb-note>}</slot>
 
         <div
           ref={(el) => (this.listboxEl = el)}

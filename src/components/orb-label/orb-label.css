@@ -1,15 +1,15 @@
 :host {
   display: inline-flex;
-  font-weight: var(--je-font-semi-bold);
-  color: light-dark(var(--je-neutral-800), var(--je-neutral-250));
-  font-size: var(--je-font-md);
-  gap: var(--je-spacing-2xs);
+  font-weight: var(--orb-font-semi-bold);
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
+  font-size: var(--orb-font-md);
+  gap: var(--orb-spacing-2xs);
   cursor: inherit;
 }
 
 :host([required])::after {
   content: "*";
-  color: light-dark(var(--je-danger-400), var(--je-danger-300));
-  font-weight: var(--je-font-semi-bold);
-  font-size: var(--je-font-md);
+  color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
+  font-weight: var(--orb-font-semi-bold);
+  font-size: var(--orb-font-md);
 }

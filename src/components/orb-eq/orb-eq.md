@@ -1,4 +1,4 @@
 ---
-title: 'JeEq | <je-eq>'
+title: 'OrbEq | <orb-eq>'
 sidebar_label: 'Audio Equalizer'
 ---

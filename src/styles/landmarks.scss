@@ -7,11 +7,11 @@ html {
   color-scheme: light dark;
   box-sizing: border-box;
 
-  &.je-theme-light {
+  &.orb-theme-light {
     color-scheme: light;
   }
 
-  &.je-theme-dark {
+  &.orb-theme-dark {
     color-scheme: dark;
   }
 }
@@ -26,13 +26,13 @@ body {
   overflow-y: auto;
   box-sizing: border-box;
   transform: translateZ(0);
-  color: light-dark(var(--je-neutral-925), var(--je-neutral-75));
-  background-color: light-dark(var(--je-neutral-75), var(--je-neutral-925));
+  color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
+  background-color: light-dark(var(--orb-neutral-75), var(--orb-neutral-925));
   grid-template:
     "head head head" auto
     "left body right" 1fr
     "foot foot foot" auto / auto 1fr auto;
-  --border-color: light-dark(var(--je-neutral-400), var(--je-neutral-800));
+  --border-color: light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
   &:has(>header) {
     --head-height: 64px;
   }
@@ -48,7 +48,7 @@ body {
     z-index: 10;
     top: 0;
     box-sizing: border-box;
-    padding-inline: var(--je-spacing-sm);
+    padding-inline: var(--orb-spacing-sm);
     border-bottom: solid 1px var(--border-color);
     height: var(--head-height);
   }
@@ -56,7 +56,7 @@ body {
   &>main {
     grid-area: body;
     box-sizing: border-box;
-    padding: var(--je-spacing-xs) var(--je-spacing-sm);
+    padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
   }
 
   &>footer {
@@ -68,7 +68,7 @@ body {
     z-index: 10;
     box-sizing: border-box;
     border-top: solid 1px var(--border-color);
-    padding-inline: var(--je-spacing-sm);
+    padding-inline: var(--orb-spacing-sm);
     height: var(--foot-height);
   }
 
@@ -81,7 +81,7 @@ body {
     overflow-x: hidden;
     box-sizing: border-box;
     scrollbar-width: thin;
-    padding: var(--je-spacing-xs);
+    padding: var(--orb-spacing-xs);
   }
 
   &>aside:not(main+aside) {

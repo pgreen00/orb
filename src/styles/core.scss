@@ -7,11 +7,11 @@
 
 :root {
   //colors
-  --je-primary: #{colors.$primary};
-  --je-neutral: #{colors.$neutral};
-  --je-success: #{colors.$success};
-  --je-warning: #{colors.$warning};
-  --je-danger: #{colors.$danger};
+  --orb-primary: #{colors.$primary};
+  --orb-neutral: #{colors.$neutral};
+  --orb-success: #{colors.$success};
+  --orb-warning: #{colors.$warning};
+  --orb-danger: #{colors.$danger};
 
   @include colors.variables(primary);
   @include colors.variables(neutral);
@@ -21,30 +21,30 @@
 
   //font
   @each $name, $value in font.$weight {
-    --je-font-#{$name}: #{$value};
+    --orb-font-#{$name}: #{$value};
   }
 
   @each $name, $value in font.$size {
-    --je-font-#{$name}: #{$value};
+    --orb-font-#{$name}: #{$value};
   }
 
   //elevation
   @each $name, $value in elevation.$elevation {
-    --je-shadow-#{$name}: #{$value};
+    --orb-shadow-#{$name}: #{$value};
   }
 
   //radius
   @each $name, $value in radius.$radius {
-    --je-radius-#{$name}: #{$value};
+    --orb-radius-#{$name}: #{$value};
   }
 
   //spacing
   @each $name, $value in spacing.$spacing {
-    --je-spacing-#{$name}: #{$value};
+    --orb-spacing-#{$name}: #{$value};
   }
 
   //transition
   @each $name, $value in transition.$transition {
-    --je-transition-#{$name}: #{$value};
+    --orb-transition-#{$name}: #{$value};
   }
 }

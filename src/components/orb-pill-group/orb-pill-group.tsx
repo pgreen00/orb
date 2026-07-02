@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-pill-group',
-  styleUrl: 'je-pill-group.css',
+  tag: "orb-pill-group",
+  styleUrl: "orb-pill-group.css",
   shadow: true,
 })
-export class JePillGroup {
+export class OrbPillGroup {
   render() {
     return (
       <Host>

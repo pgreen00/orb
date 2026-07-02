@@ -1,4 +1,4 @@
 ---
-title: 'JeOption | <je-option>'
+title: 'OrbOption | <orb-option>'
 sidebar_label: 'Option'
 ---

@@ -1,15 +1,15 @@
-import { Component, h } from '@stencil/core';
+import { Component, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-breadcrumb',
-  styleUrl: 'je-breadcrumb.css',
+  tag: "orb-breadcrumb",
+  styleUrl: "orb-breadcrumb.css",
   shadow: true,
 })
-export class JeBreadcrumb {
+export class OrbBreadcrumb {
   render() {
     return (
       <a>
-        <slot/>
+        <slot />
       </a>
     );
   }

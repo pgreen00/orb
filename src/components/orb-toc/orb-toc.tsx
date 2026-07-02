@@ -1,11 +1,11 @@
 import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: "je-toc",
-  styleUrl: "je-toc.css",
+  tag: "orb-toc",
+  styleUrl: "orb-toc.css",
   shadow: true,
 })
-export class JeToc {
+export class OrbToc {
   render() {
     const links = Array.from(
       document.querySelectorAll<HTMLAnchorElement>("a[data-toc]"),
@@ -22,7 +22,7 @@ export class JeToc {
         >
           {links.map((t) => (
             <div>
-              <je-link href={t.href}>{t.textContent}</je-link>
+              <orb-link href={t.href}>{t.textContent}</orb-link>
             </div>
           ))}
         </aside>

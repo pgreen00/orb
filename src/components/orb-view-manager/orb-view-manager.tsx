@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-view-manager',
-  styleUrl: 'je-view-manager.css',
+  tag: "orb-view-manager",
+  styleUrl: "orb-view-manager.css",
   shadow: true,
 })
-export class JeViewManager {
+export class OrbViewManager {
   render() {
     return (
       <Host>

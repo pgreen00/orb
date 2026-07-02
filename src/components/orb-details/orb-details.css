@@ -1,7 +1,7 @@
 :host {
   display: contents;
 
-  --content-open-padding: var(--je-spacing-md) 0 0 0;
+  --content-open-padding: var(--orb-spacing-md) 0 0 0;
 }
 
 button {
@@ -17,10 +17,10 @@ button {
 }
 
 summary {
-  font-size: var(--je-font-md);
+  font-size: var(--orb-font-md);
 }
 
-je-icon {
+orb-icon {
   transition: rotate 250ms ease-in-out;
   &.open {
     rotate: 90deg;

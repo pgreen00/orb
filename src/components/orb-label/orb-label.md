@@ -1,4 +1,4 @@
 ---
-title: 'JeLabel | <je-label>'
+title: 'OrbLabel | <orb-label>'
 sidebar_label: 'Label'
 ---

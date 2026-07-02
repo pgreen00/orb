@@ -6,7 +6,7 @@
   --background: #c7c7c7c5;
   --shimmer-color: #ffffff;
 
-  border-radius: var(--je-radius-sm);
+  border-radius: var(--orb-radius-sm);
   display: block;
   box-sizing: border-box;
   background: var(--background);
@@ -15,9 +15,14 @@
   opacity: 0.7;
 }
 
-:host(:not([animated=false])) {
+:host(:not([animated="false"])) {
   position: relative;
-  background: linear-gradient(90deg, var(--background) 25%, var(--shimmer-color) 50%, var(--background) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--background) 25%,
+    var(--shimmer-color) 50%,
+    var(--background) 75%
+  );
   background-size: 200% 100%;
   animation-duration: 2.5s;
   animation-fill-mode: forwards;

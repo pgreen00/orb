@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-calendar',
-  styleUrl: 'je-calendar.css',
+  tag: "orb-calendar",
+  styleUrl: "orb-calendar.css",
   shadow: true,
 })
-export class JeCalendar {
+export class OrbCalendar {
   render() {
     return (
       <Host>

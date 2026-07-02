@@ -1,5 +1,5 @@
 ---
-title: 'JeAlert | <je-alert>'
+title: 'OrbAlert | <orb-alert>'
 sidebar_label: 'Alert'
 ---
 
@@ -12,11 +12,11 @@ Adding the `closable` attribute will display a close icon in the top right that 
 ::: live-code-demo
 
 ```html
-<je-alert open closable>
-  <je-icon slot="start" fill>home</je-icon>
+<orb-alert open closable>
+  <orb-icon slot="start" fill>home</orb-icon>
   <h5>Hello there</h5>
   Where's the chapstick?
-</je-alert>
+</orb-alert>
 ```
 
 :::
@@ -29,10 +29,10 @@ Set the `duration` attribute to have the alert close automatically after the spe
 ::: live-code-demo
 
 ```html
-<je-button id="show-progress-alert-button">Open Alert</je-button>
-<je-alert id="progress-alert" duration="3000" class="je-margin-top-sm">
+<orb-button id="show-progress-alert-button">Open Alert</orb-button>
+<orb-alert id="progress-alert" duration="3000" class="orb-margin-top-sm">
   Hello there
-</je-alert>
+</orb-alert>
 ```
 
 ```javascript
@@ -53,12 +53,12 @@ The `end` slot can be used for action items like buttons
 ::: live-code-demo
 
 ```html
-<je-alert open>
-  <je-icon slot="start">settings</je-icon>
+<orb-alert open>
+  <orb-icon slot="start">settings</orb-icon>
   Where's the chapstick?
-  <je-button fill="outline" size="sm" slot="end">Undo</je-button>
-  <je-button fill="outline" size="sm" slot="end">Dismiss</je-button>
-</je-alert>
+  <orb-button fill="outline" size="sm" slot="end">Undo</orb-button>
+  <orb-button fill="outline" size="sm" slot="end">Dismiss</orb-button>
+</orb-alert>
 ```
 
 :::

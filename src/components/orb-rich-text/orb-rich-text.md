@@ -1,12 +1,12 @@
 ---
-title: 'JeRichText | <je-rich-text>'
+title: 'OrbRichText | <orb-rich-text>'
 sidebar_label: 'Rich Text Editor'
 ---
 
 ::: live-code-demo
 
 ```html
-<je-rich-text></je-rich-text>
+<orb-rich-text></orb-rich-text>
 ```
 
 :::

@@ -4,11 +4,11 @@
 @use 'font';
 
 @each $name, $value in elevation.$elevation {
-  .je-elevation-#{$name} { box-shadow: var(--je-shadow-#{$name}); }
+  .orb-elevation-#{$name} { box-shadow: var(--orb-shadow-#{$name}); }
 }
 
 @each $name, $value in radius.$radius {
-  .je-radius-#{$name} { border-radius: var(--je-radius-#{$name}); }
+  .orb-radius-#{$name} { border-radius: var(--orb-radius-#{$name}); }
 }
 
 @include spacing.classes(padding);
@@ -16,9 +16,9 @@
 @include spacing.classes(margin);
 
 @each $name, $value in font.$weight {
-  .je-font-#{$name} { font-weight: var(--je-font-#{$name}); }
+  .orb-font-#{$name} { font-weight: var(--orb-font-#{$name}); }
 }
 
 @each $name, $value in font.$size {
-  .je-font-#{$name} { font-size: var(--je-font-#{$name}); }
+  .orb-font-#{$name} { font-size: var(--orb-font-#{$name}); }
 }

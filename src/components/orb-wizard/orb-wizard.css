@@ -3,30 +3,34 @@
   align-items: center;
   counter-reset: wizard;
   box-sizing: border-box;
-  gap: var(--je-spacing-sm);
+  gap: var(--orb-spacing-sm);
 }
 
 .step {
-  --before-background: var(--je-neutral-300);
-  --before-color: var(--je-neutral-800);
-  --after-background: var(--je-neutral-400);
+  --before-background: var(--orb-neutral-300);
+  --before-color: var(--orb-neutral-800);
+  --after-background: var(--orb-neutral-400);
   display: flex;
   align-items: center;
-  gap: var(--je-spacing-sm);
+  gap: var(--orb-spacing-sm);
   box-sizing: border-box;
   counter-increment: wizard;
 
   &.active,
   &.completed {
-    --before-background: var(--je-primary-200);
-    --before-color: var(--je-primary-800);
+    --before-background: var(--orb-primary-200);
+    --before-color: var(--orb-primary-800);
   }
 
   &.completed::before {
-    font-family: 'Material Symbols Rounded';
+    font-family: "Material Symbols Rounded";
     content: "check";
-    font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 200, 'opsz' 24;
-    font-size: var(--je-font-xl);
+    font-variation-settings:
+      "FILL" 0,
+      "wght" 200,
+      "GRAD" 200,
+      "opsz" 24;
+    font-size: var(--orb-font-xl);
   }
 
   &::before {
@@ -34,14 +38,16 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    font-size: var(--je-font-lg);
+    font-size: var(--orb-font-lg);
     content: counter(wizard);
-    border-radius: var(--je-radius-circle);
-    width: var(--je-spacing-3xl);
-    height: var(--je-spacing-3xl);
+    border-radius: var(--orb-radius-circle);
+    width: var(--orb-spacing-3xl);
+    height: var(--orb-spacing-3xl);
     background-color: var(--before-background);
     color: var(--before-color);
-    transition: color 250ms ease-in-out, background-color 250ms ease-in-out;
+    transition:
+      color 250ms ease-in-out,
+      background-color 250ms ease-in-out;
   }
 
   &:not(:last-of-type)::after {
@@ -56,12 +62,12 @@
 
 .label {
   display: block;
-  font-weight: var(--je-font-semi-bold);
-  color: light-dark(var(--je-neutral-800), var(--je-neutral-200));
+  font-weight: var(--orb-font-semi-bold);
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-200));
 }
 
 .optional {
   display: block;
-  font-weight: var(--je-font-light);
-  color: light-dark(var(--je-neutral-700), var(--je-neutral-400));
+  font-weight: var(--orb-font-light);
+  color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
 }

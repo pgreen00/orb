@@ -1,4 +1,4 @@
 ---
-title: 'JeLoading | <je-loading>'
+title: 'OrbLoading | <orb-loading>'
 sidebar_label: 'Loading'
 ---

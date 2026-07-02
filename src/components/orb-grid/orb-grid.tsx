@@ -1,11 +1,11 @@
 import { Component, Host, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: "je-grid",
-  styleUrl: "je-grid.css",
+  tag: "orb-grid",
+  styleUrl: "orb-grid.css",
   shadow: true,
 })
-export class JeGrid {
+export class OrbGrid {
   @Prop() space?:
     | "3xs"
     | "2xs"
@@ -21,7 +21,7 @@ export class JeGrid {
     return (
       <Host>
         {this.space && (
-          <style>{`:host{gap:var(--je-spacing-${this.space});}`}</style>
+          <style>{`:host{gap:var(--orb-spacing-${this.space});}`}</style>
         )}
         <slot></slot>
       </Host>

@@ -19,11 +19,11 @@ export type OverlayData<T = any> = {
 };
 
 @Component({
-  tag: "je-overlay",
-  styleUrl: "je-overlay.css",
+  tag: "orb-overlay",
+  styleUrl: "orb-overlay.css",
   shadow: true,
 })
-export class JeOverlay {
+export class OrbOverlay {
   private role?: string;
   private data?: any;
   private dialogEl!: HTMLDialogElement;

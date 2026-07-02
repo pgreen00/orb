@@ -1,21 +1,28 @@
-import { AttachInternals, Component, Element, Host, Prop, h } from '@stencil/core';
+import {
+  AttachInternals,
+  Component,
+  Element,
+  Host,
+  Prop,
+  h,
+} from "@stencil/core";
 
 @Component({
-  tag: 'je-tab',
-  styleUrl: 'je-tab.css',
+  tag: "orb-tab",
+  styleUrl: "orb-tab.css",
   shadow: true,
-  formAssociated: true
+  formAssociated: true,
 })
-export class JeTab {
+export class OrbTab {
   @AttachInternals() internals: ElementInternals;
-  @Element() el: HTMLJeTabElement;
+  @Element() el: HTMLOrbTabElement;
   @Prop() value?: string;
   @Prop() active = false;
 
   componentDidRender() {
-    this.internals.states.clear()
+    this.internals.states.clear();
     if (this.active) {
-      this.internals.states.add('--active')
+      this.internals.states.add("--active");
     }
   }
 

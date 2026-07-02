@@ -26,12 +26,12 @@ import {
 const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
 @Component({
-  tag: "je-datepicker",
-  styleUrl: "je-datepicker.css",
+  tag: "orb-datepicker",
+  styleUrl: "orb-datepicker.css",
   shadow: true,
 })
-export class JeDatepicker {
-  @Element() el!: HTMLJeDatepickerElement;
+export class OrbDatepicker {
+  @Element() el!: HTMLOrbDatepickerElement;
   @State() currentDate = new Date();
   @Prop() type: "date" | "datetime" | "time" = "datetime";
   @Prop() includeSeconds = false;
@@ -93,7 +93,7 @@ export class JeDatepicker {
       .querySelectorAll(".timepicker-column")
       .forEach((column) => {
         column
-          .querySelector('je-button[color="primary"][fill="solid"]')
+          .querySelector('orb-button[color="primary"][fill="solid"]')
           ?.shadowRoot.querySelector("button")
           ?.scrollIntoView({ block: "center", behavior: "instant" });
       });
@@ -113,13 +113,13 @@ export class JeDatepicker {
     const firstDayOfWeek = getDay(firstDayOfMonth);
     const daysBefore = Array.from({ length: firstDayOfWeek }).map((_, i) =>
       subMonths(this.currentDate, 1).setDate(
-        prevMonthEnd.getDate() - (firstDayOfWeek - i - 1)
-      )
+        prevMonthEnd.getDate() - (firstDayOfWeek - i - 1),
+      ),
     );
 
     const lastDayOfWeek = getDay(lastDayOfMonth);
     const daysAfter = Array.from({ length: 6 - lastDayOfWeek }).map((_, i) =>
-      addMonths(this.currentDate, 1).setDate(i + 1)
+      addMonths(this.currentDate, 1).setDate(i + 1),
     );
 
     return (
@@ -127,19 +127,19 @@ export class JeDatepicker {
         {(this.type == "date" || this.type == "datetime") && (
           <Fragment>
             <div class="header">
-              <je-button onClick={this.prevYear}>
-                <je-icon>keyboard_double_arrow_left</je-icon>
-              </je-button>
-              <je-button onClick={this.prevMonth}>
-                <je-icon>keyboard_arrow_left</je-icon>
-              </je-button>
+              <orb-button onClick={this.prevYear}>
+                <orb-icon>keyboard_double_arrow_left</orb-icon>
+              </orb-button>
+              <orb-button onClick={this.prevMonth}>
+                <orb-icon>keyboard_arrow_left</orb-icon>
+              </orb-button>
               <span>{format(this.currentDate, "MMMM yyyy")}</span>
-              <je-button onClick={this.nextMonth}>
-                <je-icon>keyboard_arrow_right</je-icon>
-              </je-button>
-              <je-button onClick={this.nextYear}>
-                <je-icon>keyboard_double_arrow_right</je-icon>
-              </je-button>
+              <orb-button onClick={this.nextMonth}>
+                <orb-icon>keyboard_arrow_right</orb-icon>
+              </orb-button>
+              <orb-button onClick={this.nextYear}>
+                <orb-icon>keyboard_double_arrow_right</orb-icon>
+              </orb-button>
             </div>
 
             <div class="weekdays-grid">
@@ -150,14 +150,14 @@ export class JeDatepicker {
 
             <div class="days-grid">
               {daysBefore.map((day) => (
-                <je-button
+                <orb-button
                   expand={true}
                   disabled={true}
                   fill="clear"
                   class="day"
                 >
                   {format(day, "d")}
-                </je-button>
+                </orb-button>
               ))}
 
               {daysInMonth.map((day) => {
@@ -168,7 +168,7 @@ export class JeDatepicker {
                   (this.min && day < new Date(this.min)) ||
                   (this.max && day > new Date(this.max));
                 return (
-                  <je-button
+                  <orb-button
                     expand={true}
                     disabled={isDisabled}
                     color={selected || today ? "primary" : undefined}
@@ -177,19 +177,19 @@ export class JeDatepicker {
                     onClick={() => this.setValue({ day })}
                   >
                     {format(day, "d")}
-                  </je-button>
+                  </orb-button>
                 );
               })}
 
               {daysAfter.map((day) => (
-                <je-button
+                <orb-button
                   expand={true}
                   disabled={true}
                   fill="clear"
                   class="day"
                 >
                   {format(day, "d")}
-                </je-button>
+                </orb-button>
               ))}
             </div>
           </Fragment>
@@ -197,18 +197,18 @@ export class JeDatepicker {
         {(this.type == "time" || this.type == "datetime") && (
           <div class="timepicker">
             <span>Time</span>
-            <je-popover arrow={true} onPresentEnd={this.scrollTimeIntoView}>
-              <je-pill role="button" {...{ tabindex: 0 }} slot="trigger">
+            <orb-popover arrow={true} onPresentEnd={this.scrollTimeIntoView}>
+              <orb-pill role="button" {...{ tabindex: 0 }} slot="trigger">
                 {this.value
                   ? this.includeSeconds
                     ? format(this.value, "hh:mm:ss a")
                     : format(this.value, "hh:mm a")
                   : "-"}
-              </je-pill>
+              </orb-pill>
               <div class="timepicker-content">
                 <div class="timepicker-column">
                   {Array.from({ length: 24 }).map((_, hour) => (
-                    <je-button
+                    <orb-button
                       size="sm"
                       color={
                         this.currentDate.getHours() === hour
@@ -221,12 +221,12 @@ export class JeDatepicker {
                       onClick={() => this.setValue({ hour })}
                     >
                       {format(new Date().setHours(hour), "hh a")}
-                    </je-button>
+                    </orb-button>
                   ))}
                 </div>
                 <div class="timepicker-column">
                   {Array.from({ length: 60 }).map((_, minute) => (
-                    <je-button
+                    <orb-button
                       size="sm"
                       color={
                         this.currentDate.getMinutes() === minute
@@ -241,13 +241,13 @@ export class JeDatepicker {
                       onClick={() => this.setValue({ minute })}
                     >
                       {format(new Date().setMinutes(minute), "mm")}
-                    </je-button>
+                    </orb-button>
                   ))}
                 </div>
                 {this.includeSeconds && (
                   <div class="timepicker-column">
                     {Array.from({ length: 60 }).map((_, second) => (
-                      <je-button
+                      <orb-button
                         size="sm"
                         color={
                           this.currentDate.getSeconds() === second
@@ -262,12 +262,12 @@ export class JeDatepicker {
                         onClick={() => this.setValue({ second })}
                       >
                         {format(new Date().setSeconds(second), "ss")}
-                      </je-button>
+                      </orb-button>
                     ))}
                   </div>
                 )}
               </div>
-            </je-popover>
+            </orb-popover>
           </div>
         )}
       </Host>

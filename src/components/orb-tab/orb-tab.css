@@ -3,12 +3,12 @@
   position: relative;
   box-sizing: border-box;
   z-index: 0;
-  gap: var(--je-spacing-3xs);
+  gap: var(--orb-spacing-3xs);
   align-items: center;
-  padding: var(--je-spacing-3xs) var(--je-spacing-2xs);
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-2xs);
   user-select: none;
   -webkit-user-select: none;
-  border-radius: var(--je-border-radius);
+  border-radius: var(--orb-border-radius);
   transition: color 250ms ease;
   cursor: pointer;
 }
@@ -18,5 +18,5 @@
 }
 
 :host(:state(--active)) {
-  color: var(--je-neutral-500);
+  color: var(--orb-neutral-500);
 }

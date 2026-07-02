@@ -26,14 +26,14 @@ type InputMaskOptions = Omit<MaskOptions, "inputElement">;
  * its a textbox
  */
 @Component({
-  tag: "je-textbox",
-  styleUrl: "je-textbox.css",
+  tag: "orb-textbox",
+  styleUrl: "orb-textbox.css",
   shadow: {
     delegatesFocus: true,
   },
   formAssociated: true,
 })
-export class JeTextbox {
+export class OrbTextbox {
   private inputEl: HTMLElement;
   private containerEl: HTMLElement;
   private mask = new BehaviorSubject<InputMask | null>(null);
@@ -410,9 +410,9 @@ export class JeTextbox {
           >
             <slot name="label" onSlotchange={() => forceUpdate(this.hostEl)}>
               {this.label && (
-                <je-label part="label" required={this.required}>
+                <orb-label part="label" required={this.required}>
                   {this.label}
-                </je-label>
+                </orb-label>
               )}
             </slot>
 
@@ -427,13 +427,13 @@ export class JeTextbox {
             />
 
             {this.type === "password" && (
-              <je-button
+              <orb-button
                 class="icon-only"
                 fill="clear"
                 onClick={() => (this.showPassword = !this.showPassword)}
               >
                 {this.showPassword ? eyeOff : eye}
-              </je-button>
+              </orb-button>
             )}
 
             <slot name="end" />
@@ -443,7 +443,7 @@ export class JeTextbox {
         </div>
 
         <slot name="note" onSlotchange={() => forceUpdate(this.hostEl)}>
-          {this.note && <je-note part="note">{this.note}</je-note>}
+          {this.note && <orb-note part="note">{this.note}</orb-note>}
         </slot>
       </Host>
     );

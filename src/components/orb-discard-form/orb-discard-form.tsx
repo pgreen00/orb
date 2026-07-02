@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-discard-form',
-  styleUrl: 'je-discard-form.css',
+  tag: "orb-discard-form",
+  styleUrl: "orb-discard-form.css",
   shadow: true,
 })
-export class JeDiscardForm {
+export class OrbDiscardForm {
   render() {
     return (
       <Host>

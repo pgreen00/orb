@@ -1,11 +1,11 @@
 import { Component, Element, Host, Prop, State, h } from "@stencil/core";
 
 @Component({
-  tag: "je-tc",
-  styleUrl: "je-tc.css",
+  tag: "orb-tc",
+  styleUrl: "orb-tc.css",
   shadow: true,
 })
-export class JeTc {
+export class OrbTc {
   @Element() host: HTMLElement;
   @Prop() colSpan?: number;
   @Prop() rowSpan?: number;
@@ -31,23 +31,23 @@ export class JeTc {
       <Host>
         {style}
         {this.copy ? (
-          <je-toolbar
+          <orb-toolbar
             onMouseEnter={() => (this.hover = true)}
             onMouseLeave={() => (this.hover = false)}
           >
             <slot />
-            <je-button
+            <orb-button
               slot="end"
               fill="clear"
               size="sm"
               class={{ "icon-only": true, hover: this.hover }}
               onClick={() => this.copyToClipboard()}
             >
-              <je-icon size="sm" class={{ success: this.copied }}>
+              <orb-icon size="sm" class={{ success: this.copied }}>
                 {this.copied ? "check" : "content_copy"}
-              </je-icon>
-            </je-button>
-          </je-toolbar>
+              </orb-icon>
+            </orb-button>
+          </orb-toolbar>
         ) : (
           <slot />
         )}

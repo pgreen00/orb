@@ -1,4 +1,4 @@
 ---
-title: 'JeView | <je-view>'
+title: 'OrbView | <orb-view>'
 sidebar_label: 'View'
 ---

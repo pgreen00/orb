@@ -1,4 +1,4 @@
 ---
-title: 'JeKnob | <je-knob>'
+title: 'OrbKnob | <orb-knob>'
 sidebar_label: 'Knob'
 ---

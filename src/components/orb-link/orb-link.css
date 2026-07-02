@@ -1,14 +1,14 @@
 :host {
   display: contents;
-  --color: light-dark(var(--je-primary-500), var(--je-primary-300));
-  --visited-color: light-dark(var(--je-primary-600), var(--je-primary-400));
+  --color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --visited-color: light-dark(var(--orb-primary-600), var(--orb-primary-400));
 }
 
 a {
   display: inline-flex;
   color: var(--color);
   text-decoration: none;
-  outline-color: var(--je-primary-300);
+  outline-color: var(--orb-primary-300);
   outline-offset: 3px;
   cursor: pointer;
 }
@@ -18,5 +18,5 @@ a {
 }
 
 .bold {
-  font-weight: var(--je-font-semi-bold);
+  font-weight: var(--orb-font-semi-bold);
 }

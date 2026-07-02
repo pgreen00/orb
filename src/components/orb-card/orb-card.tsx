@@ -2,11 +2,11 @@ import { Component, Host, Prop, h } from "@stencil/core";
 import { Color } from "../../utils/color";
 
 @Component({
-  tag: "je-card",
-  styleUrl: "je-card.css",
+  tag: "orb-card",
+  styleUrl: "orb-card.css",
   shadow: true,
 })
-export class JeCard {
+export class OrbCard {
   @Prop({ reflect: true }) color?: Color;
 
   render() {

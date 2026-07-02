@@ -20,7 +20,7 @@ export interface ShaderErrorDetail {
 }
 
 /**
- * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+ * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
  *
  * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
  * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
@@ -28,11 +28,11 @@ export interface ShaderErrorDetail {
  * and a full-screen vertex stage are injected for you — you only write the fragment.
  */
 @Component({
-  tag: "je-shader-canvas",
-  styleUrl: "je-shader-canvas.css",
+  tag: "orb-shader-canvas",
+  styleUrl: "orb-shader-canvas.css",
   shadow: true,
 })
-export class JeShaderCanvas {
+export class OrbShaderCanvas {
   @Element() el: HTMLElement;
 
   /** Backing-store width in pixels. When unset, the canvas fills its container. */

@@ -1,14 +1,14 @@
-export type Color = 'primary' | 'success' | 'danger' | 'warning';
+export type Color = "primary" | "success" | "danger" | "warning";
 
 const COLORS = {
-  primary: 'var(--je-primary)',
-  neutral: 'var(--je-neutral)',
-  success: 'var(--je-success)',
-  warning: 'var(--je-warning)',
-  danger: 'var(--je-danger)'
+  primary: "var(--orb-primary)",
+  neutral: "var(--orb-neutral)",
+  success: "var(--orb-success)",
+  warning: "var(--orb-warning)",
+  danger: "var(--orb-danger)",
 } as const;
 
-export const shade = (color: Color | 'neutral', shade = 500) => {
+export const shade = (color: Color | "neutral", shade = 500) => {
   if (shade === 500) {
     return COLORS[color];
   } else if (shade < 500) {
@@ -22,4 +22,4 @@ export const shade = (color: Color | 'neutral', shade = 500) => {
     const blackPercentage = (percentageToBlack * 100).toFixed(2);
     return `color-mix(in srgb, ${COLORS[color]} ${colorPercentage}%, black ${blackPercentage}%)`;
   }
-}
+};

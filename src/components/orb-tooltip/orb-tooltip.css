@@ -1,17 +1,19 @@
 :host {
   display: contents;
 
-  --padding: var(--je-spacing-xs) var(--je-spacing-sm);
-  --background: light-dark(var(--je-neutral-950), var(--je-neutral-800));
-  --color: var(--je-neutral-300);
+  --padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  --background: light-dark(var(--orb-neutral-950), var(--orb-neutral-800));
+  --color: var(--orb-neutral-300);
   --border: none;
-  --radius: var(--je-radius-md);
+  --radius: var(--orb-radius-md);
 }
 
 [popover] {
   opacity: 0;
-  transition: opacity 0.2s ease-in-out, display 0.2s ease-in-out allow-discrete;
-  box-shadow: var(--je-shadow-sm);
+  transition:
+    opacity 0.2s ease-in-out,
+    display 0.2s ease-in-out allow-discrete;
+  box-shadow: var(--orb-shadow-sm);
   max-width: var(--available-width);
   max-height: var(--available-height);
   border-radius: var(--radius);

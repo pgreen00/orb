@@ -10,11 +10,11 @@ import {
 } from "@stencil/core";
 
 @Component({
-  tag: "je-details",
-  styleUrl: "je-details.css",
+  tag: "orb-details",
+  styleUrl: "orb-details.css",
   shadow: true,
 })
-export class JeDetails {
+export class OrbDetails {
   @Element() el!: HTMLElement;
   @Prop() summary?: string;
   @Prop({ mutable: true }) open = false;
@@ -33,13 +33,13 @@ export class JeDetails {
   }
 
   render() {
-    //const icon = <je-icon>chevron_right</je-icon>
+    //const icon = <orb-icon>chevron_right</orb-icon>
     return (
       <Host>
         <button part="toggle" onClick={() => (this.open = !this.open)}>
-          <je-toolbar>
+          <orb-toolbar>
             {this.iconSide == "left" && (
-              <je-icon class={{ open: this.open }}>chevron_right</je-icon>
+              <orb-icon class={{ open: this.open }}>chevron_right</orb-icon>
             )}
             <slot name="start" />
             <slot name="summary">
@@ -47,11 +47,11 @@ export class JeDetails {
             </slot>
             <slot name="end" slot="end" />
             {this.iconSide == "right" && (
-              <je-icon slot="end" class={{ open: this.open }}>
+              <orb-icon slot="end" class={{ open: this.open }}>
                 chevron_right
-              </je-icon>
+              </orb-icon>
             )}
-          </je-toolbar>
+          </orb-toolbar>
         </button>
         <div part="content-container" class={{ open: this.open }}>
           <div part="content">

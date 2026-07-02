@@ -1,4 +1,4 @@
 ---
-title: 'JeDropzone | <je-dropzone>'
+title: 'OrbDropzone | <orb-dropzone>'
 sidebar_label: 'Dropzone'
 ---

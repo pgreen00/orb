@@ -1,18 +1,18 @@
-import { Component, Element, Host, Listen, Prop, h } from '@stencil/core';
+import { Component, Element, Host, Listen, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-pill',
-  styleUrl: 'je-pill.css',
+  tag: "orb-pill",
+  styleUrl: "orb-pill.css",
   shadow: true,
 })
-export class JePill {
-  @Element() el: HTMLJePillElement
+export class OrbPill {
+  @Element() el: HTMLOrbPillElement;
   @Prop({ reflect: true }) outline = false;
 
-  @Listen('keydown', { capture: true })
+  @Listen("keydown", { capture: true })
   onClick(ev: KeyboardEvent) {
-    if (this.el.role == 'button' && (ev.key == ' ' || ev.key == 'Enter')) {
-      this.el.click()
+    if (this.el.role == "button" && (ev.key == " " || ev.key == "Enter")) {
+      this.el.click();
     }
   }
 

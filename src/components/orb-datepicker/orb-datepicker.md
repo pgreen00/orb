@@ -1,4 +1,4 @@
 ---
-title: 'JeDatepicker | <je-datepicker>'
+title: 'OrbDatepicker | <orb-datepicker>'
 sidebar_label: 'Datepicker'
 ---

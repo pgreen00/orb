@@ -5,10 +5,12 @@
   height: 200px;
   width: 300px;
   border: 1px dashed canvastext;
-  transition: border-color 250ms, background-color 250ms;
+  transition:
+    border-color 250ms,
+    background-color 250ms;
 }
 
 :host(.hover) {
-  border-color: var(--je-primary-500);
-  background-color: light-dark(var(--je-neutral-100), var(--je-neutral-900));
+  border-color: var(--orb-primary-500);
+  background-color: light-dark(var(--orb-neutral-100), var(--orb-neutral-900));
 }

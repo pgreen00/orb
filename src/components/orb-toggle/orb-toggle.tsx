@@ -1,12 +1,22 @@
-import { Component, EventEmitter, Host, Listen, Prop, h, Event, Element, AttachInternals } from '@stencil/core';
+import {
+  Component,
+  EventEmitter,
+  Host,
+  Listen,
+  Prop,
+  h,
+  Event,
+  Element,
+  AttachInternals,
+} from "@stencil/core";
 
 @Component({
-  tag: 'je-toggle',
-  styleUrl: 'je-toggle.css',
+  tag: "orb-toggle",
+  styleUrl: "orb-toggle.css",
   shadow: true,
-  formAssociated: true
+  formAssociated: true,
 })
-export class JeToggle {
+export class OrbToggle {
   @AttachInternals() internals: ElementInternals;
   @Element() el!: HTMLElement;
 
@@ -23,7 +33,7 @@ export class JeToggle {
   /**
    * If the label should be placed at the start or end of the toggle
    */
-  @Prop() labelPlacement: 'start' | 'end' = 'end';
+  @Prop() labelPlacement: "start" | "end" = "end";
 
   /**
    * Emits the new value whenever toggle is clicked
@@ -41,25 +51,25 @@ export class JeToggle {
   }
 
   componentDidLoad() {
-    this.internals.role = 'switch'
-    this.el.tabIndex = 0
+    this.internals.role = "switch";
+    this.el.tabIndex = 0;
   }
 
   componentDidRender() {
-    this.internals.states.clear()
-    this.internals.states.add(this.value ? 'checked' : 'unchecked')
-    this.internals.ariaChecked = this.value ? 'true' : 'false'
+    this.internals.states.clear();
+    this.internals.states.add(this.value ? "checked" : "unchecked");
+    this.internals.ariaChecked = this.value ? "true" : "false";
   }
 
-  @Listen('click', { capture: true })
+  @Listen("click", { capture: true })
   onClick() {
     this.value = !this.value;
     this.valueChange.emit(this.value);
   }
 
-  @Listen('keydown', { capture: true })
+  @Listen("keydown", { capture: true })
   onKeyDown(ev: KeyboardEvent) {
-    if (ev.key === ' ') {
+    if (ev.key === " ") {
       ev.preventDefault();
       ev.stopPropagation();
       this.value = !this.value;
@@ -70,11 +80,11 @@ export class JeToggle {
   render() {
     return (
       <Host>
-        {this.labelPlacement == 'start' && <slot />}
-        <div class='toggle-container'>
-          <div class='toggle-thumb'></div>
+        {this.labelPlacement == "start" && <slot />}
+        <div class="toggle-container">
+          <div class="toggle-thumb"></div>
         </div>
-        {this.labelPlacement == 'end' && <slot />}
+        {this.labelPlacement == "end" && <slot />}
       </Host>
     );
   }

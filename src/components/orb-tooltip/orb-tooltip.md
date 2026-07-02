@@ -1,4 +1,4 @@
 ---
-title: 'JeTooltip | <je-tooltip>'
+title: 'OrbTooltip | <orb-tooltip>'
 sidebar_label: 'Tooltip'
 ---

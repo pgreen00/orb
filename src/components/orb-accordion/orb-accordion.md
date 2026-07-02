@@ -1,5 +1,5 @@
 ---
-title: "JeAccordion | <je-accordion>"
+title: "OrbAccordion | <orb-accordion>"
 sidebar_label: "Accordion"
 ---
 
@@ -8,13 +8,13 @@ sidebar_label: "Accordion"
 ::: live-code-demo
 
 ```html
-<je-accordion>
-  <je-details summary="Detail A" open> Inner content </je-details>
-  <je-divider></je-divider>
-  <je-details summary="Detail B"> Inner content </je-details>
-  <je-divider></je-divider>
-  <je-details summary="Detail C"> Inner content </je-details>
-</je-accordion>
+<orb-accordion>
+  <orb-details summary="Detail A" open> Inner content </orb-details>
+  <orb-divider></orb-divider>
+  <orb-details summary="Detail B"> Inner content </orb-details>
+  <orb-divider></orb-divider>
+  <orb-details summary="Detail C"> Inner content </orb-details>
+</orb-accordion>
 ```
 
 ```javascript

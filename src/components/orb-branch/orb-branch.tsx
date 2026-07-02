@@ -19,13 +19,13 @@ function getDepth(child: HTMLElement, ancestor: HTMLElement) {
 }
 
 @Component({
-  tag: "je-branch",
-  styleUrl: "je-branch.css",
+  tag: "orb-branch",
+  styleUrl: "orb-branch.css",
   shadow: {
     delegatesFocus: true,
   },
 })
-export class JeBranch {
+export class OrbBranch {
   private hasChildren = false;
   private isChild = false;
   @Element() element: HTMLElement;
@@ -38,9 +38,9 @@ export class JeBranch {
   @Prop() href?: string;
 
   componentWillRender() {
-    this.hasChildren = this.element.querySelector("je-branch") !== null;
-    this.isChild = this.element.parentElement.closest("je-branch") != null;
-    const depth = getDepth(this.element, this.element.closest("je-tree"));
+    this.hasChildren = this.element.querySelector("orb-branch") !== null;
+    this.isChild = this.element.parentElement.closest("orb-branch") != null;
+    const depth = getDepth(this.element, this.element.closest("orb-tree"));
     this.element.style.setProperty("--depth", depth.toString());
   }
 

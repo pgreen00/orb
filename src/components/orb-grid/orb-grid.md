@@ -1,4 +1,4 @@
 ---
-title: 'JeGrid | <je-grid>'
+title: 'OrbGrid | <orb-grid>'
 sidebar_label: 'Grid'
 ---

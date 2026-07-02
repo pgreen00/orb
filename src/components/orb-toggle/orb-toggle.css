@@ -1,12 +1,12 @@
 :host {
   display: inline-flex;
   align-items: center;
-  gap: var(--je-spacing-2xs);
+  gap: var(--orb-spacing-2xs);
   width: fit-content;
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
-  outline-color: var(--je-primary-200);
+  outline-color: var(--orb-primary-200);
   outline-offset: 2px;
   box-sizing: border-box;
 }
@@ -17,13 +17,13 @@
 }
 
 :host(:state(checked)) .toggle-container {
-  background-color: light-dark(var(--je-primary-500), var(--je-primary-200));
+  background-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
 }
 
 :host(:state(checked)) .toggle-thumb {
   left: 100%;
   transform: translateX(-100%);
-  border-color: light-dark(var(--je-primary-500), var(--je-primary-200));
+  border-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
 }
 
 .toggle-container {
@@ -31,20 +31,20 @@
   align-items: center;
   width: 2.5rem;
   height: 1rem;
-  padding: var(--je-spacing-3xs);
+  padding: var(--orb-spacing-3xs);
   box-sizing: border-box;
-  border-radius: var(--je-radius-pill);
+  border-radius: var(--orb-radius-pill);
   position: relative;
   transition: background-color 250ms ease-in-out;
-  background-color: var(--je-neutral-500);
+  background-color: var(--orb-neutral-500);
 }
 
 .toggle-thumb {
   position: absolute;
-  height: var(--je-spacing-lg);
-  width: var(--je-spacing-lg);
-  background-color: light-dark(var(--je-neutral-50), var(--je-neutral-950));
-  border: solid 1px var(--je-neutral-500);
+  height: var(--orb-spacing-lg);
+  width: var(--orb-spacing-lg);
+  background-color: light-dark(var(--orb-neutral-50), var(--orb-neutral-950));
+  border: solid 1px var(--orb-neutral-500);
   border-radius: 50%;
   transition: all 250ms ease-in-out;
   left: 0;

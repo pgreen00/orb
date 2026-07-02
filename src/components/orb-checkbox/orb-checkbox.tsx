@@ -1,12 +1,23 @@
-import { AttachInternals, Component, EventEmitter, Host, Prop, h, Element, Event, Listen, Watch } from '@stencil/core';
+import {
+  AttachInternals,
+  Component,
+  EventEmitter,
+  Host,
+  Prop,
+  h,
+  Element,
+  Event,
+  Listen,
+  Watch,
+} from "@stencil/core";
 
 @Component({
-  tag: 'je-checkbox',
-  styleUrl: 'je-checkbox.css',
+  tag: "orb-checkbox",
+  styleUrl: "orb-checkbox.css",
   shadow: true,
-  formAssociated: true
+  formAssociated: true,
 })
-export class JeCheckbox {
+export class OrbCheckbox {
   @AttachInternals() internals: ElementInternals;
   @Element() el!: HTMLElement;
 
@@ -29,7 +40,7 @@ export class JeCheckbox {
   /**
    * Whether or not the label should go before or after the checkbox
    */
-  @Prop() labelPlacement: 'start' | 'end' = 'end';
+  @Prop() labelPlacement: "start" | "end" = "end";
 
   /**
    * If the checkbox should contain a 3rd indeterminate state
@@ -60,27 +71,39 @@ export class JeCheckbox {
   }
 
   componentDidLoad() {
-    this.internals.role = 'checkbox'
-    this.el.tabIndex = 0
+    this.internals.role = "checkbox";
+    this.el.tabIndex = 0;
   }
 
   componentDidRender() {
-    this.internals.states.clear()
-    this.internals.states.add(this.value ? 'checked' : this.value === undefined ? 'indeterminate' : 'unchecked')
-    this.internals.ariaChecked = this.value ? 'true' : this.value === undefined ? 'mixed' : 'false'
-    this.internals.ariaRequired = this.required ? 'true' : 'false'
-    this.internals.ariaInvalid = this.internals.validity.valid ? 'true' : 'false'
+    this.internals.states.clear();
+    this.internals.states.add(
+      this.value
+        ? "checked"
+        : this.value === undefined
+          ? "indeterminate"
+          : "unchecked",
+    );
+    this.internals.ariaChecked = this.value
+      ? "true"
+      : this.value === undefined
+        ? "mixed"
+        : "false";
+    this.internals.ariaRequired = this.required ? "true" : "false";
+    this.internals.ariaInvalid = this.internals.validity.valid
+      ? "true"
+      : "false";
   }
 
-  @Listen('click')
+  @Listen("click")
   onClick(_ev: MouseEvent) {
     this.value = !this.value;
     this.valueChange.emit(this.value);
   }
 
-  @Listen('keydown')
+  @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
-    if (ev.key === ' ') {
+    if (ev.key === " ") {
       ev.preventDefault();
       ev.stopPropagation();
       this.value = !this.value;
@@ -88,11 +111,24 @@ export class JeCheckbox {
     }
   }
 
-  @Watch('value')
+  @Watch("value")
   handleValueChange() {
-    this.internals.setFormValue(this.data ? (this.value === true ? this.data : null) : this.value === true ? 'true' : this.value === false ? 'false' : null);
+    this.internals.setFormValue(
+      this.data
+        ? this.value === true
+          ? this.data
+          : null
+        : this.value === true
+          ? "true"
+          : this.value === false
+            ? "false"
+            : null,
+    );
     if (this.value === undefined && this.required) {
-      this.internals.setValidity({ valueMissing: true }, 'This field is required');
+      this.internals.setValidity(
+        { valueMissing: true },
+        "This field is required",
+      );
     } else {
       this.internals.setValidity({});
     }
@@ -101,11 +137,15 @@ export class JeCheckbox {
   render() {
     return (
       <Host>
-        {this.labelPlacement == 'start' && <slot />}
-        <je-icon aria-hidden="true" fill={this.value}>
-          {this.value === true ? 'check_box' : this.value === false ? 'check_box_outline_blank' : 'indeterminate_check_box'}
-        </je-icon>
-        {this.labelPlacement == 'end' && <slot />}
+        {this.labelPlacement == "start" && <slot />}
+        <orb-icon aria-hidden="true" fill={this.value}>
+          {this.value === true
+            ? "check_box"
+            : this.value === false
+              ? "check_box_outline_blank"
+              : "indeterminate_check_box"}
+        </orb-icon>
+        {this.labelPlacement == "end" && <slot />}
       </Host>
     );
   }

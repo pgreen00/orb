@@ -6,14 +6,14 @@ nav {
   display: flex;
   align-items: center;
 
-  color: light-dark(var(--je-neutral-600), var(--je-neutral-400));
-  font-weight: var(--je-font-semi-bold);
-  font-size: var(--je-font-sm);
-  line-height: var(--je-spacing-lg);
+  color: light-dark(var(--orb-neutral-600), var(--orb-neutral-400));
+  font-weight: var(--orb-font-semi-bold);
+  font-size: var(--orb-font-sm);
+  line-height: var(--orb-spacing-lg);
 }
 
-::slotted(je-breadcrumb:last-child) {
-  color: light-dark(var(--je-primary-700), var(--je-primary-200));
+::slotted(orb-breadcrumb:last-child) {
+  color: light-dark(var(--orb-primary-700), var(--orb-primary-200));
 }
 
 ::slotted(:not(:last-child))::after {
@@ -21,10 +21,10 @@ nav {
   display: inline-flex;
   transform: rotate(-15deg);
   cursor: inherit;
-  font-family: 'Material Symbols Rounded';
+  font-family: "Material Symbols Rounded";
   font-weight: normal;
   font-style: normal;
-  font-size: var(--je-font-lg);
+  font-size: var(--orb-font-lg);
   line-height: unset;
   letter-spacing: normal;
   text-transform: none;
@@ -34,18 +34,22 @@ nav {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-  color: light-dark(var(--je-neutral-300), var(--je-neutral-700));
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 20;
+  color: light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
 }
 
 ::slotted(button.collapse) {
   background-color: transparent;
   color: inherit;
   cursor: pointer;
-  font-family: 'Material Symbols Rounded';
+  font-family: "Material Symbols Rounded";
   font-weight: normal;
   font-style: normal;
-  font-size: var(--je-font-lg);
+  font-size: var(--orb-font-lg);
   line-height: unset;
   letter-spacing: normal;
   text-transform: none;
@@ -55,7 +59,11 @@ nav {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 20;
   border: none;
   margin: 0;
   padding: 0;

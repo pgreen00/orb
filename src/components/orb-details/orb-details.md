@@ -1,4 +1,4 @@
 ---
-title: 'JeDetails | <je-details>'
+title: 'OrbDetails | <orb-details>'
 sidebar_label: 'Details'
 ---

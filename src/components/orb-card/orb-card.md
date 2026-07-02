@@ -1,5 +1,5 @@
 ---
-title: 'JeCard | <je-card>'
+title: 'OrbCard | <orb-card>'
 sidebar_label: 'Card'
 ---
 
@@ -10,13 +10,13 @@ sidebar_label: 'Card'
 ::: live-code-demo
 
 ```html
-<je-stack>
-  <je-card>Neutral</je-card>
-  <je-card color="primary">Primary</je-card>
-  <je-card color="success">Success</je-card>
-  <je-card color="warning">Warning</je-card>
-  <je-card color="danger">Danger</je-card>
-</je-stack>
+<orb-stack>
+  <orb-card>Neutral</orb-card>
+  <orb-card color="primary">Primary</orb-card>
+  <orb-card color="success">Success</orb-card>
+  <orb-card color="warning">Warning</orb-card>
+  <orb-card color="danger">Danger</orb-card>
+</orb-stack>
 ```
 
 :::

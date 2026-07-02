@@ -1,4 +1,4 @@
 ---
-title: 'JeWizard | <je-wizard>'
+title: 'OrbWizard | <orb-wizard>'
 sidebar_label: 'Wizard'
 ---

@@ -1,4 +1,4 @@
 ---
-title: 'JeCheckbox | <je-checkbox>'
+title: 'OrbCheckbox | <orb-checkbox>'
 sidebar_label: 'Checkbox'
 ---

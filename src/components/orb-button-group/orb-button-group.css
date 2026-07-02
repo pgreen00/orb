@@ -1,10 +1,10 @@
-je-button-group {
+orb-button-group {
   display: flex;
   width: fit-content;
 
-  & > je-button,
-  & > * > je-button {
-    &[color][fill=solid]:not(.__last)::part(inner-button) {
+  & > orb-button,
+  & > * > orb-button {
+    &[color][fill="solid"]:not(.__last)::part(inner-button) {
       border-right-color: currentColor;
     }
 
@@ -15,15 +15,13 @@ je-button-group {
 
     &.__first::part(inner-button) {
       border-left: solid 1px var(--border-color, transparent);
-      border-top-left-radius: var(--je-radius-md);
-      border-bottom-left-radius: var(--je-radius-md);
+      border-top-left-radius: var(--orb-radius-md);
+      border-bottom-left-radius: var(--orb-radius-md);
     }
 
     &.__last::part(inner-button) {
-      border-top-right-radius: var(--je-radius-md);
-      border-bottom-right-radius: var(--je-radius-md);
+      border-top-right-radius: var(--orb-radius-md);
+      border-bottom-right-radius: var(--orb-radius-md);
     }
   }
 }
-
-

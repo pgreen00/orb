@@ -1,14 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("je-button", () => {
+test.describe("orb-button", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
   });
 
   // Basic rendering test
   test("renders with text content", async ({ page }) => {
-    await page.setContent("<je-button>Hello world!</je-button>");
-    const button = page.locator("je-button");
+    await page.setContent("<orb-button>Hello world!</orb-button>");
+    const button = page.locator("orb-button");
 
     await expect(button).toBeVisible();
     await expect(button).toContainText("Hello world!");
@@ -17,9 +17,9 @@ test.describe("je-button", () => {
   // Testing attributes and properties
   test("sets and reads attributes", async ({ page }) => {
     await page.setContent(
-      '<je-button disabled="true" variant="primary">Button</je-button>',
+      '<orb-button disabled="true" variant="primary">Button</orb-button>',
     );
-    const button = page.locator("je-button");
+    const button = page.locator("orb-button");
 
     await expect(button).toHaveAttribute("disabled", "true");
     await expect(button).toHaveAttribute("variant", "primary");

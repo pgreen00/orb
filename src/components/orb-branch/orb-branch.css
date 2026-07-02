@@ -4,11 +4,14 @@
   position: relative;
 
   --selected-background: light-dark(
-    var(--je-primary-50),
-    var(--je-neutral-850)
+    var(--orb-primary-50),
+    var(--orb-neutral-850)
   );
-  --selected-color: light-dark(var(--je-primary-500), var(--je-primary-200));
-  --indentation-color: light-dark(var(--je-neutral-400), var(--je-neutral-700));
+  --selected-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
+  --indentation-color: light-dark(
+    var(--orb-neutral-400),
+    var(--orb-neutral-700)
+  );
   --indent: calc(1.25rem * var(--depth));
 }
 
@@ -19,7 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: light-dark(var(--je-neutral-800), var(--je-neutral-200));
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-200));
   transition: rotate 250ms ease;
   rotate: 270deg;
 
@@ -37,7 +40,7 @@
   justify-content: center;
   background-color: transparent;
   border: solid 1px var(--selected-color);
-  border-radius: var(--je-radius-sm);
+  border-radius: var(--orb-radius-sm);
   color: var(--selected-color);
 
   &.selected {
@@ -54,7 +57,7 @@
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  border-radius: var(--je-radius-md);
+  border-radius: var(--orb-radius-md);
   overflow: hidden;
   background-color: transparent;
   color: inherit;
@@ -72,7 +75,7 @@
   z-index: 1;
   transition: all 75ms ease-in-out;
   outline-offset: -6px;
-  outline-color: var(--je-primary-400);
+  outline-color: var(--orb-primary-400);
 
   &.parent {
     padding-left: calc(var(--indent) - 1.25rem);
@@ -102,9 +105,9 @@ a {
   font-family: inherit;
   cursor: inherit;
   text-decoration: none;
-  font-size: var(--je-font-md);
-  font-weight: var(--je-font-regular);
-  line-height: var(--je-font-md);
+  font-size: var(--orb-font-md);
+  font-weight: var(--orb-font-regular);
+  line-height: var(--orb-font-md);
   height: 100%;
   gap: 0.25rem;
 }

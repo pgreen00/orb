@@ -1,21 +1,21 @@
-import { Component, Element, Host, h } from '@stencil/core';
+import { Component, Element, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-button-group',
-  styleUrl: 'je-button-group.css'
+  tag: "orb-button-group",
+  styleUrl: "orb-button-group.css",
 })
-export class JeButtonGroup {
+export class OrbButtonGroup {
   @Element() el: HTMLElement;
 
   componentDidLoad() {
-    const buttons = Array.from(this.el.querySelectorAll(':scope > je-button, :scope > * > je-button'));
-    buttons.at(0)?.classList.add('__first')
-    buttons.at(-1)?.classList.add('__last')
+    const buttons = Array.from(
+      this.el.querySelectorAll(":scope > orb-button, :scope > * > orb-button"),
+    );
+    buttons.at(0)?.classList.add("__first");
+    buttons.at(-1)?.classList.add("__last");
   }
 
   render() {
-    return (
-      <Host/>
-    );
+    return <Host />;
   }
 }

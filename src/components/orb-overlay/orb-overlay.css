@@ -2,7 +2,7 @@
   display: contents;
 
   --background: light-dark(rgb(233, 236, 236), rgb(41, 45, 46));
-  --color: light-dark(var(--je-neutral-900), var(--je-neutral-50));
+  --color: light-dark(var(--orb-neutral-900), var(--orb-neutral-50));
   --border: solid 1px light-dark(rgb(197, 200, 204), rgb(86, 87, 90));
 }
 
@@ -11,34 +11,34 @@
     --width: 40%;
   }
 
-  :host(:not([side])[size=lg]) {
+  :host(:not([side])[size="lg"]) {
     --width: 80%;
     --height: 90%;
   }
 
-  :host(:not([side])[size=md]) {
+  :host(:not([side])[size="md"]) {
     --width: 50%;
     --height: 60%;
   }
 
-  :host(:not([side])[size=sm]) {
+  :host(:not([side])[size="sm"]) {
     --width: 30%;
     --height: fit-content;
   }
 }
 
 @media (768px <= width < 1200px) {
-  :host(:not([side])[size=lg]) {
+  :host(:not([side])[size="lg"]) {
     --width: 90%;
     --height: 90%;
   }
 
-  :host(:not([side])[size=md]) {
+  :host(:not([side])[size="md"]) {
     --width: 70%;
     --height: 60%;
   }
 
-  :host(:not([side])[size=sm]) {
+  :host(:not([side])[size="sm"]) {
     --width: 50%;
     --height: fit-content;
   }
@@ -61,17 +61,17 @@
     --width: 80%;
   }
 
-  :host(:not([side])[size=lg]) {
+  :host(:not([side])[size="lg"]) {
     --width: 100%;
     --height: 100%;
   }
 
-  :host(:not([side])[size=md]) {
+  :host(:not([side])[size="md"]) {
     --width: 90%;
     --height: 90%;
   }
 
-  :host(:not([side])[size=sm]) {
+  :host(:not([side])[size="sm"]) {
     --width: 80%;
     --height: fit-content;
   }
@@ -86,8 +86,8 @@
   inset: 0;
   width: var(--width);
   height: var(--height);
-  border-radius: var(--je-radius-md);
-  box-shadow: var(--je-shadow-lg);
+  border-radius: var(--orb-radius-md);
+  box-shadow: var(--orb-shadow-lg);
   border: var(--border);
 }
 
@@ -116,27 +116,27 @@ dialog {
   }
 }
 
-:host([side=right]) dialog {
+:host([side="right"]) dialog {
   left: unset;
 }
 
-:host([side=bottom]) dialog {
+:host([side="bottom"]) dialog {
   top: unset;
   @media (any-pointer: coarse) {
     --drag-height: 24px;
-    border-top-left-radius: var(--je-radius-xl);
-    border-top-right-radius: var(--je-radius-xl);
+    border-top-left-radius: var(--orb-radius-xl);
+    border-top-right-radius: var(--orb-radius-xl);
   }
 }
 
-:host([side=left]) dialog,
-:host([side=right]) dialog {
+:host([side="left"]) dialog,
+:host([side="right"]) dialog {
   height: 100%;
   width: var(--width);
 }
 
-:host([side=top]) dialog,
-:host([side=bottom]) dialog {
+:host([side="top"]) dialog,
+:host([side="bottom"]) dialog {
   width: 100%;
   height: var(--width);
 }
@@ -156,7 +156,7 @@ dialog {
       display: block;
       width: 20%;
       height: 6px;
-      border-radius: var(--je-radius-xl);
+      border-radius: var(--orb-radius-xl);
       background-color: var(--color);
     }
   }

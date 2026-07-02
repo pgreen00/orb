@@ -1,4 +1,4 @@
 ---
-title: 'JeBreadcrumbs | <je-breadcrumbs>'
+title: 'OrbBreadcrumbs | <orb-breadcrumbs>'
 sidebar_label: 'Breadcrumbs'
 ---

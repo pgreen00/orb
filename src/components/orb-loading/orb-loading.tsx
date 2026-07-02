@@ -1,4 +1,4 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 export interface SpinnerConfig {
   dur: number;
@@ -32,32 +32,37 @@ const spinners = {
         y2: 26,
         style: {
           transform: transform,
-          'animation-delay': animationDelay,
+          "animation-delay": animationDelay,
         },
       };
     },
   },
-}
+};
 
-const buildLine = (spinner: SpinnerConfig, duration: number, index: number, total: number) => {
+const buildLine = (
+  spinner: SpinnerConfig,
+  duration: number,
+  index: number,
+  total: number,
+) => {
   const data = spinner.fn(duration, index, total);
-  data.style['animation-duration'] = duration + 'ms';
+  data.style["animation-duration"] = duration + "ms";
 
   return (
-    <svg viewBox={data.viewBox || '0 0 64 64'} style={data.style}>
+    <svg viewBox={data.viewBox || "0 0 64 64"} style={data.style}>
       <line transform="translate(32,32)" y1={data.y1} y2={data.y2} />
     </svg>
   );
 };
 
 @Component({
-  tag: 'je-loading',
-  styleUrl: 'je-loading.css',
+  tag: "orb-loading",
+  styleUrl: "orb-loading.css",
   shadow: true,
 })
-export class JeLoading {
+export class OrbLoading {
   render() {
-    const spinner = spinners['lines'];
+    const spinner = spinners["lines"];
     const duration = spinner.dur;
     const svgs: SVGElement[] = [];
 
@@ -65,10 +70,6 @@ export class JeLoading {
       svgs.push(buildLine(spinner, duration, i, spinner.lines));
     }
 
-    return (
-      <Host class={{ [`spinner-lines`]: true }}>
-        {svgs}
-      </Host>
-    );
+    return <Host class={{ [`spinner-lines`]: true }}>{svgs}</Host>;
   }
 }

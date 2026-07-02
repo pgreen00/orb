@@ -1,4 +1,4 @@
 ---
-title: 'JeRadioGroup | <je-radio-group>'
+title: 'OrbRadioGroup | <orb-radio-group>'
 sidebar_label: 'Radio Group'
 ---

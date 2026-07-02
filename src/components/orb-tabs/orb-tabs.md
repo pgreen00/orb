@@ -1,37 +1,37 @@
 ---
-title: 'JeTabs | <je-tabs>'
+title: 'OrbTabs | <orb-tabs>'
 sidebar_label: 'Tabs'
 ---
 
 ::: live-code-demo
 
 ```html
-<je-stack>
-  <je-tabs value="1">
-    <je-tab value="1">
+<orb-stack>
+  <orb-tabs value="1">
+    <orb-tab value="1">
       Tab 1
-    </je-tab>
-    <je-tab value="2">
+    </orb-tab>
+    <orb-tab value="2">
       Tab 2
-    </je-tab>
-  </je-tabs>
-  <je-tabs mode="pill" value="1">
-    <je-tab value="1">
+    </orb-tab>
+  </orb-tabs>
+  <orb-tabs mode="pill" value="1">
+    <orb-tab value="1">
       Tab 1
-    </je-tab>
-    <je-tab value="2">
+    </orb-tab>
+    <orb-tab value="2">
       Tab 2
-    </je-tab>
-  </je-tabs>
-  <je-tabs mode="mobile" value="1">
-    <je-tab value="1">
+    </orb-tab>
+  </orb-tabs>
+  <orb-tabs mode="mobile" value="1">
+    <orb-tab value="1">
       Tab 1
-    </je-tab>
-    <je-tab value="2">
+    </orb-tab>
+    <orb-tab value="2">
       Tab 2
-    </je-tab>
-  </je-tabs>
-</je-stack>
+    </orb-tab>
+  </orb-tabs>
+</orb-stack>
 ```
 
 :::

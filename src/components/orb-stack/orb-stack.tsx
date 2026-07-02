@@ -1,11 +1,11 @@
 import { Component, Host, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: "je-stack",
-  styleUrl: "je-stack.css",
+  tag: "orb-stack",
+  styleUrl: "orb-stack.css",
   shadow: true,
 })
-export class JeStack {
+export class OrbStack {
   @Prop() mode: "row" | "column" = "column";
   @Prop() align?: string;
   @Prop() justify?: string;
@@ -22,7 +22,7 @@ export class JeStack {
 
   render() {
     const styles = [
-      `--gap:var(--je-spacing-${this.space});`,
+      `--gap:var(--orb-spacing-${this.space});`,
       `--direction:${this.mode};`,
     ];
     if (this.align || (this.mode == "row" && !this.align))

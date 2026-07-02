@@ -1,11 +1,11 @@
 :host {
   display: inline-flex;
-  font-weight: var(--je-font-light);
-  color: light-dark(var(--je-neutral-700), var(--je-neutral-400));
-  font-size: var(--je-font-sm);
-  gap: var(--je-spacing-2xs);
+  font-weight: var(--orb-font-light);
+  color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  font-size: var(--orb-font-sm);
+  gap: var(--orb-spacing-2xs);
 }
 
 :host([invalid]) {
-  color: light-dark(var(--je-danger-400), var(--je-danger-300));
+  color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
 }

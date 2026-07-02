@@ -1,11 +1,11 @@
 import { Component, Host, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: "je-toolbar",
-  styleUrl: "je-toolbar.css",
+  tag: "orb-toolbar",
+  styleUrl: "orb-toolbar.css",
   shadow: true,
 })
-export class JeToolbar {
+export class OrbToolbar {
   @Prop({ reflect: true }) flank: boolean | "reverse" = false;
   @Prop() mode: "row" | "column" = "row";
   @Prop() space:
@@ -22,7 +22,7 @@ export class JeToolbar {
   render() {
     return (
       <Host>
-        <style>{`:host{--gap:var(--je-spacing-${this.space});--direction:${this.mode};}`}</style>
+        <style>{`:host{--gap:var(--orb-spacing-${this.space});--direction:${this.mode};}`}</style>
         <div part="main-container" class={{ flank: this.flank === true }}>
           <slot />
         </div>

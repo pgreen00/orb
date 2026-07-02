@@ -1,30 +1,30 @@
 :host {
   --thickness: 1px;
-  --color: light-dark(var(--je-neutral-500), var(--je-neutral-800));
+  --color: light-dark(var(--orb-neutral-500), var(--orb-neutral-800));
 
   background-color: var(--color);
 }
 
-:host([spacing=sm]) {
-  --spacing: var(--je-spacing-2xs);
+:host([spacing="sm"]) {
+  --spacing: var(--orb-spacing-2xs);
 }
 
-:host([spacing=md]) {
-  --spacing: var(--je-spacing-sm);
+:host([spacing="md"]) {
+  --spacing: var(--orb-spacing-sm);
 }
 
-:host([spacing=lg]) {
-  --spacing: var(--je-spacing-lg);
+:host([spacing="lg"]) {
+  --spacing: var(--orb-spacing-lg);
 }
 
-:host([type=horizontal]) {
+:host([type="horizontal"]) {
   display: block;
   width: 100%;
   height: var(--thickness);
   margin-block: var(--spacing, 0);
 }
 
-:host([type=vertical]) {
+:host([type="vertical"]) {
   display: inline-block;
   align-self: normal;
   width: var(--thickness);

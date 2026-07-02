@@ -3,9 +3,9 @@
   grid-template-columns: repeat(var(--columns), 1fr);
   overflow: auto;
   box-sizing: border-box;
-  border: 1px solid light-dark(var(--je-neutral-300), var(--je-neutral-700));
-  border-radius: var(--je-radius-md);
-  font-size: var(--je-font-sm);
+  border: 1px solid light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
+  border-radius: var(--orb-radius-md);
+  font-size: var(--orb-font-sm);
   transform: translateZ(0);
 
   --columns: initial;

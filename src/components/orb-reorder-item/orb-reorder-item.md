@@ -1,4 +1,4 @@
 ---
-title: 'JeReorderItem | <je-reorder-item>'
+title: 'OrbReorderItem | <orb-reorder-item>'
 sidebar_label: 'Reorder Item'
 ---

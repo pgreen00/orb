@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-midi',
-  styleUrl: 'je-midi.css',
+  tag: "orb-midi",
+  styleUrl: "orb-midi.css",
   shadow: true,
 })
-export class JeMidi {
+export class OrbMidi {
   render() {
     return (
       <Host>

@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-split-view',
-  styleUrl: 'je-split-view.css',
+  tag: "orb-split-view",
+  styleUrl: "orb-split-view.css",
   shadow: true,
 })
-export class JeSplitView {
+export class OrbSplitView {
   render() {
     return (
       <Host>

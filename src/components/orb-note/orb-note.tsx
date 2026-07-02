@@ -1,16 +1,16 @@
-import { Component, Host, Prop, h } from '@stencil/core';
+import { Component, Host, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-note',
-  styleUrl: 'je-note.css',
+  tag: "orb-note",
+  styleUrl: "orb-note.css",
   shadow: true,
 })
-export class JeNote {
+export class OrbNote {
   @Prop({ reflect: true }) invalid?: boolean;
 
   render() {
     return (
-      <Host aria-hidden='true'>
+      <Host aria-hidden="true">
         <slot></slot>
       </Host>
     );

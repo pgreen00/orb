@@ -11,12 +11,12 @@ import {
 import { Color } from "../../utils/color";
 
 @Component({
-  tag: "je-button",
-  styleUrl: "je-button.css",
+  tag: "orb-button",
+  styleUrl: "orb-button.css",
   shadow: true,
 })
-export class JeButton {
-  @Element() el: HTMLJeButtonElement;
+export class OrbButton {
+  @Element() el: HTMLOrbButtonElement;
   private get formEl() {
     return this.form
       ? document.getElementById(this.form)?.closest("form")
@@ -86,7 +86,7 @@ export class JeButton {
         tabindex={this.disabled || this.pending ? "-1" : "0"}
       >
         {this.pending ? (
-          <je-loading />
+          <orb-loading />
         ) : (
           <slot onSlotchange={() => forceUpdate(this.el)} />
         )}

@@ -1,11 +1,11 @@
-import { Component, Host, h } from '@stencil/core';
+import { Component, Host, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-synth',
-  styleUrl: 'je-synth.css',
+  tag: "orb-synth",
+  styleUrl: "orb-synth.css",
   shadow: true,
 })
-export class JeSynth {
+export class OrbSynth {
   render() {
     return (
       <Host>

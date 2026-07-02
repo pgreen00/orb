@@ -1,5 +1,5 @@
 ---
-title: 'JeShaderCanvas | <je-shader-canvas>'
+title: 'OrbShaderCanvas | <orb-shader-canvas>'
 sidebar_label: 'GPU Shader Canvas'
 ---
 
@@ -11,7 +11,7 @@ you only write the fragment:
 ::: live-code-demo
 
 ```html
-<je-shader-canvas height="800">
+<orb-shader-canvas height="800">
   <script type="wgsl">
     fn rot(a: f32) -> mat2x2f {
       let c = cos(a);
@@ -83,7 +83,7 @@ you only write the fragment:
       return vec4f(v * 0.01, 1.0);
     }
   </script>
-</je-shader-canvas>
+</orb-shader-canvas>
 ```
 
 :::

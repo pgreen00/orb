@@ -6,25 +6,25 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Color } from "./utils/color";
-import { OverlayData } from "./components/je-overlay/je-overlay";
-import { OverlayData as OverlayData1 } from "./components/je-overlay/je-overlay";
+import { OverlayData } from "./components/orb-overlay/orb-overlay";
+import { OverlayData as OverlayData1 } from "./components/orb-overlay/orb-overlay";
 import { Placement } from "@floating-ui/dom";
-import { EditorChangeEvent } from "./components/je-rich-text/je-rich-text";
-import { ShaderErrorDetail } from "./components/je-shader-canvas/je-shader-canvas";
+import { EditorChangeEvent } from "./components/orb-rich-text/orb-rich-text";
+import { ShaderErrorDetail } from "./components/orb-shader-canvas/orb-shader-canvas";
 export { Color } from "./utils/color";
-export { OverlayData } from "./components/je-overlay/je-overlay";
-export { OverlayData as OverlayData1 } from "./components/je-overlay/je-overlay";
+export { OverlayData } from "./components/orb-overlay/orb-overlay";
+export { OverlayData as OverlayData1 } from "./components/orb-overlay/orb-overlay";
 export { Placement } from "@floating-ui/dom";
-export { EditorChangeEvent } from "./components/je-rich-text/je-rich-text";
-export { ShaderErrorDetail } from "./components/je-shader-canvas/je-shader-canvas";
+export { EditorChangeEvent } from "./components/orb-rich-text/orb-rich-text";
+export { ShaderErrorDetail } from "./components/orb-shader-canvas/orb-shader-canvas";
 export namespace Components {
     /**
-     * Accordions are wrappers for <je-link href="../je-details">JeDetails</je-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
-    interface JeAccordion {
+    interface OrbAccordion {
     }
-    interface JeAlert {
+    interface OrbAlert {
         /**
           * @default false
          */
@@ -42,7 +42,7 @@ export namespace Components {
         "open": boolean;
         "show": () => Promise<void>;
     }
-    interface JeBranch {
+    interface OrbBranch {
         "href"?: string;
         /**
           * @default false
@@ -61,9 +61,9 @@ export namespace Components {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
-    interface JeBreadcrumb {
+    interface OrbBreadcrumb {
     }
-    interface JeBreadcrumbs {
+    interface OrbBreadcrumbs {
         /**
           * @default 1
          */
@@ -74,7 +74,7 @@ export namespace Components {
         "itemsBeforeCollapse": number;
         "maxItems"?: number;
     }
-    interface JeButton {
+    interface OrbButton {
         /**
           * Predefined colors
          */
@@ -113,14 +113,14 @@ export namespace Components {
          */
         "type"?: "submit" | "reset";
     }
-    interface JeButtonGroup {
+    interface OrbButtonGroup {
     }
-    interface JeCalendar {
+    interface OrbCalendar {
     }
-    interface JeCard {
+    interface OrbCard {
         "color"?: Color;
     }
-    interface JeCheckbox {
+    interface OrbCheckbox {
         /**
           * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
          */
@@ -132,9 +132,9 @@ export namespace Components {
         "indeterminate": boolean;
         /**
           * Whether or not the label should go before or after the checkbox
-          * @default 'end'
+          * @default "end"
          */
-        "labelPlacement": 'start' | 'end';
+        "labelPlacement": "start" | "end";
         /**
           * Original value form will reset to
          */
@@ -149,7 +149,7 @@ export namespace Components {
          */
         "value"?: boolean;
     }
-    interface JeColor {
+    interface OrbColor {
         /**
           * Fixed color
          */
@@ -163,7 +163,7 @@ export namespace Components {
          */
         "light"?: Color;
     }
-    interface JeCombobox {
+    interface OrbCombobox {
         /**
           * @default false
          */
@@ -190,11 +190,11 @@ export namespace Components {
         "size": "sm" | "md" | "lg";
         "value": any;
     }
-    interface JeComp {
+    interface OrbComp {
     }
-    interface JeControl {
+    interface OrbControl {
     }
-    interface JeDatepicker {
+    interface OrbDatepicker {
         /**
           * @default false
          */
@@ -208,9 +208,9 @@ export namespace Components {
         "type": "date" | "datetime" | "time";
         "value"?: number;
     }
-    interface JeDaw {
+    interface OrbDaw {
     }
-    interface JeDetails {
+    interface OrbDetails {
         /**
           * @default "right"
          */
@@ -225,9 +225,9 @@ export namespace Components {
         "open": boolean;
         "summary"?: string;
     }
-    interface JeDiscardForm {
+    interface OrbDiscardForm {
     }
-    interface JeDivider {
+    interface OrbDivider {
         /**
           * @default "md"
          */
@@ -237,11 +237,11 @@ export namespace Components {
          */
         "type": "horizontal" | "vertical";
     }
-    interface JeDropzone {
+    interface OrbDropzone {
     }
-    interface JeEq {
+    interface OrbEq {
     }
-    interface JeGrid {
+    interface OrbGrid {
         "space"?: | "3xs"
     | "2xs"
     | "xs"
@@ -252,7 +252,7 @@ export namespace Components {
     | "2xs"
     | "3xl";
     }
-    interface JeIcon {
+    interface OrbIcon {
         /**
           * Whether or not the icon should be filled
           * @default false
@@ -261,26 +261,26 @@ export namespace Components {
         /**
           * Icon grade
          */
-        "grade"?: 'high' | 'low';
+        "grade"?: "high" | "low";
         /**
           * Size of the icon
-          * @default 'md'
+          * @default "md"
          */
-        "size": 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+        "size": "xs" | "sm" | "md" | "lg" | "xl";
         /**
           * Icon weight
           * @default 400
          */
         "weight": number;
     }
-    interface JeItem {
+    interface OrbItem {
     }
-    interface JeKnob {
+    interface OrbKnob {
     }
-    interface JeLabel {
+    interface OrbLabel {
         "required"?: boolean;
     }
-    interface JeLink {
+    interface OrbLink {
         /**
           * Makes text bold
           * @default false
@@ -308,16 +308,16 @@ export namespace Components {
          */
         "underline": boolean;
     }
-    interface JeList {
+    interface OrbList {
     }
-    interface JeLoading {
+    interface OrbLoading {
     }
-    interface JeMidi {
+    interface OrbMidi {
     }
-    interface JeNote {
+    interface OrbNote {
         "invalid"?: boolean;
     }
-    interface JeOption {
+    interface OrbOption {
         /**
           * @default false
          */
@@ -328,7 +328,7 @@ export namespace Components {
         "selected": boolean;
         "value": any;
     }
-    interface JeOverlay {
+    interface OrbOverlay {
         /**
           * Backdrop will close the modal on click when enabled
           * @default true
@@ -359,22 +359,22 @@ export namespace Components {
          */
         "size": "sm" | "md" | "lg";
     }
-    interface JePill {
+    interface OrbPill {
         /**
           * @default false
          */
         "outline": boolean;
     }
-    interface JePillGroup {
+    interface OrbPillGroup {
     }
-    interface JePlaceholder {
+    interface OrbPlaceholder {
         /**
           * Whether or not the component should have the animated "shimmer" effect
           * @default true
          */
         "animated": boolean;
     }
-    interface JePopover {
+    interface OrbPopover {
         /**
           * Renders an arrow pointing to the trigger
           * @default true
@@ -442,7 +442,7 @@ export namespace Components {
          */
         "triggerAction": "click" | "context-menu" | "hover";
     }
-    interface JeRadio {
+    interface OrbRadio {
         /**
           * If the option is currently selected
          */
@@ -452,7 +452,7 @@ export namespace Components {
          */
         "value": any;
     }
-    interface JeRadioButton {
+    interface OrbRadioButton {
         /**
           * Changes the styling of the card to indicate it is selected
           * @default false
@@ -463,7 +463,7 @@ export namespace Components {
          */
         "value"?: string;
     }
-    interface JeRadioGroup {
+    interface OrbRadioGroup {
         /**
           * Disables the controls
           * @default false
@@ -490,13 +490,13 @@ export namespace Components {
          */
         "value"?: any;
     }
-    interface JeRange {
+    interface OrbRange {
     }
-    interface JeReorderItem {
+    interface OrbReorderItem {
     }
-    interface JeReorderList {
+    interface OrbReorderList {
     }
-    interface JeRichText {
+    interface OrbRichText {
         "clear": () => Promise<void>;
         /**
           * @default false
@@ -505,15 +505,15 @@ export namespace Components {
         "getContent": () => Promise<string>;
         "getText": () => Promise<string>;
         /**
-          * @default '500px'
+          * @default "500px"
          */
         "maxHeight": string;
         /**
-          * @default '200px'
+          * @default "200px"
          */
         "minHeight": string;
         /**
-          * @default 'Start typing...'
+          * @default "Start typing..."
          */
         "placeholder": string;
         /**
@@ -526,18 +526,18 @@ export namespace Components {
          */
         "showWordCount": boolean;
         /**
-          * @default ''
+          * @default ""
          */
         "value": string;
     }
     /**
-     * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+     * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
      * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
      * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
      * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
      * and a full-screen vertex stage are injected for you — you only write the fragment.
      */
-    interface JeShaderCanvas {
+    interface OrbShaderCanvas {
         /**
           * Pixel density multiplier applied to the backing store. Increase for sharper output.
           * @default 1
@@ -582,11 +582,11 @@ export namespace Components {
          */
         "width"?: number;
     }
-    interface JeSplitPanel {
+    interface OrbSplitPanel {
     }
-    interface JeSplitView {
+    interface OrbSplitView {
     }
-    interface JeStack {
+    interface OrbStack {
         "align"?: string;
         "justify"?: string;
         /**
@@ -606,27 +606,27 @@ export namespace Components {
     | "2xs"
     | "3xl";
     }
-    interface JeSynth {
+    interface OrbSynth {
     }
-    interface JeTab {
+    interface OrbTab {
         /**
           * @default false
          */
         "active": boolean;
         "value"?: string;
     }
-    interface JeTable {
+    interface OrbTable {
         "columns"?: number;
         "data": string[][];
     }
-    interface JeTabs {
+    interface OrbTabs {
         /**
-          * @default 'segment'
+          * @default "segment"
          */
-        "mode": 'mobile' | 'pill' | 'segment';
+        "mode": "mobile" | "pill" | "segment";
         "value"?: string;
     }
-    interface JeTc {
+    interface OrbTc {
         "colSpan"?: number;
         /**
           * @default false
@@ -637,7 +637,7 @@ export namespace Components {
     /**
      * its a textbox
      */
-    interface JeTextbox {
+    interface OrbTextbox {
         /**
           * Optional debounce of the didInput event
           * @default 0
@@ -730,14 +730,14 @@ export namespace Components {
          */
         "wrap"?: string;
     }
-    interface JeToc {
+    interface OrbToc {
     }
-    interface JeToggle {
+    interface OrbToggle {
         /**
           * If the label should be placed at the start or end of the toggle
-          * @default 'end'
+          * @default "end"
          */
-        "labelPlacement": 'start' | 'end';
+        "labelPlacement": "start" | "end";
         /**
           * Original value form will reset to
          */
@@ -748,7 +748,7 @@ export namespace Components {
          */
         "value": boolean;
     }
-    interface JeToolbar {
+    interface OrbToolbar {
         /**
           * @default false
          */
@@ -770,7 +770,7 @@ export namespace Components {
     | "2xs"
     | "3xl";
     }
-    interface JeTooltip {
+    interface OrbTooltip {
         /**
           * The content of the tooltip
          */
@@ -786,33 +786,33 @@ export namespace Components {
          */
         "offsetY": number;
     }
-    interface JeTr {
+    interface OrbTr {
         /**
           * @default "body"
          */
         "type": "header" | "body" | "footer";
     }
-    interface JeTree {
+    interface OrbTree {
         /**
           * @default false
          */
         "indentation": boolean;
         /**
-          * @default 'leaf'
+          * @default "leaf"
          */
-        "selection": 'single' | 'multiple' | 'leaf';
+        "selection": "single" | "multiple" | "leaf";
         "value"?: string | string[];
     }
-    interface JeView {
+    interface OrbView {
         /**
           * @default true
          */
         "closable": boolean;
         "label"?: string;
     }
-    interface JeViewManager {
+    interface OrbViewManager {
     }
-    interface JeWizard {
+    interface OrbWizard {
         "canSkip": () => Promise<boolean>;
         "next": () => Promise<void>;
         "previous": () => Promise<void>;
@@ -821,743 +821,743 @@ export namespace Components {
         /**
           * @default []
          */
-        "steps": { label: string, optional?: boolean }[];
+        "steps": { label: string; optional?: boolean }[];
     }
 }
-export interface JeAlertCustomEvent<T> extends CustomEvent<T> {
+export interface OrbAlertCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeAlertElement;
+    target: HTMLOrbAlertElement;
 }
-export interface JeBreadcrumbsCustomEvent<T> extends CustomEvent<T> {
+export interface OrbBreadcrumbsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeBreadcrumbsElement;
+    target: HTMLOrbBreadcrumbsElement;
 }
-export interface JeCheckboxCustomEvent<T> extends CustomEvent<T> {
+export interface OrbCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeCheckboxElement;
+    target: HTMLOrbCheckboxElement;
 }
-export interface JeComboboxCustomEvent<T> extends CustomEvent<T> {
+export interface OrbComboboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeComboboxElement;
+    target: HTMLOrbComboboxElement;
 }
-export interface JeDatepickerCustomEvent<T> extends CustomEvent<T> {
+export interface OrbDatepickerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeDatepickerElement;
+    target: HTMLOrbDatepickerElement;
 }
-export interface JeDetailsCustomEvent<T> extends CustomEvent<T> {
+export interface OrbDetailsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeDetailsElement;
+    target: HTMLOrbDetailsElement;
 }
-export interface JeDropzoneCustomEvent<T> extends CustomEvent<T> {
+export interface OrbDropzoneCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeDropzoneElement;
+    target: HTMLOrbDropzoneElement;
 }
-export interface JeOverlayCustomEvent<T> extends CustomEvent<T> {
+export interface OrbOverlayCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeOverlayElement;
+    target: HTMLOrbOverlayElement;
 }
-export interface JePopoverCustomEvent<T> extends CustomEvent<T> {
+export interface OrbPopoverCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJePopoverElement;
+    target: HTMLOrbPopoverElement;
 }
-export interface JeRadioGroupCustomEvent<T> extends CustomEvent<T> {
+export interface OrbRadioGroupCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeRadioGroupElement;
+    target: HTMLOrbRadioGroupElement;
 }
-export interface JeRichTextCustomEvent<T> extends CustomEvent<T> {
+export interface OrbRichTextCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeRichTextElement;
+    target: HTMLOrbRichTextElement;
 }
-export interface JeShaderCanvasCustomEvent<T> extends CustomEvent<T> {
+export interface OrbShaderCanvasCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeShaderCanvasElement;
+    target: HTMLOrbShaderCanvasElement;
 }
-export interface JeTabsCustomEvent<T> extends CustomEvent<T> {
+export interface OrbTabsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeTabsElement;
+    target: HTMLOrbTabsElement;
 }
-export interface JeTextboxCustomEvent<T> extends CustomEvent<T> {
+export interface OrbTextboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeTextboxElement;
+    target: HTMLOrbTextboxElement;
 }
-export interface JeToggleCustomEvent<T> extends CustomEvent<T> {
+export interface OrbToggleCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeToggleElement;
+    target: HTMLOrbToggleElement;
 }
-export interface JeTreeCustomEvent<T> extends CustomEvent<T> {
+export interface OrbTreeCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeTreeElement;
+    target: HTMLOrbTreeElement;
 }
-export interface JeWizardCustomEvent<T> extends CustomEvent<T> {
+export interface OrbWizardCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLJeWizardElement;
+    target: HTMLOrbWizardElement;
 }
 declare global {
     /**
-     * Accordions are wrappers for <je-link href="../je-details">JeDetails</je-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
-    interface HTMLJeAccordionElement extends Components.JeAccordion, HTMLStencilElement {
+    interface HTMLOrbAccordionElement extends Components.OrbAccordion, HTMLStencilElement {
     }
-    var HTMLJeAccordionElement: {
-        prototype: HTMLJeAccordionElement;
-        new (): HTMLJeAccordionElement;
+    var HTMLOrbAccordionElement: {
+        prototype: HTMLOrbAccordionElement;
+        new (): HTMLOrbAccordionElement;
     };
-    interface HTMLJeAlertElementEventMap {
+    interface HTMLOrbAlertElementEventMap {
         "present": any;
         "dismiss": OverlayData;
     }
-    interface HTMLJeAlertElement extends Components.JeAlert, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeAlertElementEventMap>(type: K, listener: (this: HTMLJeAlertElement, ev: JeAlertCustomEvent<HTMLJeAlertElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbAlertElement extends Components.OrbAlert, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbAlertElementEventMap>(type: K, listener: (this: HTMLOrbAlertElement, ev: OrbAlertCustomEvent<HTMLOrbAlertElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeAlertElementEventMap>(type: K, listener: (this: HTMLJeAlertElement, ev: JeAlertCustomEvent<HTMLJeAlertElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbAlertElementEventMap>(type: K, listener: (this: HTMLOrbAlertElement, ev: OrbAlertCustomEvent<HTMLOrbAlertElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeAlertElement: {
-        prototype: HTMLJeAlertElement;
-        new (): HTMLJeAlertElement;
+    var HTMLOrbAlertElement: {
+        prototype: HTMLOrbAlertElement;
+        new (): HTMLOrbAlertElement;
     };
-    interface HTMLJeBranchElement extends Components.JeBranch, HTMLStencilElement {
+    interface HTMLOrbBranchElement extends Components.OrbBranch, HTMLStencilElement {
     }
-    var HTMLJeBranchElement: {
-        prototype: HTMLJeBranchElement;
-        new (): HTMLJeBranchElement;
+    var HTMLOrbBranchElement: {
+        prototype: HTMLOrbBranchElement;
+        new (): HTMLOrbBranchElement;
     };
-    interface HTMLJeBreadcrumbElement extends Components.JeBreadcrumb, HTMLStencilElement {
+    interface HTMLOrbBreadcrumbElement extends Components.OrbBreadcrumb, HTMLStencilElement {
     }
-    var HTMLJeBreadcrumbElement: {
-        prototype: HTMLJeBreadcrumbElement;
-        new (): HTMLJeBreadcrumbElement;
+    var HTMLOrbBreadcrumbElement: {
+        prototype: HTMLOrbBreadcrumbElement;
+        new (): HTMLOrbBreadcrumbElement;
     };
-    interface HTMLJeBreadcrumbsElementEventMap {
+    interface HTMLOrbBreadcrumbsElementEventMap {
         "expandClick": any;
     }
-    interface HTMLJeBreadcrumbsElement extends Components.JeBreadcrumbs, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLJeBreadcrumbsElement, ev: JeBreadcrumbsCustomEvent<HTMLJeBreadcrumbsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbBreadcrumbsElement extends Components.OrbBreadcrumbs, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLOrbBreadcrumbsElement, ev: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLJeBreadcrumbsElement, ev: JeBreadcrumbsCustomEvent<HTMLJeBreadcrumbsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLOrbBreadcrumbsElement, ev: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeBreadcrumbsElement: {
-        prototype: HTMLJeBreadcrumbsElement;
-        new (): HTMLJeBreadcrumbsElement;
+    var HTMLOrbBreadcrumbsElement: {
+        prototype: HTMLOrbBreadcrumbsElement;
+        new (): HTMLOrbBreadcrumbsElement;
     };
-    interface HTMLJeButtonElement extends Components.JeButton, HTMLStencilElement {
+    interface HTMLOrbButtonElement extends Components.OrbButton, HTMLStencilElement {
     }
-    var HTMLJeButtonElement: {
-        prototype: HTMLJeButtonElement;
-        new (): HTMLJeButtonElement;
+    var HTMLOrbButtonElement: {
+        prototype: HTMLOrbButtonElement;
+        new (): HTMLOrbButtonElement;
     };
-    interface HTMLJeButtonGroupElement extends Components.JeButtonGroup, HTMLStencilElement {
+    interface HTMLOrbButtonGroupElement extends Components.OrbButtonGroup, HTMLStencilElement {
     }
-    var HTMLJeButtonGroupElement: {
-        prototype: HTMLJeButtonGroupElement;
-        new (): HTMLJeButtonGroupElement;
+    var HTMLOrbButtonGroupElement: {
+        prototype: HTMLOrbButtonGroupElement;
+        new (): HTMLOrbButtonGroupElement;
     };
-    interface HTMLJeCalendarElement extends Components.JeCalendar, HTMLStencilElement {
+    interface HTMLOrbCalendarElement extends Components.OrbCalendar, HTMLStencilElement {
     }
-    var HTMLJeCalendarElement: {
-        prototype: HTMLJeCalendarElement;
-        new (): HTMLJeCalendarElement;
+    var HTMLOrbCalendarElement: {
+        prototype: HTMLOrbCalendarElement;
+        new (): HTMLOrbCalendarElement;
     };
-    interface HTMLJeCardElement extends Components.JeCard, HTMLStencilElement {
+    interface HTMLOrbCardElement extends Components.OrbCard, HTMLStencilElement {
     }
-    var HTMLJeCardElement: {
-        prototype: HTMLJeCardElement;
-        new (): HTMLJeCardElement;
+    var HTMLOrbCardElement: {
+        prototype: HTMLOrbCardElement;
+        new (): HTMLOrbCardElement;
     };
-    interface HTMLJeCheckboxElementEventMap {
+    interface HTMLOrbCheckboxElementEventMap {
         "valueChange": boolean | undefined;
     }
-    interface HTMLJeCheckboxElement extends Components.JeCheckbox, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeCheckboxElementEventMap>(type: K, listener: (this: HTMLJeCheckboxElement, ev: JeCheckboxCustomEvent<HTMLJeCheckboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbCheckboxElement extends Components.OrbCheckbox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbCheckboxElementEventMap>(type: K, listener: (this: HTMLOrbCheckboxElement, ev: OrbCheckboxCustomEvent<HTMLOrbCheckboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeCheckboxElementEventMap>(type: K, listener: (this: HTMLJeCheckboxElement, ev: JeCheckboxCustomEvent<HTMLJeCheckboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbCheckboxElementEventMap>(type: K, listener: (this: HTMLOrbCheckboxElement, ev: OrbCheckboxCustomEvent<HTMLOrbCheckboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeCheckboxElement: {
-        prototype: HTMLJeCheckboxElement;
-        new (): HTMLJeCheckboxElement;
+    var HTMLOrbCheckboxElement: {
+        prototype: HTMLOrbCheckboxElement;
+        new (): HTMLOrbCheckboxElement;
     };
-    interface HTMLJeColorElement extends Components.JeColor, HTMLStencilElement {
+    interface HTMLOrbColorElement extends Components.OrbColor, HTMLStencilElement {
     }
-    var HTMLJeColorElement: {
-        prototype: HTMLJeColorElement;
-        new (): HTMLJeColorElement;
+    var HTMLOrbColorElement: {
+        prototype: HTMLOrbColorElement;
+        new (): HTMLOrbColorElement;
     };
-    interface HTMLJeComboboxElementEventMap {
+    interface HTMLOrbComboboxElementEventMap {
         "valueChange": any;
         "searchTermChange": any;
     }
-    interface HTMLJeComboboxElement extends Components.JeCombobox, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeComboboxElementEventMap>(type: K, listener: (this: HTMLJeComboboxElement, ev: JeComboboxCustomEvent<HTMLJeComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbComboboxElement extends Components.OrbCombobox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbComboboxElementEventMap>(type: K, listener: (this: HTMLOrbComboboxElement, ev: OrbComboboxCustomEvent<HTMLOrbComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeComboboxElementEventMap>(type: K, listener: (this: HTMLJeComboboxElement, ev: JeComboboxCustomEvent<HTMLJeComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbComboboxElementEventMap>(type: K, listener: (this: HTMLOrbComboboxElement, ev: OrbComboboxCustomEvent<HTMLOrbComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeComboboxElement: {
-        prototype: HTMLJeComboboxElement;
-        new (): HTMLJeComboboxElement;
+    var HTMLOrbComboboxElement: {
+        prototype: HTMLOrbComboboxElement;
+        new (): HTMLOrbComboboxElement;
     };
-    interface HTMLJeCompElement extends Components.JeComp, HTMLStencilElement {
+    interface HTMLOrbCompElement extends Components.OrbComp, HTMLStencilElement {
     }
-    var HTMLJeCompElement: {
-        prototype: HTMLJeCompElement;
-        new (): HTMLJeCompElement;
+    var HTMLOrbCompElement: {
+        prototype: HTMLOrbCompElement;
+        new (): HTMLOrbCompElement;
     };
-    interface HTMLJeControlElement extends Components.JeControl, HTMLStencilElement {
+    interface HTMLOrbControlElement extends Components.OrbControl, HTMLStencilElement {
     }
-    var HTMLJeControlElement: {
-        prototype: HTMLJeControlElement;
-        new (): HTMLJeControlElement;
+    var HTMLOrbControlElement: {
+        prototype: HTMLOrbControlElement;
+        new (): HTMLOrbControlElement;
     };
-    interface HTMLJeDatepickerElementEventMap {
+    interface HTMLOrbDatepickerElementEventMap {
         "valueChange": number;
     }
-    interface HTMLJeDatepickerElement extends Components.JeDatepicker, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeDatepickerElementEventMap>(type: K, listener: (this: HTMLJeDatepickerElement, ev: JeDatepickerCustomEvent<HTMLJeDatepickerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbDatepickerElement extends Components.OrbDatepicker, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbDatepickerElementEventMap>(type: K, listener: (this: HTMLOrbDatepickerElement, ev: OrbDatepickerCustomEvent<HTMLOrbDatepickerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeDatepickerElementEventMap>(type: K, listener: (this: HTMLJeDatepickerElement, ev: JeDatepickerCustomEvent<HTMLJeDatepickerElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbDatepickerElementEventMap>(type: K, listener: (this: HTMLOrbDatepickerElement, ev: OrbDatepickerCustomEvent<HTMLOrbDatepickerElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeDatepickerElement: {
-        prototype: HTMLJeDatepickerElement;
-        new (): HTMLJeDatepickerElement;
+    var HTMLOrbDatepickerElement: {
+        prototype: HTMLOrbDatepickerElement;
+        new (): HTMLOrbDatepickerElement;
     };
-    interface HTMLJeDawElement extends Components.JeDaw, HTMLStencilElement {
+    interface HTMLOrbDawElement extends Components.OrbDaw, HTMLStencilElement {
     }
-    var HTMLJeDawElement: {
-        prototype: HTMLJeDawElement;
-        new (): HTMLJeDawElement;
+    var HTMLOrbDawElement: {
+        prototype: HTMLOrbDawElement;
+        new (): HTMLOrbDawElement;
     };
-    interface HTMLJeDetailsElementEventMap {
+    interface HTMLOrbDetailsElementEventMap {
         "expand": any;
         "collapse": any;
     }
-    interface HTMLJeDetailsElement extends Components.JeDetails, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeDetailsElementEventMap>(type: K, listener: (this: HTMLJeDetailsElement, ev: JeDetailsCustomEvent<HTMLJeDetailsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbDetailsElement extends Components.OrbDetails, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbDetailsElementEventMap>(type: K, listener: (this: HTMLOrbDetailsElement, ev: OrbDetailsCustomEvent<HTMLOrbDetailsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeDetailsElementEventMap>(type: K, listener: (this: HTMLJeDetailsElement, ev: JeDetailsCustomEvent<HTMLJeDetailsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbDetailsElementEventMap>(type: K, listener: (this: HTMLOrbDetailsElement, ev: OrbDetailsCustomEvent<HTMLOrbDetailsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeDetailsElement: {
-        prototype: HTMLJeDetailsElement;
-        new (): HTMLJeDetailsElement;
+    var HTMLOrbDetailsElement: {
+        prototype: HTMLOrbDetailsElement;
+        new (): HTMLOrbDetailsElement;
     };
-    interface HTMLJeDiscardFormElement extends Components.JeDiscardForm, HTMLStencilElement {
+    interface HTMLOrbDiscardFormElement extends Components.OrbDiscardForm, HTMLStencilElement {
     }
-    var HTMLJeDiscardFormElement: {
-        prototype: HTMLJeDiscardFormElement;
-        new (): HTMLJeDiscardFormElement;
+    var HTMLOrbDiscardFormElement: {
+        prototype: HTMLOrbDiscardFormElement;
+        new (): HTMLOrbDiscardFormElement;
     };
-    interface HTMLJeDividerElement extends Components.JeDivider, HTMLStencilElement {
+    interface HTMLOrbDividerElement extends Components.OrbDivider, HTMLStencilElement {
     }
-    var HTMLJeDividerElement: {
-        prototype: HTMLJeDividerElement;
-        new (): HTMLJeDividerElement;
+    var HTMLOrbDividerElement: {
+        prototype: HTMLOrbDividerElement;
+        new (): HTMLOrbDividerElement;
     };
-    interface HTMLJeDropzoneElementEventMap {
+    interface HTMLOrbDropzoneElementEventMap {
         "dataDrop": DataTransfer;
     }
-    interface HTMLJeDropzoneElement extends Components.JeDropzone, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeDropzoneElementEventMap>(type: K, listener: (this: HTMLJeDropzoneElement, ev: JeDropzoneCustomEvent<HTMLJeDropzoneElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbDropzoneElement extends Components.OrbDropzone, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbDropzoneElementEventMap>(type: K, listener: (this: HTMLOrbDropzoneElement, ev: OrbDropzoneCustomEvent<HTMLOrbDropzoneElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeDropzoneElementEventMap>(type: K, listener: (this: HTMLJeDropzoneElement, ev: JeDropzoneCustomEvent<HTMLJeDropzoneElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbDropzoneElementEventMap>(type: K, listener: (this: HTMLOrbDropzoneElement, ev: OrbDropzoneCustomEvent<HTMLOrbDropzoneElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeDropzoneElement: {
-        prototype: HTMLJeDropzoneElement;
-        new (): HTMLJeDropzoneElement;
+    var HTMLOrbDropzoneElement: {
+        prototype: HTMLOrbDropzoneElement;
+        new (): HTMLOrbDropzoneElement;
     };
-    interface HTMLJeEqElement extends Components.JeEq, HTMLStencilElement {
+    interface HTMLOrbEqElement extends Components.OrbEq, HTMLStencilElement {
     }
-    var HTMLJeEqElement: {
-        prototype: HTMLJeEqElement;
-        new (): HTMLJeEqElement;
+    var HTMLOrbEqElement: {
+        prototype: HTMLOrbEqElement;
+        new (): HTMLOrbEqElement;
     };
-    interface HTMLJeGridElement extends Components.JeGrid, HTMLStencilElement {
+    interface HTMLOrbGridElement extends Components.OrbGrid, HTMLStencilElement {
     }
-    var HTMLJeGridElement: {
-        prototype: HTMLJeGridElement;
-        new (): HTMLJeGridElement;
+    var HTMLOrbGridElement: {
+        prototype: HTMLOrbGridElement;
+        new (): HTMLOrbGridElement;
     };
-    interface HTMLJeIconElement extends Components.JeIcon, HTMLStencilElement {
+    interface HTMLOrbIconElement extends Components.OrbIcon, HTMLStencilElement {
     }
-    var HTMLJeIconElement: {
-        prototype: HTMLJeIconElement;
-        new (): HTMLJeIconElement;
+    var HTMLOrbIconElement: {
+        prototype: HTMLOrbIconElement;
+        new (): HTMLOrbIconElement;
     };
-    interface HTMLJeItemElement extends Components.JeItem, HTMLStencilElement {
+    interface HTMLOrbItemElement extends Components.OrbItem, HTMLStencilElement {
     }
-    var HTMLJeItemElement: {
-        prototype: HTMLJeItemElement;
-        new (): HTMLJeItemElement;
+    var HTMLOrbItemElement: {
+        prototype: HTMLOrbItemElement;
+        new (): HTMLOrbItemElement;
     };
-    interface HTMLJeKnobElement extends Components.JeKnob, HTMLStencilElement {
+    interface HTMLOrbKnobElement extends Components.OrbKnob, HTMLStencilElement {
     }
-    var HTMLJeKnobElement: {
-        prototype: HTMLJeKnobElement;
-        new (): HTMLJeKnobElement;
+    var HTMLOrbKnobElement: {
+        prototype: HTMLOrbKnobElement;
+        new (): HTMLOrbKnobElement;
     };
-    interface HTMLJeLabelElement extends Components.JeLabel, HTMLStencilElement {
+    interface HTMLOrbLabelElement extends Components.OrbLabel, HTMLStencilElement {
     }
-    var HTMLJeLabelElement: {
-        prototype: HTMLJeLabelElement;
-        new (): HTMLJeLabelElement;
+    var HTMLOrbLabelElement: {
+        prototype: HTMLOrbLabelElement;
+        new (): HTMLOrbLabelElement;
     };
-    interface HTMLJeLinkElement extends Components.JeLink, HTMLStencilElement {
+    interface HTMLOrbLinkElement extends Components.OrbLink, HTMLStencilElement {
     }
-    var HTMLJeLinkElement: {
-        prototype: HTMLJeLinkElement;
-        new (): HTMLJeLinkElement;
+    var HTMLOrbLinkElement: {
+        prototype: HTMLOrbLinkElement;
+        new (): HTMLOrbLinkElement;
     };
-    interface HTMLJeListElement extends Components.JeList, HTMLStencilElement {
+    interface HTMLOrbListElement extends Components.OrbList, HTMLStencilElement {
     }
-    var HTMLJeListElement: {
-        prototype: HTMLJeListElement;
-        new (): HTMLJeListElement;
+    var HTMLOrbListElement: {
+        prototype: HTMLOrbListElement;
+        new (): HTMLOrbListElement;
     };
-    interface HTMLJeLoadingElement extends Components.JeLoading, HTMLStencilElement {
+    interface HTMLOrbLoadingElement extends Components.OrbLoading, HTMLStencilElement {
     }
-    var HTMLJeLoadingElement: {
-        prototype: HTMLJeLoadingElement;
-        new (): HTMLJeLoadingElement;
+    var HTMLOrbLoadingElement: {
+        prototype: HTMLOrbLoadingElement;
+        new (): HTMLOrbLoadingElement;
     };
-    interface HTMLJeMidiElement extends Components.JeMidi, HTMLStencilElement {
+    interface HTMLOrbMidiElement extends Components.OrbMidi, HTMLStencilElement {
     }
-    var HTMLJeMidiElement: {
-        prototype: HTMLJeMidiElement;
-        new (): HTMLJeMidiElement;
+    var HTMLOrbMidiElement: {
+        prototype: HTMLOrbMidiElement;
+        new (): HTMLOrbMidiElement;
     };
-    interface HTMLJeNoteElement extends Components.JeNote, HTMLStencilElement {
+    interface HTMLOrbNoteElement extends Components.OrbNote, HTMLStencilElement {
     }
-    var HTMLJeNoteElement: {
-        prototype: HTMLJeNoteElement;
-        new (): HTMLJeNoteElement;
+    var HTMLOrbNoteElement: {
+        prototype: HTMLOrbNoteElement;
+        new (): HTMLOrbNoteElement;
     };
-    interface HTMLJeOptionElement extends Components.JeOption, HTMLStencilElement {
+    interface HTMLOrbOptionElement extends Components.OrbOption, HTMLStencilElement {
     }
-    var HTMLJeOptionElement: {
-        prototype: HTMLJeOptionElement;
-        new (): HTMLJeOptionElement;
+    var HTMLOrbOptionElement: {
+        prototype: HTMLOrbOptionElement;
+        new (): HTMLOrbOptionElement;
     };
-    interface HTMLJeOverlayElementEventMap {
+    interface HTMLOrbOverlayElementEventMap {
         "present": any;
         "dismiss": OverlayData1;
     }
-    interface HTMLJeOverlayElement extends Components.JeOverlay, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeOverlayElementEventMap>(type: K, listener: (this: HTMLJeOverlayElement, ev: JeOverlayCustomEvent<HTMLJeOverlayElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbOverlayElement extends Components.OrbOverlay, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbOverlayElementEventMap>(type: K, listener: (this: HTMLOrbOverlayElement, ev: OrbOverlayCustomEvent<HTMLOrbOverlayElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeOverlayElementEventMap>(type: K, listener: (this: HTMLJeOverlayElement, ev: JeOverlayCustomEvent<HTMLJeOverlayElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbOverlayElementEventMap>(type: K, listener: (this: HTMLOrbOverlayElement, ev: OrbOverlayCustomEvent<HTMLOrbOverlayElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeOverlayElement: {
-        prototype: HTMLJeOverlayElement;
-        new (): HTMLJeOverlayElement;
+    var HTMLOrbOverlayElement: {
+        prototype: HTMLOrbOverlayElement;
+        new (): HTMLOrbOverlayElement;
     };
-    interface HTMLJePillElement extends Components.JePill, HTMLStencilElement {
+    interface HTMLOrbPillElement extends Components.OrbPill, HTMLStencilElement {
     }
-    var HTMLJePillElement: {
-        prototype: HTMLJePillElement;
-        new (): HTMLJePillElement;
+    var HTMLOrbPillElement: {
+        prototype: HTMLOrbPillElement;
+        new (): HTMLOrbPillElement;
     };
-    interface HTMLJePillGroupElement extends Components.JePillGroup, HTMLStencilElement {
+    interface HTMLOrbPillGroupElement extends Components.OrbPillGroup, HTMLStencilElement {
     }
-    var HTMLJePillGroupElement: {
-        prototype: HTMLJePillGroupElement;
-        new (): HTMLJePillGroupElement;
+    var HTMLOrbPillGroupElement: {
+        prototype: HTMLOrbPillGroupElement;
+        new (): HTMLOrbPillGroupElement;
     };
-    interface HTMLJePlaceholderElement extends Components.JePlaceholder, HTMLStencilElement {
+    interface HTMLOrbPlaceholderElement extends Components.OrbPlaceholder, HTMLStencilElement {
     }
-    var HTMLJePlaceholderElement: {
-        prototype: HTMLJePlaceholderElement;
-        new (): HTMLJePlaceholderElement;
+    var HTMLOrbPlaceholderElement: {
+        prototype: HTMLOrbPlaceholderElement;
+        new (): HTMLOrbPlaceholderElement;
     };
-    interface HTMLJePopoverElementEventMap {
+    interface HTMLOrbPopoverElementEventMap {
         "presentStart": any;
         "presentEnd": any;
         "dismissStart": any;
         "dismissEnd": any;
         "ready": any;
     }
-    interface HTMLJePopoverElement extends Components.JePopover, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJePopoverElementEventMap>(type: K, listener: (this: HTMLJePopoverElement, ev: JePopoverCustomEvent<HTMLJePopoverElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbPopoverElement extends Components.OrbPopover, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbPopoverElementEventMap>(type: K, listener: (this: HTMLOrbPopoverElement, ev: OrbPopoverCustomEvent<HTMLOrbPopoverElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJePopoverElementEventMap>(type: K, listener: (this: HTMLJePopoverElement, ev: JePopoverCustomEvent<HTMLJePopoverElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbPopoverElementEventMap>(type: K, listener: (this: HTMLOrbPopoverElement, ev: OrbPopoverCustomEvent<HTMLOrbPopoverElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJePopoverElement: {
-        prototype: HTMLJePopoverElement;
-        new (): HTMLJePopoverElement;
+    var HTMLOrbPopoverElement: {
+        prototype: HTMLOrbPopoverElement;
+        new (): HTMLOrbPopoverElement;
     };
-    interface HTMLJeRadioElement extends Components.JeRadio, HTMLStencilElement {
+    interface HTMLOrbRadioElement extends Components.OrbRadio, HTMLStencilElement {
     }
-    var HTMLJeRadioElement: {
-        prototype: HTMLJeRadioElement;
-        new (): HTMLJeRadioElement;
+    var HTMLOrbRadioElement: {
+        prototype: HTMLOrbRadioElement;
+        new (): HTMLOrbRadioElement;
     };
-    interface HTMLJeRadioButtonElement extends Components.JeRadioButton, HTMLStencilElement {
+    interface HTMLOrbRadioButtonElement extends Components.OrbRadioButton, HTMLStencilElement {
     }
-    var HTMLJeRadioButtonElement: {
-        prototype: HTMLJeRadioButtonElement;
-        new (): HTMLJeRadioButtonElement;
+    var HTMLOrbRadioButtonElement: {
+        prototype: HTMLOrbRadioButtonElement;
+        new (): HTMLOrbRadioButtonElement;
     };
-    interface HTMLJeRadioGroupElementEventMap {
+    interface HTMLOrbRadioGroupElementEventMap {
         "valueChange": any;
     }
-    interface HTMLJeRadioGroupElement extends Components.JeRadioGroup, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeRadioGroupElementEventMap>(type: K, listener: (this: HTMLJeRadioGroupElement, ev: JeRadioGroupCustomEvent<HTMLJeRadioGroupElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbRadioGroupElement extends Components.OrbRadioGroup, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbRadioGroupElementEventMap>(type: K, listener: (this: HTMLOrbRadioGroupElement, ev: OrbRadioGroupCustomEvent<HTMLOrbRadioGroupElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeRadioGroupElementEventMap>(type: K, listener: (this: HTMLJeRadioGroupElement, ev: JeRadioGroupCustomEvent<HTMLJeRadioGroupElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbRadioGroupElementEventMap>(type: K, listener: (this: HTMLOrbRadioGroupElement, ev: OrbRadioGroupCustomEvent<HTMLOrbRadioGroupElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeRadioGroupElement: {
-        prototype: HTMLJeRadioGroupElement;
-        new (): HTMLJeRadioGroupElement;
+    var HTMLOrbRadioGroupElement: {
+        prototype: HTMLOrbRadioGroupElement;
+        new (): HTMLOrbRadioGroupElement;
     };
-    interface HTMLJeRangeElement extends Components.JeRange, HTMLStencilElement {
+    interface HTMLOrbRangeElement extends Components.OrbRange, HTMLStencilElement {
     }
-    var HTMLJeRangeElement: {
-        prototype: HTMLJeRangeElement;
-        new (): HTMLJeRangeElement;
+    var HTMLOrbRangeElement: {
+        prototype: HTMLOrbRangeElement;
+        new (): HTMLOrbRangeElement;
     };
-    interface HTMLJeReorderItemElement extends Components.JeReorderItem, HTMLStencilElement {
+    interface HTMLOrbReorderItemElement extends Components.OrbReorderItem, HTMLStencilElement {
     }
-    var HTMLJeReorderItemElement: {
-        prototype: HTMLJeReorderItemElement;
-        new (): HTMLJeReorderItemElement;
+    var HTMLOrbReorderItemElement: {
+        prototype: HTMLOrbReorderItemElement;
+        new (): HTMLOrbReorderItemElement;
     };
-    interface HTMLJeReorderListElement extends Components.JeReorderList, HTMLStencilElement {
+    interface HTMLOrbReorderListElement extends Components.OrbReorderList, HTMLStencilElement {
     }
-    var HTMLJeReorderListElement: {
-        prototype: HTMLJeReorderListElement;
-        new (): HTMLJeReorderListElement;
+    var HTMLOrbReorderListElement: {
+        prototype: HTMLOrbReorderListElement;
+        new (): HTMLOrbReorderListElement;
     };
-    interface HTMLJeRichTextElementEventMap {
+    interface HTMLOrbRichTextElementEventMap {
         "editorChange": EditorChangeEvent;
         "editorFocus": FocusEvent;
         "editorBlur": FocusEvent;
     }
-    interface HTMLJeRichTextElement extends Components.JeRichText, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeRichTextElementEventMap>(type: K, listener: (this: HTMLJeRichTextElement, ev: JeRichTextCustomEvent<HTMLJeRichTextElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbRichTextElement extends Components.OrbRichText, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbRichTextElementEventMap>(type: K, listener: (this: HTMLOrbRichTextElement, ev: OrbRichTextCustomEvent<HTMLOrbRichTextElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeRichTextElementEventMap>(type: K, listener: (this: HTMLJeRichTextElement, ev: JeRichTextCustomEvent<HTMLJeRichTextElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbRichTextElementEventMap>(type: K, listener: (this: HTMLOrbRichTextElement, ev: OrbRichTextCustomEvent<HTMLOrbRichTextElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeRichTextElement: {
-        prototype: HTMLJeRichTextElement;
-        new (): HTMLJeRichTextElement;
+    var HTMLOrbRichTextElement: {
+        prototype: HTMLOrbRichTextElement;
+        new (): HTMLOrbRichTextElement;
     };
-    interface HTMLJeShaderCanvasElementEventMap {
+    interface HTMLOrbShaderCanvasElementEventMap {
         "ready": void;
         "shaderError": ShaderErrorDetail;
     }
     /**
-     * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+     * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
      * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
      * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
      * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
      * and a full-screen vertex stage are injected for you — you only write the fragment.
      */
-    interface HTMLJeShaderCanvasElement extends Components.JeShaderCanvas, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeShaderCanvasElementEventMap>(type: K, listener: (this: HTMLJeShaderCanvasElement, ev: JeShaderCanvasCustomEvent<HTMLJeShaderCanvasElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbShaderCanvasElement extends Components.OrbShaderCanvas, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbShaderCanvasElementEventMap>(type: K, listener: (this: HTMLOrbShaderCanvasElement, ev: OrbShaderCanvasCustomEvent<HTMLOrbShaderCanvasElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeShaderCanvasElementEventMap>(type: K, listener: (this: HTMLJeShaderCanvasElement, ev: JeShaderCanvasCustomEvent<HTMLJeShaderCanvasElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbShaderCanvasElementEventMap>(type: K, listener: (this: HTMLOrbShaderCanvasElement, ev: OrbShaderCanvasCustomEvent<HTMLOrbShaderCanvasElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeShaderCanvasElement: {
-        prototype: HTMLJeShaderCanvasElement;
-        new (): HTMLJeShaderCanvasElement;
+    var HTMLOrbShaderCanvasElement: {
+        prototype: HTMLOrbShaderCanvasElement;
+        new (): HTMLOrbShaderCanvasElement;
     };
-    interface HTMLJeSplitPanelElement extends Components.JeSplitPanel, HTMLStencilElement {
+    interface HTMLOrbSplitPanelElement extends Components.OrbSplitPanel, HTMLStencilElement {
     }
-    var HTMLJeSplitPanelElement: {
-        prototype: HTMLJeSplitPanelElement;
-        new (): HTMLJeSplitPanelElement;
+    var HTMLOrbSplitPanelElement: {
+        prototype: HTMLOrbSplitPanelElement;
+        new (): HTMLOrbSplitPanelElement;
     };
-    interface HTMLJeSplitViewElement extends Components.JeSplitView, HTMLStencilElement {
+    interface HTMLOrbSplitViewElement extends Components.OrbSplitView, HTMLStencilElement {
     }
-    var HTMLJeSplitViewElement: {
-        prototype: HTMLJeSplitViewElement;
-        new (): HTMLJeSplitViewElement;
+    var HTMLOrbSplitViewElement: {
+        prototype: HTMLOrbSplitViewElement;
+        new (): HTMLOrbSplitViewElement;
     };
-    interface HTMLJeStackElement extends Components.JeStack, HTMLStencilElement {
+    interface HTMLOrbStackElement extends Components.OrbStack, HTMLStencilElement {
     }
-    var HTMLJeStackElement: {
-        prototype: HTMLJeStackElement;
-        new (): HTMLJeStackElement;
+    var HTMLOrbStackElement: {
+        prototype: HTMLOrbStackElement;
+        new (): HTMLOrbStackElement;
     };
-    interface HTMLJeSynthElement extends Components.JeSynth, HTMLStencilElement {
+    interface HTMLOrbSynthElement extends Components.OrbSynth, HTMLStencilElement {
     }
-    var HTMLJeSynthElement: {
-        prototype: HTMLJeSynthElement;
-        new (): HTMLJeSynthElement;
+    var HTMLOrbSynthElement: {
+        prototype: HTMLOrbSynthElement;
+        new (): HTMLOrbSynthElement;
     };
-    interface HTMLJeTabElement extends Components.JeTab, HTMLStencilElement {
+    interface HTMLOrbTabElement extends Components.OrbTab, HTMLStencilElement {
     }
-    var HTMLJeTabElement: {
-        prototype: HTMLJeTabElement;
-        new (): HTMLJeTabElement;
+    var HTMLOrbTabElement: {
+        prototype: HTMLOrbTabElement;
+        new (): HTMLOrbTabElement;
     };
-    interface HTMLJeTableElement extends Components.JeTable, HTMLStencilElement {
+    interface HTMLOrbTableElement extends Components.OrbTable, HTMLStencilElement {
     }
-    var HTMLJeTableElement: {
-        prototype: HTMLJeTableElement;
-        new (): HTMLJeTableElement;
+    var HTMLOrbTableElement: {
+        prototype: HTMLOrbTableElement;
+        new (): HTMLOrbTableElement;
     };
-    interface HTMLJeTabsElementEventMap {
+    interface HTMLOrbTabsElementEventMap {
         "valueChange": string | undefined;
     }
-    interface HTMLJeTabsElement extends Components.JeTabs, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeTabsElementEventMap>(type: K, listener: (this: HTMLJeTabsElement, ev: JeTabsCustomEvent<HTMLJeTabsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbTabsElement extends Components.OrbTabs, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbTabsElementEventMap>(type: K, listener: (this: HTMLOrbTabsElement, ev: OrbTabsCustomEvent<HTMLOrbTabsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeTabsElementEventMap>(type: K, listener: (this: HTMLJeTabsElement, ev: JeTabsCustomEvent<HTMLJeTabsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbTabsElementEventMap>(type: K, listener: (this: HTMLOrbTabsElement, ev: OrbTabsCustomEvent<HTMLOrbTabsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeTabsElement: {
-        prototype: HTMLJeTabsElement;
-        new (): HTMLJeTabsElement;
+    var HTMLOrbTabsElement: {
+        prototype: HTMLOrbTabsElement;
+        new (): HTMLOrbTabsElement;
     };
-    interface HTMLJeTcElement extends Components.JeTc, HTMLStencilElement {
+    interface HTMLOrbTcElement extends Components.OrbTc, HTMLStencilElement {
     }
-    var HTMLJeTcElement: {
-        prototype: HTMLJeTcElement;
-        new (): HTMLJeTcElement;
+    var HTMLOrbTcElement: {
+        prototype: HTMLOrbTcElement;
+        new (): HTMLOrbTcElement;
     };
-    interface HTMLJeTextboxElementEventMap {
+    interface HTMLOrbTextboxElementEventMap {
         "valueChange": any;
     }
     /**
      * its a textbox
      */
-    interface HTMLJeTextboxElement extends Components.JeTextbox, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeTextboxElementEventMap>(type: K, listener: (this: HTMLJeTextboxElement, ev: JeTextboxCustomEvent<HTMLJeTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbTextboxElement extends Components.OrbTextbox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeTextboxElementEventMap>(type: K, listener: (this: HTMLJeTextboxElement, ev: JeTextboxCustomEvent<HTMLJeTextboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeTextboxElement: {
-        prototype: HTMLJeTextboxElement;
-        new (): HTMLJeTextboxElement;
+    var HTMLOrbTextboxElement: {
+        prototype: HTMLOrbTextboxElement;
+        new (): HTMLOrbTextboxElement;
     };
-    interface HTMLJeTocElement extends Components.JeToc, HTMLStencilElement {
+    interface HTMLOrbTocElement extends Components.OrbToc, HTMLStencilElement {
     }
-    var HTMLJeTocElement: {
-        prototype: HTMLJeTocElement;
-        new (): HTMLJeTocElement;
+    var HTMLOrbTocElement: {
+        prototype: HTMLOrbTocElement;
+        new (): HTMLOrbTocElement;
     };
-    interface HTMLJeToggleElementEventMap {
+    interface HTMLOrbToggleElementEventMap {
         "valueChange": boolean;
     }
-    interface HTMLJeToggleElement extends Components.JeToggle, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeToggleElementEventMap>(type: K, listener: (this: HTMLJeToggleElement, ev: JeToggleCustomEvent<HTMLJeToggleElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbToggleElement extends Components.OrbToggle, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbToggleElementEventMap>(type: K, listener: (this: HTMLOrbToggleElement, ev: OrbToggleCustomEvent<HTMLOrbToggleElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeToggleElementEventMap>(type: K, listener: (this: HTMLJeToggleElement, ev: JeToggleCustomEvent<HTMLJeToggleElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbToggleElementEventMap>(type: K, listener: (this: HTMLOrbToggleElement, ev: OrbToggleCustomEvent<HTMLOrbToggleElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeToggleElement: {
-        prototype: HTMLJeToggleElement;
-        new (): HTMLJeToggleElement;
+    var HTMLOrbToggleElement: {
+        prototype: HTMLOrbToggleElement;
+        new (): HTMLOrbToggleElement;
     };
-    interface HTMLJeToolbarElement extends Components.JeToolbar, HTMLStencilElement {
+    interface HTMLOrbToolbarElement extends Components.OrbToolbar, HTMLStencilElement {
     }
-    var HTMLJeToolbarElement: {
-        prototype: HTMLJeToolbarElement;
-        new (): HTMLJeToolbarElement;
+    var HTMLOrbToolbarElement: {
+        prototype: HTMLOrbToolbarElement;
+        new (): HTMLOrbToolbarElement;
     };
-    interface HTMLJeTooltipElement extends Components.JeTooltip, HTMLStencilElement {
+    interface HTMLOrbTooltipElement extends Components.OrbTooltip, HTMLStencilElement {
     }
-    var HTMLJeTooltipElement: {
-        prototype: HTMLJeTooltipElement;
-        new (): HTMLJeTooltipElement;
+    var HTMLOrbTooltipElement: {
+        prototype: HTMLOrbTooltipElement;
+        new (): HTMLOrbTooltipElement;
     };
-    interface HTMLJeTrElement extends Components.JeTr, HTMLStencilElement {
+    interface HTMLOrbTrElement extends Components.OrbTr, HTMLStencilElement {
     }
-    var HTMLJeTrElement: {
-        prototype: HTMLJeTrElement;
-        new (): HTMLJeTrElement;
+    var HTMLOrbTrElement: {
+        prototype: HTMLOrbTrElement;
+        new (): HTMLOrbTrElement;
     };
-    interface HTMLJeTreeElementEventMap {
+    interface HTMLOrbTreeElementEventMap {
         "valueChange": string | string[];
     }
-    interface HTMLJeTreeElement extends Components.JeTree, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeTreeElementEventMap>(type: K, listener: (this: HTMLJeTreeElement, ev: JeTreeCustomEvent<HTMLJeTreeElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbTreeElement extends Components.OrbTree, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbTreeElementEventMap>(type: K, listener: (this: HTMLOrbTreeElement, ev: OrbTreeCustomEvent<HTMLOrbTreeElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeTreeElementEventMap>(type: K, listener: (this: HTMLJeTreeElement, ev: JeTreeCustomEvent<HTMLJeTreeElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbTreeElementEventMap>(type: K, listener: (this: HTMLOrbTreeElement, ev: OrbTreeCustomEvent<HTMLOrbTreeElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeTreeElement: {
-        prototype: HTMLJeTreeElement;
-        new (): HTMLJeTreeElement;
+    var HTMLOrbTreeElement: {
+        prototype: HTMLOrbTreeElement;
+        new (): HTMLOrbTreeElement;
     };
-    interface HTMLJeViewElement extends Components.JeView, HTMLStencilElement {
+    interface HTMLOrbViewElement extends Components.OrbView, HTMLStencilElement {
     }
-    var HTMLJeViewElement: {
-        prototype: HTMLJeViewElement;
-        new (): HTMLJeViewElement;
+    var HTMLOrbViewElement: {
+        prototype: HTMLOrbViewElement;
+        new (): HTMLOrbViewElement;
     };
-    interface HTMLJeViewManagerElement extends Components.JeViewManager, HTMLStencilElement {
+    interface HTMLOrbViewManagerElement extends Components.OrbViewManager, HTMLStencilElement {
     }
-    var HTMLJeViewManagerElement: {
-        prototype: HTMLJeViewManagerElement;
-        new (): HTMLJeViewManagerElement;
+    var HTMLOrbViewManagerElement: {
+        prototype: HTMLOrbViewManagerElement;
+        new (): HTMLOrbViewManagerElement;
     };
-    interface HTMLJeWizardElementEventMap {
+    interface HTMLOrbWizardElementEventMap {
         "stepChange": number;
         "finish": void;
     }
-    interface HTMLJeWizardElement extends Components.JeWizard, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLJeWizardElementEventMap>(type: K, listener: (this: HTMLJeWizardElement, ev: JeWizardCustomEvent<HTMLJeWizardElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+    interface HTMLOrbWizardElement extends Components.OrbWizard, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbWizardElementEventMap>(type: K, listener: (this: HTMLOrbWizardElement, ev: OrbWizardCustomEvent<HTMLOrbWizardElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLJeWizardElementEventMap>(type: K, listener: (this: HTMLJeWizardElement, ev: JeWizardCustomEvent<HTMLJeWizardElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbWizardElementEventMap>(type: K, listener: (this: HTMLOrbWizardElement, ev: OrbWizardCustomEvent<HTMLOrbWizardElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
         removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
-    var HTMLJeWizardElement: {
-        prototype: HTMLJeWizardElement;
-        new (): HTMLJeWizardElement;
+    var HTMLOrbWizardElement: {
+        prototype: HTMLOrbWizardElement;
+        new (): HTMLOrbWizardElement;
     };
     interface HTMLElementTagNameMap {
-        "je-accordion": HTMLJeAccordionElement;
-        "je-alert": HTMLJeAlertElement;
-        "je-branch": HTMLJeBranchElement;
-        "je-breadcrumb": HTMLJeBreadcrumbElement;
-        "je-breadcrumbs": HTMLJeBreadcrumbsElement;
-        "je-button": HTMLJeButtonElement;
-        "je-button-group": HTMLJeButtonGroupElement;
-        "je-calendar": HTMLJeCalendarElement;
-        "je-card": HTMLJeCardElement;
-        "je-checkbox": HTMLJeCheckboxElement;
-        "je-color": HTMLJeColorElement;
-        "je-combobox": HTMLJeComboboxElement;
-        "je-comp": HTMLJeCompElement;
-        "je-control": HTMLJeControlElement;
-        "je-datepicker": HTMLJeDatepickerElement;
-        "je-daw": HTMLJeDawElement;
-        "je-details": HTMLJeDetailsElement;
-        "je-discard-form": HTMLJeDiscardFormElement;
-        "je-divider": HTMLJeDividerElement;
-        "je-dropzone": HTMLJeDropzoneElement;
-        "je-eq": HTMLJeEqElement;
-        "je-grid": HTMLJeGridElement;
-        "je-icon": HTMLJeIconElement;
-        "je-item": HTMLJeItemElement;
-        "je-knob": HTMLJeKnobElement;
-        "je-label": HTMLJeLabelElement;
-        "je-link": HTMLJeLinkElement;
-        "je-list": HTMLJeListElement;
-        "je-loading": HTMLJeLoadingElement;
-        "je-midi": HTMLJeMidiElement;
-        "je-note": HTMLJeNoteElement;
-        "je-option": HTMLJeOptionElement;
-        "je-overlay": HTMLJeOverlayElement;
-        "je-pill": HTMLJePillElement;
-        "je-pill-group": HTMLJePillGroupElement;
-        "je-placeholder": HTMLJePlaceholderElement;
-        "je-popover": HTMLJePopoverElement;
-        "je-radio": HTMLJeRadioElement;
-        "je-radio-button": HTMLJeRadioButtonElement;
-        "je-radio-group": HTMLJeRadioGroupElement;
-        "je-range": HTMLJeRangeElement;
-        "je-reorder-item": HTMLJeReorderItemElement;
-        "je-reorder-list": HTMLJeReorderListElement;
-        "je-rich-text": HTMLJeRichTextElement;
-        "je-shader-canvas": HTMLJeShaderCanvasElement;
-        "je-split-panel": HTMLJeSplitPanelElement;
-        "je-split-view": HTMLJeSplitViewElement;
-        "je-stack": HTMLJeStackElement;
-        "je-synth": HTMLJeSynthElement;
-        "je-tab": HTMLJeTabElement;
-        "je-table": HTMLJeTableElement;
-        "je-tabs": HTMLJeTabsElement;
-        "je-tc": HTMLJeTcElement;
-        "je-textbox": HTMLJeTextboxElement;
-        "je-toc": HTMLJeTocElement;
-        "je-toggle": HTMLJeToggleElement;
-        "je-toolbar": HTMLJeToolbarElement;
-        "je-tooltip": HTMLJeTooltipElement;
-        "je-tr": HTMLJeTrElement;
-        "je-tree": HTMLJeTreeElement;
-        "je-view": HTMLJeViewElement;
-        "je-view-manager": HTMLJeViewManagerElement;
-        "je-wizard": HTMLJeWizardElement;
+        "orb-accordion": HTMLOrbAccordionElement;
+        "orb-alert": HTMLOrbAlertElement;
+        "orb-branch": HTMLOrbBranchElement;
+        "orb-breadcrumb": HTMLOrbBreadcrumbElement;
+        "orb-breadcrumbs": HTMLOrbBreadcrumbsElement;
+        "orb-button": HTMLOrbButtonElement;
+        "orb-button-group": HTMLOrbButtonGroupElement;
+        "orb-calendar": HTMLOrbCalendarElement;
+        "orb-card": HTMLOrbCardElement;
+        "orb-checkbox": HTMLOrbCheckboxElement;
+        "orb-color": HTMLOrbColorElement;
+        "orb-combobox": HTMLOrbComboboxElement;
+        "orb-comp": HTMLOrbCompElement;
+        "orb-control": HTMLOrbControlElement;
+        "orb-datepicker": HTMLOrbDatepickerElement;
+        "orb-daw": HTMLOrbDawElement;
+        "orb-details": HTMLOrbDetailsElement;
+        "orb-discard-form": HTMLOrbDiscardFormElement;
+        "orb-divider": HTMLOrbDividerElement;
+        "orb-dropzone": HTMLOrbDropzoneElement;
+        "orb-eq": HTMLOrbEqElement;
+        "orb-grid": HTMLOrbGridElement;
+        "orb-icon": HTMLOrbIconElement;
+        "orb-item": HTMLOrbItemElement;
+        "orb-knob": HTMLOrbKnobElement;
+        "orb-label": HTMLOrbLabelElement;
+        "orb-link": HTMLOrbLinkElement;
+        "orb-list": HTMLOrbListElement;
+        "orb-loading": HTMLOrbLoadingElement;
+        "orb-midi": HTMLOrbMidiElement;
+        "orb-note": HTMLOrbNoteElement;
+        "orb-option": HTMLOrbOptionElement;
+        "orb-overlay": HTMLOrbOverlayElement;
+        "orb-pill": HTMLOrbPillElement;
+        "orb-pill-group": HTMLOrbPillGroupElement;
+        "orb-placeholder": HTMLOrbPlaceholderElement;
+        "orb-popover": HTMLOrbPopoverElement;
+        "orb-radio": HTMLOrbRadioElement;
+        "orb-radio-button": HTMLOrbRadioButtonElement;
+        "orb-radio-group": HTMLOrbRadioGroupElement;
+        "orb-range": HTMLOrbRangeElement;
+        "orb-reorder-item": HTMLOrbReorderItemElement;
+        "orb-reorder-list": HTMLOrbReorderListElement;
+        "orb-rich-text": HTMLOrbRichTextElement;
+        "orb-shader-canvas": HTMLOrbShaderCanvasElement;
+        "orb-split-panel": HTMLOrbSplitPanelElement;
+        "orb-split-view": HTMLOrbSplitViewElement;
+        "orb-stack": HTMLOrbStackElement;
+        "orb-synth": HTMLOrbSynthElement;
+        "orb-tab": HTMLOrbTabElement;
+        "orb-table": HTMLOrbTableElement;
+        "orb-tabs": HTMLOrbTabsElement;
+        "orb-tc": HTMLOrbTcElement;
+        "orb-textbox": HTMLOrbTextboxElement;
+        "orb-toc": HTMLOrbTocElement;
+        "orb-toggle": HTMLOrbToggleElement;
+        "orb-toolbar": HTMLOrbToolbarElement;
+        "orb-tooltip": HTMLOrbTooltipElement;
+        "orb-tr": HTMLOrbTrElement;
+        "orb-tree": HTMLOrbTreeElement;
+        "orb-view": HTMLOrbViewElement;
+        "orb-view-manager": HTMLOrbViewManagerElement;
+        "orb-wizard": HTMLOrbWizardElement;
     }
 }
 declare namespace LocalJSX {
     /**
-     * Accordions are wrappers for <je-link href="../je-details">JeDetails</je-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
-    interface JeAccordion {
+    interface OrbAccordion {
     }
-    interface JeAlert {
+    interface OrbAlert {
         /**
           * @default false
          */
@@ -1567,14 +1567,14 @@ declare namespace LocalJSX {
           * @default 0
          */
         "duration"?: number;
-        "onDismiss"?: (event: JeAlertCustomEvent<OverlayData>) => void;
-        "onPresent"?: (event: JeAlertCustomEvent<any>) => void;
+        "onDismiss"?: (event: OrbAlertCustomEvent<OverlayData>) => void;
+        "onPresent"?: (event: OrbAlertCustomEvent<any>) => void;
         /**
           * @default false
          */
         "open"?: boolean;
     }
-    interface JeBranch {
+    interface OrbBranch {
         "href"?: string;
         /**
           * @default false
@@ -1592,9 +1592,9 @@ declare namespace LocalJSX {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
-    interface JeBreadcrumb {
+    interface OrbBreadcrumb {
     }
-    interface JeBreadcrumbs {
+    interface OrbBreadcrumbs {
         /**
           * @default 1
          */
@@ -1604,9 +1604,9 @@ declare namespace LocalJSX {
          */
         "itemsBeforeCollapse"?: number;
         "maxItems"?: number;
-        "onExpandClick"?: (event: JeBreadcrumbsCustomEvent<any>) => void;
+        "onExpandClick"?: (event: OrbBreadcrumbsCustomEvent<any>) => void;
     }
-    interface JeButton {
+    interface OrbButton {
         /**
           * Predefined colors
          */
@@ -1645,14 +1645,14 @@ declare namespace LocalJSX {
          */
         "type"?: "submit" | "reset";
     }
-    interface JeButtonGroup {
+    interface OrbButtonGroup {
     }
-    interface JeCalendar {
+    interface OrbCalendar {
     }
-    interface JeCard {
+    interface OrbCard {
         "color"?: Color;
     }
-    interface JeCheckbox {
+    interface OrbCheckbox {
         /**
           * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
          */
@@ -1672,9 +1672,9 @@ declare namespace LocalJSX {
         "indeterminate"?: boolean;
         /**
           * Whether or not the label should go before or after the checkbox
-          * @default 'end'
+          * @default "end"
          */
-        "labelPlacement"?: 'start' | 'end';
+        "labelPlacement"?: "start" | "end";
         /**
           * The name of the element, used when submitting an HTML form.
          */
@@ -1682,7 +1682,7 @@ declare namespace LocalJSX {
         /**
           * Emits the current value whenever it's state changes
          */
-        "onValueChange"?: (event: JeCheckboxCustomEvent<boolean | undefined>) => void;
+        "onValueChange"?: (event: OrbCheckboxCustomEvent<boolean | undefined>) => void;
         /**
           * Original value form will reset to
          */
@@ -1697,7 +1697,7 @@ declare namespace LocalJSX {
          */
         "value"?: boolean;
     }
-    interface JeColor {
+    interface OrbColor {
         /**
           * Fixed color
          */
@@ -1711,7 +1711,7 @@ declare namespace LocalJSX {
          */
         "light"?: Color;
     }
-    interface JeCombobox {
+    interface OrbCombobox {
         /**
           * @default false
          */
@@ -1734,8 +1734,8 @@ declare namespace LocalJSX {
          */
         "name"?: string;
         "note"?: string;
-        "onSearchTermChange"?: (event: JeComboboxCustomEvent<any>) => void;
-        "onValueChange"?: (event: JeComboboxCustomEvent<any>) => void;
+        "onSearchTermChange"?: (event: OrbComboboxCustomEvent<any>) => void;
+        "onValueChange"?: (event: OrbComboboxCustomEvent<any>) => void;
         "placeholder"?: string;
         /**
           * @default false
@@ -1748,11 +1748,11 @@ declare namespace LocalJSX {
         "size"?: "sm" | "md" | "lg";
         "value"?: any;
     }
-    interface JeComp {
+    interface OrbComp {
     }
-    interface JeControl {
+    interface OrbControl {
     }
-    interface JeDatepicker {
+    interface OrbDatepicker {
         /**
           * @default false
          */
@@ -1760,16 +1760,16 @@ declare namespace LocalJSX {
         "isDateDisabled"?: (date: Date) => boolean;
         "max"?: number;
         "min"?: number;
-        "onValueChange"?: (event: JeDatepickerCustomEvent<number>) => void;
+        "onValueChange"?: (event: OrbDatepickerCustomEvent<number>) => void;
         /**
           * @default "datetime"
          */
         "type"?: "date" | "datetime" | "time";
         "value"?: number;
     }
-    interface JeDaw {
+    interface OrbDaw {
     }
-    interface JeDetails {
+    interface OrbDetails {
         /**
           * @default "right"
          */
@@ -1778,17 +1778,17 @@ declare namespace LocalJSX {
           * @default false
          */
         "iconToggle"?: boolean;
-        "onCollapse"?: (event: JeDetailsCustomEvent<any>) => void;
-        "onExpand"?: (event: JeDetailsCustomEvent<any>) => void;
+        "onCollapse"?: (event: OrbDetailsCustomEvent<any>) => void;
+        "onExpand"?: (event: OrbDetailsCustomEvent<any>) => void;
         /**
           * @default false
          */
         "open"?: boolean;
         "summary"?: string;
     }
-    interface JeDiscardForm {
+    interface OrbDiscardForm {
     }
-    interface JeDivider {
+    interface OrbDivider {
         /**
           * @default "md"
          */
@@ -1798,12 +1798,12 @@ declare namespace LocalJSX {
          */
         "type"?: "horizontal" | "vertical";
     }
-    interface JeDropzone {
-        "onDataDrop"?: (event: JeDropzoneCustomEvent<DataTransfer>) => void;
+    interface OrbDropzone {
+        "onDataDrop"?: (event: OrbDropzoneCustomEvent<DataTransfer>) => void;
     }
-    interface JeEq {
+    interface OrbEq {
     }
-    interface JeGrid {
+    interface OrbGrid {
         "space"?: | "3xs"
     | "2xs"
     | "xs"
@@ -1814,7 +1814,7 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface JeIcon {
+    interface OrbIcon {
         /**
           * Whether or not the icon should be filled
           * @default false
@@ -1823,26 +1823,26 @@ declare namespace LocalJSX {
         /**
           * Icon grade
          */
-        "grade"?: 'high' | 'low';
+        "grade"?: "high" | "low";
         /**
           * Size of the icon
-          * @default 'md'
+          * @default "md"
          */
-        "size"?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+        "size"?: "xs" | "sm" | "md" | "lg" | "xl";
         /**
           * Icon weight
           * @default 400
          */
         "weight"?: number;
     }
-    interface JeItem {
+    interface OrbItem {
     }
-    interface JeKnob {
+    interface OrbKnob {
     }
-    interface JeLabel {
+    interface OrbLabel {
         "required"?: boolean;
     }
-    interface JeLink {
+    interface OrbLink {
         /**
           * Makes text bold
           * @default false
@@ -1870,16 +1870,16 @@ declare namespace LocalJSX {
          */
         "underline"?: boolean;
     }
-    interface JeList {
+    interface OrbList {
     }
-    interface JeLoading {
+    interface OrbLoading {
     }
-    interface JeMidi {
+    interface OrbMidi {
     }
-    interface JeNote {
+    interface OrbNote {
         "invalid"?: boolean;
     }
-    interface JeOption {
+    interface OrbOption {
         /**
           * @default false
          */
@@ -1890,7 +1890,7 @@ declare namespace LocalJSX {
         "selected"?: boolean;
         "value"?: any;
     }
-    interface JeOverlay {
+    interface OrbOverlay {
         /**
           * Backdrop will close the modal on click when enabled
           * @default true
@@ -1907,11 +1907,11 @@ declare namespace LocalJSX {
         /**
           * Emits whenever the overlay has finished closing. Emits the role and optional data object passed to the hide() method.
          */
-        "onDismiss"?: (event: JeOverlayCustomEvent<OverlayData1>) => void;
+        "onDismiss"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
         /**
           * Emits whenever the overlay has opened. Does not emit any data
          */
-        "onPresent"?: (event: JeOverlayCustomEvent<any>) => void;
+        "onPresent"?: (event: OrbOverlayCustomEvent<any>) => void;
         /**
           * Opens and closes modal
           * @default false
@@ -1927,22 +1927,22 @@ declare namespace LocalJSX {
          */
         "size"?: "sm" | "md" | "lg";
     }
-    interface JePill {
+    interface OrbPill {
         /**
           * @default false
          */
         "outline"?: boolean;
     }
-    interface JePillGroup {
+    interface OrbPillGroup {
     }
-    interface JePlaceholder {
+    interface OrbPlaceholder {
         /**
           * Whether or not the component should have the animated "shimmer" effect
           * @default true
          */
         "animated"?: boolean;
     }
-    interface JePopover {
+    interface OrbPopover {
         /**
           * Renders an arrow pointing to the trigger
           * @default true
@@ -1989,23 +1989,23 @@ declare namespace LocalJSX {
         /**
           * Emits when the popover is closed
          */
-        "onDismissEnd"?: (event: JePopoverCustomEvent<any>) => void;
+        "onDismissEnd"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits before the popover starts dismissing
          */
-        "onDismissStart"?: (event: JePopoverCustomEvent<any>) => void;
+        "onDismissStart"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits when the popover is opened
          */
-        "onPresentEnd"?: (event: JePopoverCustomEvent<any>) => void;
+        "onPresentEnd"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits before the popover starts opening
          */
-        "onPresentStart"?: (event: JePopoverCustomEvent<any>) => void;
+        "onPresentStart"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits when the popover has completed it's initial render
          */
-        "onReady"?: (event: JePopoverCustomEvent<any>) => void;
+        "onReady"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Opens/closes the popover
           * @default false
@@ -2028,7 +2028,7 @@ declare namespace LocalJSX {
          */
         "triggerAction"?: "click" | "context-menu" | "hover";
     }
-    interface JeRadio {
+    interface OrbRadio {
         /**
           * If the option is currently selected
          */
@@ -2038,7 +2038,7 @@ declare namespace LocalJSX {
          */
         "value"?: any;
     }
-    interface JeRadioButton {
+    interface OrbRadioButton {
         /**
           * Changes the styling of the card to indicate it is selected
           * @default false
@@ -2049,7 +2049,7 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
-    interface JeRadioGroup {
+    interface OrbRadioGroup {
         /**
           * Disables the controls
           * @default false
@@ -2074,7 +2074,7 @@ declare namespace LocalJSX {
         /**
           * Emits the selected value whenever it changes
          */
-        "onValueChange"?: (event: JeRadioGroupCustomEvent<any>) => void;
+        "onValueChange"?: (event: OrbRadioGroupCustomEvent<any>) => void;
         /**
           * Value the form will reset to. Defaults to initial value if not specified
          */
@@ -2088,30 +2088,30 @@ declare namespace LocalJSX {
          */
         "value"?: any;
     }
-    interface JeRange {
+    interface OrbRange {
     }
-    interface JeReorderItem {
+    interface OrbReorderItem {
     }
-    interface JeReorderList {
+    interface OrbReorderList {
     }
-    interface JeRichText {
+    interface OrbRichText {
         /**
           * @default false
          */
         "disabled"?: boolean;
         /**
-          * @default '500px'
+          * @default "500px"
          */
         "maxHeight"?: string;
         /**
-          * @default '200px'
+          * @default "200px"
          */
         "minHeight"?: string;
-        "onEditorBlur"?: (event: JeRichTextCustomEvent<FocusEvent>) => void;
-        "onEditorChange"?: (event: JeRichTextCustomEvent<EditorChangeEvent>) => void;
-        "onEditorFocus"?: (event: JeRichTextCustomEvent<FocusEvent>) => void;
+        "onEditorBlur"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
+        "onEditorChange"?: (event: OrbRichTextCustomEvent<EditorChangeEvent>) => void;
+        "onEditorFocus"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
         /**
-          * @default 'Start typing...'
+          * @default "Start typing..."
          */
         "placeholder"?: string;
         /**
@@ -2123,18 +2123,18 @@ declare namespace LocalJSX {
          */
         "showWordCount"?: boolean;
         /**
-          * @default ''
+          * @default ""
          */
         "value"?: string;
     }
     /**
-     * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+     * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
      * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
      * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
      * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
      * and a full-screen vertex stage are injected for you — you only write the fragment.
      */
-    interface JeShaderCanvas {
+    interface OrbShaderCanvas {
         /**
           * Pixel density multiplier applied to the backing store. Increase for sharper output.
           * @default 1
@@ -2152,11 +2152,11 @@ declare namespace LocalJSX {
         /**
           * Fires once the GPU device is ready and the first frame has rendered.
          */
-        "onReady"?: (event: JeShaderCanvasCustomEvent<void>) => void;
+        "onReady"?: (event: OrbShaderCanvasCustomEvent<void>) => void;
         /**
           * Fires when the shader fails to compile/validate or WebGPU is unavailable.
          */
-        "onShaderError"?: (event: JeShaderCanvasCustomEvent<ShaderErrorDetail>) => void;
+        "onShaderError"?: (event: OrbShaderCanvasCustomEvent<ShaderErrorDetail>) => void;
         /**
           * Freezes time and stops the render loop while keeping the last frame on screen.
           * @default false
@@ -2167,11 +2167,11 @@ declare namespace LocalJSX {
          */
         "width"?: number;
     }
-    interface JeSplitPanel {
+    interface OrbSplitPanel {
     }
-    interface JeSplitView {
+    interface OrbSplitView {
     }
-    interface JeStack {
+    interface OrbStack {
         "align"?: string;
         "justify"?: string;
         /**
@@ -2191,9 +2191,9 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface JeSynth {
+    interface OrbSynth {
     }
-    interface JeTab {
+    interface OrbTab {
         /**
           * @default false
          */
@@ -2212,19 +2212,19 @@ declare namespace LocalJSX {
         "name"?: string;
         "value"?: string;
     }
-    interface JeTable {
+    interface OrbTable {
         "columns"?: number;
         "data"?: string[][];
     }
-    interface JeTabs {
+    interface OrbTabs {
         /**
-          * @default 'segment'
+          * @default "segment"
          */
-        "mode"?: 'mobile' | 'pill' | 'segment';
-        "onValueChange"?: (event: JeTabsCustomEvent<string | undefined>) => void;
+        "mode"?: "mobile" | "pill" | "segment";
+        "onValueChange"?: (event: OrbTabsCustomEvent<string | undefined>) => void;
         "value"?: string;
     }
-    interface JeTc {
+    interface OrbTc {
         "colSpan"?: number;
         /**
           * @default false
@@ -2235,7 +2235,7 @@ declare namespace LocalJSX {
     /**
      * its a textbox
      */
-    interface JeTextbox {
+    interface OrbTextbox {
         /**
           * Optional debounce of the didInput event
           * @default 0
@@ -2286,7 +2286,7 @@ declare namespace LocalJSX {
         /**
           * Emits as the user types
          */
-        "onValueChange"?: (event: JeTextboxCustomEvent<any>) => void;
+        "onValueChange"?: (event: OrbTextboxCustomEvent<any>) => void;
         /**
           * Passed to native input
          */
@@ -2340,9 +2340,9 @@ declare namespace LocalJSX {
          */
         "wrap"?: string;
     }
-    interface JeToc {
+    interface OrbToc {
     }
-    interface JeToggle {
+    interface OrbToggle {
         /**
           * If `true`, the user cannot interact with the element.
          */
@@ -2353,9 +2353,9 @@ declare namespace LocalJSX {
         "form"?: string;
         /**
           * If the label should be placed at the start or end of the toggle
-          * @default 'end'
+          * @default "end"
          */
-        "labelPlacement"?: 'start' | 'end';
+        "labelPlacement"?: "start" | "end";
         /**
           * The name of the element, used when submitting an HTML form.
          */
@@ -2363,7 +2363,7 @@ declare namespace LocalJSX {
         /**
           * Emits the new value whenever toggle is clicked
          */
-        "onValueChange"?: (event: JeToggleCustomEvent<boolean>) => void;
+        "onValueChange"?: (event: OrbToggleCustomEvent<boolean>) => void;
         /**
           * Original value form will reset to
          */
@@ -2374,7 +2374,7 @@ declare namespace LocalJSX {
          */
         "value"?: boolean;
     }
-    interface JeToolbar {
+    interface OrbToolbar {
         /**
           * @default false
          */
@@ -2396,7 +2396,7 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface JeTooltip {
+    interface OrbTooltip {
         /**
           * The content of the tooltip
          */
@@ -2412,49 +2412,49 @@ declare namespace LocalJSX {
          */
         "offsetY"?: number;
     }
-    interface JeTr {
+    interface OrbTr {
         /**
           * @default "body"
          */
         "type"?: "header" | "body" | "footer";
     }
-    interface JeTree {
+    interface OrbTree {
         /**
           * @default false
          */
         "indentation"?: boolean;
-        "onValueChange"?: (event: JeTreeCustomEvent<string | string[]>) => void;
+        "onValueChange"?: (event: OrbTreeCustomEvent<string | string[]>) => void;
         /**
-          * @default 'leaf'
+          * @default "leaf"
          */
-        "selection"?: 'single' | 'multiple' | 'leaf';
+        "selection"?: "single" | "multiple" | "leaf";
         "value"?: string | string[];
     }
-    interface JeView {
+    interface OrbView {
         /**
           * @default true
          */
         "closable"?: boolean;
         "label"?: string;
     }
-    interface JeViewManager {
+    interface OrbViewManager {
     }
-    interface JeWizard {
-        "onFinish"?: (event: JeWizardCustomEvent<void>) => void;
-        "onStepChange"?: (event: JeWizardCustomEvent<number>) => void;
+    interface OrbWizard {
+        "onFinish"?: (event: OrbWizardCustomEvent<void>) => void;
+        "onStepChange"?: (event: OrbWizardCustomEvent<number>) => void;
         /**
           * @default []
          */
-        "steps"?: { label: string, optional?: boolean }[];
+        "steps"?: { label: string; optional?: boolean }[];
     }
 
-    interface JeAlertAttributes {
+    interface OrbAlertAttributes {
         "closable": boolean;
         "color": Color;
         "duration": number;
         "open": boolean;
     }
-    interface JeBranchAttributes {
+    interface OrbBranchAttributes {
         "selection": "single" | "multiple" | "leaf";
         "indentation": boolean;
         "open": boolean;
@@ -2463,12 +2463,12 @@ declare namespace LocalJSX {
         "selected": boolean | null;
         "href": string;
     }
-    interface JeBreadcrumbsAttributes {
+    interface OrbBreadcrumbsAttributes {
         "itemsBeforeCollapse": number;
         "itemsAfterCollapse": number;
         "maxItems": number;
     }
-    interface JeButtonAttributes {
+    interface OrbButtonAttributes {
         "disabled": boolean;
         "type": "submit" | "reset";
         "form": string;
@@ -2478,23 +2478,23 @@ declare namespace LocalJSX {
         "size": "md" | "lg" | "sm";
         "color": Color;
     }
-    interface JeCardAttributes {
+    interface OrbCardAttributes {
         "color": Color;
     }
-    interface JeCheckboxAttributes {
+    interface OrbCheckboxAttributes {
         "originalValue": boolean;
         "data": string;
         "value": boolean;
-        "labelPlacement": 'start' | 'end';
+        "labelPlacement": "start" | "end";
         "indeterminate": boolean;
         "required": boolean;
     }
-    interface JeColorAttributes {
+    interface OrbColorAttributes {
         "color": Color;
         "light": Color;
         "dark": Color;
     }
-    interface JeComboboxAttributes {
+    interface OrbComboboxAttributes {
         "value": string;
         "label": string;
         "note": string;
@@ -2506,24 +2506,24 @@ declare namespace LocalJSX {
         "size": "sm" | "md" | "lg";
         "searchTerm": string;
     }
-    interface JeDatepickerAttributes {
+    interface OrbDatepickerAttributes {
         "type": "date" | "datetime" | "time";
         "includeSeconds": boolean;
         "min": number;
         "max": number;
         "value": number;
     }
-    interface JeDetailsAttributes {
+    interface OrbDetailsAttributes {
         "summary": string;
         "open": boolean;
         "iconToggle": boolean;
         "iconSide": "left" | "right";
     }
-    interface JeDividerAttributes {
+    interface OrbDividerAttributes {
         "type": "horizontal" | "vertical";
         "spacing": "sm" | "md" | "lg" | "none";
     }
-    interface JeGridAttributes {
+    interface OrbGridAttributes {
         "space": | "3xs"
     | "2xs"
     | "xs"
@@ -2534,16 +2534,16 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface JeIconAttributes {
-        "size": 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    interface OrbIconAttributes {
+        "size": "xs" | "sm" | "md" | "lg" | "xl";
         "fill": boolean;
-        "grade": 'high' | 'low';
+        "grade": "high" | "low";
         "weight": number;
     }
-    interface JeLabelAttributes {
+    interface OrbLabelAttributes {
         "required": boolean;
     }
-    interface JeLinkAttributes {
+    interface OrbLinkAttributes {
         "underline": boolean;
         "bold": boolean;
         "href": string;
@@ -2551,27 +2551,27 @@ declare namespace LocalJSX {
         "rel": string;
         "download": string;
     }
-    interface JeNoteAttributes {
+    interface OrbNoteAttributes {
         "invalid": boolean;
     }
-    interface JeOptionAttributes {
+    interface OrbOptionAttributes {
         "value": string;
         "selected": boolean;
         "disabled": boolean;
     }
-    interface JeOverlayAttributes {
+    interface OrbOverlayAttributes {
         "backdropDismiss": boolean;
         "open": boolean;
         "size": "sm" | "md" | "lg";
         "side": "left" | "right" | "bottom" | "top";
     }
-    interface JePillAttributes {
+    interface OrbPillAttributes {
         "outline": boolean;
     }
-    interface JePlaceholderAttributes {
+    interface OrbPlaceholderAttributes {
         "animated": boolean;
     }
-    interface JePopoverAttributes {
+    interface OrbPopoverAttributes {
         "open": boolean;
         "placement": Placement;
         "backdropDismiss": boolean;
@@ -2584,15 +2584,15 @@ declare namespace LocalJSX {
         "arrow": boolean;
         "arrowPadding": number;
     }
-    interface JeRadioAttributes {
+    interface OrbRadioAttributes {
         "value": string;
         "selected": boolean;
     }
-    interface JeRadioButtonAttributes {
+    interface OrbRadioButtonAttributes {
         "value": string;
         "selected": boolean;
     }
-    interface JeRadioGroupAttributes {
+    interface OrbRadioGroupAttributes {
         "required": boolean;
         "disabled": boolean;
         "originalValue": string;
@@ -2600,7 +2600,7 @@ declare namespace LocalJSX {
         "note": string;
         "value": string;
     }
-    interface JeRichTextAttributes {
+    interface OrbRichTextAttributes {
         "placeholder": string;
         "value": string;
         "disabled": boolean;
@@ -2609,14 +2609,14 @@ declare namespace LocalJSX {
         "maxHeight": string;
         "showWordCount": boolean;
     }
-    interface JeShaderCanvasAttributes {
+    interface OrbShaderCanvasAttributes {
         "width": number;
         "height": number;
         "fragmentEntry": string;
         "dpr": number;
         "paused": boolean;
     }
-    interface JeStackAttributes {
+    interface OrbStackAttributes {
         "mode": "row" | "column";
         "align": string;
         "justify": string;
@@ -2630,23 +2630,23 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface JeTabAttributes {
+    interface OrbTabAttributes {
         "value": string;
         "active": boolean;
     }
-    interface JeTableAttributes {
+    interface OrbTableAttributes {
         "columns": number;
     }
-    interface JeTabsAttributes {
-        "mode": 'mobile' | 'pill' | 'segment';
+    interface OrbTabsAttributes {
+        "mode": "mobile" | "pill" | "segment";
         "value": string;
     }
-    interface JeTcAttributes {
+    interface OrbTcAttributes {
         "colSpan": number;
         "rowSpan": number;
         "copy": boolean;
     }
-    interface JeTextboxAttributes {
+    interface OrbTextboxAttributes {
         "type": | "text"
     | "number"
     | "search"
@@ -2679,12 +2679,12 @@ declare namespace LocalJSX {
         "required": boolean;
         "step": string;
     }
-    interface JeToggleAttributes {
+    interface OrbToggleAttributes {
         "originalValue": boolean;
         "value": boolean;
-        "labelPlacement": 'start' | 'end';
+        "labelPlacement": "start" | "end";
     }
-    interface JeToolbarAttributes {
+    interface OrbToolbarAttributes {
         "flank": string;
         "mode": "row" | "column";
         "space": | "3xs"
@@ -2697,88 +2697,88 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface JeTooltipAttributes {
+    interface OrbTooltipAttributes {
         "content": string;
         "offsetX": number;
         "offsetY": number;
     }
-    interface JeTrAttributes {
+    interface OrbTrAttributes {
         "type": "header" | "body" | "footer";
     }
-    interface JeTreeAttributes {
+    interface OrbTreeAttributes {
         "value": string | string[];
-        "selection": 'single' | 'multiple' | 'leaf';
+        "selection": "single" | "multiple" | "leaf";
         "indentation": boolean;
     }
-    interface JeViewAttributes {
+    interface OrbViewAttributes {
         "label": string;
         "closable": boolean;
     }
 
     interface IntrinsicElements {
-        "je-accordion": JeAccordion;
-        "je-alert": Omit<JeAlert, keyof JeAlertAttributes> & { [K in keyof JeAlert & keyof JeAlertAttributes]?: JeAlert[K] } & { [K in keyof JeAlert & keyof JeAlertAttributes as `attr:${K}`]?: JeAlertAttributes[K] } & { [K in keyof JeAlert & keyof JeAlertAttributes as `prop:${K}`]?: JeAlert[K] };
-        "je-branch": Omit<JeBranch, keyof JeBranchAttributes> & { [K in keyof JeBranch & keyof JeBranchAttributes]?: JeBranch[K] } & { [K in keyof JeBranch & keyof JeBranchAttributes as `attr:${K}`]?: JeBranchAttributes[K] } & { [K in keyof JeBranch & keyof JeBranchAttributes as `prop:${K}`]?: JeBranch[K] };
-        "je-breadcrumb": JeBreadcrumb;
-        "je-breadcrumbs": Omit<JeBreadcrumbs, keyof JeBreadcrumbsAttributes> & { [K in keyof JeBreadcrumbs & keyof JeBreadcrumbsAttributes]?: JeBreadcrumbs[K] } & { [K in keyof JeBreadcrumbs & keyof JeBreadcrumbsAttributes as `attr:${K}`]?: JeBreadcrumbsAttributes[K] } & { [K in keyof JeBreadcrumbs & keyof JeBreadcrumbsAttributes as `prop:${K}`]?: JeBreadcrumbs[K] };
-        "je-button": Omit<JeButton, keyof JeButtonAttributes> & { [K in keyof JeButton & keyof JeButtonAttributes]?: JeButton[K] } & { [K in keyof JeButton & keyof JeButtonAttributes as `attr:${K}`]?: JeButtonAttributes[K] } & { [K in keyof JeButton & keyof JeButtonAttributes as `prop:${K}`]?: JeButton[K] };
-        "je-button-group": JeButtonGroup;
-        "je-calendar": JeCalendar;
-        "je-card": Omit<JeCard, keyof JeCardAttributes> & { [K in keyof JeCard & keyof JeCardAttributes]?: JeCard[K] } & { [K in keyof JeCard & keyof JeCardAttributes as `attr:${K}`]?: JeCardAttributes[K] } & { [K in keyof JeCard & keyof JeCardAttributes as `prop:${K}`]?: JeCard[K] };
-        "je-checkbox": Omit<JeCheckbox, keyof JeCheckboxAttributes> & { [K in keyof JeCheckbox & keyof JeCheckboxAttributes]?: JeCheckbox[K] } & { [K in keyof JeCheckbox & keyof JeCheckboxAttributes as `attr:${K}`]?: JeCheckboxAttributes[K] } & { [K in keyof JeCheckbox & keyof JeCheckboxAttributes as `prop:${K}`]?: JeCheckbox[K] };
-        "je-color": Omit<JeColor, keyof JeColorAttributes> & { [K in keyof JeColor & keyof JeColorAttributes]?: JeColor[K] } & { [K in keyof JeColor & keyof JeColorAttributes as `attr:${K}`]?: JeColorAttributes[K] } & { [K in keyof JeColor & keyof JeColorAttributes as `prop:${K}`]?: JeColor[K] };
-        "je-combobox": Omit<JeCombobox, keyof JeComboboxAttributes> & { [K in keyof JeCombobox & keyof JeComboboxAttributes]?: JeCombobox[K] } & { [K in keyof JeCombobox & keyof JeComboboxAttributes as `attr:${K}`]?: JeComboboxAttributes[K] } & { [K in keyof JeCombobox & keyof JeComboboxAttributes as `prop:${K}`]?: JeCombobox[K] };
-        "je-comp": JeComp;
-        "je-control": JeControl;
-        "je-datepicker": Omit<JeDatepicker, keyof JeDatepickerAttributes> & { [K in keyof JeDatepicker & keyof JeDatepickerAttributes]?: JeDatepicker[K] } & { [K in keyof JeDatepicker & keyof JeDatepickerAttributes as `attr:${K}`]?: JeDatepickerAttributes[K] } & { [K in keyof JeDatepicker & keyof JeDatepickerAttributes as `prop:${K}`]?: JeDatepicker[K] };
-        "je-daw": JeDaw;
-        "je-details": Omit<JeDetails, keyof JeDetailsAttributes> & { [K in keyof JeDetails & keyof JeDetailsAttributes]?: JeDetails[K] } & { [K in keyof JeDetails & keyof JeDetailsAttributes as `attr:${K}`]?: JeDetailsAttributes[K] } & { [K in keyof JeDetails & keyof JeDetailsAttributes as `prop:${K}`]?: JeDetails[K] };
-        "je-discard-form": JeDiscardForm;
-        "je-divider": Omit<JeDivider, keyof JeDividerAttributes> & { [K in keyof JeDivider & keyof JeDividerAttributes]?: JeDivider[K] } & { [K in keyof JeDivider & keyof JeDividerAttributes as `attr:${K}`]?: JeDividerAttributes[K] } & { [K in keyof JeDivider & keyof JeDividerAttributes as `prop:${K}`]?: JeDivider[K] };
-        "je-dropzone": JeDropzone;
-        "je-eq": JeEq;
-        "je-grid": Omit<JeGrid, keyof JeGridAttributes> & { [K in keyof JeGrid & keyof JeGridAttributes]?: JeGrid[K] } & { [K in keyof JeGrid & keyof JeGridAttributes as `attr:${K}`]?: JeGridAttributes[K] } & { [K in keyof JeGrid & keyof JeGridAttributes as `prop:${K}`]?: JeGrid[K] };
-        "je-icon": Omit<JeIcon, keyof JeIconAttributes> & { [K in keyof JeIcon & keyof JeIconAttributes]?: JeIcon[K] } & { [K in keyof JeIcon & keyof JeIconAttributes as `attr:${K}`]?: JeIconAttributes[K] } & { [K in keyof JeIcon & keyof JeIconAttributes as `prop:${K}`]?: JeIcon[K] };
-        "je-item": JeItem;
-        "je-knob": JeKnob;
-        "je-label": Omit<JeLabel, keyof JeLabelAttributes> & { [K in keyof JeLabel & keyof JeLabelAttributes]?: JeLabel[K] } & { [K in keyof JeLabel & keyof JeLabelAttributes as `attr:${K}`]?: JeLabelAttributes[K] } & { [K in keyof JeLabel & keyof JeLabelAttributes as `prop:${K}`]?: JeLabel[K] };
-        "je-link": Omit<JeLink, keyof JeLinkAttributes> & { [K in keyof JeLink & keyof JeLinkAttributes]?: JeLink[K] } & { [K in keyof JeLink & keyof JeLinkAttributes as `attr:${K}`]?: JeLinkAttributes[K] } & { [K in keyof JeLink & keyof JeLinkAttributes as `prop:${K}`]?: JeLink[K] };
-        "je-list": JeList;
-        "je-loading": JeLoading;
-        "je-midi": JeMidi;
-        "je-note": Omit<JeNote, keyof JeNoteAttributes> & { [K in keyof JeNote & keyof JeNoteAttributes]?: JeNote[K] } & { [K in keyof JeNote & keyof JeNoteAttributes as `attr:${K}`]?: JeNoteAttributes[K] } & { [K in keyof JeNote & keyof JeNoteAttributes as `prop:${K}`]?: JeNote[K] };
-        "je-option": Omit<JeOption, keyof JeOptionAttributes> & { [K in keyof JeOption & keyof JeOptionAttributes]?: JeOption[K] } & { [K in keyof JeOption & keyof JeOptionAttributes as `attr:${K}`]?: JeOptionAttributes[K] } & { [K in keyof JeOption & keyof JeOptionAttributes as `prop:${K}`]?: JeOption[K] };
-        "je-overlay": Omit<JeOverlay, keyof JeOverlayAttributes> & { [K in keyof JeOverlay & keyof JeOverlayAttributes]?: JeOverlay[K] } & { [K in keyof JeOverlay & keyof JeOverlayAttributes as `attr:${K}`]?: JeOverlayAttributes[K] } & { [K in keyof JeOverlay & keyof JeOverlayAttributes as `prop:${K}`]?: JeOverlay[K] };
-        "je-pill": Omit<JePill, keyof JePillAttributes> & { [K in keyof JePill & keyof JePillAttributes]?: JePill[K] } & { [K in keyof JePill & keyof JePillAttributes as `attr:${K}`]?: JePillAttributes[K] } & { [K in keyof JePill & keyof JePillAttributes as `prop:${K}`]?: JePill[K] };
-        "je-pill-group": JePillGroup;
-        "je-placeholder": Omit<JePlaceholder, keyof JePlaceholderAttributes> & { [K in keyof JePlaceholder & keyof JePlaceholderAttributes]?: JePlaceholder[K] } & { [K in keyof JePlaceholder & keyof JePlaceholderAttributes as `attr:${K}`]?: JePlaceholderAttributes[K] } & { [K in keyof JePlaceholder & keyof JePlaceholderAttributes as `prop:${K}`]?: JePlaceholder[K] };
-        "je-popover": Omit<JePopover, keyof JePopoverAttributes> & { [K in keyof JePopover & keyof JePopoverAttributes]?: JePopover[K] } & { [K in keyof JePopover & keyof JePopoverAttributes as `attr:${K}`]?: JePopoverAttributes[K] } & { [K in keyof JePopover & keyof JePopoverAttributes as `prop:${K}`]?: JePopover[K] };
-        "je-radio": Omit<JeRadio, keyof JeRadioAttributes> & { [K in keyof JeRadio & keyof JeRadioAttributes]?: JeRadio[K] } & { [K in keyof JeRadio & keyof JeRadioAttributes as `attr:${K}`]?: JeRadioAttributes[K] } & { [K in keyof JeRadio & keyof JeRadioAttributes as `prop:${K}`]?: JeRadio[K] };
-        "je-radio-button": Omit<JeRadioButton, keyof JeRadioButtonAttributes> & { [K in keyof JeRadioButton & keyof JeRadioButtonAttributes]?: JeRadioButton[K] } & { [K in keyof JeRadioButton & keyof JeRadioButtonAttributes as `attr:${K}`]?: JeRadioButtonAttributes[K] } & { [K in keyof JeRadioButton & keyof JeRadioButtonAttributes as `prop:${K}`]?: JeRadioButton[K] };
-        "je-radio-group": Omit<JeRadioGroup, keyof JeRadioGroupAttributes> & { [K in keyof JeRadioGroup & keyof JeRadioGroupAttributes]?: JeRadioGroup[K] } & { [K in keyof JeRadioGroup & keyof JeRadioGroupAttributes as `attr:${K}`]?: JeRadioGroupAttributes[K] } & { [K in keyof JeRadioGroup & keyof JeRadioGroupAttributes as `prop:${K}`]?: JeRadioGroup[K] };
-        "je-range": JeRange;
-        "je-reorder-item": JeReorderItem;
-        "je-reorder-list": JeReorderList;
-        "je-rich-text": Omit<JeRichText, keyof JeRichTextAttributes> & { [K in keyof JeRichText & keyof JeRichTextAttributes]?: JeRichText[K] } & { [K in keyof JeRichText & keyof JeRichTextAttributes as `attr:${K}`]?: JeRichTextAttributes[K] } & { [K in keyof JeRichText & keyof JeRichTextAttributes as `prop:${K}`]?: JeRichText[K] };
-        "je-shader-canvas": Omit<JeShaderCanvas, keyof JeShaderCanvasAttributes> & { [K in keyof JeShaderCanvas & keyof JeShaderCanvasAttributes]?: JeShaderCanvas[K] } & { [K in keyof JeShaderCanvas & keyof JeShaderCanvasAttributes as `attr:${K}`]?: JeShaderCanvasAttributes[K] } & { [K in keyof JeShaderCanvas & keyof JeShaderCanvasAttributes as `prop:${K}`]?: JeShaderCanvas[K] };
-        "je-split-panel": JeSplitPanel;
-        "je-split-view": JeSplitView;
-        "je-stack": Omit<JeStack, keyof JeStackAttributes> & { [K in keyof JeStack & keyof JeStackAttributes]?: JeStack[K] } & { [K in keyof JeStack & keyof JeStackAttributes as `attr:${K}`]?: JeStackAttributes[K] } & { [K in keyof JeStack & keyof JeStackAttributes as `prop:${K}`]?: JeStack[K] };
-        "je-synth": JeSynth;
-        "je-tab": Omit<JeTab, keyof JeTabAttributes> & { [K in keyof JeTab & keyof JeTabAttributes]?: JeTab[K] } & { [K in keyof JeTab & keyof JeTabAttributes as `attr:${K}`]?: JeTabAttributes[K] } & { [K in keyof JeTab & keyof JeTabAttributes as `prop:${K}`]?: JeTab[K] };
-        "je-table": Omit<JeTable, keyof JeTableAttributes> & { [K in keyof JeTable & keyof JeTableAttributes]?: JeTable[K] } & { [K in keyof JeTable & keyof JeTableAttributes as `attr:${K}`]?: JeTableAttributes[K] } & { [K in keyof JeTable & keyof JeTableAttributes as `prop:${K}`]?: JeTable[K] };
-        "je-tabs": Omit<JeTabs, keyof JeTabsAttributes> & { [K in keyof JeTabs & keyof JeTabsAttributes]?: JeTabs[K] } & { [K in keyof JeTabs & keyof JeTabsAttributes as `attr:${K}`]?: JeTabsAttributes[K] } & { [K in keyof JeTabs & keyof JeTabsAttributes as `prop:${K}`]?: JeTabs[K] };
-        "je-tc": Omit<JeTc, keyof JeTcAttributes> & { [K in keyof JeTc & keyof JeTcAttributes]?: JeTc[K] } & { [K in keyof JeTc & keyof JeTcAttributes as `attr:${K}`]?: JeTcAttributes[K] } & { [K in keyof JeTc & keyof JeTcAttributes as `prop:${K}`]?: JeTc[K] };
-        "je-textbox": Omit<JeTextbox, keyof JeTextboxAttributes> & { [K in keyof JeTextbox & keyof JeTextboxAttributes]?: JeTextbox[K] } & { [K in keyof JeTextbox & keyof JeTextboxAttributes as `attr:${K}`]?: JeTextboxAttributes[K] } & { [K in keyof JeTextbox & keyof JeTextboxAttributes as `prop:${K}`]?: JeTextbox[K] };
-        "je-toc": JeToc;
-        "je-toggle": Omit<JeToggle, keyof JeToggleAttributes> & { [K in keyof JeToggle & keyof JeToggleAttributes]?: JeToggle[K] } & { [K in keyof JeToggle & keyof JeToggleAttributes as `attr:${K}`]?: JeToggleAttributes[K] } & { [K in keyof JeToggle & keyof JeToggleAttributes as `prop:${K}`]?: JeToggle[K] };
-        "je-toolbar": Omit<JeToolbar, keyof JeToolbarAttributes> & { [K in keyof JeToolbar & keyof JeToolbarAttributes]?: JeToolbar[K] } & { [K in keyof JeToolbar & keyof JeToolbarAttributes as `attr:${K}`]?: JeToolbarAttributes[K] } & { [K in keyof JeToolbar & keyof JeToolbarAttributes as `prop:${K}`]?: JeToolbar[K] };
-        "je-tooltip": Omit<JeTooltip, keyof JeTooltipAttributes> & { [K in keyof JeTooltip & keyof JeTooltipAttributes]?: JeTooltip[K] } & { [K in keyof JeTooltip & keyof JeTooltipAttributes as `attr:${K}`]?: JeTooltipAttributes[K] } & { [K in keyof JeTooltip & keyof JeTooltipAttributes as `prop:${K}`]?: JeTooltip[K] };
-        "je-tr": Omit<JeTr, keyof JeTrAttributes> & { [K in keyof JeTr & keyof JeTrAttributes]?: JeTr[K] } & { [K in keyof JeTr & keyof JeTrAttributes as `attr:${K}`]?: JeTrAttributes[K] } & { [K in keyof JeTr & keyof JeTrAttributes as `prop:${K}`]?: JeTr[K] };
-        "je-tree": Omit<JeTree, keyof JeTreeAttributes> & { [K in keyof JeTree & keyof JeTreeAttributes]?: JeTree[K] } & { [K in keyof JeTree & keyof JeTreeAttributes as `attr:${K}`]?: JeTreeAttributes[K] } & { [K in keyof JeTree & keyof JeTreeAttributes as `prop:${K}`]?: JeTree[K] };
-        "je-view": Omit<JeView, keyof JeViewAttributes> & { [K in keyof JeView & keyof JeViewAttributes]?: JeView[K] } & { [K in keyof JeView & keyof JeViewAttributes as `attr:${K}`]?: JeViewAttributes[K] } & { [K in keyof JeView & keyof JeViewAttributes as `prop:${K}`]?: JeView[K] };
-        "je-view-manager": JeViewManager;
-        "je-wizard": JeWizard;
+        "orb-accordion": OrbAccordion;
+        "orb-alert": Omit<OrbAlert, keyof OrbAlertAttributes> & { [K in keyof OrbAlert & keyof OrbAlertAttributes]?: OrbAlert[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `attr:${K}`]?: OrbAlertAttributes[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `prop:${K}`]?: OrbAlert[K] };
+        "orb-branch": Omit<OrbBranch, keyof OrbBranchAttributes> & { [K in keyof OrbBranch & keyof OrbBranchAttributes]?: OrbBranch[K] } & { [K in keyof OrbBranch & keyof OrbBranchAttributes as `attr:${K}`]?: OrbBranchAttributes[K] } & { [K in keyof OrbBranch & keyof OrbBranchAttributes as `prop:${K}`]?: OrbBranch[K] };
+        "orb-breadcrumb": OrbBreadcrumb;
+        "orb-breadcrumbs": Omit<OrbBreadcrumbs, keyof OrbBreadcrumbsAttributes> & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes]?: OrbBreadcrumbs[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `attr:${K}`]?: OrbBreadcrumbsAttributes[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `prop:${K}`]?: OrbBreadcrumbs[K] };
+        "orb-button": Omit<OrbButton, keyof OrbButtonAttributes> & { [K in keyof OrbButton & keyof OrbButtonAttributes]?: OrbButton[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `attr:${K}`]?: OrbButtonAttributes[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `prop:${K}`]?: OrbButton[K] };
+        "orb-button-group": OrbButtonGroup;
+        "orb-calendar": OrbCalendar;
+        "orb-card": Omit<OrbCard, keyof OrbCardAttributes> & { [K in keyof OrbCard & keyof OrbCardAttributes]?: OrbCard[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `attr:${K}`]?: OrbCardAttributes[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `prop:${K}`]?: OrbCard[K] };
+        "orb-checkbox": Omit<OrbCheckbox, keyof OrbCheckboxAttributes> & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes]?: OrbCheckbox[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `attr:${K}`]?: OrbCheckboxAttributes[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `prop:${K}`]?: OrbCheckbox[K] };
+        "orb-color": Omit<OrbColor, keyof OrbColorAttributes> & { [K in keyof OrbColor & keyof OrbColorAttributes]?: OrbColor[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `attr:${K}`]?: OrbColorAttributes[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `prop:${K}`]?: OrbColor[K] };
+        "orb-combobox": Omit<OrbCombobox, keyof OrbComboboxAttributes> & { [K in keyof OrbCombobox & keyof OrbComboboxAttributes]?: OrbCombobox[K] } & { [K in keyof OrbCombobox & keyof OrbComboboxAttributes as `attr:${K}`]?: OrbComboboxAttributes[K] } & { [K in keyof OrbCombobox & keyof OrbComboboxAttributes as `prop:${K}`]?: OrbCombobox[K] };
+        "orb-comp": OrbComp;
+        "orb-control": OrbControl;
+        "orb-datepicker": Omit<OrbDatepicker, keyof OrbDatepickerAttributes> & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes]?: OrbDatepicker[K] } & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes as `attr:${K}`]?: OrbDatepickerAttributes[K] } & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes as `prop:${K}`]?: OrbDatepicker[K] };
+        "orb-daw": OrbDaw;
+        "orb-details": Omit<OrbDetails, keyof OrbDetailsAttributes> & { [K in keyof OrbDetails & keyof OrbDetailsAttributes]?: OrbDetails[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `attr:${K}`]?: OrbDetailsAttributes[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `prop:${K}`]?: OrbDetails[K] };
+        "orb-discard-form": OrbDiscardForm;
+        "orb-divider": Omit<OrbDivider, keyof OrbDividerAttributes> & { [K in keyof OrbDivider & keyof OrbDividerAttributes]?: OrbDivider[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `attr:${K}`]?: OrbDividerAttributes[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `prop:${K}`]?: OrbDivider[K] };
+        "orb-dropzone": OrbDropzone;
+        "orb-eq": OrbEq;
+        "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
+        "orb-icon": Omit<OrbIcon, keyof OrbIconAttributes> & { [K in keyof OrbIcon & keyof OrbIconAttributes]?: OrbIcon[K] } & { [K in keyof OrbIcon & keyof OrbIconAttributes as `attr:${K}`]?: OrbIconAttributes[K] } & { [K in keyof OrbIcon & keyof OrbIconAttributes as `prop:${K}`]?: OrbIcon[K] };
+        "orb-item": OrbItem;
+        "orb-knob": OrbKnob;
+        "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
+        "orb-link": Omit<OrbLink, keyof OrbLinkAttributes> & { [K in keyof OrbLink & keyof OrbLinkAttributes]?: OrbLink[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `attr:${K}`]?: OrbLinkAttributes[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `prop:${K}`]?: OrbLink[K] };
+        "orb-list": OrbList;
+        "orb-loading": OrbLoading;
+        "orb-midi": OrbMidi;
+        "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
+        "orb-option": Omit<OrbOption, keyof OrbOptionAttributes> & { [K in keyof OrbOption & keyof OrbOptionAttributes]?: OrbOption[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `attr:${K}`]?: OrbOptionAttributes[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `prop:${K}`]?: OrbOption[K] };
+        "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
+        "orb-pill": Omit<OrbPill, keyof OrbPillAttributes> & { [K in keyof OrbPill & keyof OrbPillAttributes]?: OrbPill[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `attr:${K}`]?: OrbPillAttributes[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `prop:${K}`]?: OrbPill[K] };
+        "orb-pill-group": OrbPillGroup;
+        "orb-placeholder": Omit<OrbPlaceholder, keyof OrbPlaceholderAttributes> & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes]?: OrbPlaceholder[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `attr:${K}`]?: OrbPlaceholderAttributes[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `prop:${K}`]?: OrbPlaceholder[K] };
+        "orb-popover": Omit<OrbPopover, keyof OrbPopoverAttributes> & { [K in keyof OrbPopover & keyof OrbPopoverAttributes]?: OrbPopover[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `attr:${K}`]?: OrbPopoverAttributes[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `prop:${K}`]?: OrbPopover[K] };
+        "orb-radio": Omit<OrbRadio, keyof OrbRadioAttributes> & { [K in keyof OrbRadio & keyof OrbRadioAttributes]?: OrbRadio[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `attr:${K}`]?: OrbRadioAttributes[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `prop:${K}`]?: OrbRadio[K] };
+        "orb-radio-button": Omit<OrbRadioButton, keyof OrbRadioButtonAttributes> & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes]?: OrbRadioButton[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `attr:${K}`]?: OrbRadioButtonAttributes[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `prop:${K}`]?: OrbRadioButton[K] };
+        "orb-radio-group": Omit<OrbRadioGroup, keyof OrbRadioGroupAttributes> & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes]?: OrbRadioGroup[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `attr:${K}`]?: OrbRadioGroupAttributes[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `prop:${K}`]?: OrbRadioGroup[K] };
+        "orb-range": OrbRange;
+        "orb-reorder-item": OrbReorderItem;
+        "orb-reorder-list": OrbReorderList;
+        "orb-rich-text": Omit<OrbRichText, keyof OrbRichTextAttributes> & { [K in keyof OrbRichText & keyof OrbRichTextAttributes]?: OrbRichText[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `attr:${K}`]?: OrbRichTextAttributes[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `prop:${K}`]?: OrbRichText[K] };
+        "orb-shader-canvas": Omit<OrbShaderCanvas, keyof OrbShaderCanvasAttributes> & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes]?: OrbShaderCanvas[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `attr:${K}`]?: OrbShaderCanvasAttributes[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `prop:${K}`]?: OrbShaderCanvas[K] };
+        "orb-split-panel": OrbSplitPanel;
+        "orb-split-view": OrbSplitView;
+        "orb-stack": Omit<OrbStack, keyof OrbStackAttributes> & { [K in keyof OrbStack & keyof OrbStackAttributes]?: OrbStack[K] } & { [K in keyof OrbStack & keyof OrbStackAttributes as `attr:${K}`]?: OrbStackAttributes[K] } & { [K in keyof OrbStack & keyof OrbStackAttributes as `prop:${K}`]?: OrbStack[K] };
+        "orb-synth": OrbSynth;
+        "orb-tab": Omit<OrbTab, keyof OrbTabAttributes> & { [K in keyof OrbTab & keyof OrbTabAttributes]?: OrbTab[K] } & { [K in keyof OrbTab & keyof OrbTabAttributes as `attr:${K}`]?: OrbTabAttributes[K] } & { [K in keyof OrbTab & keyof OrbTabAttributes as `prop:${K}`]?: OrbTab[K] };
+        "orb-table": Omit<OrbTable, keyof OrbTableAttributes> & { [K in keyof OrbTable & keyof OrbTableAttributes]?: OrbTable[K] } & { [K in keyof OrbTable & keyof OrbTableAttributes as `attr:${K}`]?: OrbTableAttributes[K] } & { [K in keyof OrbTable & keyof OrbTableAttributes as `prop:${K}`]?: OrbTable[K] };
+        "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
+        "orb-tc": Omit<OrbTc, keyof OrbTcAttributes> & { [K in keyof OrbTc & keyof OrbTcAttributes]?: OrbTc[K] } & { [K in keyof OrbTc & keyof OrbTcAttributes as `attr:${K}`]?: OrbTcAttributes[K] } & { [K in keyof OrbTc & keyof OrbTcAttributes as `prop:${K}`]?: OrbTc[K] };
+        "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
+        "orb-toc": OrbToc;
+        "orb-toggle": Omit<OrbToggle, keyof OrbToggleAttributes> & { [K in keyof OrbToggle & keyof OrbToggleAttributes]?: OrbToggle[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `attr:${K}`]?: OrbToggleAttributes[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `prop:${K}`]?: OrbToggle[K] };
+        "orb-toolbar": Omit<OrbToolbar, keyof OrbToolbarAttributes> & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes]?: OrbToolbar[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `attr:${K}`]?: OrbToolbarAttributes[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `prop:${K}`]?: OrbToolbar[K] };
+        "orb-tooltip": Omit<OrbTooltip, keyof OrbTooltipAttributes> & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes]?: OrbTooltip[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `attr:${K}`]?: OrbTooltipAttributes[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `prop:${K}`]?: OrbTooltip[K] };
+        "orb-tr": Omit<OrbTr, keyof OrbTrAttributes> & { [K in keyof OrbTr & keyof OrbTrAttributes]?: OrbTr[K] } & { [K in keyof OrbTr & keyof OrbTrAttributes as `attr:${K}`]?: OrbTrAttributes[K] } & { [K in keyof OrbTr & keyof OrbTrAttributes as `prop:${K}`]?: OrbTr[K] };
+        "orb-tree": Omit<OrbTree, keyof OrbTreeAttributes> & { [K in keyof OrbTree & keyof OrbTreeAttributes]?: OrbTree[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `attr:${K}`]?: OrbTreeAttributes[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `prop:${K}`]?: OrbTree[K] };
+        "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
+        "orb-view-manager": OrbViewManager;
+        "orb-wizard": OrbWizard;
     }
 }
 export { LocalJSX as JSX };
@@ -2786,82 +2786,82 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             /**
-             * Accordions are wrappers for <je-link href="../je-details">JeDetails</je-link>. When an inner detail is opened, the others are automatically closed.
+             * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
              * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
              */
-            "je-accordion": LocalJSX.IntrinsicElements["je-accordion"] & JSXBase.HTMLAttributes<HTMLJeAccordionElement>;
-            "je-alert": LocalJSX.IntrinsicElements["je-alert"] & JSXBase.HTMLAttributes<HTMLJeAlertElement>;
-            "je-branch": LocalJSX.IntrinsicElements["je-branch"] & JSXBase.HTMLAttributes<HTMLJeBranchElement>;
-            "je-breadcrumb": LocalJSX.IntrinsicElements["je-breadcrumb"] & JSXBase.HTMLAttributes<HTMLJeBreadcrumbElement>;
-            "je-breadcrumbs": LocalJSX.IntrinsicElements["je-breadcrumbs"] & JSXBase.HTMLAttributes<HTMLJeBreadcrumbsElement>;
-            "je-button": LocalJSX.IntrinsicElements["je-button"] & JSXBase.HTMLAttributes<HTMLJeButtonElement>;
-            "je-button-group": LocalJSX.IntrinsicElements["je-button-group"] & JSXBase.HTMLAttributes<HTMLJeButtonGroupElement>;
-            "je-calendar": LocalJSX.IntrinsicElements["je-calendar"] & JSXBase.HTMLAttributes<HTMLJeCalendarElement>;
-            "je-card": LocalJSX.IntrinsicElements["je-card"] & JSXBase.HTMLAttributes<HTMLJeCardElement>;
-            "je-checkbox": LocalJSX.IntrinsicElements["je-checkbox"] & JSXBase.HTMLAttributes<HTMLJeCheckboxElement>;
-            "je-color": LocalJSX.IntrinsicElements["je-color"] & JSXBase.HTMLAttributes<HTMLJeColorElement>;
-            "je-combobox": LocalJSX.IntrinsicElements["je-combobox"] & JSXBase.HTMLAttributes<HTMLJeComboboxElement>;
-            "je-comp": LocalJSX.IntrinsicElements["je-comp"] & JSXBase.HTMLAttributes<HTMLJeCompElement>;
-            "je-control": LocalJSX.IntrinsicElements["je-control"] & JSXBase.HTMLAttributes<HTMLJeControlElement>;
-            "je-datepicker": LocalJSX.IntrinsicElements["je-datepicker"] & JSXBase.HTMLAttributes<HTMLJeDatepickerElement>;
-            "je-daw": LocalJSX.IntrinsicElements["je-daw"] & JSXBase.HTMLAttributes<HTMLJeDawElement>;
-            "je-details": LocalJSX.IntrinsicElements["je-details"] & JSXBase.HTMLAttributes<HTMLJeDetailsElement>;
-            "je-discard-form": LocalJSX.IntrinsicElements["je-discard-form"] & JSXBase.HTMLAttributes<HTMLJeDiscardFormElement>;
-            "je-divider": LocalJSX.IntrinsicElements["je-divider"] & JSXBase.HTMLAttributes<HTMLJeDividerElement>;
-            "je-dropzone": LocalJSX.IntrinsicElements["je-dropzone"] & JSXBase.HTMLAttributes<HTMLJeDropzoneElement>;
-            "je-eq": LocalJSX.IntrinsicElements["je-eq"] & JSXBase.HTMLAttributes<HTMLJeEqElement>;
-            "je-grid": LocalJSX.IntrinsicElements["je-grid"] & JSXBase.HTMLAttributes<HTMLJeGridElement>;
-            "je-icon": LocalJSX.IntrinsicElements["je-icon"] & JSXBase.HTMLAttributes<HTMLJeIconElement>;
-            "je-item": LocalJSX.IntrinsicElements["je-item"] & JSXBase.HTMLAttributes<HTMLJeItemElement>;
-            "je-knob": LocalJSX.IntrinsicElements["je-knob"] & JSXBase.HTMLAttributes<HTMLJeKnobElement>;
-            "je-label": LocalJSX.IntrinsicElements["je-label"] & JSXBase.HTMLAttributes<HTMLJeLabelElement>;
-            "je-link": LocalJSX.IntrinsicElements["je-link"] & JSXBase.HTMLAttributes<HTMLJeLinkElement>;
-            "je-list": LocalJSX.IntrinsicElements["je-list"] & JSXBase.HTMLAttributes<HTMLJeListElement>;
-            "je-loading": LocalJSX.IntrinsicElements["je-loading"] & JSXBase.HTMLAttributes<HTMLJeLoadingElement>;
-            "je-midi": LocalJSX.IntrinsicElements["je-midi"] & JSXBase.HTMLAttributes<HTMLJeMidiElement>;
-            "je-note": LocalJSX.IntrinsicElements["je-note"] & JSXBase.HTMLAttributes<HTMLJeNoteElement>;
-            "je-option": LocalJSX.IntrinsicElements["je-option"] & JSXBase.HTMLAttributes<HTMLJeOptionElement>;
-            "je-overlay": LocalJSX.IntrinsicElements["je-overlay"] & JSXBase.HTMLAttributes<HTMLJeOverlayElement>;
-            "je-pill": LocalJSX.IntrinsicElements["je-pill"] & JSXBase.HTMLAttributes<HTMLJePillElement>;
-            "je-pill-group": LocalJSX.IntrinsicElements["je-pill-group"] & JSXBase.HTMLAttributes<HTMLJePillGroupElement>;
-            "je-placeholder": LocalJSX.IntrinsicElements["je-placeholder"] & JSXBase.HTMLAttributes<HTMLJePlaceholderElement>;
-            "je-popover": LocalJSX.IntrinsicElements["je-popover"] & JSXBase.HTMLAttributes<HTMLJePopoverElement>;
-            "je-radio": LocalJSX.IntrinsicElements["je-radio"] & JSXBase.HTMLAttributes<HTMLJeRadioElement>;
-            "je-radio-button": LocalJSX.IntrinsicElements["je-radio-button"] & JSXBase.HTMLAttributes<HTMLJeRadioButtonElement>;
-            "je-radio-group": LocalJSX.IntrinsicElements["je-radio-group"] & JSXBase.HTMLAttributes<HTMLJeRadioGroupElement>;
-            "je-range": LocalJSX.IntrinsicElements["je-range"] & JSXBase.HTMLAttributes<HTMLJeRangeElement>;
-            "je-reorder-item": LocalJSX.IntrinsicElements["je-reorder-item"] & JSXBase.HTMLAttributes<HTMLJeReorderItemElement>;
-            "je-reorder-list": LocalJSX.IntrinsicElements["je-reorder-list"] & JSXBase.HTMLAttributes<HTMLJeReorderListElement>;
-            "je-rich-text": LocalJSX.IntrinsicElements["je-rich-text"] & JSXBase.HTMLAttributes<HTMLJeRichTextElement>;
+            "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
+            "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
+            "orb-branch": LocalJSX.IntrinsicElements["orb-branch"] & JSXBase.HTMLAttributes<HTMLOrbBranchElement>;
+            "orb-breadcrumb": LocalJSX.IntrinsicElements["orb-breadcrumb"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbElement>;
+            "orb-breadcrumbs": LocalJSX.IntrinsicElements["orb-breadcrumbs"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbsElement>;
+            "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
+            "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
+            "orb-calendar": LocalJSX.IntrinsicElements["orb-calendar"] & JSXBase.HTMLAttributes<HTMLOrbCalendarElement>;
+            "orb-card": LocalJSX.IntrinsicElements["orb-card"] & JSXBase.HTMLAttributes<HTMLOrbCardElement>;
+            "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;
+            "orb-color": LocalJSX.IntrinsicElements["orb-color"] & JSXBase.HTMLAttributes<HTMLOrbColorElement>;
+            "orb-combobox": LocalJSX.IntrinsicElements["orb-combobox"] & JSXBase.HTMLAttributes<HTMLOrbComboboxElement>;
+            "orb-comp": LocalJSX.IntrinsicElements["orb-comp"] & JSXBase.HTMLAttributes<HTMLOrbCompElement>;
+            "orb-control": LocalJSX.IntrinsicElements["orb-control"] & JSXBase.HTMLAttributes<HTMLOrbControlElement>;
+            "orb-datepicker": LocalJSX.IntrinsicElements["orb-datepicker"] & JSXBase.HTMLAttributes<HTMLOrbDatepickerElement>;
+            "orb-daw": LocalJSX.IntrinsicElements["orb-daw"] & JSXBase.HTMLAttributes<HTMLOrbDawElement>;
+            "orb-details": LocalJSX.IntrinsicElements["orb-details"] & JSXBase.HTMLAttributes<HTMLOrbDetailsElement>;
+            "orb-discard-form": LocalJSX.IntrinsicElements["orb-discard-form"] & JSXBase.HTMLAttributes<HTMLOrbDiscardFormElement>;
+            "orb-divider": LocalJSX.IntrinsicElements["orb-divider"] & JSXBase.HTMLAttributes<HTMLOrbDividerElement>;
+            "orb-dropzone": LocalJSX.IntrinsicElements["orb-dropzone"] & JSXBase.HTMLAttributes<HTMLOrbDropzoneElement>;
+            "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
+            "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
+            "orb-icon": LocalJSX.IntrinsicElements["orb-icon"] & JSXBase.HTMLAttributes<HTMLOrbIconElement>;
+            "orb-item": LocalJSX.IntrinsicElements["orb-item"] & JSXBase.HTMLAttributes<HTMLOrbItemElement>;
+            "orb-knob": LocalJSX.IntrinsicElements["orb-knob"] & JSXBase.HTMLAttributes<HTMLOrbKnobElement>;
+            "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
+            "orb-link": LocalJSX.IntrinsicElements["orb-link"] & JSXBase.HTMLAttributes<HTMLOrbLinkElement>;
+            "orb-list": LocalJSX.IntrinsicElements["orb-list"] & JSXBase.HTMLAttributes<HTMLOrbListElement>;
+            "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
+            "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
+            "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
+            "orb-option": LocalJSX.IntrinsicElements["orb-option"] & JSXBase.HTMLAttributes<HTMLOrbOptionElement>;
+            "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
+            "orb-pill": LocalJSX.IntrinsicElements["orb-pill"] & JSXBase.HTMLAttributes<HTMLOrbPillElement>;
+            "orb-pill-group": LocalJSX.IntrinsicElements["orb-pill-group"] & JSXBase.HTMLAttributes<HTMLOrbPillGroupElement>;
+            "orb-placeholder": LocalJSX.IntrinsicElements["orb-placeholder"] & JSXBase.HTMLAttributes<HTMLOrbPlaceholderElement>;
+            "orb-popover": LocalJSX.IntrinsicElements["orb-popover"] & JSXBase.HTMLAttributes<HTMLOrbPopoverElement>;
+            "orb-radio": LocalJSX.IntrinsicElements["orb-radio"] & JSXBase.HTMLAttributes<HTMLOrbRadioElement>;
+            "orb-radio-button": LocalJSX.IntrinsicElements["orb-radio-button"] & JSXBase.HTMLAttributes<HTMLOrbRadioButtonElement>;
+            "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
+            "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
+            "orb-reorder-item": LocalJSX.IntrinsicElements["orb-reorder-item"] & JSXBase.HTMLAttributes<HTMLOrbReorderItemElement>;
+            "orb-reorder-list": LocalJSX.IntrinsicElements["orb-reorder-list"] & JSXBase.HTMLAttributes<HTMLOrbReorderListElement>;
+            "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**
-             * `<je-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
+             * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
              * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
              * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
              * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
              * and a full-screen vertex stage are injected for you — you only write the fragment.
              */
-            "je-shader-canvas": LocalJSX.IntrinsicElements["je-shader-canvas"] & JSXBase.HTMLAttributes<HTMLJeShaderCanvasElement>;
-            "je-split-panel": LocalJSX.IntrinsicElements["je-split-panel"] & JSXBase.HTMLAttributes<HTMLJeSplitPanelElement>;
-            "je-split-view": LocalJSX.IntrinsicElements["je-split-view"] & JSXBase.HTMLAttributes<HTMLJeSplitViewElement>;
-            "je-stack": LocalJSX.IntrinsicElements["je-stack"] & JSXBase.HTMLAttributes<HTMLJeStackElement>;
-            "je-synth": LocalJSX.IntrinsicElements["je-synth"] & JSXBase.HTMLAttributes<HTMLJeSynthElement>;
-            "je-tab": LocalJSX.IntrinsicElements["je-tab"] & JSXBase.HTMLAttributes<HTMLJeTabElement>;
-            "je-table": LocalJSX.IntrinsicElements["je-table"] & JSXBase.HTMLAttributes<HTMLJeTableElement>;
-            "je-tabs": LocalJSX.IntrinsicElements["je-tabs"] & JSXBase.HTMLAttributes<HTMLJeTabsElement>;
-            "je-tc": LocalJSX.IntrinsicElements["je-tc"] & JSXBase.HTMLAttributes<HTMLJeTcElement>;
+            "orb-shader-canvas": LocalJSX.IntrinsicElements["orb-shader-canvas"] & JSXBase.HTMLAttributes<HTMLOrbShaderCanvasElement>;
+            "orb-split-panel": LocalJSX.IntrinsicElements["orb-split-panel"] & JSXBase.HTMLAttributes<HTMLOrbSplitPanelElement>;
+            "orb-split-view": LocalJSX.IntrinsicElements["orb-split-view"] & JSXBase.HTMLAttributes<HTMLOrbSplitViewElement>;
+            "orb-stack": LocalJSX.IntrinsicElements["orb-stack"] & JSXBase.HTMLAttributes<HTMLOrbStackElement>;
+            "orb-synth": LocalJSX.IntrinsicElements["orb-synth"] & JSXBase.HTMLAttributes<HTMLOrbSynthElement>;
+            "orb-tab": LocalJSX.IntrinsicElements["orb-tab"] & JSXBase.HTMLAttributes<HTMLOrbTabElement>;
+            "orb-table": LocalJSX.IntrinsicElements["orb-table"] & JSXBase.HTMLAttributes<HTMLOrbTableElement>;
+            "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
+            "orb-tc": LocalJSX.IntrinsicElements["orb-tc"] & JSXBase.HTMLAttributes<HTMLOrbTcElement>;
             /**
              * its a textbox
              */
-            "je-textbox": LocalJSX.IntrinsicElements["je-textbox"] & JSXBase.HTMLAttributes<HTMLJeTextboxElement>;
-            "je-toc": LocalJSX.IntrinsicElements["je-toc"] & JSXBase.HTMLAttributes<HTMLJeTocElement>;
-            "je-toggle": LocalJSX.IntrinsicElements["je-toggle"] & JSXBase.HTMLAttributes<HTMLJeToggleElement>;
-            "je-toolbar": LocalJSX.IntrinsicElements["je-toolbar"] & JSXBase.HTMLAttributes<HTMLJeToolbarElement>;
-            "je-tooltip": LocalJSX.IntrinsicElements["je-tooltip"] & JSXBase.HTMLAttributes<HTMLJeTooltipElement>;
-            "je-tr": LocalJSX.IntrinsicElements["je-tr"] & JSXBase.HTMLAttributes<HTMLJeTrElement>;
-            "je-tree": LocalJSX.IntrinsicElements["je-tree"] & JSXBase.HTMLAttributes<HTMLJeTreeElement>;
-            "je-view": LocalJSX.IntrinsicElements["je-view"] & JSXBase.HTMLAttributes<HTMLJeViewElement>;
-            "je-view-manager": LocalJSX.IntrinsicElements["je-view-manager"] & JSXBase.HTMLAttributes<HTMLJeViewManagerElement>;
-            "je-wizard": LocalJSX.IntrinsicElements["je-wizard"] & JSXBase.HTMLAttributes<HTMLJeWizardElement>;
+            "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
+            "orb-toc": LocalJSX.IntrinsicElements["orb-toc"] & JSXBase.HTMLAttributes<HTMLOrbTocElement>;
+            "orb-toggle": LocalJSX.IntrinsicElements["orb-toggle"] & JSXBase.HTMLAttributes<HTMLOrbToggleElement>;
+            "orb-toolbar": LocalJSX.IntrinsicElements["orb-toolbar"] & JSXBase.HTMLAttributes<HTMLOrbToolbarElement>;
+            "orb-tooltip": LocalJSX.IntrinsicElements["orb-tooltip"] & JSXBase.HTMLAttributes<HTMLOrbTooltipElement>;
+            "orb-tr": LocalJSX.IntrinsicElements["orb-tr"] & JSXBase.HTMLAttributes<HTMLOrbTrElement>;
+            "orb-tree": LocalJSX.IntrinsicElements["orb-tree"] & JSXBase.HTMLAttributes<HTMLOrbTreeElement>;
+            "orb-view": LocalJSX.IntrinsicElements["orb-view"] & JSXBase.HTMLAttributes<HTMLOrbViewElement>;
+            "orb-view-manager": LocalJSX.IntrinsicElements["orb-view-manager"] & JSXBase.HTMLAttributes<HTMLOrbViewManagerElement>;
+            "orb-wizard": LocalJSX.IntrinsicElements["orb-wizard"] & JSXBase.HTMLAttributes<HTMLOrbWizardElement>;
         }
     }
 }

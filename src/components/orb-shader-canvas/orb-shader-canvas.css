@@ -2,8 +2,8 @@
   position: relative;
   display: block;
   overflow: hidden;
-  border-radius: var(--je-radius-md);
-  background-color: light-dark(var(--je-neutral-100), var(--je-neutral-900));
+  border-radius: var(--orb-radius-md);
+  background-color: light-dark(var(--orb-neutral-100), var(--orb-neutral-900));
   line-height: 0;
 }
 
@@ -19,22 +19,25 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--je-spacing-md);
+  padding: var(--orb-spacing-md);
   box-sizing: border-box;
-  background-color: light-dark(var(--je-danger-50), var(--je-danger-800));
-  color: light-dark(var(--je-danger-500), var(--je-danger-300));
+  background-color: light-dark(var(--orb-danger-50), var(--orb-danger-800));
+  color: light-dark(var(--orb-danger-500), var(--orb-danger-300));
   overflow: auto;
 
   &.unsupported {
-    background-color: light-dark(var(--je-neutral-100), var(--je-neutral-850));
-    color: light-dark(var(--je-neutral-700), var(--je-neutral-300));
+    background-color: light-dark(
+      var(--orb-neutral-100),
+      var(--orb-neutral-850)
+    );
+    color: light-dark(var(--orb-neutral-700), var(--orb-neutral-300));
   }
 
   pre {
     margin: 0;
     max-width: 100%;
-    font-size: var(--je-font-sm);
-    font-weight: var(--je-font-regular);
+    font-size: var(--orb-font-sm);
+    font-weight: var(--orb-font-regular);
     line-height: 1.4;
     white-space: pre-wrap;
     word-break: break-word;

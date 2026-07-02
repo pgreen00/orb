@@ -25,12 +25,12 @@ import {
 import { debounceTime, fromEvent, Subscription } from "rxjs";
 
 @Component({
-  tag: "je-popover",
-  styleUrl: "je-popover.css",
+  tag: "orb-popover",
+  styleUrl: "orb-popover.css",
   shadow: true,
 })
-export class JePopover {
-  @Element() el!: HTMLJePopoverElement;
+export class OrbPopover {
+  @Element() el!: HTMLOrbPopoverElement;
 
   private contentEl!: HTMLElement;
 

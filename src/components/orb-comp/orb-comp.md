@@ -1,4 +1,4 @@
 ---
-title: 'JeComp | <je-comp>'
+title: 'OrbComp | <orb-comp>'
 sidebar_label: 'Audio Compressor'
 ---

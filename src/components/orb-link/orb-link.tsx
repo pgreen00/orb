@@ -1,13 +1,13 @@
-import { Component, Prop, h } from '@stencil/core';
+import { Component, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: 'je-link',
-  styleUrl: 'je-link.css',
+  tag: "orb-link",
+  styleUrl: "orb-link.css",
   shadow: {
-    delegatesFocus: true
+    delegatesFocus: true,
   },
 })
-export class JeLink {
+export class OrbLink {
   /** Underlines the text */
   @Prop() underline = true;
 
@@ -28,7 +28,15 @@ export class JeLink {
 
   render() {
     return (
-      <a part='anchor' tabindex={0} href={this.href} target={this.target} rel={this.rel} download={this.download} class={{ underline: this.underline, bold: this.bold }}>
+      <a
+        part="anchor"
+        tabindex={0}
+        href={this.href}
+        target={this.target}
+        rel={this.rel}
+        download={this.download}
+        class={{ underline: this.underline, bold: this.bold }}
+      >
         <slot></slot>
       </a>
     );

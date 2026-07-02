@@ -1,26 +1,38 @@
-import { Component, Event, EventEmitter, Host, Method, Prop, State, Watch, h } from '@stencil/core';
+import {
+  Component,
+  Event,
+  EventEmitter,
+  Host,
+  Method,
+  Prop,
+  State,
+  Watch,
+  h,
+} from "@stencil/core";
 
 @Component({
-  tag: 'je-wizard',
-  styleUrl: 'je-wizard.css',
+  tag: "orb-wizard",
+  styleUrl: "orb-wizard.css",
   shadow: true,
 })
-export class JeWizard {
+export class OrbWizard {
   @State() completedSteps: number[] = [];
   @State() currentStep = 0;
-  @Prop() steps: { label: string, optional?: boolean }[] = [];
+  @Prop() steps: { label: string; optional?: boolean }[] = [];
   @Event() stepChange: EventEmitter<number>;
   @Event() finish: EventEmitter<void>;
 
-  @Watch('completedSteps')
+  @Watch("completedSteps")
   async onCompletedStepsChange() {
-    const isComplete = this.steps.every((t, index) => t.optional || this.completedSteps.includes(index))
+    const isComplete = this.steps.every(
+      (t, index) => t.optional || this.completedSteps.includes(index),
+    );
     if (isComplete) {
-      this.finish.emit()
+      this.finish.emit();
     }
   }
 
-  @Watch('currentStep')
+  @Watch("currentStep")
   onCurrentStepChange(newValue: number) {
     this.stepChange.emit(newValue);
   }
@@ -28,10 +40,10 @@ export class JeWizard {
   @Method()
   async next() {
     if (this.currentStep < this.steps.length - 1) {
-      this.completedSteps = [...this.completedSteps, this.currentStep]
+      this.completedSteps = [...this.completedSteps, this.currentStep];
       this.currentStep++;
     } else if (this.currentStep === this.steps.length - 1) {
-      this.completedSteps = [...this.completedSteps, this.currentStep]
+      this.completedSteps = [...this.completedSteps, this.currentStep];
     }
   }
 
@@ -39,7 +51,9 @@ export class JeWizard {
   async previous() {
     if (this.currentStep > 0) {
       this.currentStep--;
-      this.completedSteps = this.completedSteps.filter(step => step !== this.currentStep)
+      this.completedSteps = this.completedSteps.filter(
+        (step) => step !== this.currentStep,
+      );
     }
   }
 
@@ -58,19 +72,26 @@ export class JeWizard {
 
   @Method()
   async canSkip() {
-    return this.canSkipCurrentStep()
+    return this.canSkipCurrentStep();
   }
 
   private canSkipCurrentStep = () => this.steps[this.currentStep]?.optional;
 
   render() {
     return (
-      <Host data-can-skip={this.canSkipCurrentStep()} role='navigation'>
+      <Host data-can-skip={this.canSkipCurrentStep()} role="navigation">
         {this.steps.map((step, index) => (
-          <div aria-current={index == this.currentStep ? 'step' : 'false'} class={{ step: true, active: index === this.currentStep, completed: this.completedSteps.includes(index) }}>
+          <div
+            aria-current={index == this.currentStep ? "step" : "false"}
+            class={{
+              step: true,
+              active: index === this.currentStep,
+              completed: this.completedSteps.includes(index),
+            }}
+          >
             <div>
-              <span class='label'>{step.label}</span>
-              {step.optional && <span class='optional'>Optional</span>}
+              <span class="label">{step.label}</span>
+              {step.optional && <span class="optional">Optional</span>}
             </div>
           </div>
         ))}

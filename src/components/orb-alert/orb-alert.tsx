@@ -1,17 +1,29 @@
-import { Component, Listen, Prop, h, Element, Host, State, Event, EventEmitter, Method, Watch } from '@stencil/core';
-import { Color } from '../../utils/color';
-import { OverlayData } from '../je-overlay/je-overlay';
+import {
+  Component,
+  Listen,
+  Prop,
+  h,
+  Element,
+  Host,
+  State,
+  Event,
+  EventEmitter,
+  Method,
+  Watch,
+} from "@stencil/core";
+import { Color } from "../../utils/color";
+import { OverlayData } from "../orb-overlay/orb-overlay";
 
 @Component({
-  tag: 'je-alert',
-  styleUrl: 'je-alert.css',
+  tag: "orb-alert",
+  styleUrl: "orb-alert.css",
   shadow: true,
 })
-export class JeAlert {
+export class OrbAlert {
   private role?: string;
   private data?: any;
   @State() paused = true;
-  @Element() el!: HTMLJeAlertElement;
+  @Element() el!: HTMLOrbAlertElement;
   @Prop() closable = false;
   @Prop({ reflect: true }) color?: Color;
   @Prop() duration = 0;
@@ -19,33 +31,39 @@ export class JeAlert {
   @Event() present: EventEmitter;
   @Event() dismiss: EventEmitter<OverlayData>;
 
-  @Watch('open')
+  @Watch("open")
   onOpenChange(open: boolean) {
     if (open) {
-      const animation = this.el.animate({
-        opacity: [0, 1],
-        transform: ['scale(0%)', 'scale(100%)'],
-        display: ['none', 'block']
-      }, 600)
+      const animation = this.el.animate(
+        {
+          opacity: [0, 1],
+          transform: ["scale(0%)", "scale(100%)"],
+          display: ["none", "block"],
+        },
+        600,
+      );
       animation.onfinish = () => {
         this.paused = false;
         this.present.emit();
-      }
+      };
     } else {
-      const animation = this.el.animate({
-        opacity: [1, 0],
-        transform: ['scale(100%)', 'scale(0%)'],
-        display: ['block', 'none']
-      }, 600)
+      const animation = this.el.animate(
+        {
+          opacity: [1, 0],
+          transform: ["scale(100%)", "scale(0%)"],
+          display: ["block", "none"],
+        },
+        600,
+      );
       animation.onfinish = () => {
         this.paused = true;
         this.dismiss.emit({
-          role: this.role ?? 'manualDismiss',
-          data: this.data
+          role: this.role ?? "manualDismiss",
+          data: this.data,
         });
         this.role = undefined;
         this.data = undefined;
-      }
+      };
     }
   }
 
@@ -63,17 +81,19 @@ export class JeAlert {
 
   @Method()
   didDismiss() {
-    return new Promise(resolve => {
-      this.el.addEventListener('dismiss', e => resolve(e.detail), { once: true });
+    return new Promise((resolve) => {
+      this.el.addEventListener("dismiss", (e) => resolve(e.detail), {
+        once: true,
+      });
     });
   }
 
-  @Listen('mouseenter')
+  @Listen("mouseenter")
   onMouseEnter() {
     if (this.open) this.paused = true;
   }
 
-  @Listen('mouseleave')
+  @Listen("mouseleave")
   onMouseLeave() {
     if (this.open) this.paused = false;
   }
@@ -83,20 +103,29 @@ export class JeAlert {
       <Host>
         {this.duration > 0 && (
           <div
-            onAnimationEnd={() => this.hide('autoDismiss')}
+            onAnimationEnd={() => this.hide("autoDismiss")}
             class={{ progress: true, running: this.open && !this.paused }}
             style={{ animationDuration: `${this.duration}ms` }}
           ></div>
         )}
-        <je-toolbar>
-          <slot name='start' />
+        <orb-toolbar>
+          <slot name="start" />
           <div>
             <slot />
           </div>
-          <slot slot='end' name='end' />
-          {this.closable && <je-button fill='clear' class='icon-only' slot='end' onClick={() => this.hide('userDismiss')}><je-icon>close</je-icon></je-button>}
-        </je-toolbar>
+          <slot slot="end" name="end" />
+          {this.closable && (
+            <orb-button
+              fill="clear"
+              class="icon-only"
+              slot="end"
+              onClick={() => this.hide("userDismiss")}
+            >
+              <orb-icon>close</orb-icon>
+            </orb-button>
+          )}
+        </orb-toolbar>
       </Host>
-    )
+    );
   }
 }

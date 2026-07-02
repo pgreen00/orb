@@ -1,5 +1,5 @@
 ---
-title: 'JeCombobox | <je-combobox>'
+title: 'OrbCombobox | <orb-combobox>'
 sidebar_label: 'Combobox'
 ---
 
@@ -10,15 +10,15 @@ sidebar_label: 'Combobox'
 ::: live-code-demo
 
 ```html
-<je-combobox label="Items" placeholder="Select an item..." editable note="Select the item that you vibe with the most">
-  <je-option>Item 1</je-option>
-  <je-option>Item 2</je-option>
-  <je-option>Item 3</je-option>
-  <je-option>Item 4</je-option>
-  <je-button slot="after" class="icon-only">
-    <je-icon fill>edit</je-icon>
-  </je-button>
-</je-combobox>
+<orb-combobox label="Items" placeholder="Select an item..." editable note="Select the item that you vibe with the most">
+  <orb-option>Item 1</orb-option>
+  <orb-option>Item 2</orb-option>
+  <orb-option>Item 3</orb-option>
+  <orb-option>Item 4</orb-option>
+  <orb-button slot="after" class="icon-only">
+    <orb-icon fill>edit</orb-icon>
+  </orb-button>
+</orb-combobox>
 ```
 
 :::

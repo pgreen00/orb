@@ -1,4 +1,4 @@
 ---
-title: 'JeLink | <je-link>'
+title: 'OrbLink | <orb-link>'
 sidebar_label: 'Link'
 ---

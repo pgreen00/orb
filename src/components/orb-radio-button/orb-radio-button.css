@@ -6,10 +6,10 @@
   height: 2.5rem;
   flex-shrink: 0;
   padding-block: 0;
-  padding-inline: var(--je-spacing-sm);
+  padding-inline: var(--orb-spacing-sm);
   margin: 0;
   border: none;
-  outline-color: var(--je-primary-200);
+  outline-color: var(--orb-primary-200);
   outline-offset: 2px;
   background-color: inherit;
   color: inherit;
@@ -20,26 +20,26 @@
 }
 
 :host(:not(:first-of-type)) {
-  border: solid 1px light-dark(var(--je-neutral-300), var(--je-neutral-700));
+  border: solid 1px light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
   border-left: 0;
 }
 
 :host(:first-of-type) {
-  border: solid 1px light-dark(var(--je-neutral-300), var(--je-neutral-700));
+  border: solid 1px light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
 }
 
-:host([aria-checked=true]) {
-  background-color: light-dark(var(--je-primary-500), var(--je-primary-200));
-  color: light-dark(var(--je-neutral-50), var(--je-neutral-900));
-  border-color: light-dark(var(--je-primary-500), var(--je-primary-200));
+:host([aria-checked="true"]) {
+  background-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
+  color: light-dark(var(--orb-neutral-50), var(--orb-neutral-900));
+  border-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
 }
 
 :host(:first-of-type) {
-  border-top-left-radius: var(--je-radius-md);
-  border-bottom-left-radius: var(--je-radius-md);
+  border-top-left-radius: var(--orb-radius-md);
+  border-bottom-left-radius: var(--orb-radius-md);
 }
 
 :host(:last-of-type) {
-  border-top-right-radius: var(--je-radius-md);
-  border-bottom-right-radius: var(--je-radius-md);
+  border-top-right-radius: var(--orb-radius-md);
+  border-bottom-right-radius: var(--orb-radius-md);
 }

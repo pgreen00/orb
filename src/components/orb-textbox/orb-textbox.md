@@ -1,5 +1,5 @@
 ---
-title: "JeTextbox | <je-textbox>"
+title: "OrbTextbox | <orb-textbox>"
 sidebar_label: "Textbox"
 ---
 
@@ -8,22 +8,22 @@ sidebar_label: "Textbox"
 ::: live-code-demo
 
 ```html
-<je-stack>
-  <je-textbox type="phone" value="2705569657">
-    <je-label slot="label">Phone number</je-label>
-  </je-textbox>
-  <je-textbox required placeholder="Type your name..." label="Full Name"></je-textbox>
-  <je-textbox type="password" label="Password"></je-textbox>
-  <je-textbox type="money" label="Money"></je-textbox>
-  <je-textbox type="ssn" label="SSN"></je-textbox>
-  <je-textbox type="number" label="Number"></je-textbox>
-  <je-textbox type="time" label="Time"></je-textbox>
-  <je-textbox type="date" label="Date"></je-textbox>
-  <je-textbox type="datetime" label="Date & Time"></je-textbox>
-  <je-textbox type="daterange" label="Date Range"></je-textbox>
-  <je-textbox type="email" label="Email"></je-textbox>
-  <je-textbox type="url" label="URL"></je-textbox>
-</je-stack>  
+<orb-stack>
+  <orb-textbox type="phone" value="2705569657">
+    <orb-label slot="label">Phone number</orb-label>
+  </orb-textbox>
+  <orb-textbox required placeholder="Type your name..." label="Full Name"></orb-textbox>
+  <orb-textbox type="password" label="Password"></orb-textbox>
+  <orb-textbox type="money" label="Money"></orb-textbox>
+  <orb-textbox type="ssn" label="SSN"></orb-textbox>
+  <orb-textbox type="number" label="Number"></orb-textbox>
+  <orb-textbox type="time" label="Time"></orb-textbox>
+  <orb-textbox type="date" label="Date"></orb-textbox>
+  <orb-textbox type="datetime" label="Date & Time"></orb-textbox>
+  <orb-textbox type="daterange" label="Date Range"></orb-textbox>
+  <orb-textbox type="email" label="Email"></orb-textbox>
+  <orb-textbox type="url" label="URL"></orb-textbox>
+</orb-stack>  
 ```
 
 :::
@@ -32,15 +32,15 @@ sidebar_label: "Textbox"
 
 ```html
 <form id="test-form">
-  <je-stack>
-    <je-textbox name="firstName" required placeholder="Type your name..." label="First Name"></je-textbox>
-    <je-textbox name="lastName" required placeholder="Type your name..." label="Last Name"></je-textbox>
+  <orb-stack>
+    <orb-textbox name="firstName" required placeholder="Type your name..." label="First Name"></orb-textbox>
+    <orb-textbox name="lastName" required placeholder="Type your name..." label="Last Name"></orb-textbox>
     <label>
       <span>Are you under 18?</span>
       <input type="checkbox" required name="isMinor"/>
     </label>
-    <je-stack>
-      <je-label>Colors</je-label>
+    <orb-stack>
+      <orb-label>Colors</orb-label>
       <label>
         <span>Red</span>
         <input type="checkbox" name="colors[]" value="red"/>
@@ -53,9 +53,9 @@ sidebar_label: "Textbox"
         <span>Green</span>
         <input type="checkbox" name="colors[]" value="green"/>
       </label>
-    </je-stack>
+    </orb-stack>
     <button type="submit">Submit</button>
-  </je-stack>  
+  </orb-stack>  
 </form>
 ```
 

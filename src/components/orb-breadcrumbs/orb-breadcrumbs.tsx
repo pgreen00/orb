@@ -1,11 +1,18 @@
-import { Component, Element, Event, EventEmitter, h, Prop } from '@stencil/core';
+import {
+  Component,
+  Element,
+  Event,
+  EventEmitter,
+  h,
+  Prop,
+} from "@stencil/core";
 
 @Component({
-  tag: 'je-breadcrumbs',
-  styleUrl: 'je-breadcrumbs.css',
+  tag: "orb-breadcrumbs",
+  styleUrl: "orb-breadcrumbs.css",
   shadow: true,
 })
-export class JeBreadcrumbs {
+export class OrbBreadcrumbs {
   @Element() host: HTMLElement;
   @Prop() itemsBeforeCollapse = 1;
   @Prop() itemsAfterCollapse = 1;
@@ -13,36 +20,45 @@ export class JeBreadcrumbs {
   @Event() expandClick: EventEmitter;
 
   componentWillRender() {
-    const crumbs = Array.from(this.host.querySelectorAll('je-breadcrumb'));
-    this.host.querySelector('.collapse')?.remove();
+    const crumbs = Array.from(this.host.querySelectorAll("orb-breadcrumb"));
+    this.host.querySelector(".collapse")?.remove();
 
     if (this.maxItems && crumbs.length > this.maxItems) {
       crumbs.forEach((crumb, index) => {
-        const shouldShow = index < this.itemsBeforeCollapse || index >= crumbs.length - this.itemsAfterCollapse;
-        crumb.classList.toggle('visible', shouldShow);
+        const shouldShow =
+          index < this.itemsBeforeCollapse ||
+          index >= crumbs.length - this.itemsAfterCollapse;
+        crumb.classList.toggle("visible", shouldShow);
       });
 
       if (crumbs.length > this.itemsBeforeCollapse) {
-        const insertionIndex = Math.min(this.itemsBeforeCollapse - 1, crumbs.length - 1);
+        const insertionIndex = Math.min(
+          this.itemsBeforeCollapse - 1,
+          crumbs.length - 1,
+        );
         const referenceCrumb = crumbs[insertionIndex];
-        referenceCrumb.insertAdjacentHTML('afterend', '<button class="collapse">more_horiz</button>');
-        const collapseButton = this.host.querySelector<HTMLButtonElement>('.collapse');
+        referenceCrumb.insertAdjacentHTML(
+          "afterend",
+          '<button class="collapse">more_horiz</button>',
+        );
+        const collapseButton =
+          this.host.querySelector<HTMLButtonElement>(".collapse");
         collapseButton.onclick = () => this.expandClick.emit();
       }
     } else {
-      crumbs.forEach((crumb) => crumb.classList.add('visible'));
+      crumbs.forEach((crumb) => crumb.classList.add("visible"));
     }
   }
 
   componentDidRender() {
-    const crumbs = Array.from(this.host.querySelectorAll('je-breadcrumb'));
+    const crumbs = Array.from(this.host.querySelectorAll("orb-breadcrumb"));
     crumbs.forEach((crumb, _i) => {
-      const anchor = crumb.shadowRoot.querySelector('a')
+      const anchor = crumb.shadowRoot.querySelector("a");
       if (anchor) {
-        if (crumb.matches(':last-of-type')) {
-          anchor.setAttribute('aria-current', 'page');
+        if (crumb.matches(":last-of-type")) {
+          anchor.setAttribute("aria-current", "page");
         } else {
-          anchor.removeAttribute('aria-current');
+          anchor.removeAttribute("aria-current");
         }
       }
     });

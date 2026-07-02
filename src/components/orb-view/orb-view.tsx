@@ -1,36 +1,36 @@
 import { Component, Element, Host, Prop, h } from "@stencil/core";
 
 @Component({
-  tag: "je-view",
-  styleUrl: "je-view.css",
+  tag: "orb-view",
+  styleUrl: "orb-view.css",
   shadow: true,
 })
-export class JeView {
+export class OrbView {
   @Element() el: HTMLElement;
   @Prop() label?: string;
   @Prop() closable = true;
 
   private get overlay() {
-    return this.el.closest("je-overlay");
+    return this.el.closest("orb-overlay");
   }
 
   render() {
     return (
       <Host>
         <header>
-          <je-toolbar>
+          <orb-toolbar>
             <slot name="label">
               {this.label && <h2 part="label">{this.label}</h2>}
             </slot>
             <div class="end" slot="end">
               <slot name="actions" />
               {this.closable && (
-                <je-button size="lg" onClick={() => this.overlay.hide()}>
-                  <je-icon>close</je-icon>
-                </je-button>
+                <orb-button size="lg" onClick={() => this.overlay.hide()}>
+                  <orb-icon>close</orb-icon>
+                </orb-button>
               )}
             </div>
-          </je-toolbar>
+          </orb-toolbar>
         </header>
         <slot name="body" />
         <footer>

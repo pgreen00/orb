@@ -1,11 +1,11 @@
-import { Component, Prop, h, Host } from '@stencil/core';
+import { Component, Prop, h, Host } from "@stencil/core";
 
 @Component({
-  tag: 'je-radio-button',
-  styleUrl: 'je-radio-button.css',
+  tag: "orb-radio-button",
+  styleUrl: "orb-radio-button.css",
   shadow: true,
 })
-export class JeRadioButton {
+export class OrbRadioButton {
   /** The value for this option that bw-card-group will compare against */
   @Prop() value?: string;
 
@@ -14,8 +14,12 @@ export class JeRadioButton {
 
   render() {
     return (
-      <Host role='radio' tabindex={-1} aria-checked={this.selected ? 'true' : 'false'}>
-        <slot/>
+      <Host
+        role="radio"
+        tabindex={-1}
+        aria-checked={this.selected ? "true" : "false"}
+      >
+        <slot />
       </Host>
     );
   }

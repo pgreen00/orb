@@ -1,18 +1,18 @@
 :host {
   display: inline-flex;
   align-items: center;
-  gap: var(--je-spacing-2xs);
+  gap: var(--orb-spacing-2xs);
   width: fit-content;
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
-  outline-color: var(--je-primary-200);
+  outline-color: var(--orb-primary-200);
   outline-offset: 2px;
   box-sizing: border-box;
 }
 
-je-icon {
-  color: light-dark(var(--je-primary-500), var(--je-primary-200));
+orb-icon {
+  color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
 }
 
 :host([disabled]) {

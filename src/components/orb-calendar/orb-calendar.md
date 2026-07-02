@@ -1,4 +1,4 @@
 ---
-title: 'JeCalendar | <je-calendar>'
+title: 'OrbCalendar | <orb-calendar>'
 sidebar_label: 'Calendar'
 ---

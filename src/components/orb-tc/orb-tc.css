@@ -1,7 +1,7 @@
 :host {
   display: block;
   box-sizing: border-box;
-  background-color: light-dark(white, var(--je-neutral-900));
+  background-color: light-dark(white, var(--orb-neutral-900));
   --border-right: initial;
 }
 
@@ -9,16 +9,16 @@
   border-right: var(--border-right, 0);
 }
 
-je-button {
+orb-button {
   opacity: 0;
-  transition: opacity var(--je-transition-fast) ease-in-out;
+  transition: opacity var(--orb-transition-fast) ease-in-out;
   &.hover {
     opacity: 1;
   }
 }
 
-je-icon.success {
-  color: light-dark(var(--je-success-700), var(--je-success-500));
+orb-icon.success {
+  color: light-dark(var(--orb-success-700), var(--orb-success-500));
 }
 
 :host([sticky]) {

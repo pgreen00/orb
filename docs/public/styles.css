@@ -5,7 +5,7 @@
   font-family: "Work Sans";
   font-size: 16px;
   line-height: 1.75;
-  font-weight: var(--je-font-regular);
+  font-weight: var(--orb-font-regular);
 }
 
 h1,
@@ -23,42 +23,42 @@ p {
 
 h1 {
   font-size: 2.5rem;
-  font-weight: var(--je-font-bold);
+  font-weight: var(--orb-font-bold);
 }
 
 h2 {
   font-size: 2rem;
-  font-weight: var(--je-font-bold);
+  font-weight: var(--orb-font-bold);
 }
 
 h3 {
   font-size: 1.5rem;
-  font-weight: var(--je-font-bold);
+  font-weight: var(--orb-font-bold);
 }
 
 h4 {
   font-size: 1.25rem;
-  font-weight: var(--je-font-bold);
+  font-weight: var(--orb-font-bold);
 }
 
 h5 {
   font-size: 1rem;
-  font-weight: var(--je-font-bold);
+  font-weight: var(--orb-font-bold);
 }
 
 h6 {
   font-size: 0.875rem;
-  font-weight: var(--je-font-bold);
+  font-weight: var(--orb-font-bold);
 }
 
 p {
   font-size: 1rem;
-  font-weight: var(--je-font-regular);
+  font-weight: var(--orb-font-regular);
 }
 
 small {
   font-size: 0.875rem;
-  font-weight: var(--je-font-light);
+  font-weight: var(--orb-font-light);
 }
 
 a.header-anchor {
@@ -77,10 +77,10 @@ a.header-anchor {
 
 code:not(code[class*="language-"]) {
   padding: 0.15rem 0.3rem;
-  background-color: light-dark(var(--je-neutral-200), var(--je-neutral-950));
-  border-radius: var(--je-radius-md);
+  background-color: light-dark(var(--orb-neutral-200), var(--orb-neutral-950));
+  border-radius: var(--orb-radius-md);
   line-height: 2.5rem;
-  color: light-dark(var(--je-neutral-950), var(--je-neutral-200));
+  color: light-dark(var(--orb-neutral-950), var(--orb-neutral-200));
   font-family: inherit;
 }
 

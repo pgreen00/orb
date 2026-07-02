@@ -1,4 +1,4 @@
 ---
-title: 'JeSplitPanel | <je-split-panel>'
+title: 'OrbSplitPanel | <orb-split-panel>'
 sidebar_label: 'Split Panel'
 ---

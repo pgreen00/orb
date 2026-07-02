@@ -21,7 +21,7 @@
   height: fit-content;
   padding-inline: 1.5rem;
   border-left: solid 1px
-    light-dark(var(--je-neutral-400), var(--je-neutral-800));
+    light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
   position: sticky;
   top: calc(var(--head-height, 0px) + 0.5rem);
   flex-shrink: 0;

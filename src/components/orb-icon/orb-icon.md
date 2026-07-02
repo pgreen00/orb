@@ -1,4 +1,4 @@
 ---
-title: 'JeIcon | <je-icon>'
+title: 'OrbIcon | <orb-icon>'
 sidebar_label: 'Icon'
 ---
