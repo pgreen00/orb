@@ -6,7 +6,6 @@ import {
   Method,
   Prop,
   forceUpdate,
-  h,
 } from "@stencil/core";
 
 function getDepth(child: HTMLElement, ancestor: HTMLElement) {

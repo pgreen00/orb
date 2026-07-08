@@ -15,7 +15,6 @@ import {
   Host,
   Listen,
   Prop,
-  h,
 } from "@stencil/core";
 import { AsyncSubject } from "rxjs";
 

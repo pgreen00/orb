@@ -57,35 +57,48 @@ export default async function (eleventyConfig) {
 
         const html = codeBlocks.find((t) => t.language === "html");
         let js = codeBlocks.find((t) => t.language === "javascript");
-
-        const id = `code-demo-${Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join("")}`;
+        const id = `${Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join("")}`;
+        const getTemplateId = ({ language }) => `template-${id}-${language}`;
+        const getTemplateEl = ({ language, original }) =>
+          `<template id="${getTemplateId({ language })}">${original}</template>`;
+        const getPillEl = ({ language }) => {
+          const normalized =
+            language == "html"
+              ? "HTML"
+              : language == "javascript"
+                ? "Javascript"
+                : language == "wgsl"
+                  ? "WGSL"
+                  : language;
+          return `<orb-pill template="${getTemplateId({ language })}">${normalized}</orb-pill>`;
+        };
+        if (codeBlocks.length == 1 && html) {
+          return `
+            <div id="${"code-demo-" + id}">
+              <div>
+                ${html?.content ?? ""}
+              </div>
+              <orb-divider spacing="none"></orb-divider>
+              <div>
+                ${html?.original ?? ""}
+              </div>
+            </div>
+          `;
+        }
         return `
-          <div id="${id}" class="orb-radius-lg" style="box-sizing:border-box;border:solid 1px light-dark(var(--orb-neutral-500), var(--orb-neutral-800));">
-            <div class="demo-result orb-padding">
+          <div id="${"code-demo-" + id}">
+            <div>
               ${html?.content ?? ""}
               ${js ? `<script type="module">${js.content}</script>` : ""}
             </div>
             <orb-divider spacing="none"></orb-divider>
-            <div class="orb-padding">
-            <orb-tabs id="${id}-tabs" value="HTML">
-              ${html ? "<orb-tab>HTML</orb-tab>" : ""}
-              ${js ? "<orb-tab>Javascript</orb-tab>" : ""}
-            </orb-tabs>
-            <div id="${id}-tab-content"></div>
+            <div>
+              <orb-pill-group>
+                ${codeBlocks.map(getPillEl).join("\n")}
+              </orb-pill-group>
+              ${codeBlocks.map(getTemplateEl).join("\n")}
             </div>
           </div>
-          <script type="module">
-          await customElements.whenDefined('orb-tabs')
-          const tabs = document.querySelector('orb-tabs#${id}-tabs')
-          const root = document.querySelector('div#${id}-tab-content')
-          const htmlTemplate = \`${html.original}\`
-          const jsTemplate = \`${js?.original || ""}\`
-          root.innerHTML = htmlTemplate
-          tabs.addEventListener('valueChange', ({detail}) => {
-            if (detail === 'HTML') root.innerHTML = htmlTemplate
-            if (detail === 'Javascript') root.innerHTML = jsTemplate
-          })
-          </script>
         `;
       } else {
         return "";
@@ -114,8 +127,7 @@ export default async function (eleventyConfig) {
   eleventyConfig.addFilter("markdown", (content) => md.render(content));
   eleventyConfig.addGlobalData("layout", "default");
   eleventyConfig.addPassthroughCopy({
-    "./dist": "build/orb/dist/",
-    "./styles": "build/orb/styles/",
+    "./dist": "build/",
     "./docs/public": "/",
   });
 

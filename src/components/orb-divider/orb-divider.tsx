@@ -1,4 +1,4 @@
-import { Component, Host, Prop, h } from "@stencil/core";
+import { Component, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-divider",
@@ -10,6 +10,6 @@ export class OrbDivider {
   @Prop({ reflect: true }) spacing: "sm" | "md" | "lg" | "none" = "md";
 
   render() {
-    return <Host role="seperator" />;
+    return <Host role="separator" />;
   }
 }

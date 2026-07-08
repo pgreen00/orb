@@ -1,7 +1,6 @@
 import {
   Component,
   Prop,
-  h,
   Element,
   Listen,
   Host,
@@ -45,7 +44,7 @@ export class OrbButton {
   @Prop({ reflect: true }) fill: "solid" | "outline" | "clear" = "solid";
 
   /** Button size */
-  @Prop({ reflect: true }) size: "md" | "lg" | "sm" = "md";
+  @Prop({ reflect: true }) size: "md" | "lg" | "sm" | "xs" = "md";
 
   /** Predefined colors */
   @Prop({ reflect: true }) color?: Color;

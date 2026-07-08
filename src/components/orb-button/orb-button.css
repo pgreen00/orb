@@ -36,6 +36,12 @@
   outline-offset: 3px;
 }
 
+:host([size="xs"]) {
+  --height: 1.5rem;
+  --padding-inline: var(--orb-spacing-xs);
+  --font-size: var(--orb-font-xs);
+}
+
 :host([size="sm"]) {
   --height: 2rem;
   --padding-inline: var(--orb-spacing-sm);

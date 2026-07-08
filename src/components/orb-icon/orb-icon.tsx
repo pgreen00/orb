@@ -1,4 +1,4 @@
-import { Component, Host, h, Prop } from "@stencil/core";
+import { Component, Host, Prop } from "@stencil/core";
 
 const size = {
   xs: "1rem",

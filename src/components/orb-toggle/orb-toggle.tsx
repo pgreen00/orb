@@ -4,7 +4,6 @@ import {
   Host,
   Listen,
   Prop,
-  h,
   Event,
   Element,
   AttachInternals,

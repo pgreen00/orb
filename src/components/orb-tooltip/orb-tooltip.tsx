@@ -6,7 +6,7 @@ import {
   autoPlacement,
   size,
 } from "@floating-ui/dom";
-import { Component, Host, Prop, State, Watch, h, Element } from "@stencil/core";
+import { Component, Host, Prop, State, Watch, Element } from "@stencil/core";
 import {
   AsyncSubject,
   Subscription,

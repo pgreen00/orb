@@ -1,0 +1,37 @@
+:host {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  height: 2rem;
+  min-width: 12ch;
+  padding-inline: var(--orb-spacing-xs);
+  font-size: var(--orb-font-sm);
+  background-color: var(--tabs-background);
+  position: relative;
+}
+
+:host(:not(:last-of-type)) {
+  border-right: solid 1px var(--tab-border);
+}
+
+:host(:state(active)) {
+  background-color: var(--base-background);
+}
+
+orb-button {
+  display: none;
+  position: absolute;
+  right: var(--orb-spacing-xs);
+  --color: currentColor;
+  --background: transparent;
+  --hover-background: transparent;
+  --active-background: transparent;
+}
+
+:is(:host(:state(active)), :host(:hover)) orb-button {
+  display: inline-flex;
+}

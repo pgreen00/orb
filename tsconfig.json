@@ -15,13 +15,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "skipLibCheck": true,
-    "jsx": "react",
-    "jsxFactory": "h",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@stencil/core",
     "strict": false
   },
   "include": [
-    "src",
-    "e2e/utils.ts"
+    "src"
   ],
   "exclude": [
     "node_modules"

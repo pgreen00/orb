@@ -1,6 +1,6 @@
 {
   "name": "orb-style",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Orb design system",
   "repository": {
     "type": "git",
@@ -17,20 +17,19 @@
   "author": "Peter Green",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/components/index.d.ts",
+      "default": "./dist/components/index.js"
     },
     "./loader": {
       "default": "./dist/loader.js"
     },
     "./orb-*": {
-      "types": "./dist/orb-*.d.ts",
-      "default": "./dist/orb-*.js"
+      "types": "./dist/components/orb-*.d.ts",
+      "default": "./dist/components/orb-*.js"
     }
   },
   "files": [
-    "dist",
-    "styles"
+    "dist"
   ],
   "scripts": {
     "start": "concurrently --kill-others \"npm run watch:stencil\" \"npm run watch:eleventy\" \"npm run serve\"",

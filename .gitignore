@@ -3,6 +3,9 @@ www/
 loader/
 /components/
 /styles/
+vscode-data.json
+custom-elements.json
+component-docs.json
 
 *~
 *.sw[mnpcod]

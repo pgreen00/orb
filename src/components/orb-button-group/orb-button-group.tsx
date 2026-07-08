@@ -1,4 +1,4 @@
-import { Component, Element, Host, h } from "@stencil/core";
+import { Component, Element, Host } from "@stencil/core";
 
 @Component({
   tag: "orb-button-group",

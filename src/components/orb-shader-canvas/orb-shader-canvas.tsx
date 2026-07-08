@@ -1,7 +1,6 @@
 import {
   Component,
   Host,
-  h,
   Prop,
   State,
   Event,
@@ -182,7 +181,7 @@ export class OrbShaderCanvas {
         usage: this.bufferUsage("UNIFORM", "COPY_DST"),
       });
 
-      this.shaderSource = this.readShaderSource();
+      this.shaderSource = await this.readShaderSource();
       this.resize();
       this.setupPointerEvents();
       this.observeResize();
@@ -424,8 +423,8 @@ fn je_vs_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec
     this.mouse.down = false;
   };
 
-  private readonly handleSlotChange = () => {
-    const next = this.readShaderSource();
+  private readonly handleSlotChange = async () => {
+    const next = await this.readShaderSource();
     if (next === this.shaderSource) return;
     this.shaderSource = next;
     this.buildPipeline();
@@ -436,10 +435,14 @@ fn je_vs_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec
    * opaque to the HTML parser, so angle brackets need no escaping. Falls back to
    * the element's raw text content when no such script is present.
    */
-  private readShaderSource(): string {
+  private async readShaderSource() {
     const script = this.el.querySelector(
       'script[type="wgsl"], script[type="text/wgsl"], script[type="x-shader/x-wgsl"]',
     ) as HTMLScriptElement | null;
+    if (script?.src) {
+      const response = await fetch(script.src);
+      return response.ok ? await response.text() : "";
+    }
     return (script ?? this.el).textContent ?? "";
   }
 

@@ -1,3 +1,20 @@
 :host {
   display: block;
+  box-sizing: border-box;
+}
+
+[part="pill-container"] {
+  padding: var(--orb-spacing-xs);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--orb-spacing-xs);
+}
+
+[part="view"] {
+  padding: var(--orb-spacing-xs);
+  box-sizing: border-box;
+}
+
+::slotted([data-template]) {
+  display: contents;
 }

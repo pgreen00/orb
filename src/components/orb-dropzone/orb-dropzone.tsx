@@ -5,7 +5,6 @@ import {
   EventEmitter,
   Host,
   Listen,
-  h,
 } from "@stencil/core";
 
 @Component({

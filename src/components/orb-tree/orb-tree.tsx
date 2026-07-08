@@ -7,7 +7,6 @@ import {
   Listen,
   Prop,
   Watch,
-  h,
 } from "@stencil/core";
 
 @Component({
@@ -50,6 +49,7 @@ export class OrbTree {
 
   @Listen("click")
   async onClick(event: MouseEvent) {
+    await customElements.whenDefined("orb-branch");
     const { target } = event;
     if (this.isBranch(target)) {
       const { branches, selection } = this;

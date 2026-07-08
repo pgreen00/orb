@@ -1,38 +1,3 @@
----
-title: 'OrbShaderCanvas | <orb-shader-canvas>'
-sidebar_label: 'GPU Shader Canvas'
----
-
-Put your fragment shader in a `<script type="wgsl">` child. Because script content is
-opaque to the HTML parser, angle brackets and generics like `mat2x2<f32>` need no
-escaping. A `uniforms` binding and a full-screen vertex stage are injected for you, so
-you only write the fragment:
-
-::: live-code-demo
-
-```html
-<orb-shader-canvas>
-  <script type="wgsl">
-    @fragment
-    fn main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
-      let uv = pos.xy / vec2f(800.0, 600.0);
-      return vec4f(uv, 0.5 + 0.5 * sin(uniforms.time), 1.0);
-    }
-  </script>
-</orb-shader-canvas>
-```
-
-:::
-
-::: live-code-demo
-
-```html
-<orb-shader-canvas>
-  <script src="/stars.wgsl" type="wgsl"></script>
-</orb-shader-canvas>
-```
-
-```wgsl
 fn rot(a: f32) -> mat2x2f {
   let c = cos(a);
   let s = sin(a);
@@ -102,13 +67,3 @@ fn main(@builtin(position) fragCoord: vec4f) -> @location(0) vec4f {
   v = mix(vec3f(vlen), v, saturation);
   return vec4f(v * 0.01, 1.0);
 }
-```
-
-:::
-
-Available uniforms (WGSL `struct Uniforms`, bound at `@group(0) @binding(0)`):
-- `resolution: vec2f` — framebuffer size in pixels
-- `time: f32` — seconds elapsed (pauses with `paused`)
-- `timeDelta: f32` — seconds since the previous frame
-- `mouse: vec4f` — `xy` current pointer, `zw` last press position (framebuffer pixels, top-left origin)
-- `frame: f32` — frames rendered

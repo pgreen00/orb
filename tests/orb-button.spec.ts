@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mount } from "../../../e2e/utils";
+import { mount } from "./utils";
 
 test.describe("orb-button", () => {
   // Basic rendering test

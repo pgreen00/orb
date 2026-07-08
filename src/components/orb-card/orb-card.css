@@ -6,6 +6,7 @@
   border: 1px solid light-dark(transparent, var(--orb-neutral-800));
   background-color: light-dark(white, var(--orb-neutral-900));
   border-radius: var(--orb-radius-md);
+  overflow: hidden;
 }
 
 :host([color="primary"]) {

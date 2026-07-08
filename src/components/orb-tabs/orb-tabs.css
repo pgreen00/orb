@@ -1,80 +1,26 @@
-:host([mode="segment"]) {
-  position: relative;
-  display: flex;
-  width: fit-content;
-  padding: var(--orb-spacing-3xs) var(--orb-spacing-2xs);
-  gap: var(--orb-spacing-md);
-  border-radius: var(--orb-radius-md);
+:host {
+  display: block;
+  overflow: hidden;
   box-sizing: border-box;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: var(--orb-font-semi-bold);
-
-  [part="indicator"] {
-    position: absolute;
-    left: 0;
-    border-radius: var(--orb-radius-md);
-    background-color: var(--orb-neutral-500);
-    z-index: 0;
-    transition:
-      transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
-      width 250ms ease;
-    bottom: 0;
-  }
+  --base-background: light-dark(var(--orb-neutral-25), var(--orb-neutral-900));
+  --tabs-background: light-dark(var(--orb-neutral-125), var(--orb-neutral-875));
+  --toolbar-background: light-dark(
+    var(--orb-neutral-175),
+    var(--orb-neutral-825)
+  );
+  --tab-border: light-dark(var(--orb-neutral-400), var(--orb-neutral-950));
 }
 
-:host([mode="pill"]) {
-  position: relative;
+[name="tabs"] {
   display: flex;
-  width: fit-content;
-  padding: var(--orb-spacing-3xs) var(--orb-spacing-2xs);
-  gap: var(--orb-spacing-md);
-  border-radius: var(--orb-radius-md);
-  background-color: var(--orb-neutral-500);
+  flex-wrap: wrap;
   box-sizing: border-box;
-
-  [part="indicator"] {
-    position: absolute;
-    left: 0;
-    border-radius: var(--orb-radius-md);
-    z-index: 0;
-    transition:
-      transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
-      width 250ms ease;
-  }
+  background-color: var(--toolbar-background);
 }
 
-:host([mode="mobile"]) {
-  position: relative;
-  display: flex;
-  width: 100%;
-  justify-content: space-around;
-  padding: var(--orb-spacing-3xs) var(--orb-spacing-2xs);
-  gap: var(--orb-spacing-md);
-  border-radius: var(--orb-radius-md);
-  color: var(--orb-neutral-500);
+[name="panels"] {
+  display: block;
   box-sizing: border-box;
-  font-weight: var(--orb-font-semi-bold);
-
-  [part="indicator"] {
-    position: absolute;
-    left: 0;
-    border-radius: var(--orb-radius-md);
-    background-color: var(--orb-primary-500);
-    z-index: 0;
-    transition:
-      transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
-      width 250ms ease;
-    top: 0;
-  }
-
-  ::slotted(orb-tab) {
-    flex: 1;
-    justify-content: center;
-    flex-direction: column;
-  }
-
-  ::slotted(orb-tab:state(--active)) {
-    color: var(--orb-primary-500);
-  }
+  padding: var(--orb-spacing-lg);
+  background-color: var(--base-background);
 }

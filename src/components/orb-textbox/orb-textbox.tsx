@@ -2,7 +2,6 @@ import {
   Component,
   Host,
   Prop,
-  h,
   Element,
   State,
   Event as StencilEvent,

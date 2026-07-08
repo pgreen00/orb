@@ -6,7 +6,6 @@ import {
   Host,
   Prop,
   Watch,
-  h,
 } from "@stencil/core";
 
 @Component({

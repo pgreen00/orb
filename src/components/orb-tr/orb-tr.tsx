@@ -1,4 +1,4 @@
-import { Component, Element, Host, Prop, h } from "@stencil/core";
+import { Component, Element, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-tr",

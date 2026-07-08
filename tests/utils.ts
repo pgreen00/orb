@@ -5,7 +5,7 @@ import type { Page } from "@playwright/test";
  * orb-* component to auto-define.
  */
 export async function mount(page: Page, html: string): Promise<void> {
-  await page.goto("/e2e");
+  await page.goto("/tests");
   await page.locator("#root").evaluate((el, markup) => {
     el.innerHTML = markup;
   }, html);

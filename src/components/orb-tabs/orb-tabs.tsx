@@ -1,71 +1,100 @@
-import {
-  Component,
-  Element,
-  Event,
-  EventEmitter,
-  Host,
-  Listen,
-  Prop,
-  Watch,
-  forceUpdate,
-  h,
-} from "@stencil/core";
+import { Component, Element, Host, Listen, Prop, Watch } from "@stencil/core";
 
 @Component({
   tag: "orb-tabs",
   styleUrl: "orb-tabs.css",
-  shadow: true,
+  shadow: {
+    slotAssignment: "manual",
+  },
 })
 export class OrbTabs {
-  @Element() el: HTMLOrbTabsElement;
+  @Element() el: HTMLElement;
+  private tabSlot: HTMLSlotElement;
+  private panelSlot: HTMLSlotElement;
+  private readyResolve: Function;
+  private ready = new Promise((res) => (this.readyResolve = res));
+  private assignSlots = () => {
+    this.tabSlot.assign(...this.el.querySelectorAll("orb-tab-button"));
+  };
+  private mutationObserver = new MutationObserver(this.assignSlots);
 
-  @Prop({ reflect: true }) mode: "mobile" | "pill" | "segment" = "segment";
+  @Prop({ mutable: true }) active?: string;
+  @Prop() closable = false;
 
-  @Prop({ mutable: true }) value?: string;
+  connectedCallback() {
+    this.ready.then(() => {
+      this.mutationObserver.observe(this.el, {
+        childList: true,
+      });
+    });
+  }
 
-  @Event() valueChange: EventEmitter<string | undefined>;
+  disconnectedCallback() {
+    this.mutationObserver.disconnect();
+  }
 
-  componentWillRender() {
-    const tabs = this.el.querySelectorAll("orb-tab");
-    for (let t of tabs) t.active = (t.value ?? t.textContent) === this.value;
+  async componentDidLoad() {
+    await customElements.whenDefined("orb-tab-panel");
+    await customElements.whenDefined("orb-tab-button");
+    this.active ??=
+      this.el.querySelector<HTMLOrbTabPanelElement>("orb-tab-panel")?.name;
+    this.assignSlots();
+    this.readyResolve();
+  }
+
+  @Watch("closable", { immediate: true })
+  async onClosableChange(isClosable: boolean) {
+    await this.ready;
+    (this.tabSlot.assignedElements() as HTMLOrbTabButtonElement[]).forEach(
+      (el) => (el.closable = isClosable),
+    );
+  }
+
+  @Watch("active", { immediate: true })
+  onActiveChange(name: string, old: string) {
+    this.ready.then(() => {
+      const panel = this.el.querySelector<HTMLOrbTabPanelElement>(
+        `orb-tab-panel[name=${name}]`,
+      );
+      if (panel) {
+        this.panelSlot.assign(panel);
+        panel.setActive(true);
+        this.el
+          .querySelector<HTMLOrbTabButtonElement>(
+            `orb-tab-button[panel=${name}]`,
+          )
+          ?.setActive(true);
+        const oldPanel =
+          old &&
+          this.el.querySelector<HTMLOrbTabPanelElement>(
+            `orb-tab-panel[name=${old}]`,
+          );
+        if (oldPanel) {
+          oldPanel.setActive(false);
+          this.el
+            .querySelector<HTMLOrbTabButtonElement>(
+              `orb-tab-button[panel=${old}]`,
+            )
+            ?.setActive(false);
+        }
+      }
+    });
   }
 
   @Listen("click")
-  onClick(ev: Event) {
-    if (ev.target instanceof HTMLElement) {
-      const tab = ev.target.closest("orb-tab");
-      if (tab) {
-        this.value = tab.value ?? tab.textContent;
-      }
+  onClick({ target }: Event) {
+    const panelButton =
+      target instanceof HTMLElement && target.closest("orb-tab-button");
+    if (panelButton && panelButton.panel) {
+      this.active = panelButton.panel;
     }
-  }
-
-  @Watch("value")
-  handleValueChange() {
-    this.valueChange.emit(this.value);
-  }
-
-  getBackgroundStyle() {
-    const activeTab = Array.from(this.el.querySelectorAll("orb-tab")).find(
-      (t) => t.active,
-    );
-    if (!activeTab) return {};
-    const { width, left, height } = activeTab.getBoundingClientRect();
-    const hostRect = this.el.getBoundingClientRect();
-    const xOffset = left - hostRect.left;
-
-    return {
-      width: `${width}px`,
-      transform: `translateX(${xOffset}px)`,
-      height: `${this.mode == "pill" ? height : "1"}px`,
-    };
   }
 
   render() {
     return (
-      <Host>
-        <div part="indicator" style={this.getBackgroundStyle()}></div>
-        <slot onSlotchange={() => forceUpdate(this.el)}></slot>
+      <Host role="tablist">
+        <slot name="tabs" ref={(el) => (this.tabSlot = el)}></slot>
+        <slot name="panels" ref={(el) => (this.panelSlot = el)}></slot>
       </Host>
     );
   }

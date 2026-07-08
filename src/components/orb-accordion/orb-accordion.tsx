@@ -1,4 +1,4 @@
-import { Component, Element, Listen, h } from "@stencil/core";
+import { Component, Element, Listen } from "@stencil/core";
 import { OrbDetailsCustomEvent } from "../../components";
 
 /**
@@ -14,14 +14,10 @@ export class OrbAccordion {
   @Element() el: HTMLOrbAccordionElement;
 
   @Listen("expand")
-  onExpand(ev: OrbDetailsCustomEvent<void>) {
-    const { target } = ev;
-    const sections = Array.from(this.el.querySelectorAll("orb-details"));
-    sections.forEach((section) => {
-      if (section !== target) {
-        section.open = false;
-      }
-    });
+  onExpand({ target }: OrbDetailsCustomEvent<void>) {
+    this.el
+      .querySelectorAll("orb-details")
+      .forEach((section) => (section.open = section === target));
   }
 
   @Listen("keydown")

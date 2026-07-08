@@ -1,7 +1,6 @@
 import {
   Component,
   Host,
-  h,
   Prop,
   Element,
   Watch,

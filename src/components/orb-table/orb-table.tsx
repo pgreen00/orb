@@ -1,4 +1,4 @@
-import { Component, Element, h, Host, Prop, Watch } from "@stencil/core";
+import { Component, Element, Host, Prop, Watch } from "@stencil/core";
 
 //striped rows
 //density/spacing of rows

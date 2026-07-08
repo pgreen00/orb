@@ -17,24 +17,23 @@ export const config: Config = {
     {
       type: "dist-custom-elements",
       externalRuntime: false,
-      dir: "dist",
+      dir: "dist/components",
       customElementsExportBehavior: "auto-define-custom-elements",
-      empty: false,
     },
     {
       type: "custom",
       name: "styles",
       async generator(_config, _compilerCtx, buildCtx) {
         const files = [
-          "src/styles/classes.scss:styles/classes.css",
-          "src/styles/core.scss:styles/core.css",
-          "src/styles/landmarks.scss:styles/landmarks.css",
+          "src/styles/classes.scss:dist/styles/classes.css",
+          "src/styles/core.scss:dist/styles/core.css",
+          "src/styles/landmarks.scss:dist/styles/landmarks.css",
         ];
         execSync(`npx sass --no-source-map ${files.join(" ")}`);
 
         const tagNames = buildCtx.components.map((c) => c.tagName).sort();
         const fouc = `:is(${tagNames.join(",")}):not(:defined){visibility:hidden}\n`;
-        appendFileSync("styles/core.css", fouc);
+        appendFileSync("dist/styles/core.css", fouc);
       },
     },
     {
@@ -42,7 +41,9 @@ export const config: Config = {
       name: "auto-loader",
       async generator(_config, _compilerCtx, buildCtx, _docs) {
         const tagNames = buildCtx.components.map((t) => t.tagName);
-        const loaderCode = generateLoader(tagNames);
+        const loaderCode = generateLoader(tagNames, {
+          importPrefix: "./components/",
+        });
         mkdirSync("./dist", { recursive: true });
         writeFileSync("./dist/loader.js", loaderCode, "utf8");
       },
@@ -58,6 +59,7 @@ export const config: Config = {
     {
       type: "docs-json",
       file: "dist/docs.json",
+      typesFile: null,
     },
   ],
 };

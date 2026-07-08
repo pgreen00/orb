@@ -1,3 +1,83 @@
 :host {
   display: inline-flex;
+  padding: 0.375em 0.625em;
+  box-sizing: border-box;
+  gap: 0.5rem;
+  background-color: var(--background);
+  color: var(--color);
+  border-radius: var(--orb-radius-pill);
+  align-items: center;
+  border: solid 2px;
+  border-color: var(--border, var(--background));
+  min-width: 1.25em;
+  min-height: 1em;
+  line-height: 1;
+  scale: 1;
+  transition: all var(--orb-transition-fast) ease-in-out;
+}
+
+:host(:not([color])) {
+  --color: light-dark(var(--orb-neutral-75), var(--orb-neutral-925));
+  --background: light-dark(var(--orb-neutral-950), var(--orb-neutral-200));
+}
+
+:host([color="primary"]) {
+  --color: var(--orb-neutral-75);
+  --background: var(--orb-primary-500);
+}
+
+:host([color="success"]) {
+  --color: var(--orb-neutral-925);
+  --background: var(--orb-success-500);
+}
+
+:host([color="warning"]) {
+  --color: var(--orb-neutral-925);
+  --background: var(--orb-warning-500);
+}
+
+:host([color="danger"]) {
+  --color: var(--orb-neutral-75);
+  --background: var(--orb-danger-500);
+}
+
+:host(:not([color])[outline]:not([outline="false"])) {
+  --color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
+  --background: transparent;
+  --border: light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
+}
+
+:host([color="primary"][outline]:not([outline="false"])) {
+  --color: light-dark(var(--orb-primary-500), var(--orb-primary-250));
+  --background: transparent;
+  --border: light-dark(var(--orb-primary-100), var(--orb-primary-500));
+}
+
+:host([color="success"][outline]:not([outline="false"])) {
+  --color: light-dark(var(--orb-success-750), var(--orb-success-500));
+  --background: transparent;
+  --border: light-dark(var(--orb-success-200), var(--orb-success-800));
+}
+
+:host([color="warning"][outline]:not([outline="false"])) {
+  --color: light-dark(var(--orb-warning-750), var(--orb-warning-500));
+  --background: transparent;
+  --border: light-dark(var(--orb-warning-200), var(--orb-warning-800));
+}
+
+:host([color="danger"][outline]:not([outline="false"])) {
+  --color: light-dark(var(--orb-danger-500), var(--orb-danger-250));
+  --background: transparent;
+  --border: light-dark(var(--orb-danger-100), var(--orb-danger-500));
+}
+
+orb-button {
+  --color: currentColor;
+  --background: transparent;
+  --hover-background: transparent;
+  --active-background: transparent;
+}
+
+:host:has(orb-button:active) {
+  scale: 0.97;
 }

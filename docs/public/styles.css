@@ -122,3 +122,12 @@ main {
 :has(a.header-anchor) {
   scroll-margin-top: var(--head-height);
 }
+
+[id^="code-demo-"] {
+  box-sizing: border-box;
+  border: solid 1px light-dark(var(--orb-neutral-500), var(--orb-neutral-800));
+  border-radius: var(--orb-radius-lg);
+  & > div {
+    padding: var(--orb-spacing-md);
+  }
+}

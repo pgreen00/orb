@@ -1,7 +1,6 @@
 import {
   Component,
   Host,
-  h,
   Element,
   EventEmitter,
   Listen,

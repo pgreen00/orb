@@ -44,6 +44,7 @@ sidebar_label: "Button"
 ::: live-code-demo
 
 ```html
+<orb-button size="xs">X-Small</orb-button>
 <orb-button size="sm">Small</orb-button>
 <orb-button>Medium</orb-button>
 <orb-button size="lg">Large</orb-button>

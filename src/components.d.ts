@@ -107,7 +107,7 @@ export namespace Components {
           * Button size
           * @default "md"
          */
-        "size": "md" | "lg" | "sm";
+        "size": "md" | "lg" | "sm" | "xs";
         /**
           * Can set to submit or reset to participate in forms
          */
@@ -361,9 +361,22 @@ export namespace Components {
     }
     interface OrbPill {
         /**
+          * Predefined colors
+         */
+        "color"?: Color;
+        /**
           * @default false
          */
         "outline": boolean;
+        /**
+          * @default false
+         */
+        "pulse": boolean;
+        /**
+          * @default false
+         */
+        "removable": boolean;
+        "template"?: string;
     }
     interface OrbPillGroup {
     }
@@ -608,23 +621,28 @@ export namespace Components {
     }
     interface OrbSynth {
     }
-    interface OrbTab {
+    interface OrbTabButton {
         /**
           * @default false
          */
-        "active": boolean;
-        "value"?: string;
+        "closable": boolean;
+        "panel"?: string;
+        "setActive": (isActive: boolean) => Promise<void>;
+    }
+    interface OrbTabPanel {
+        "name"?: string;
+        "setActive": (isActive: boolean) => Promise<void>;
     }
     interface OrbTable {
         "columns"?: number;
         "data": string[][];
     }
     interface OrbTabs {
+        "active"?: string;
         /**
-          * @default "segment"
+          * @default false
          */
-        "mode": "mobile" | "pill" | "segment";
-        "value"?: string;
+        "closable": boolean;
     }
     interface OrbTc {
         "colSpan"?: number;
@@ -871,10 +889,6 @@ export interface OrbRichTextCustomEvent<T> extends CustomEvent<T> {
 export interface OrbShaderCanvasCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbShaderCanvasElement;
-}
-export interface OrbTabsCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLOrbTabsElement;
 }
 export interface OrbTextboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1341,11 +1355,17 @@ declare global {
         prototype: HTMLOrbSynthElement;
         new (): HTMLOrbSynthElement;
     };
-    interface HTMLOrbTabElement extends Components.OrbTab, HTMLStencilElement {
+    interface HTMLOrbTabButtonElement extends Components.OrbTabButton, HTMLStencilElement {
     }
-    var HTMLOrbTabElement: {
-        prototype: HTMLOrbTabElement;
-        new (): HTMLOrbTabElement;
+    var HTMLOrbTabButtonElement: {
+        prototype: HTMLOrbTabButtonElement;
+        new (): HTMLOrbTabButtonElement;
+    };
+    interface HTMLOrbTabPanelElement extends Components.OrbTabPanel, HTMLStencilElement {
+    }
+    var HTMLOrbTabPanelElement: {
+        prototype: HTMLOrbTabPanelElement;
+        new (): HTMLOrbTabPanelElement;
     };
     interface HTMLOrbTableElement extends Components.OrbTable, HTMLStencilElement {
     }
@@ -1353,18 +1373,7 @@ declare global {
         prototype: HTMLOrbTableElement;
         new (): HTMLOrbTableElement;
     };
-    interface HTMLOrbTabsElementEventMap {
-        "valueChange": string | undefined;
-    }
     interface HTMLOrbTabsElement extends Components.OrbTabs, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLOrbTabsElementEventMap>(type: K, listener: (this: HTMLOrbTabsElement, ev: OrbTabsCustomEvent<HTMLOrbTabsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLOrbTabsElementEventMap>(type: K, listener: (this: HTMLOrbTabsElement, ev: OrbTabsCustomEvent<HTMLOrbTabsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbTabsElement: {
         prototype: HTMLOrbTabsElement;
@@ -1534,7 +1543,8 @@ declare global {
         "orb-split-view": HTMLOrbSplitViewElement;
         "orb-stack": HTMLOrbStackElement;
         "orb-synth": HTMLOrbSynthElement;
-        "orb-tab": HTMLOrbTabElement;
+        "orb-tab-button": HTMLOrbTabButtonElement;
+        "orb-tab-panel": HTMLOrbTabPanelElement;
         "orb-table": HTMLOrbTableElement;
         "orb-tabs": HTMLOrbTabsElement;
         "orb-tc": HTMLOrbTcElement;
@@ -1639,7 +1649,7 @@ declare namespace LocalJSX {
           * Button size
           * @default "md"
          */
-        "size"?: "md" | "lg" | "sm";
+        "size"?: "md" | "lg" | "sm" | "xs";
         /**
           * Can set to submit or reset to participate in forms
          */
@@ -1929,9 +1939,22 @@ declare namespace LocalJSX {
     }
     interface OrbPill {
         /**
+          * Predefined colors
+         */
+        "color"?: Color;
+        /**
           * @default false
          */
         "outline"?: boolean;
+        /**
+          * @default false
+         */
+        "pulse"?: boolean;
+        /**
+          * @default false
+         */
+        "removable"?: boolean;
+        "template"?: string;
     }
     interface OrbPillGroup {
     }
@@ -2193,11 +2216,11 @@ declare namespace LocalJSX {
     }
     interface OrbSynth {
     }
-    interface OrbTab {
+    interface OrbTabButton {
         /**
           * @default false
          */
-        "active"?: boolean;
+        "closable"?: boolean;
         /**
           * If `true`, the user cannot interact with the element.
          */
@@ -2210,19 +2233,29 @@ declare namespace LocalJSX {
           * The name of the element, used when submitting an HTML form.
          */
         "name"?: string;
-        "value"?: string;
+        "panel"?: string;
+    }
+    interface OrbTabPanel {
+        /**
+          * If `true`, the user cannot interact with the element.
+         */
+        "disabled"?: boolean;
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        "name"?: string;
     }
     interface OrbTable {
         "columns"?: number;
         "data"?: string[][];
     }
     interface OrbTabs {
+        "active"?: string;
         /**
-          * @default "segment"
+          * @default false
          */
-        "mode"?: "mobile" | "pill" | "segment";
-        "onValueChange"?: (event: OrbTabsCustomEvent<string | undefined>) => void;
-        "value"?: string;
+        "closable"?: boolean;
     }
     interface OrbTc {
         "colSpan"?: number;
@@ -2475,7 +2508,7 @@ declare namespace LocalJSX {
         "expand": boolean;
         "pending": boolean;
         "fill": "solid" | "outline" | "clear";
-        "size": "md" | "lg" | "sm";
+        "size": "md" | "lg" | "sm" | "xs";
         "color": Color;
     }
     interface OrbCardAttributes {
@@ -2567,6 +2600,10 @@ declare namespace LocalJSX {
     }
     interface OrbPillAttributes {
         "outline": boolean;
+        "removable": boolean;
+        "color": Color;
+        "pulse": boolean;
+        "template": string;
     }
     interface OrbPlaceholderAttributes {
         "animated": boolean;
@@ -2630,16 +2667,19 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface OrbTabAttributes {
-        "value": string;
-        "active": boolean;
+    interface OrbTabButtonAttributes {
+        "panel": string;
+        "closable": boolean;
+    }
+    interface OrbTabPanelAttributes {
+        "name": string;
     }
     interface OrbTableAttributes {
         "columns": number;
     }
     interface OrbTabsAttributes {
-        "mode": "mobile" | "pill" | "segment";
-        "value": string;
+        "active": string;
+        "closable": boolean;
     }
     interface OrbTcAttributes {
         "colSpan": number;
@@ -2765,7 +2805,8 @@ declare namespace LocalJSX {
         "orb-split-view": OrbSplitView;
         "orb-stack": Omit<OrbStack, keyof OrbStackAttributes> & { [K in keyof OrbStack & keyof OrbStackAttributes]?: OrbStack[K] } & { [K in keyof OrbStack & keyof OrbStackAttributes as `attr:${K}`]?: OrbStackAttributes[K] } & { [K in keyof OrbStack & keyof OrbStackAttributes as `prop:${K}`]?: OrbStack[K] };
         "orb-synth": OrbSynth;
-        "orb-tab": Omit<OrbTab, keyof OrbTabAttributes> & { [K in keyof OrbTab & keyof OrbTabAttributes]?: OrbTab[K] } & { [K in keyof OrbTab & keyof OrbTabAttributes as `attr:${K}`]?: OrbTabAttributes[K] } & { [K in keyof OrbTab & keyof OrbTabAttributes as `prop:${K}`]?: OrbTab[K] };
+        "orb-tab-button": Omit<OrbTabButton, keyof OrbTabButtonAttributes> & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes]?: OrbTabButton[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `attr:${K}`]?: OrbTabButtonAttributes[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `prop:${K}`]?: OrbTabButton[K] };
+        "orb-tab-panel": Omit<OrbTabPanel, keyof OrbTabPanelAttributes> & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes]?: OrbTabPanel[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `attr:${K}`]?: OrbTabPanelAttributes[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `prop:${K}`]?: OrbTabPanel[K] };
         "orb-table": Omit<OrbTable, keyof OrbTableAttributes> & { [K in keyof OrbTable & keyof OrbTableAttributes]?: OrbTable[K] } & { [K in keyof OrbTable & keyof OrbTableAttributes as `attr:${K}`]?: OrbTableAttributes[K] } & { [K in keyof OrbTable & keyof OrbTableAttributes as `prop:${K}`]?: OrbTable[K] };
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
         "orb-tc": Omit<OrbTc, keyof OrbTcAttributes> & { [K in keyof OrbTc & keyof OrbTcAttributes]?: OrbTc[K] } & { [K in keyof OrbTc & keyof OrbTcAttributes as `attr:${K}`]?: OrbTcAttributes[K] } & { [K in keyof OrbTc & keyof OrbTcAttributes as `prop:${K}`]?: OrbTc[K] };
@@ -2845,7 +2886,8 @@ declare module "@stencil/core" {
             "orb-split-view": LocalJSX.IntrinsicElements["orb-split-view"] & JSXBase.HTMLAttributes<HTMLOrbSplitViewElement>;
             "orb-stack": LocalJSX.IntrinsicElements["orb-stack"] & JSXBase.HTMLAttributes<HTMLOrbStackElement>;
             "orb-synth": LocalJSX.IntrinsicElements["orb-synth"] & JSXBase.HTMLAttributes<HTMLOrbSynthElement>;
-            "orb-tab": LocalJSX.IntrinsicElements["orb-tab"] & JSXBase.HTMLAttributes<HTMLOrbTabElement>;
+            "orb-tab-button": LocalJSX.IntrinsicElements["orb-tab-button"] & JSXBase.HTMLAttributes<HTMLOrbTabButtonElement>;
+            "orb-tab-panel": LocalJSX.IntrinsicElements["orb-tab-panel"] & JSXBase.HTMLAttributes<HTMLOrbTabPanelElement>;
             "orb-table": LocalJSX.IntrinsicElements["orb-table"] & JSXBase.HTMLAttributes<HTMLOrbTableElement>;
             "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
             "orb-tc": LocalJSX.IntrinsicElements["orb-tc"] & JSXBase.HTMLAttributes<HTMLOrbTcElement>;
