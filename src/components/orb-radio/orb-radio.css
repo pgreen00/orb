@@ -8,6 +8,6 @@
   outline-color: var(--orb-primary-200);
 }
 
-orb-icon {
+svg {
   color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
 }

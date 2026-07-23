@@ -1,29 +1,9 @@
 :host {
-  display: flex;
-  max-width: 992px;
-  margin: auto;
-  box-sizing: border-box;
-  position: relative;
-  gap: 1.5rem;
-}
-
-[part="main-content"] {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  flex: 1 1 0%;
-  min-width: 0;
-  overflow: hidden;
-}
-
-[part="toc-content"] {
+  display: block;
   box-sizing: border-box;
   height: fit-content;
-  padding-inline: 1.5rem;
+  padding-inline: var(--orb-spacing-sm);
   border-left: solid 1px
     light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
-  position: sticky;
-  top: calc(var(--head-height, 0px) + 0.5rem);
   flex-shrink: 0;
-  min-width: 200px;
 }

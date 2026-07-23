@@ -7,6 +7,7 @@ import {
   Prop,
   Watch,
 } from "@stencil/core";
+import { ChevronRightIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-details",
@@ -32,13 +33,12 @@ export class OrbDetails {
   }
 
   render() {
-    //const icon = <orb-icon>chevron_right</orb-icon>
     return (
       <Host>
         <button part="toggle" onClick={() => (this.open = !this.open)}>
           <orb-toolbar>
             {this.iconSide == "left" && (
-              <orb-icon class={{ open: this.open }}>chevron_right</orb-icon>
+              <ChevronRightIcon class={{ open: this.open }} />
             )}
             <slot name="start" />
             <slot name="summary">
@@ -46,9 +46,7 @@ export class OrbDetails {
             </slot>
             <slot name="end" slot="end" />
             {this.iconSide == "right" && (
-              <orb-icon slot="end" class={{ open: this.open }}>
-                chevron_right
-              </orb-icon>
+              <ChevronRightIcon slot="end" class={{ open: this.open }} />
             )}
           </orb-toolbar>
         </button>

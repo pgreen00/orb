@@ -11,21 +11,12 @@ export class OrbToc {
       document.querySelectorAll<HTMLAnchorElement>("a[data-toc]"),
     );
     return (
-      <Host>
-        <div part="main-content">
-          <slot />
-        </div>
-        <aside
-          role="navigation"
-          part="toc-content"
-          aria-label="Table of Contents"
-        >
-          {links.map((t) => (
-            <div>
-              <orb-link href={t.href}>{t.textContent}</orb-link>
-            </div>
-          ))}
-        </aside>
+      <Host role="navigation" aria-label="Table of Contents">
+        {links.map((t) => (
+          <div>
+            <orb-link href={t.href}>{t.textContent}</orb-link>
+          </div>
+        ))}
       </Host>
     );
   }

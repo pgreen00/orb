@@ -17,6 +17,7 @@ import {
   Prop,
 } from "@stencil/core";
 import { AsyncSubject } from "rxjs";
+import { ChevronDownIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-combobox",
@@ -169,7 +170,7 @@ export class OrbCombobox {
               data-placeholder={this.placeholder || null}
               onKeyDown={(e) => e.key == "Enter" && e.preventDefault()}
             />
-            <orb-icon>keyboard_arrow_down</orb-icon>
+            <ChevronDownIcon />
           </div>
           <slot name="after" />
         </div>

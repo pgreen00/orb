@@ -64,7 +64,8 @@ export class OrbRadioGroup {
 
   componentWillRender() {
     this.getRadios().forEach(
-      (radio) => (radio.selected = radio.value === this.value),
+      (radio) =>
+        (radio.selected = (radio.value || radio.textContent) === this.value),
     );
   }
 
@@ -144,7 +145,7 @@ export class OrbRadioGroup {
   handleNewValue(ev: Event) {
     const { target } = ev;
     if (this.isRadio(target)) {
-      this.value = target.value;
+      this.value = target.value || target.textContent;
       this.valueChange.emit(this.value);
     }
   }

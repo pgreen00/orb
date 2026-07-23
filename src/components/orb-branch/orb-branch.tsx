@@ -7,6 +7,12 @@ import {
   Prop,
   forceUpdate,
 } from "@stencil/core";
+import {
+  ChevronDownIcon,
+  SquareCheckIcon,
+  SquareIcon,
+  SquareMinusIcon,
+} from "../../utils/icons";
 
 function getDepth(child: HTMLElement, ancestor: HTMLElement) {
   if (child === ancestor) return 0;
@@ -55,32 +61,17 @@ export class OrbBranch {
     }
   };
 
-  private checkboxPath() {
-    return <path d={this.selected ? "M20 6 9 17l-5-5" : "M5 12h14"} />;
-  }
-
   render() {
     const innerButton = (
       <Fragment>
-        {this.selection === "multiple" && (
-          <div part="multi-icon" class={{ selected: this.selected !== false }}>
-            {this.selected !== false && (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                {this.checkboxPath()}
-              </svg>
-            )}
-          </div>
-        )}
+        {this.selection === "multiple" &&
+          (this.selected === true ? (
+            <SquareCheckIcon class="multi-icon" />
+          ) : this.selected === false ? (
+            <SquareIcon class="multi-icon" />
+          ) : (
+            <SquareMinusIcon class="multi-icon" />
+          ))}
         <slot name="label">{this.label && <span>{this.label}</span>}</slot>
       </Fragment>
     );
@@ -101,7 +92,7 @@ export class OrbBranch {
               class={{ open: this.open }}
               onClickCapture={this.handleIconClick}
             >
-              {chevron}
+              <ChevronDownIcon />
             </div>
           )}
           {this.href ? (
@@ -125,19 +116,3 @@ export class OrbBranch {
     );
   }
 }
-
-const chevron = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <path d="m4 6 4 4 4-4" />
-  </svg>
-);

@@ -29,37 +29,98 @@ body {
   color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
   background-color: light-dark(var(--orb-neutral-75), var(--orb-neutral-925));
   grid-template:
-    "head head head" auto
-    "left body right" 1fr
-    "foot foot foot" auto / auto 1fr auto;
+    "ban ban" auto
+    "head head" auto
+    "sub sub" auto
+    "side main" 1fr
+    "foot foot" auto / auto 1fr;
   --border-color: light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
+  --sidebar-width: 300px;
+  --top-height: calc(var(--head-height, 0px) + var(--sub-height, 0px) + var(--banner-height, 0px));
+  &:has(>[data-landmark=banner]) {
+    --banner-height: 48px;
+  }
   &:has(>header) {
     --head-height: 64px;
+  }
+  &:has(>[data-landmark=subheader]) {
+    --sub-height: 64px;
   }
   &:has(>footer) {
     --foot-height: 48px;
   }
 
+  &>[data-landmark=banner] {
+    background-color: inherit;
+    flex-shrink: 0;
+    grid-area: ban;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-sizing: border-box;
+    padding-inline: var(--orb-spacing-sm);
+    border-bottom: solid 1px var(--border-color);
+    height: var(--banner-height);
+  }
+
   &>header {
+    display: flex;
+    align-items: center;
     background-color: inherit;
     flex-shrink: 0;
     grid-area: head;
     position: sticky;
     z-index: 10;
-    top: 0;
+    top: var(--banner-height, 0);
     box-sizing: border-box;
     padding-inline: var(--orb-spacing-sm);
     border-bottom: solid 1px var(--border-color);
     height: var(--head-height);
   }
 
-  &>main {
-    grid-area: body;
+  &>[data-landmark=subheader] {
+    background-color: inherit;
+    flex-shrink: 0;
+    grid-area: sub;
+    position: sticky;
+    z-index: 10;
+    top: calc(var(--head-height) + var(--banner-height, 0px));
     box-sizing: border-box;
-    padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+    padding-inline: var(--orb-spacing-sm);
+    border-bottom: solid 1px var(--border-color);
+    height: var(--sub-height);
+  }
+
+  &>main {
+    display: grid;
+    grid-area: main;
+    gap: var(--orb-spacing-sm);
+    box-sizing: border-box;
+    padding: var(--orb-spacing-xs) 5rem;
+    grid-template:
+      "article aside" auto / auto 1fr;
+
+    &>article {
+      box-sizing: border-box;
+      max-width: 1140px;
+      grid-area: article;
+    }
+    &>aside {
+      position: sticky;
+      top: calc(var(--top-height) + var(--orb-spacing-xs));
+      min-width: 200px;
+      max-height: calc(100dvh - var(--banner-height, 0px) - var(--head-height, 0px) - var(--sub-height, 0px) - var(--foot-height, 0px) - var(--orb-spacing-xs) - var(--orb-spacing-xs));
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      grid-area: aside;
+    }
   }
 
   &>footer {
+    display: flex;
+    align-items: center;
     background-color: inherit;
     position: sticky;
     bottom: 0;
@@ -72,25 +133,17 @@ body {
     height: var(--foot-height);
   }
 
-  &>aside {
+  &>[data-landmark=sidebar] {
+    width: var(--sidebar-width);
     position: sticky;
-    top: var(--head-height, 0px);
-    height: 100%;
-    max-height: calc(100vh - var(--head-height, 0px) - var(--foot-height, 0px));
+    top: var(--top-height);
+    max-height: calc(100dvh - var(--banner-height, 0px) - var(--head-height, 0px) - var(--sub-height, 0px) - var(--foot-height, 0px));
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
     scrollbar-width: thin;
     padding: var(--orb-spacing-xs);
-  }
-
-  &>aside:not(main+aside) {
-    grid-area: left;
+    grid-area: side;
     border-right: solid 1px var(--border-color);
-  }
-
-  &>main+aside {
-    grid-area: right;
-    border-left: solid 1px var(--border-color);
   }
 }

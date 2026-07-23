@@ -1,4 +1,5 @@
 import { Component, Prop, Element, Host } from "@stencil/core";
+import { RadioEmpty, RadioFill } from "../../utils/icons";
 
 @Component({
   tag: "orb-radio",
@@ -25,9 +26,7 @@ export class OrbRadio {
         tabindex={-1}
         aria-checked={this.selected ? "true" : "false"}
       >
-        <orb-icon aria-hidden="true">
-          {this.selected ? "radio_button_checked" : "radio_button_unchecked"}
-        </orb-icon>
+        {this.selected ? <RadioFill /> : <RadioEmpty />}
         <slot />
       </Host>
     );

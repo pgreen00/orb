@@ -9,6 +9,11 @@ import {
   Listen,
   Watch,
 } from "@stencil/core";
+import {
+  SquareMinusIcon,
+  SquareCheckIcon,
+  SquareIcon,
+} from "../../utils/icons";
 
 @Component({
   tag: "orb-checkbox",
@@ -57,6 +62,8 @@ export class OrbCheckbox {
   @Event({ bubbles: false }) valueChange: EventEmitter<boolean | undefined>;
 
   componentWillLoad() {
+    this.internals.role = "checkbox";
+    this.el.tabIndex = 0;
     if (this.value === undefined && !this.indeterminate) {
       this.value = false;
     }
@@ -67,11 +74,6 @@ export class OrbCheckbox {
     if (this.value !== this.originalValue) {
       this.value = this.originalValue;
     }
-  }
-
-  componentDidLoad() {
-    this.internals.role = "checkbox";
-    this.el.tabIndex = 0;
   }
 
   componentDidRender() {
@@ -137,13 +139,13 @@ export class OrbCheckbox {
     return (
       <Host>
         {this.labelPlacement == "start" && <slot />}
-        <orb-icon aria-hidden="true" fill={this.value}>
-          {this.value === true
-            ? "check_box"
-            : this.value === false
-              ? "check_box_outline_blank"
-              : "indeterminate_check_box"}
-        </orb-icon>
+        {this.value === true ? (
+          <SquareCheckIcon />
+        ) : this.value === false ? (
+          <SquareIcon />
+        ) : (
+          <SquareMinusIcon />
+        )}
         {this.labelPlacement == "end" && <slot />}
       </Host>
     );

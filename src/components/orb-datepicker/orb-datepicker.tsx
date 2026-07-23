@@ -21,6 +21,12 @@ import {
   getDay,
   set,
 } from "date-fns";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DoubleChevronLeftIcon,
+  DoubleChevronRightIcon,
+} from "../../utils/icons";
 
 const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
@@ -127,17 +133,17 @@ export class OrbDatepicker {
           <Fragment>
             <div class="header">
               <orb-button onClick={this.prevYear}>
-                <orb-icon>keyboard_double_arrow_left</orb-icon>
+                <DoubleChevronLeftIcon />
               </orb-button>
               <orb-button onClick={this.prevMonth}>
-                <orb-icon>keyboard_arrow_left</orb-icon>
+                <ChevronLeftIcon />
               </orb-button>
               <span>{format(this.currentDate, "MMMM yyyy")}</span>
               <orb-button onClick={this.nextMonth}>
-                <orb-icon>keyboard_arrow_right</orb-icon>
+                <ChevronRightIcon />
               </orb-button>
               <orb-button onClick={this.nextYear}>
-                <orb-icon>keyboard_double_arrow_right</orb-icon>
+                <DoubleChevronRightIcon />
               </orb-button>
             </div>
 

@@ -11,7 +11,7 @@
   box-sizing: border-box;
 }
 
-orb-icon {
+svg {
   color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
 }
 

@@ -13,7 +13,7 @@ Adding the `closable` attribute will display a close icon in the top right that 
 
 ```html
 <orb-alert open closable>
-  <orb-icon slot="start" fill>home</orb-icon>
+  <iconify-icon height="24" width="24" slot="start" icon="mdi:home"></iconify-icon>
   <h5>Hello there</h5>
   Where's the chapstick?
 </orb-alert>
@@ -54,7 +54,7 @@ The `end` slot can be used for action items like buttons
 
 ```html
 <orb-alert open>
-  <orb-icon slot="start">settings</orb-icon>
+  <iconify-icon height="24" width="24" slot="start" icon="mdi:settings"></iconify-icon>
   Where's the chapstick?
   <orb-button fill="outline" size="sm" slot="end">Undo</orb-button>
   <orb-button fill="outline" size="sm" slot="end">Dismiss</orb-button>

@@ -17,7 +17,7 @@ orb-button {
   }
 }
 
-orb-icon.success {
+svg.success {
   color: light-dark(var(--orb-success-700), var(--orb-success-500));
 }
 

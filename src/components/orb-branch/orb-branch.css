@@ -31,22 +31,8 @@
   }
 }
 
-[part="multi-icon"] {
-  box-sizing: border-box;
-  display: flex;
-  height: 1rem;
-  width: 1rem;
-  align-items: center;
-  justify-content: center;
-  background-color: transparent;
-  border: solid 1px var(--selected-color);
-  border-radius: var(--orb-radius-sm);
+.multi-icon {
   color: var(--selected-color);
-
-  &.selected {
-    background-color: var(--selected-color);
-    color: var(--selected-background);
-  }
 }
 
 .end-container {

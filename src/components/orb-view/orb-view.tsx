@@ -1,4 +1,5 @@
 import { Component, Element, Host, Prop } from "@stencil/core";
+import { CloseIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-view",
@@ -26,7 +27,7 @@ export class OrbView {
               <slot name="actions" />
               {this.closable && (
                 <orb-button size="lg" onClick={() => this.overlay.hide()}>
-                  <orb-icon>close</orb-icon>
+                  <CloseIcon />
                 </orb-button>
               )}
             </div>

@@ -12,6 +12,7 @@ import {
 } from "@stencil/core";
 import { Color } from "../../utils/color";
 import { OverlayData } from "../orb-overlay/orb-overlay";
+import { CloseIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-alert",
@@ -120,7 +121,7 @@ export class OrbAlert {
               slot="end"
               onClick={() => this.hide("userDismiss")}
             >
-              <orb-icon>close</orb-icon>
+              <CloseIcon />
             </orb-button>
           )}
         </orb-toolbar>

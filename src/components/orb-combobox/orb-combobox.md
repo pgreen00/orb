@@ -16,7 +16,7 @@ sidebar_label: 'Combobox'
   <orb-option>Item 3</orb-option>
   <orb-option>Item 4</orb-option>
   <orb-button slot="after" class="icon-only">
-    <orb-icon fill>edit</orb-icon>
+    <iconify-icon height="24" width="24" icon="mdi:edit"></iconify-icon>
   </orb-button>
 </orb-combobox>
 ```

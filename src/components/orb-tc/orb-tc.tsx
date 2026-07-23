@@ -1,4 +1,5 @@
 import { Component, Element, Host, Prop, State } from "@stencil/core";
+import { CheckIcon, CopyIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-tc",
@@ -43,9 +44,11 @@ export class OrbTc {
               class={{ "icon-only": true, hover: this.hover }}
               onClick={() => this.copyToClipboard()}
             >
-              <orb-icon size="sm" class={{ success: this.copied }}>
-                {this.copied ? "check" : "content_copy"}
-              </orb-icon>
+              {this.copied ? (
+                <CheckIcon class={{ success: this.copied }} />
+              ) : (
+                <CopyIcon class={{ success: this.copied }} />
+              )}
             </orb-button>
           </orb-toolbar>
         ) : (

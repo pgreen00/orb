@@ -252,33 +252,22 @@ export namespace Components {
     | "2xs"
     | "3xl";
     }
-    interface OrbIcon {
-        /**
-          * Whether or not the icon should be filled
-          * @default false
-         */
-        "fill": boolean;
-        /**
-          * Icon grade
-         */
-        "grade"?: "high" | "low";
-        /**
-          * Size of the icon
-          * @default "md"
-         */
-        "size": "xs" | "sm" | "md" | "lg" | "xl";
-        /**
-          * Icon weight
-          * @default 400
-         */
-        "weight": number;
-    }
     interface OrbItem {
     }
     interface OrbKnob {
     }
     interface OrbLabel {
         "required"?: boolean;
+    }
+    interface OrbLayoutSwap {
+        /**
+          * @default "sm"
+         */
+        "breakpoint": Breakpoint | string;
+        /**
+          * @default false
+         */
+        "container": boolean;
     }
     interface OrbLink {
         /**
@@ -1123,12 +1112,6 @@ declare global {
         prototype: HTMLOrbGridElement;
         new (): HTMLOrbGridElement;
     };
-    interface HTMLOrbIconElement extends Components.OrbIcon, HTMLStencilElement {
-    }
-    var HTMLOrbIconElement: {
-        prototype: HTMLOrbIconElement;
-        new (): HTMLOrbIconElement;
-    };
     interface HTMLOrbItemElement extends Components.OrbItem, HTMLStencilElement {
     }
     var HTMLOrbItemElement: {
@@ -1146,6 +1129,12 @@ declare global {
     var HTMLOrbLabelElement: {
         prototype: HTMLOrbLabelElement;
         new (): HTMLOrbLabelElement;
+    };
+    interface HTMLOrbLayoutSwapElement extends Components.OrbLayoutSwap, HTMLStencilElement {
+    }
+    var HTMLOrbLayoutSwapElement: {
+        prototype: HTMLOrbLayoutSwapElement;
+        new (): HTMLOrbLayoutSwapElement;
     };
     interface HTMLOrbLinkElement extends Components.OrbLink, HTMLStencilElement {
     }
@@ -1516,10 +1505,10 @@ declare global {
         "orb-dropzone": HTMLOrbDropzoneElement;
         "orb-eq": HTMLOrbEqElement;
         "orb-grid": HTMLOrbGridElement;
-        "orb-icon": HTMLOrbIconElement;
         "orb-item": HTMLOrbItemElement;
         "orb-knob": HTMLOrbKnobElement;
         "orb-label": HTMLOrbLabelElement;
+        "orb-layout-swap": HTMLOrbLayoutSwapElement;
         "orb-link": HTMLOrbLinkElement;
         "orb-list": HTMLOrbListElement;
         "orb-loading": HTMLOrbLoadingElement;
@@ -1824,33 +1813,22 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface OrbIcon {
-        /**
-          * Whether or not the icon should be filled
-          * @default false
-         */
-        "fill"?: boolean;
-        /**
-          * Icon grade
-         */
-        "grade"?: "high" | "low";
-        /**
-          * Size of the icon
-          * @default "md"
-         */
-        "size"?: "xs" | "sm" | "md" | "lg" | "xl";
-        /**
-          * Icon weight
-          * @default 400
-         */
-        "weight"?: number;
-    }
     interface OrbItem {
     }
     interface OrbKnob {
     }
     interface OrbLabel {
         "required"?: boolean;
+    }
+    interface OrbLayoutSwap {
+        /**
+          * @default "sm"
+         */
+        "breakpoint"?: Breakpoint | string;
+        /**
+          * @default false
+         */
+        "container"?: boolean;
     }
     interface OrbLink {
         /**
@@ -2567,14 +2545,12 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface OrbIconAttributes {
-        "size": "xs" | "sm" | "md" | "lg" | "xl";
-        "fill": boolean;
-        "grade": "high" | "low";
-        "weight": number;
-    }
     interface OrbLabelAttributes {
         "required": boolean;
+    }
+    interface OrbLayoutSwapAttributes {
+        "container": boolean;
+        "breakpoint": Breakpoint | string;
     }
     interface OrbLinkAttributes {
         "underline": boolean;
@@ -2778,10 +2754,10 @@ declare namespace LocalJSX {
         "orb-dropzone": OrbDropzone;
         "orb-eq": OrbEq;
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
-        "orb-icon": Omit<OrbIcon, keyof OrbIconAttributes> & { [K in keyof OrbIcon & keyof OrbIconAttributes]?: OrbIcon[K] } & { [K in keyof OrbIcon & keyof OrbIconAttributes as `attr:${K}`]?: OrbIconAttributes[K] } & { [K in keyof OrbIcon & keyof OrbIconAttributes as `prop:${K}`]?: OrbIcon[K] };
         "orb-item": OrbItem;
         "orb-knob": OrbKnob;
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
+        "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
         "orb-link": Omit<OrbLink, keyof OrbLinkAttributes> & { [K in keyof OrbLink & keyof OrbLinkAttributes]?: OrbLink[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `attr:${K}`]?: OrbLinkAttributes[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `prop:${K}`]?: OrbLink[K] };
         "orb-list": OrbList;
         "orb-loading": OrbLoading;
@@ -2852,10 +2828,10 @@ declare module "@stencil/core" {
             "orb-dropzone": LocalJSX.IntrinsicElements["orb-dropzone"] & JSXBase.HTMLAttributes<HTMLOrbDropzoneElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
-            "orb-icon": LocalJSX.IntrinsicElements["orb-icon"] & JSXBase.HTMLAttributes<HTMLOrbIconElement>;
             "orb-item": LocalJSX.IntrinsicElements["orb-item"] & JSXBase.HTMLAttributes<HTMLOrbItemElement>;
             "orb-knob": LocalJSX.IntrinsicElements["orb-knob"] & JSXBase.HTMLAttributes<HTMLOrbKnobElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
+            "orb-layout-swap": LocalJSX.IntrinsicElements["orb-layout-swap"] & JSXBase.HTMLAttributes<HTMLOrbLayoutSwapElement>;
             "orb-link": LocalJSX.IntrinsicElements["orb-link"] & JSXBase.HTMLAttributes<HTMLOrbLinkElement>;
             "orb-list": LocalJSX.IntrinsicElements["orb-list"] & JSXBase.HTMLAttributes<HTMLOrbListElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;

@@ -3,6 +3,7 @@ import {
   Element,
   Event,
   EventEmitter,
+  forceUpdate,
   Host,
   Listen,
   Prop,
@@ -30,7 +31,8 @@ export class OrbTree {
       this.value = [];
   }
 
-  componentWillRender() {
+  async componentWillRender() {
+    await customElements.whenDefined("orb-branch");
     const { branches, selection, indentation, value } = this;
     branches.forEach((branch) => {
       branch.selection = selection;
@@ -42,15 +44,19 @@ export class OrbTree {
     }
   }
 
+  @Watch("selection")
+  onSelectionChange() {
+    forceUpdate(this.element);
+  }
+
   @Watch("value")
   valueChanged() {
     this.valueChange.emit(this.value);
   }
 
   @Listen("click")
-  async onClick(event: MouseEvent) {
+  async onClick({ target }: MouseEvent) {
     await customElements.whenDefined("orb-branch");
-    const { target } = event;
     if (this.isBranch(target)) {
       const { branches, selection } = this;
       const isLeaf = await target.isLeaf();
@@ -81,8 +87,7 @@ export class OrbTree {
   }
 
   @Listen("keyup")
-  async onKeyup(event: KeyboardEvent) {
-    const { target, key } = event;
+  async onKeyup({ target, key }: KeyboardEvent) {
     if (this.isBranch(target)) {
       const hasChildren = !(await target.isLeaf());
       const { branches } = this;
