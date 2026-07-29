@@ -20,11 +20,11 @@ import { Component, Element, Host, Prop, Watch } from "@stencil/core";
 //a context menu slot would be neat
 
 @Component({
-  tag: "orb-table",
-  styleUrl: "orb-table.css",
+  tag: "orb-grid",
+  styleUrl: "orb-grid.css",
   shadow: true,
 })
-export class OrbTable {
+export class OrbGrid {
   @Element() host: HTMLElement;
   @Prop() columns?: number;
   @Prop() data: string[][];
@@ -33,7 +33,7 @@ export class OrbTable {
   onColumnsChange() {
     const columns =
       this.columns ??
-      this.host.querySelectorAll(":scope > orb-tr[type=header] > orb-tc")
+      this.host.querySelectorAll(":scope > orb-gr[type=header] > orb-gc")
         .length;
     this.host.style.setProperty("--columns", columns.toString());
   }
@@ -44,19 +44,19 @@ export class OrbTable {
       this.host.querySelector<HTMLTemplateElement>(":scope > template");
     const fragment = new DocumentFragment();
 
-    const header = this.host.querySelector(":scope > orb-tr[type=header]");
+    const header = this.host.querySelector(":scope > orb-gr[type=header]");
     if (header) fragment.append(header);
 
     for (const row of this.data) {
       const rowFragment = document.importNode(template.content, true);
-      const cols = Array.from(rowFragment.querySelectorAll("orb-tc"));
+      const cols = Array.from(rowFragment.querySelectorAll("orb-gc"));
       for (let i = 0; i < cols.length; i++) {
         cols[i].textContent = row[i];
       }
       fragment.append(rowFragment);
     }
 
-    const footer = this.host.querySelector(":scope > orb-tr[type=footer]");
+    const footer = this.host.querySelector(":scope > orb-gr[type=footer]");
     if (footer) fragment.append(footer);
 
     this.host.replaceChildren(fragment);

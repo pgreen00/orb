@@ -2,11 +2,11 @@ import { Component, Element, Host, Prop, State } from "@stencil/core";
 import { CheckIcon, CopyIcon } from "../../utils/icons";
 
 @Component({
-  tag: "orb-tc",
-  styleUrl: "orb-table-column.css",
+  tag: "orb-gc",
+  styleUrl: "orb-grid-cell.css",
   shadow: true,
 })
-export class OrbTableColumn {
+export class OrbGridCell {
   @Element() host: HTMLElement;
   @Prop() colSpan?: number;
   @Prop() rowSpan?: number;

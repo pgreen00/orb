@@ -242,16 +242,23 @@ export namespace Components {
     }
     interface OrbEq {
     }
+    interface OrbGc {
+        "colSpan"?: number;
+        /**
+          * @default false
+         */
+        "copy": boolean;
+        "rowSpan"?: number;
+    }
+    interface OrbGr {
+        /**
+          * @default "body"
+         */
+        "type": "header" | "body" | "footer";
+    }
     interface OrbGrid {
-        "space"?: | "3xs"
-    | "2xs"
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xs"
-    | "3xl";
+        "columns"?: number;
+        "data": string[][];
     }
     interface OrbKnob {
     }
@@ -308,6 +315,17 @@ export namespace Components {
     interface OrbLoading {
     }
     interface OrbMenu {
+    }
+    interface OrbMesh {
+        "space"?: | "3xs"
+    | "2xs"
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xs"
+    | "3xl";
     }
     interface OrbMi {
     }
@@ -635,24 +653,12 @@ export namespace Components {
         "name"?: string;
         "setActive": (isActive: boolean) => Promise<void>;
     }
-    interface OrbTable {
-        "columns"?: number;
-        "data": string[][];
-    }
     interface OrbTabs {
         "active"?: string;
         /**
           * @default false
          */
         "closable": boolean;
-    }
-    interface OrbTc {
-        "colSpan"?: number;
-        /**
-          * @default false
-         */
-        "copy": boolean;
-        "rowSpan"?: number;
     }
     /**
      * its a textbox
@@ -805,12 +811,6 @@ export namespace Components {
           * @default 10
          */
         "offsetY": number;
-    }
-    interface OrbTr {
-        /**
-          * @default "body"
-         */
-        "type": "header" | "body" | "footer";
     }
     interface OrbTree {
         /**
@@ -1127,6 +1127,18 @@ declare global {
         prototype: HTMLOrbEqElement;
         new (): HTMLOrbEqElement;
     };
+    interface HTMLOrbGcElement extends Components.OrbGc, HTMLStencilElement {
+    }
+    var HTMLOrbGcElement: {
+        prototype: HTMLOrbGcElement;
+        new (): HTMLOrbGcElement;
+    };
+    interface HTMLOrbGrElement extends Components.OrbGr, HTMLStencilElement {
+    }
+    var HTMLOrbGrElement: {
+        prototype: HTMLOrbGrElement;
+        new (): HTMLOrbGrElement;
+    };
     interface HTMLOrbGridElement extends Components.OrbGrid, HTMLStencilElement {
     }
     var HTMLOrbGridElement: {
@@ -1180,6 +1192,12 @@ declare global {
     var HTMLOrbMenuElement: {
         prototype: HTMLOrbMenuElement;
         new (): HTMLOrbMenuElement;
+    };
+    interface HTMLOrbMeshElement extends Components.OrbMesh, HTMLStencilElement {
+    }
+    var HTMLOrbMeshElement: {
+        prototype: HTMLOrbMeshElement;
+        new (): HTMLOrbMeshElement;
     };
     interface HTMLOrbMiElement extends Components.OrbMi, HTMLStencilElement {
     }
@@ -1383,23 +1401,11 @@ declare global {
         prototype: HTMLOrbTabPanelElement;
         new (): HTMLOrbTabPanelElement;
     };
-    interface HTMLOrbTableElement extends Components.OrbTable, HTMLStencilElement {
-    }
-    var HTMLOrbTableElement: {
-        prototype: HTMLOrbTableElement;
-        new (): HTMLOrbTableElement;
-    };
     interface HTMLOrbTabsElement extends Components.OrbTabs, HTMLStencilElement {
     }
     var HTMLOrbTabsElement: {
         prototype: HTMLOrbTabsElement;
         new (): HTMLOrbTabsElement;
-    };
-    interface HTMLOrbTcElement extends Components.OrbTc, HTMLStencilElement {
-    }
-    var HTMLOrbTcElement: {
-        prototype: HTMLOrbTcElement;
-        new (): HTMLOrbTcElement;
     };
     interface HTMLOrbTextboxElementEventMap {
         "valueChange": any;
@@ -1455,12 +1461,6 @@ declare global {
     var HTMLOrbTooltipElement: {
         prototype: HTMLOrbTooltipElement;
         new (): HTMLOrbTooltipElement;
-    };
-    interface HTMLOrbTrElement extends Components.OrbTr, HTMLStencilElement {
-    }
-    var HTMLOrbTrElement: {
-        prototype: HTMLOrbTrElement;
-        new (): HTMLOrbTrElement;
     };
     interface HTMLOrbTreeElementEventMap {
         "valueChange": string | string[];
@@ -1531,6 +1531,8 @@ declare global {
         "orb-divider": HTMLOrbDividerElement;
         "orb-dropzone": HTMLOrbDropzoneElement;
         "orb-eq": HTMLOrbEqElement;
+        "orb-gc": HTMLOrbGcElement;
+        "orb-gr": HTMLOrbGrElement;
         "orb-grid": HTMLOrbGridElement;
         "orb-knob": HTMLOrbKnobElement;
         "orb-label": HTMLOrbLabelElement;
@@ -1540,6 +1542,7 @@ declare global {
         "orb-list": HTMLOrbListElement;
         "orb-loading": HTMLOrbLoadingElement;
         "orb-menu": HTMLOrbMenuElement;
+        "orb-mesh": HTMLOrbMeshElement;
         "orb-mi": HTMLOrbMiElement;
         "orb-midi": HTMLOrbMidiElement;
         "orb-note": HTMLOrbNoteElement;
@@ -1562,15 +1565,12 @@ declare global {
         "orb-synth": HTMLOrbSynthElement;
         "orb-tab-button": HTMLOrbTabButtonElement;
         "orb-tab-panel": HTMLOrbTabPanelElement;
-        "orb-table": HTMLOrbTableElement;
         "orb-tabs": HTMLOrbTabsElement;
-        "orb-tc": HTMLOrbTcElement;
         "orb-textbox": HTMLOrbTextboxElement;
         "orb-toc": HTMLOrbTocElement;
         "orb-toggle": HTMLOrbToggleElement;
         "orb-toolbar": HTMLOrbToolbarElement;
         "orb-tooltip": HTMLOrbTooltipElement;
-        "orb-tr": HTMLOrbTrElement;
         "orb-tree": HTMLOrbTreeElement;
         "orb-view": HTMLOrbViewElement;
         "orb-view-manager": HTMLOrbViewManagerElement;
@@ -1837,16 +1837,23 @@ declare namespace LocalJSX {
     }
     interface OrbEq {
     }
+    interface OrbGc {
+        "colSpan"?: number;
+        /**
+          * @default false
+         */
+        "copy"?: boolean;
+        "rowSpan"?: number;
+    }
+    interface OrbGr {
+        /**
+          * @default "body"
+         */
+        "type"?: "header" | "body" | "footer";
+    }
     interface OrbGrid {
-        "space"?: | "3xs"
-    | "2xs"
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xs"
-    | "3xl";
+        "columns"?: number;
+        "data"?: string[][];
     }
     interface OrbKnob {
     }
@@ -1903,6 +1910,17 @@ declare namespace LocalJSX {
     interface OrbLoading {
     }
     interface OrbMenu {
+    }
+    interface OrbMesh {
+        "space"?: | "3xs"
+    | "2xs"
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xs"
+    | "3xl";
     }
     interface OrbMi {
     }
@@ -2271,24 +2289,12 @@ declare namespace LocalJSX {
         "form"?: string;
         "name"?: string;
     }
-    interface OrbTable {
-        "columns"?: number;
-        "data"?: string[][];
-    }
     interface OrbTabs {
         "active"?: string;
         /**
           * @default false
          */
         "closable"?: boolean;
-    }
-    interface OrbTc {
-        "colSpan"?: number;
-        /**
-          * @default false
-         */
-        "copy"?: boolean;
-        "rowSpan"?: number;
     }
     /**
      * its a textbox
@@ -2470,12 +2476,6 @@ declare namespace LocalJSX {
          */
         "offsetY"?: number;
     }
-    interface OrbTr {
-        /**
-          * @default "body"
-         */
-        "type"?: "header" | "body" | "footer";
-    }
     interface OrbTree {
         /**
           * @default false
@@ -2592,16 +2592,16 @@ declare namespace LocalJSX {
         "type": "horizontal" | "vertical";
         "spacing": "sm" | "md" | "lg" | "none";
     }
+    interface OrbGcAttributes {
+        "colSpan": number;
+        "rowSpan": number;
+        "copy": boolean;
+    }
+    interface OrbGrAttributes {
+        "type": "header" | "body" | "footer";
+    }
     interface OrbGridAttributes {
-        "space": | "3xs"
-    | "2xs"
-    | "xs"
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xs"
-    | "3xl";
+        "columns": number;
     }
     interface OrbLabelAttributes {
         "required": boolean;
@@ -2618,6 +2618,17 @@ declare namespace LocalJSX {
         "rel": string;
         "download": string;
         "neutral": boolean;
+    }
+    interface OrbMeshAttributes {
+        "space": | "3xs"
+    | "2xs"
+    | "xs"
+    | "sm"
+    | "md"
+    | "lg"
+    | "xl"
+    | "2xs"
+    | "3xl";
     }
     interface OrbNoteAttributes {
         "invalid": boolean;
@@ -2712,17 +2723,9 @@ declare namespace LocalJSX {
     interface OrbTabPanelAttributes {
         "name": string;
     }
-    interface OrbTableAttributes {
-        "columns": number;
-    }
     interface OrbTabsAttributes {
         "active": string;
         "closable": boolean;
-    }
-    interface OrbTcAttributes {
-        "colSpan": number;
-        "rowSpan": number;
-        "copy": boolean;
     }
     interface OrbTextboxAttributes {
         "type": | "text"
@@ -2780,9 +2783,6 @@ declare namespace LocalJSX {
         "offsetX": number;
         "offsetY": number;
     }
-    interface OrbTrAttributes {
-        "type": "header" | "body" | "footer";
-    }
     interface OrbTreeAttributes {
         "value": string | string[];
         "selection": "single" | "multiple" | "leaf";
@@ -2817,6 +2817,8 @@ declare namespace LocalJSX {
         "orb-divider": Omit<OrbDivider, keyof OrbDividerAttributes> & { [K in keyof OrbDivider & keyof OrbDividerAttributes]?: OrbDivider[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `attr:${K}`]?: OrbDividerAttributes[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `prop:${K}`]?: OrbDivider[K] };
         "orb-dropzone": OrbDropzone;
         "orb-eq": OrbEq;
+        "orb-gc": Omit<OrbGc, keyof OrbGcAttributes> & { [K in keyof OrbGc & keyof OrbGcAttributes]?: OrbGc[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `attr:${K}`]?: OrbGcAttributes[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `prop:${K}`]?: OrbGc[K] };
+        "orb-gr": Omit<OrbGr, keyof OrbGrAttributes> & { [K in keyof OrbGr & keyof OrbGrAttributes]?: OrbGr[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `attr:${K}`]?: OrbGrAttributes[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `prop:${K}`]?: OrbGr[K] };
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
         "orb-knob": OrbKnob;
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
@@ -2826,6 +2828,7 @@ declare namespace LocalJSX {
         "orb-list": OrbList;
         "orb-loading": OrbLoading;
         "orb-menu": OrbMenu;
+        "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
         "orb-mi": OrbMi;
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
@@ -2848,15 +2851,12 @@ declare namespace LocalJSX {
         "orb-synth": OrbSynth;
         "orb-tab-button": Omit<OrbTabButton, keyof OrbTabButtonAttributes> & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes]?: OrbTabButton[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `attr:${K}`]?: OrbTabButtonAttributes[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `prop:${K}`]?: OrbTabButton[K] };
         "orb-tab-panel": Omit<OrbTabPanel, keyof OrbTabPanelAttributes> & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes]?: OrbTabPanel[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `attr:${K}`]?: OrbTabPanelAttributes[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `prop:${K}`]?: OrbTabPanel[K] };
-        "orb-table": Omit<OrbTable, keyof OrbTableAttributes> & { [K in keyof OrbTable & keyof OrbTableAttributes]?: OrbTable[K] } & { [K in keyof OrbTable & keyof OrbTableAttributes as `attr:${K}`]?: OrbTableAttributes[K] } & { [K in keyof OrbTable & keyof OrbTableAttributes as `prop:${K}`]?: OrbTable[K] };
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
-        "orb-tc": Omit<OrbTc, keyof OrbTcAttributes> & { [K in keyof OrbTc & keyof OrbTcAttributes]?: OrbTc[K] } & { [K in keyof OrbTc & keyof OrbTcAttributes as `attr:${K}`]?: OrbTcAttributes[K] } & { [K in keyof OrbTc & keyof OrbTcAttributes as `prop:${K}`]?: OrbTc[K] };
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
         "orb-toc": OrbToc;
         "orb-toggle": Omit<OrbToggle, keyof OrbToggleAttributes> & { [K in keyof OrbToggle & keyof OrbToggleAttributes]?: OrbToggle[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `attr:${K}`]?: OrbToggleAttributes[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `prop:${K}`]?: OrbToggle[K] };
         "orb-toolbar": Omit<OrbToolbar, keyof OrbToolbarAttributes> & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes]?: OrbToolbar[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `attr:${K}`]?: OrbToolbarAttributes[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `prop:${K}`]?: OrbToolbar[K] };
         "orb-tooltip": Omit<OrbTooltip, keyof OrbTooltipAttributes> & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes]?: OrbTooltip[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `attr:${K}`]?: OrbTooltipAttributes[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `prop:${K}`]?: OrbTooltip[K] };
-        "orb-tr": Omit<OrbTr, keyof OrbTrAttributes> & { [K in keyof OrbTr & keyof OrbTrAttributes]?: OrbTr[K] } & { [K in keyof OrbTr & keyof OrbTrAttributes as `attr:${K}`]?: OrbTrAttributes[K] } & { [K in keyof OrbTr & keyof OrbTrAttributes as `prop:${K}`]?: OrbTr[K] };
         "orb-tree": Omit<OrbTree, keyof OrbTreeAttributes> & { [K in keyof OrbTree & keyof OrbTreeAttributes]?: OrbTree[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `attr:${K}`]?: OrbTreeAttributes[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `prop:${K}`]?: OrbTree[K] };
         "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
         "orb-view-manager": OrbViewManager;
@@ -2892,6 +2892,8 @@ declare module "@stencil/core" {
             "orb-divider": LocalJSX.IntrinsicElements["orb-divider"] & JSXBase.HTMLAttributes<HTMLOrbDividerElement>;
             "orb-dropzone": LocalJSX.IntrinsicElements["orb-dropzone"] & JSXBase.HTMLAttributes<HTMLOrbDropzoneElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
+            "orb-gc": LocalJSX.IntrinsicElements["orb-gc"] & JSXBase.HTMLAttributes<HTMLOrbGcElement>;
+            "orb-gr": LocalJSX.IntrinsicElements["orb-gr"] & JSXBase.HTMLAttributes<HTMLOrbGrElement>;
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
             "orb-knob": LocalJSX.IntrinsicElements["orb-knob"] & JSXBase.HTMLAttributes<HTMLOrbKnobElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
@@ -2901,6 +2903,7 @@ declare module "@stencil/core" {
             "orb-list": LocalJSX.IntrinsicElements["orb-list"] & JSXBase.HTMLAttributes<HTMLOrbListElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
+            "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
@@ -2930,9 +2933,7 @@ declare module "@stencil/core" {
             "orb-synth": LocalJSX.IntrinsicElements["orb-synth"] & JSXBase.HTMLAttributes<HTMLOrbSynthElement>;
             "orb-tab-button": LocalJSX.IntrinsicElements["orb-tab-button"] & JSXBase.HTMLAttributes<HTMLOrbTabButtonElement>;
             "orb-tab-panel": LocalJSX.IntrinsicElements["orb-tab-panel"] & JSXBase.HTMLAttributes<HTMLOrbTabPanelElement>;
-            "orb-table": LocalJSX.IntrinsicElements["orb-table"] & JSXBase.HTMLAttributes<HTMLOrbTableElement>;
             "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
-            "orb-tc": LocalJSX.IntrinsicElements["orb-tc"] & JSXBase.HTMLAttributes<HTMLOrbTcElement>;
             /**
              * its a textbox
              */
@@ -2941,7 +2942,6 @@ declare module "@stencil/core" {
             "orb-toggle": LocalJSX.IntrinsicElements["orb-toggle"] & JSXBase.HTMLAttributes<HTMLOrbToggleElement>;
             "orb-toolbar": LocalJSX.IntrinsicElements["orb-toolbar"] & JSXBase.HTMLAttributes<HTMLOrbToolbarElement>;
             "orb-tooltip": LocalJSX.IntrinsicElements["orb-tooltip"] & JSXBase.HTMLAttributes<HTMLOrbTooltipElement>;
-            "orb-tr": LocalJSX.IntrinsicElements["orb-tr"] & JSXBase.HTMLAttributes<HTMLOrbTrElement>;
             "orb-tree": LocalJSX.IntrinsicElements["orb-tree"] & JSXBase.HTMLAttributes<HTMLOrbTreeElement>;
             "orb-view": LocalJSX.IntrinsicElements["orb-view"] & JSXBase.HTMLAttributes<HTMLOrbViewElement>;
             "orb-view-manager": LocalJSX.IntrinsicElements["orb-view-manager"] & JSXBase.HTMLAttributes<HTMLOrbViewManagerElement>;

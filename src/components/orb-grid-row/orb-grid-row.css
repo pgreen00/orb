@@ -2,7 +2,7 @@
   display: contents;
 }
 
-:host([type="header"]) ::slotted(orb-tc) {
+:host([type="header"]) ::slotted(orb-gc) {
   position: sticky;
   top: 0;
   z-index: 2;
@@ -19,27 +19,27 @@
     light-dark(var(--orb-neutral-200), var(--orb-neutral-750));
 }
 
-:host([type="header"]) ::slotted(orb-tc[sticky]) {
+:host([type="header"]) ::slotted(orb-gc[sticky]) {
   z-index: 3;
 }
 
-:host([type="body"]) ::slotted(orb-tc) {
+:host([type="body"]) ::slotted(orb-gc) {
   padding: var(--orb-spacing-sm) var(--orb-spacing-md);
   color: light-dark(var(--orb-neutral-900), var(--orb-neutral-100));
   --border-right: 1px solid
     light-dark(var(--orb-neutral-150), var(--orb-neutral-825));
 }
 
-:host([type="body"]:hover) ::slotted(orb-tc) {
+:host([type="body"]:hover) ::slotted(orb-gc) {
   background-color: light-dark(var(--orb-neutral-50), var(--orb-neutral-875));
 }
 
-:host([type="body"]:not(:last-child)) ::slotted(orb-tc) {
+:host([type="body"]:not(:last-child)) ::slotted(orb-gc) {
   border-bottom: 1px solid
     light-dark(var(--orb-neutral-200), var(--orb-neutral-800));
 }
 
-:host([type="footer"]) ::slotted(orb-tc) {
+:host([type="footer"]) ::slotted(orb-gc) {
   position: sticky;
   bottom: 0;
   z-index: 2;
