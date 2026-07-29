@@ -1,11 +1,11 @@
 import { Component, Host } from "@stencil/core";
 
 @Component({
-  tag: "orb-reorder-list",
-  styleUrl: "orb-reorder-list.css",
+  tag: "orb-mi",
+  styleUrl: "orb-menu-item.css",
   shadow: true,
 })
-export class OrbReorderList {
+export class OrbMenuItem {
   render() {
     return (
       <Host>

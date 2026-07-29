@@ -1,4 +1,14 @@
-import { Component, Element, Event, EventEmitter, Prop } from "@stencil/core";
+import {
+  Component,
+  Element,
+  Event,
+  EventEmitter,
+  Fragment,
+  Host,
+  Prop,
+  State,
+} from "@stencil/core";
+import { EllipsisHorizIcon, SlashIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-breadcrumbs",
@@ -11,57 +21,110 @@ export class OrbBreadcrumbs {
   @Prop() itemsAfterCollapse = 1;
   @Prop() maxItems?: number;
   @Event() expandClick: EventEmitter;
+  @State() crumbs: (
+    | { href?: string; text: string; type: "crumb" }
+    | { type: "collapse"; crumbs: { href?: string; text: string }[] }
+  )[] = [];
+  @State() collapsed = true;
 
-  componentWillRender() {
-    const crumbs = Array.from(this.host.querySelectorAll("orb-breadcrumb"));
-    this.host.querySelector(".collapse")?.remove();
-
-    if (this.maxItems && crumbs.length > this.maxItems) {
-      crumbs.forEach((crumb, index) => {
-        const shouldShow =
-          index < this.itemsBeforeCollapse ||
-          index >= crumbs.length - this.itemsAfterCollapse;
-        crumb.classList.toggle("visible", shouldShow);
-      });
-
-      if (crumbs.length > this.itemsBeforeCollapse) {
-        const insertionIndex = Math.min(
-          this.itemsBeforeCollapse - 1,
-          crumbs.length - 1,
-        );
-        const referenceCrumb = crumbs[insertionIndex];
-        referenceCrumb.insertAdjacentHTML(
-          "afterend",
-          '<button class="collapse">more_horiz</button>',
-        );
-        const collapseButton =
-          this.host.querySelector<HTMLButtonElement>(".collapse");
-        collapseButton.onclick = () => this.expandClick.emit();
-      }
+  private setCrumbs = () => {
+    const children = Array.from(this.host.querySelectorAll("orb-breadcrumb"));
+    if (this.maxItems && children.length > this.maxItems) {
+      this.crumbs = [
+        ...children
+          .filter((_, index) => index < this.itemsBeforeCollapse)
+          .map((c) => ({
+            href: c.href,
+            text: c.textContent,
+            type: "crumb" as const,
+          })),
+        {
+          type: "collapse",
+          crumbs: children
+            .filter(
+              (_, index) =>
+                index >= this.itemsBeforeCollapse &&
+                index < children.length - this.itemsAfterCollapse,
+            )
+            .map((c) => ({ href: c.href, text: c.textContent })),
+        },
+        ...children
+          .filter(
+            (_, index) => index >= children.length - this.itemsAfterCollapse,
+          )
+          .map((c) => ({
+            href: c.href,
+            text: c.textContent,
+            type: "crumb" as const,
+          })),
+      ];
     } else {
-      crumbs.forEach((crumb) => crumb.classList.add("visible"));
+      this.crumbs = children.map((c) => ({
+        href: c.href,
+        text: c.textContent,
+        type: "crumb",
+      }));
     }
-  }
-
-  componentDidRender() {
-    const crumbs = Array.from(this.host.querySelectorAll("orb-breadcrumb"));
-    crumbs.forEach((crumb, _i) => {
-      const anchor = crumb.shadowRoot.querySelector("a");
-      if (anchor) {
-        if (crumb.matches(":last-of-type")) {
-          anchor.setAttribute("aria-current", "page");
-        } else {
-          anchor.removeAttribute("aria-current");
-        }
-      }
-    });
-  }
+  };
 
   render() {
     return (
-      <nav>
-        <slot />
-      </nav>
+      <Host role="navigation">
+        <slot onSlotchange={this.setCrumbs} />
+        {this.crumbs.map((c, i) => {
+          const isLast = i == this.crumbs.length - 1;
+          if (c.type == "crumb") {
+            return (
+              <Fragment>
+                {c.href ? (
+                  <a
+                    aria-current={isLast ? "page" : null}
+                    class={{ crumb: true, last: isLast }}
+                    href={c.href}
+                  >
+                    {c.text}
+                  </a>
+                ) : (
+                  <button class={{ crumb: true, last: isLast }} type="button">
+                    {c.text}
+                  </button>
+                )}
+                {!isLast && <SlashIcon />}
+              </Fragment>
+            );
+          } else {
+            if (this.collapsed) {
+              return (
+                <Fragment>
+                  <button
+                    type="button"
+                    class="collapse"
+                    onClick={() => (this.collapsed = false)}
+                  >
+                    <EllipsisHorizIcon />
+                  </button>
+                  <SlashIcon />
+                </Fragment>
+              );
+            } else {
+              return c.crumbs.map((t) => (
+                <Fragment>
+                  {t.href ? (
+                    <a class="crumb" href={t.href}>
+                      {t.text}
+                    </a>
+                  ) : (
+                    <button class="crumb" type="button">
+                      {t.text}
+                    </button>
+                  )}
+                  <SlashIcon />
+                </Fragment>
+              ));
+            }
+          }
+        })}
+      </Host>
     );
   }
 }

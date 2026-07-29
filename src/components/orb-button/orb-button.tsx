@@ -5,7 +5,7 @@ import {
   Listen,
   Host,
   Watch,
-  forceUpdate,
+  AttachInternals,
 } from "@stencil/core";
 import { Color } from "../../utils/color";
 
@@ -13,13 +13,15 @@ import { Color } from "../../utils/color";
   tag: "orb-button",
   styleUrl: "orb-button.css",
   shadow: true,
+  formAssociated: true,
 })
 export class OrbButton {
+  @AttachInternals() internals: ElementInternals;
   @Element() el: HTMLOrbButtonElement;
   private get formEl() {
     return this.form
       ? document.getElementById(this.form)?.closest("form")
-      : this.el.closest("form");
+      : this.internals.form;
   }
 
   /** Disables button */
@@ -84,11 +86,7 @@ export class OrbButton {
         aria-disabled={`${this.disabled || this.pending}`}
         tabindex={this.disabled || this.pending ? "-1" : "0"}
       >
-        {this.pending ? (
-          <orb-loading />
-        ) : (
-          <slot onSlotchange={() => forceUpdate(this.el)} />
-        )}
+        {this.pending ? <orb-loading /> : <slot />}
         <slot name="badge" />
       </Host>
     );

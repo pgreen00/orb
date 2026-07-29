@@ -1,4 +1,4 @@
-import { Component } from "@stencil/core";
+import { Component, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-breadcrumb",
@@ -6,11 +6,8 @@ import { Component } from "@stencil/core";
   shadow: true,
 })
 export class OrbBreadcrumb {
+  @Prop() href?: string;
   render() {
-    return (
-      <a>
-        <slot />
-      </a>
-    );
+    return <Host />;
   }
 }

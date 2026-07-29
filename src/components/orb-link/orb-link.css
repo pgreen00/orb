@@ -1,5 +1,5 @@
 :host {
-  display: contents;
+  display: inline-flex;
   --color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
   --visited-color: light-dark(var(--orb-primary-600), var(--orb-primary-400));
 }
@@ -7,10 +7,14 @@
 a {
   display: inline-flex;
   color: var(--color);
+  font-size: 1em;
   text-decoration: none;
   outline-color: var(--orb-primary-300);
   outline-offset: 3px;
   cursor: pointer;
+  &:visited {
+    color: var(--visited-color);
+  }
 }
 
 .underline {
@@ -19,4 +23,9 @@ a {
 
 .bold {
   font-weight: var(--orb-font-semi-bold);
+}
+
+a.neutral {
+  --color: currentcolor;
+  --visited-color: currentcolor;
 }

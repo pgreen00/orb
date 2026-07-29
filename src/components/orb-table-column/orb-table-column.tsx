@@ -3,10 +3,10 @@ import { CheckIcon, CopyIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-tc",
-  styleUrl: "orb-tc.css",
+  styleUrl: "orb-table-column.css",
   shadow: true,
 })
-export class OrbTc {
+export class OrbTableColumn {
   @Element() host: HTMLElement;
   @Prop() colSpan?: number;
   @Prop() rowSpan?: number;

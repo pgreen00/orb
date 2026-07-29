@@ -1,52 +1,49 @@
 :host {
-  display: inline-block;
-  position: relative;
-  width: 23px;
-  height: 23px;
-  user-select: none;
+  --size: 1em;
+  --thickness: 2.5;
+  --speed: 0.9s;
+  --color: currentColor;
+  --track-opacity: 0.25;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+  line-height: 1;
+  vertical-align: -0.125em;
 }
 
 svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transform: translateZ(0);
+  width: var(--size);
+  height: var(--size);
+  animation: orb-loading-spin var(--speed) linear infinite;
 }
 
-:host(.spinner-lines) line,
-:host(.spinner-lines-small) line {
-  stroke-width: 7px;
-}
-
-:host(.spinner-lines-sharp) line,
-:host(.spinner-lines-sharp-small) line {
-  stroke-width: 4px;
-}
-
-:host(.spinner-lines) line,
-:host(.spinner-lines-small) line,
-:host(.spinner-lines-sharp) line,
-:host(.spinner-lines-sharp-small) line {
+circle {
+  stroke: var(--color);
+  stroke-width: var(--thickness);
   stroke-linecap: round;
-  stroke: currentColor;
+  /* r="9" -> circumference 2πr ≈ 56.55 */
+  transform-origin: center;
 }
 
-:host(.spinner-lines) svg,
-:host(.spinner-lines-small) svg,
-:host(.spinner-lines-sharp) svg,
-:host(.spinner-lines-sharp-small) svg {
-  animation: spinner-fade-out 1s linear infinite;
+.track {
+  opacity: var(--track-opacity);
 }
 
-@keyframes spinner-fade-out {
-  0% {
-    opacity: 1;
-  }
+.indicator {
+  stroke-dasharray: 56.55;
+  stroke-dashoffset: 42.4;
+}
 
-  100% {
-    opacity: 0;
+@keyframes orb-loading-spin {
+  to {
+    transform: rotate(360deg);
   }
+}
 
+@media (prefers-reduced-motion: reduce) {
+  svg {
+    animation-duration: 2.4s;
+  }
 }

@@ -2,10 +2,10 @@ import { Component, Element, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-tr",
-  styleUrl: "orb-tr.css",
+  styleUrl: "orb-table-row.css",
   shadow: true,
 })
-export class OrbTr {
+export class OrbTableRow {
   @Element() host: HTMLElement;
   @Prop({ reflect: true }) type: "header" | "body" | "footer" = "body";
 

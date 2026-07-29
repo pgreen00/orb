@@ -1,8 +1,4 @@
 :host {
-  display: contents;
-}
-
-nav {
   display: flex;
   align-items: center;
 
@@ -12,59 +8,6 @@ nav {
   line-height: var(--orb-spacing-lg);
 }
 
-::slotted(orb-breadcrumb:last-child) {
+.last {
   color: light-dark(var(--orb-primary-700), var(--orb-primary-200));
-}
-
-::slotted(:not(:last-child))::after {
-  content: "pen_size_1";
-  display: inline-flex;
-  transform: rotate(-15deg);
-  cursor: inherit;
-  font-family: "Material Symbols Rounded";
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--orb-font-lg);
-  line-height: unset;
-  letter-spacing: normal;
-  text-transform: none;
-  user-select: none;
-  -webkit-user-select: none;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 20;
-  color: light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
-}
-
-::slotted(button.collapse) {
-  background-color: transparent;
-  color: inherit;
-  cursor: pointer;
-  font-family: "Material Symbols Rounded";
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--orb-font-lg);
-  line-height: unset;
-  letter-spacing: normal;
-  text-transform: none;
-  user-select: none;
-  -webkit-user-select: none;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 20;
-  border: none;
-  margin: 0;
-  padding: 0;
 }

@@ -26,6 +26,9 @@ export class OrbLink {
   /** Passed to anchor */
   @Prop() download?: string;
 
+  /** Makes text the current color, rather than the primary color */
+  @Prop() neutral = false;
+
   render() {
     return (
       <a
@@ -35,7 +38,11 @@ export class OrbLink {
         target={this.target}
         rel={this.rel}
         download={this.download}
-        class={{ underline: this.underline, bold: this.bold }}
+        class={{
+          underline: this.underline,
+          bold: this.bold,
+          neutral: this.neutral,
+        }}
       >
         <slot></slot>
       </a>
