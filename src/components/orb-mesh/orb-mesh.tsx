@@ -1,11 +1,11 @@
 import { Component, Host, Prop } from "@stencil/core";
 
 @Component({
-  tag: "orb-grid",
-  styleUrl: "orb-grid.css",
+  tag: "orb-mesh",
+  styleUrl: "orb-mesh.css",
   shadow: true,
 })
-export class OrbGrid {
+export class OrbMesh {
   @Prop() space?:
     | "3xs"
     | "2xs"

@@ -3,8 +3,6 @@ title: "OrbPipe | <orb-pipe>"
 sidebar_label: "Pipe"
 ---
 
-[[toc]]
-
 ## Usage
 
 `<orb-pipe>` takes a unix-like expression, runs it through a chain of transforms, and renders the result as text.

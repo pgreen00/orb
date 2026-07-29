@@ -64,6 +64,10 @@ small {
   font-weight: var(--orb-font-light);
 }
 
+.banner-title {
+  font-size: 1.2rem;
+}
+
 a.header-anchor {
   color: inherit;
   font-size: inherit;

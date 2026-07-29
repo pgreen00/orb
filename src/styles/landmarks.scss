@@ -1,11 +1,14 @@
 html {
   height: 100dvh;
   width: 100svw;
-  overflow: hidden;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   color-scheme: light dark;
   box-sizing: border-box;
+  color: var(--orb-text-color);
+  background-color: var(--orb-background-color);
 
   &.orb-theme-light {
     color-scheme: light;
@@ -20,17 +23,10 @@ body {
   display: grid;
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
   box-sizing: border-box;
-  transform: translateZ(0);
-  color: var(--orb-text-color);
-  background-color: var(--orb-background-color);
   grid-template:
     "head head" auto
-    "side sub" auto
+    "sub sub" auto
     "side main" 1fr
     "foot foot" auto / auto minmax(0, 1fr);
   --border-color: var(--orb-divider-color);
@@ -64,7 +60,7 @@ body {
   &>header {
     display: flex;
     align-items: center;
-    background-color: inherit;
+    background-color: var(--orb-background-color);
     flex-shrink: 0;
     grid-area: head;
     position: sticky;
@@ -73,6 +69,7 @@ body {
     box-sizing: border-box;
     padding-inline: var(--orb-spacing-sm);
     height: var(--head-height);
+    border-bottom: solid 1px var(--border-color);
   }
 
   &>[data-landmark=subheader] {
@@ -122,6 +119,7 @@ body {
       scrollbar-width: thin;
       padding: var(--orb-spacing-xs);
       grid-area: side;
+      border-right: solid 1px var(--border-color);
     }
   }
   @media (max-width: 767px) {

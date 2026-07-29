@@ -9,8 +9,44 @@ eleventyComputed:
   title: "{{ component.title }}"
 ---
 
-<orb-view label="{{ component.title }}">
-  <orb-mi slot="actions">Something to do</orb-mi>
-  <orb-mi slot="actions">Something else</orb-mi>
-  {{ component.content | markdown | safe }}
-</orb-view>
+<article>
+  <style>
+    @scope {
+      :scope {
+        padding: 4rem;
+      }
+      .article-grid {
+        display: flex;
+        flex-wrap: wrap-reverse;
+        align-items: baseline;
+        gap: 2rem;
+      }
+      .article-body {
+        max-width: 800px;
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      aside {
+        flex: 1;
+        min-width: 200px;
+        position: sticky;
+        top: calc(var(--top-height) + 4rem);
+        height: fit-content;
+      }
+    }
+  </style>
+  <header>
+    <h1>{{ component.title }}</h1>
+  </header>
+  <div class="article-grid">
+    <div class="article-body">
+      {{ component.content | markdown | safe }}
+    </div>
+    <aside>
+      <orb-toc></orb-toc>
+    </aside>
+  </div>
+</article>
