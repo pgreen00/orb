@@ -9,102 +9,86 @@
     content="width=device-width, user-scalable=no"
   />
   <title>Orb Design System</title>
-  <style>@view-transition{navigation: auto;}</style>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/prism.css" />
   <link rel="stylesheet" href="/build/styles/core.css" />
   <link rel="stylesheet" href="/build/styles/landmarks.css" />
   <link rel="stylesheet" href="/build/styles/classes.css" />
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "orb-style": "/build/components/index.js",
+        "orb-style/": "/build/components/"
+      }
+    }
+  </script>
   <script type="module" src="/build/loader.js"></script>
   <script type="module" src="/mermaid.js"></script>
 </head>
 
 <body>
-  <header>
-    <orb-toolbar>
-      <img src="/hex-tag.svg" alt="logo" height="60" width="60" />
-      <h1>Orb Design System</h1>
-      <orb-button class="icon-only" slot="end" fill="clear">
-        <orb-link href="https://github.com/pgreen00/orb" target="_blank">
-          <iconify-icon height="2.5rem" width="2.5rem" icon="mdi:github"></iconify-icon>
-        </orb-link>
-      </orb-button>
-      <orb-popover slot="end" placement="bottom-end" trigger-action="hover">
-        <orb-button class="icon-only" slot="trigger">
-          <iconify-icon height="24" width="24" icon="mdi:moon-and-stars"></iconify-icon>
-        </orb-button>
-        <orb-stack space="xs">
-          <orb-button fill="clear" onclick="setTheme('system')">System</orb-button>
-          <orb-button fill="clear" onclick="setTheme('light')">Light</orb-button>
-          <orb-button fill="clear" onclick="setTheme('dark')">Dark</orb-button>
-        </orb-stack>
-      </orb-popover>
-    </orb-toolbar>
-  </header>
-  <nav data-landmark="sidebar" aria-label="Main navigation">
-    <orb-tree id="main-nav-tree">
-      <orb-branch href="/" label="Home"></orb-branch>
-      <orb-branch label="Installation"></orb-branch>
-      <orb-branch label="Tutorials" open>
-        <orb-branch label="Forms"></orb-branch>
-        <orb-branch label="Data Tables"></orb-branch>
-        <orb-branch label="Sessions"></orb-branch>
-        <orb-branch label="Design Patterns">
-          <orb-branch label="Loading State"></orb-branch>
-          <orb-branch label="Permissions"></orb-branch>
-          <orb-branch label="Simple Entities"></orb-branch>
-          <orb-branch label="Advanced Entities">
-            <orb-branch label="List View"></orb-branch>
-            <orb-branch label="Creation Wizard"></orb-branch>
-            <orb-branch label="Details View"></orb-branch>
+  <div data-landmark="sidebar" role="banner">
+    <orb-stack mode="row" space="xs" class="orb-margin-bottom-sm">
+      <img src="/hex-tag.svg" alt="logo" height="42" width="42" />
+      <orb-link class="banner-title" underline="false" bold neutral href="/">Orb Design System</orb-link>
+    </orb-stack>
+    <nav aria-label="Main navigation">
+      <orb-tree id="main-nav-tree">
+        <orb-branch href="/" label="Home"></orb-branch>
+        <orb-branch label="Installation"></orb-branch>
+        <orb-branch label="Tutorials" open>
+          <orb-branch label="Forms"></orb-branch>
+          <orb-branch label="Data Tables"></orb-branch>
+          <orb-branch label="Sessions"></orb-branch>
+          <orb-branch label="Design Patterns">
+            <orb-branch label="Loading State"></orb-branch>
+            <orb-branch label="Permissions"></orb-branch>
+            <orb-branch label="Simple Entities"></orb-branch>
+            <orb-branch label="Advanced Entities">
+              <orb-branch label="List View"></orb-branch>
+              <orb-branch label="Creation Wizard"></orb-branch>
+              <orb-branch label="Details View"></orb-branch>
+            </orb-branch>
+            <orb-branch label="Nested Relationships"></orb-branch>
           </orb-branch>
-          <orb-branch label="Nested Relationships"></orb-branch>
         </orb-branch>
-      </orb-branch>
-      <orb-branch label="Components" open>
-        {% for component in collections.componentsNav %}
-          <orb-branch label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-branch>
-        {% endfor %}
-      </orb-branch>
-      <orb-branch label="Design Tokens" open>
-        <orb-branch label="Colors"></orb-branch>
-        <orb-branch label="Elevation"></orb-branch>
-        <orb-branch label="Font"></orb-branch>
-        <orb-branch label="Radius"></orb-branch>
-        <orb-branch label="Spacing"></orb-branch>
-        <orb-branch label="Transition"></orb-branch>
-      </orb-branch>
-      <orb-branch label="CSS Classes"></orb-branch>
-      <orb-branch label="Changelog"></orb-branch>
-    </orb-tree>
-    <script type="module">
-      await customElements.whenDefined('orb-tree')
-      await customElements.whenDefined('orb-branch')
-      const tree = document.querySelector('orb-tree#main-nav-tree')
-      const branches = Array.from(tree.querySelectorAll('orb-branch'))
-      const currentPath = window.location.href.replace(window.location.origin, '')
-      const currentBranch = branches.find(b => b.href == currentPath)
-      tree.value = currentBranch?.label
-      requestAnimationFrame(() => currentBranch?.scrollIntoView({
-        block: 'center',
-        container: 'all'
-      }))
-    </script>
-  </nav>
+        <orb-branch label="Components" open>
+          {% for component in collections.componentsNav %}
+            <orb-branch label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-branch>
+          {% endfor %}
+        </orb-branch>
+        <orb-branch label="Design Tokens" open>
+          <orb-branch label="Colors"></orb-branch>
+          <orb-branch label="Elevation"></orb-branch>
+          <orb-branch label="Font"></orb-branch>
+          <orb-branch label="Radius"></orb-branch>
+          <orb-branch label="Spacing"></orb-branch>
+          <orb-branch label="Transition"></orb-branch>
+        </orb-branch>
+        <orb-branch label="CSS Classes"></orb-branch>
+        <orb-branch label="Changelog"></orb-branch>
+      </orb-tree>
+      <script type="module">
+        await customElements.whenDefined('orb-tree')
+        await customElements.whenDefined('orb-branch')
+        const tree = document.querySelector('orb-tree#main-nav-tree')
+        const branches = Array.from(tree.querySelectorAll('orb-branch'))
+        const currentPath = window.location.href.replace(window.location.origin, '')
+        const currentBranch = branches.find(b => b.href == currentPath)
+        tree.value = currentBranch?.label
+        requestAnimationFrame(() => currentBranch?.scrollIntoView({
+          block: 'center',
+          container: 'all'
+        }))
+      </script>
+    </nav>
+  </div>
   <main>
-    <article id="main-content">
-      {% block content %}
-        {{ content | safe }}
-      {% endblock %}
-    </article>
-    <aside>
-      <orb-toc target="main-content"></orb-toc>
-    </aside>
+    {% block content %}
+      {{ content | safe }}
+    {% endblock %}
   </main>
-  <footer>
-    @2026 harriet tubman
-  </footer>
 </body>
 
 <script>

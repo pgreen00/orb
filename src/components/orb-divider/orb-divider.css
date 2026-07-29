@@ -1,6 +1,6 @@
 :host {
   --thickness: 1px;
-  --color: light-dark(var(--orb-neutral-500), var(--orb-neutral-800));
+  --color: var(--orb-divider-color);
 
   background-color: var(--color);
 }

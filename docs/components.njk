@@ -9,6 +9,8 @@ eleventyComputed:
   title: "{{ component.title }}"
 ---
 
-<h1>{{ component.title }}</h1>
-
-{{ component.content | markdown | safe }}
+<orb-view label="{{ component.title }}">
+  <orb-mi slot="actions">Something to do</orb-mi>
+  <orb-mi slot="actions">Something else</orb-mi>
+  {{ component.content | markdown | safe }}
+</orb-view>

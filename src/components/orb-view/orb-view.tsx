@@ -1,5 +1,5 @@
-import { Component, Element, Host, Prop } from "@stencil/core";
-import { CloseIcon } from "../../utils/icons";
+import { Component, Element, Host, Prop, State } from "@stencil/core";
+import { CloseIcon, EllipsisIcon } from "../../utils/icons";
 
 @Component({
   tag: "orb-view",
@@ -9,33 +9,67 @@ import { CloseIcon } from "../../utils/icons";
 export class OrbView {
   @Element() el: HTMLElement;
   @Prop() label?: string;
-  @Prop() closable = true;
+  @Prop() closable = false;
+  @Prop() header: "none" | "minimal" | "prominent" = "minimal";
+  @Prop() headingLevel: "1" | "2" | "3" | "4" | "5" | "6" = "1";
+  @State() hasActions = false;
+  @State() hasFooter = false;
 
-  private get overlay() {
-    return this.el.closest("orb-overlay");
-  }
+  private setHasActions = (ev: Event) => {
+    this.hasActions =
+      (ev.target as HTMLSlotElement).assignedElements().length > 0;
+  };
+
+  private setHasFooter = (ev: Event) => {
+    this.hasFooter =
+      (ev.target as HTMLSlotElement).assignedElements().length > 0;
+  };
 
   render() {
     return (
       <Host>
-        <header>
-          <orb-toolbar>
-            <slot name="label">
-              {this.label && <h2 part="label">{this.label}</h2>}
-            </slot>
-            <div class="end" slot="end">
-              <slot name="actions" />
-              {this.closable && (
-                <orb-button size="lg" onClick={() => this.overlay.hide()}>
-                  <CloseIcon />
-                </orb-button>
-              )}
-            </div>
-          </orb-toolbar>
-        </header>
-        <slot name="body" />
+        {this.header !== "none" && (
+          <header class={{ [this.header]: true }}>
+            <orb-toolbar>
+              <slot name="label">
+                {this.label && (
+                  <span
+                    part="label"
+                    role="heading"
+                    aria-level={this.headingLevel}
+                  >
+                    {this.label}
+                  </span>
+                )}
+              </slot>
+              <div class="end" slot="end">
+                <slot name="header-end" />
+                <orb-popover class={{ hide: !this.hasActions }}>
+                  <orb-button slot="trigger" class="icon-only" fill="clear">
+                    <EllipsisIcon />
+                  </orb-button>
+                  <orb-list>
+                    <slot name="actions" onSlotchange={this.setHasActions} />
+                  </orb-list>
+                </orb-popover>
+                {this.closable && (
+                  <orb-button
+                    class="icon-only"
+                    fill="clear"
+                    data-overlay="hide"
+                  >
+                    <CloseIcon />
+                  </orb-button>
+                )}
+              </div>
+            </orb-toolbar>
+          </header>
+        )}
+        <div part="main-content">
+          <slot />
+        </div>
         <footer>
-          <slot name="footer" />
+          <slot name="footer" onSlotchange={this.setHasFooter} />
         </footer>
       </Host>
     );

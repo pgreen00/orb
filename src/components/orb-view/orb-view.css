@@ -1,5 +1,6 @@
 :host {
-  display: contents;
+  display: flex;
+  flex-direction: column;
   --padding: var(--orb-spacing-xs) var(--orb-spacing-lg);
 }
 
@@ -7,34 +8,71 @@
   display: contents;
 }
 
-h2 {
+[role="heading"] {
   font-family: inherit;
-  font-size: var(--orb-font-xl);
   font-weight: var(--orb-font-semi-bold);
-  margin-block-start: 0;
-  margin-block-end: 0;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-}
-
-header {
-  display: contents;
-
-  orb-toolbar {
-    flex-shrink: 0;
-    position: sticky;
-    top: var(--drag-height, 0);
-    z-index: 1;
-    padding: var(--padding);
-    border-bottom: solid 1px canvastext;
+  line-height: 1.75;
+  &[aria-level="1"] {
+    font-size: var(--orb-font-2xl);
+  }
+  &[aria-level="2"] {
+    font-size: var(--orb-font-xl);
+  }
+  &[aria-level="3"] {
+    font-size: var(--orb-font-lg);
+  }
+  &[aria-level="4"] {
+    font-size: var(--orb-font-md);
+  }
+  &[aria-level="5"] {
+    font-size: var(--orb-font-sm);
+  }
+  &[aria-level="6"] {
+    font-size: var(--orb-font-xs);
   }
 }
 
-::slotted([slot="body"]) {
-  padding: var(--padding);
-  flex: 1;
+header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--top-height);
+  z-index: 5;
+  box-sizing: border-box;
+  padding: var(--padding);
+  border-bottom: solid 1px var(--orb-divider-color);
+}
+
+[part="main-content"] {
+  flex: 1;
+  padding: var(--padding);
+  box-sizing: border-box;
+
+  /* Distance content dissolves over as it passes the scroll host's edges. */
+  --fade-size: 32px;
+}
+
+/* Declared on the host, not on `main-content`: the component sets these as
+   inline styles on the host, and a local declaration on the same element as the
+   mask would shadow the inherited value and pin the gradient to its defaults. */
+:host([fade]) {
+  --fade-start-edge: 0px;
+  --fade-start: 0px;
+  --fade-end: 100%;
+  --fade-end-edge: 100%;
+}
+
+:host([fade]) [part="main-content"] {
+  /* Stops are absolute offsets from this element's top edge, so they stay
+     aligned to the visible window even though the element is far taller. */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent var(--fade-start-edge),
+    #000 var(--fade-start),
+    #000 var(--fade-end),
+    transparent var(--fade-end-edge)
+  );
 }
 
 footer {
@@ -44,8 +82,11 @@ footer {
   align-items: center;
   position: sticky;
   bottom: 0;
-  z-index: 1;
+  z-index: 5;
   padding: var(--padding);
   gap: var(--orb-spacing-sm);
-  border-top: solid 1px canvastext;
+}
+
+orb-popover.hide {
+  display: none;
 }

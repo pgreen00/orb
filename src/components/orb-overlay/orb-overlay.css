@@ -108,6 +108,7 @@ dialog {
 
   &::backdrop {
     background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(0.5rem);
   }
 
   &[open] {

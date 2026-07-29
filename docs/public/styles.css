@@ -1,8 +1,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
+@view-transition {
+  navigation: auto;
+}
+
 :root {
   font-family: "Work Sans";
-  font-size: 16px;
+  font-size: clamp(12px, 10px + 0.5vw, 16px);
   line-height: 1.75;
   font-weight: var(--orb-font-regular);
 }
@@ -21,32 +25,32 @@ p {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: var(--orb-font-2xl);
   font-weight: var(--orb-font-bold);
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: var(--orb-font-xl);
   font-weight: var(--orb-font-bold);
 }
 
 h3 {
-  font-size: 1.5rem;
+  font-size: var(--orb-font-lg);
   font-weight: var(--orb-font-bold);
 }
 
 h4 {
-  font-size: 1.25rem;
+  font-size: var(--orb-font-md);
   font-weight: var(--orb-font-bold);
 }
 
 h5 {
-  font-size: 1rem;
+  font-size: var(--orb-font-sm);
   font-weight: var(--orb-font-bold);
 }
 
 h6 {
-  font-size: 0.875rem;
+  font-size: var(--orb-font-xs);
   font-weight: var(--orb-font-bold);
 }
 
@@ -83,8 +87,20 @@ code:not(code[class*="language-"]) {
   font-family: inherit;
 }
 
+.table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
 table {
   border-collapse: collapse;
+  min-width: 100%;
+  width: max-content;
+  max-width: none;
 
   th,
   td {
@@ -124,7 +140,7 @@ main {
 
 [id^="code-demo-"] {
   box-sizing: border-box;
-  border: solid 1px light-dark(var(--orb-neutral-500), var(--orb-neutral-800));
+  border: solid 1px var(--orb-divider-color);
   border-radius: var(--orb-radius-lg);
   & > div {
     padding: var(--orb-spacing-md);

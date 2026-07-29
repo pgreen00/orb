@@ -3,7 +3,6 @@
   box-sizing: border-box;
   height: fit-content;
   padding-inline: var(--orb-spacing-sm);
-  border-left: solid 1px
-    light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
+  border-left: solid 1px var(--orb-divider-color);
   flex-shrink: 0;
 }

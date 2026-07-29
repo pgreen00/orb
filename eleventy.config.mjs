@@ -106,6 +106,23 @@ export default async function (eleventyConfig) {
     },
   });
 
+  const defaultTableOpen = md.renderer.rules.table_open;
+  const defaultTableClose = md.renderer.rules.table_close;
+
+  md.renderer.rules.table_open = function (tokens, idx, options, env, renderer) {
+    const table = defaultTableOpen
+      ? defaultTableOpen(tokens, idx, options, env, renderer)
+      : renderer.renderToken(tokens, idx, options);
+    return `<div class="table-container">${table}`;
+  };
+
+  md.renderer.rules.table_close = function (tokens, idx, options, env, renderer) {
+    const table = defaultTableClose
+      ? defaultTableClose(tokens, idx, options, env, renderer)
+      : renderer.renderToken(tokens, idx, options);
+    return `${table}</div>`;
+  };
+
   md.renderer.rules.fence = function (tokens, idx, options, env, renderer) {
     const token = tokens[idx];
     const info = token.info ? token.info.trim() : "";
