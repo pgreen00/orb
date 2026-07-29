@@ -36,3 +36,6 @@ UserInterfaceState.xcuserstate
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Generated pipe manifest
+src/components/orb-pipe/pipes.generated.ts

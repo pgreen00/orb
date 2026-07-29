@@ -62,6 +62,7 @@ export namespace Components {
         "value"?: string;
     }
     interface OrbBreadcrumb {
+        "href"?: string;
     }
     interface OrbBreadcrumbs {
         /**
@@ -252,8 +253,6 @@ export namespace Components {
     | "2xs"
     | "3xl";
     }
-    interface OrbItem {
-    }
     interface OrbKnob {
     }
     interface OrbLabel {
@@ -269,6 +268,8 @@ export namespace Components {
          */
         "container": boolean;
     }
+    interface OrbLi {
+    }
     interface OrbLink {
         /**
           * Makes text bold
@@ -283,6 +284,11 @@ export namespace Components {
           * Passed to anchor
          */
         "href"?: string;
+        /**
+          * Makes text the current color, rather than the primary color
+          * @default false
+         */
+        "neutral": boolean;
         /**
           * Passed to anchor
          */
@@ -300,6 +306,10 @@ export namespace Components {
     interface OrbList {
     }
     interface OrbLoading {
+    }
+    interface OrbMenu {
+    }
+    interface OrbMi {
     }
     interface OrbMidi {
     }
@@ -368,6 +378,13 @@ export namespace Components {
         "template"?: string;
     }
     interface OrbPillGroup {
+    }
+    interface OrbPipe {
+        /**
+          * A unix-like pipe expression. The first segment is a literal seed value and each subsequent segment is a pipe invocation with optional arguments.
+          * @example "handheldInterfaceDefinition | reverseCase | titlecase"
+         */
+        "input": string;
     }
     interface OrbPlaceholder {
         /**
@@ -493,10 +510,6 @@ export namespace Components {
         "value"?: any;
     }
     interface OrbRange {
-    }
-    interface OrbReorderItem {
-    }
-    interface OrbReorderList {
     }
     interface OrbRichText {
         "clear": () => Promise<void>;
@@ -812,9 +825,17 @@ export namespace Components {
     }
     interface OrbView {
         /**
-          * @default true
+          * @default false
          */
         "closable": boolean;
+        /**
+          * @default "minimal"
+         */
+        "header": "none" | "minimal" | "prominent";
+        /**
+          * @default "1"
+         */
+        "headingLevel": "1" | "2" | "3" | "4" | "5" | "6";
         "label"?: string;
     }
     interface OrbViewManager {
@@ -1112,12 +1133,6 @@ declare global {
         prototype: HTMLOrbGridElement;
         new (): HTMLOrbGridElement;
     };
-    interface HTMLOrbItemElement extends Components.OrbItem, HTMLStencilElement {
-    }
-    var HTMLOrbItemElement: {
-        prototype: HTMLOrbItemElement;
-        new (): HTMLOrbItemElement;
-    };
     interface HTMLOrbKnobElement extends Components.OrbKnob, HTMLStencilElement {
     }
     var HTMLOrbKnobElement: {
@@ -1136,6 +1151,12 @@ declare global {
         prototype: HTMLOrbLayoutSwapElement;
         new (): HTMLOrbLayoutSwapElement;
     };
+    interface HTMLOrbLiElement extends Components.OrbLi, HTMLStencilElement {
+    }
+    var HTMLOrbLiElement: {
+        prototype: HTMLOrbLiElement;
+        new (): HTMLOrbLiElement;
+    };
     interface HTMLOrbLinkElement extends Components.OrbLink, HTMLStencilElement {
     }
     var HTMLOrbLinkElement: {
@@ -1153,6 +1174,18 @@ declare global {
     var HTMLOrbLoadingElement: {
         prototype: HTMLOrbLoadingElement;
         new (): HTMLOrbLoadingElement;
+    };
+    interface HTMLOrbMenuElement extends Components.OrbMenu, HTMLStencilElement {
+    }
+    var HTMLOrbMenuElement: {
+        prototype: HTMLOrbMenuElement;
+        new (): HTMLOrbMenuElement;
+    };
+    interface HTMLOrbMiElement extends Components.OrbMi, HTMLStencilElement {
+    }
+    var HTMLOrbMiElement: {
+        prototype: HTMLOrbMiElement;
+        new (): HTMLOrbMiElement;
     };
     interface HTMLOrbMidiElement extends Components.OrbMidi, HTMLStencilElement {
     }
@@ -1201,6 +1234,12 @@ declare global {
     var HTMLOrbPillGroupElement: {
         prototype: HTMLOrbPillGroupElement;
         new (): HTMLOrbPillGroupElement;
+    };
+    interface HTMLOrbPipeElement extends Components.OrbPipe, HTMLStencilElement {
+    }
+    var HTMLOrbPipeElement: {
+        prototype: HTMLOrbPipeElement;
+        new (): HTMLOrbPipeElement;
     };
     interface HTMLOrbPlaceholderElement extends Components.OrbPlaceholder, HTMLStencilElement {
     }
@@ -1263,18 +1302,6 @@ declare global {
     var HTMLOrbRangeElement: {
         prototype: HTMLOrbRangeElement;
         new (): HTMLOrbRangeElement;
-    };
-    interface HTMLOrbReorderItemElement extends Components.OrbReorderItem, HTMLStencilElement {
-    }
-    var HTMLOrbReorderItemElement: {
-        prototype: HTMLOrbReorderItemElement;
-        new (): HTMLOrbReorderItemElement;
-    };
-    interface HTMLOrbReorderListElement extends Components.OrbReorderList, HTMLStencilElement {
-    }
-    var HTMLOrbReorderListElement: {
-        prototype: HTMLOrbReorderListElement;
-        new (): HTMLOrbReorderListElement;
     };
     interface HTMLOrbRichTextElementEventMap {
         "editorChange": EditorChangeEvent;
@@ -1505,27 +1532,28 @@ declare global {
         "orb-dropzone": HTMLOrbDropzoneElement;
         "orb-eq": HTMLOrbEqElement;
         "orb-grid": HTMLOrbGridElement;
-        "orb-item": HTMLOrbItemElement;
         "orb-knob": HTMLOrbKnobElement;
         "orb-label": HTMLOrbLabelElement;
         "orb-layout-swap": HTMLOrbLayoutSwapElement;
+        "orb-li": HTMLOrbLiElement;
         "orb-link": HTMLOrbLinkElement;
         "orb-list": HTMLOrbListElement;
         "orb-loading": HTMLOrbLoadingElement;
+        "orb-menu": HTMLOrbMenuElement;
+        "orb-mi": HTMLOrbMiElement;
         "orb-midi": HTMLOrbMidiElement;
         "orb-note": HTMLOrbNoteElement;
         "orb-option": HTMLOrbOptionElement;
         "orb-overlay": HTMLOrbOverlayElement;
         "orb-pill": HTMLOrbPillElement;
         "orb-pill-group": HTMLOrbPillGroupElement;
+        "orb-pipe": HTMLOrbPipeElement;
         "orb-placeholder": HTMLOrbPlaceholderElement;
         "orb-popover": HTMLOrbPopoverElement;
         "orb-radio": HTMLOrbRadioElement;
         "orb-radio-button": HTMLOrbRadioButtonElement;
         "orb-radio-group": HTMLOrbRadioGroupElement;
         "orb-range": HTMLOrbRangeElement;
-        "orb-reorder-item": HTMLOrbReorderItemElement;
-        "orb-reorder-list": HTMLOrbReorderListElement;
         "orb-rich-text": HTMLOrbRichTextElement;
         "orb-shader-canvas": HTMLOrbShaderCanvasElement;
         "orb-split-panel": HTMLOrbSplitPanelElement;
@@ -1550,6 +1578,8 @@ declare global {
     }
 }
 declare namespace LocalJSX {
+    type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}` | `prop:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K | `prop:${K}`]?: never } | { [P in `prop:${K}`]: PropT } & { [P in K | `attr:${K}`]?: never };
+
     /**
      * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
@@ -1592,6 +1622,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     interface OrbBreadcrumb {
+        "href"?: string;
     }
     interface OrbBreadcrumbs {
         /**
@@ -1629,6 +1660,10 @@ declare namespace LocalJSX {
           * Can set form id to participate in forms. Use this if you need to place submit/reset button outside the form element
          */
         "form"?: string;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
         /**
           * Shows a loading spinner and disables the button
           * @default false
@@ -1813,8 +1848,6 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
-    interface OrbItem {
-    }
     interface OrbKnob {
     }
     interface OrbLabel {
@@ -1830,6 +1863,8 @@ declare namespace LocalJSX {
          */
         "container"?: boolean;
     }
+    interface OrbLi {
+    }
     interface OrbLink {
         /**
           * Makes text bold
@@ -1844,6 +1879,11 @@ declare namespace LocalJSX {
           * Passed to anchor
          */
         "href"?: string;
+        /**
+          * Makes text the current color, rather than the primary color
+          * @default false
+         */
+        "neutral"?: boolean;
         /**
           * Passed to anchor
          */
@@ -1861,6 +1901,10 @@ declare namespace LocalJSX {
     interface OrbList {
     }
     interface OrbLoading {
+    }
+    interface OrbMenu {
+    }
+    interface OrbMi {
     }
     interface OrbMidi {
     }
@@ -1935,6 +1979,13 @@ declare namespace LocalJSX {
         "template"?: string;
     }
     interface OrbPillGroup {
+    }
+    interface OrbPipe {
+        /**
+          * A unix-like pipe expression. The first segment is a literal seed value and each subsequent segment is a pipe invocation with optional arguments.
+          * @example "handheldInterfaceDefinition | reverseCase | titlecase"
+         */
+        "input": string;
     }
     interface OrbPlaceholder {
         /**
@@ -2090,10 +2141,6 @@ declare namespace LocalJSX {
         "value"?: any;
     }
     interface OrbRange {
-    }
-    interface OrbReorderItem {
-    }
-    interface OrbReorderList {
     }
     interface OrbRichText {
         /**
@@ -2443,9 +2490,17 @@ declare namespace LocalJSX {
     }
     interface OrbView {
         /**
-          * @default true
+          * @default false
          */
         "closable"?: boolean;
+        /**
+          * @default "minimal"
+         */
+        "header"?: "none" | "minimal" | "prominent";
+        /**
+          * @default "1"
+         */
+        "headingLevel"?: "1" | "2" | "3" | "4" | "5" | "6";
         "label"?: string;
     }
     interface OrbViewManager {
@@ -2472,6 +2527,9 @@ declare namespace LocalJSX {
         "value": string;
         "label": string;
         "selected": boolean | null;
+        "href": string;
+    }
+    interface OrbBreadcrumbAttributes {
         "href": string;
     }
     interface OrbBreadcrumbsAttributes {
@@ -2559,6 +2617,7 @@ declare namespace LocalJSX {
         "target": string;
         "rel": string;
         "download": string;
+        "neutral": boolean;
     }
     interface OrbNoteAttributes {
         "invalid": boolean;
@@ -2580,6 +2639,9 @@ declare namespace LocalJSX {
         "color": Color;
         "pulse": boolean;
         "template": string;
+    }
+    interface OrbPipeAttributes {
+        "input": string;
     }
     interface OrbPlaceholderAttributes {
         "animated": boolean;
@@ -2729,13 +2791,15 @@ declare namespace LocalJSX {
     interface OrbViewAttributes {
         "label": string;
         "closable": boolean;
+        "header": "none" | "minimal" | "prominent";
+        "headingLevel": "1" | "2" | "3" | "4" | "5" | "6";
     }
 
     interface IntrinsicElements {
         "orb-accordion": OrbAccordion;
         "orb-alert": Omit<OrbAlert, keyof OrbAlertAttributes> & { [K in keyof OrbAlert & keyof OrbAlertAttributes]?: OrbAlert[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `attr:${K}`]?: OrbAlertAttributes[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `prop:${K}`]?: OrbAlert[K] };
         "orb-branch": Omit<OrbBranch, keyof OrbBranchAttributes> & { [K in keyof OrbBranch & keyof OrbBranchAttributes]?: OrbBranch[K] } & { [K in keyof OrbBranch & keyof OrbBranchAttributes as `attr:${K}`]?: OrbBranchAttributes[K] } & { [K in keyof OrbBranch & keyof OrbBranchAttributes as `prop:${K}`]?: OrbBranch[K] };
-        "orb-breadcrumb": OrbBreadcrumb;
+        "orb-breadcrumb": Omit<OrbBreadcrumb, keyof OrbBreadcrumbAttributes> & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes]?: OrbBreadcrumb[K] } & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes as `attr:${K}`]?: OrbBreadcrumbAttributes[K] } & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes as `prop:${K}`]?: OrbBreadcrumb[K] };
         "orb-breadcrumbs": Omit<OrbBreadcrumbs, keyof OrbBreadcrumbsAttributes> & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes]?: OrbBreadcrumbs[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `attr:${K}`]?: OrbBreadcrumbsAttributes[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `prop:${K}`]?: OrbBreadcrumbs[K] };
         "orb-button": Omit<OrbButton, keyof OrbButtonAttributes> & { [K in keyof OrbButton & keyof OrbButtonAttributes]?: OrbButton[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `attr:${K}`]?: OrbButtonAttributes[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `prop:${K}`]?: OrbButton[K] };
         "orb-button-group": OrbButtonGroup;
@@ -2754,27 +2818,28 @@ declare namespace LocalJSX {
         "orb-dropzone": OrbDropzone;
         "orb-eq": OrbEq;
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
-        "orb-item": OrbItem;
         "orb-knob": OrbKnob;
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
+        "orb-li": OrbLi;
         "orb-link": Omit<OrbLink, keyof OrbLinkAttributes> & { [K in keyof OrbLink & keyof OrbLinkAttributes]?: OrbLink[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `attr:${K}`]?: OrbLinkAttributes[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `prop:${K}`]?: OrbLink[K] };
         "orb-list": OrbList;
         "orb-loading": OrbLoading;
+        "orb-menu": OrbMenu;
+        "orb-mi": OrbMi;
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
         "orb-option": Omit<OrbOption, keyof OrbOptionAttributes> & { [K in keyof OrbOption & keyof OrbOptionAttributes]?: OrbOption[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `attr:${K}`]?: OrbOptionAttributes[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `prop:${K}`]?: OrbOption[K] };
         "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
         "orb-pill": Omit<OrbPill, keyof OrbPillAttributes> & { [K in keyof OrbPill & keyof OrbPillAttributes]?: OrbPill[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `attr:${K}`]?: OrbPillAttributes[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `prop:${K}`]?: OrbPill[K] };
         "orb-pill-group": OrbPillGroup;
+        "orb-pipe": Omit<OrbPipe, keyof OrbPipeAttributes> & { [K in keyof OrbPipe & keyof OrbPipeAttributes]?: OrbPipe[K] } & { [K in keyof OrbPipe & keyof OrbPipeAttributes as `attr:${K}`]?: OrbPipeAttributes[K] } & { [K in keyof OrbPipe & keyof OrbPipeAttributes as `prop:${K}`]?: OrbPipe[K] } & OneOf<"input", OrbPipe["input"], OrbPipeAttributes["input"]>;
         "orb-placeholder": Omit<OrbPlaceholder, keyof OrbPlaceholderAttributes> & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes]?: OrbPlaceholder[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `attr:${K}`]?: OrbPlaceholderAttributes[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `prop:${K}`]?: OrbPlaceholder[K] };
         "orb-popover": Omit<OrbPopover, keyof OrbPopoverAttributes> & { [K in keyof OrbPopover & keyof OrbPopoverAttributes]?: OrbPopover[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `attr:${K}`]?: OrbPopoverAttributes[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `prop:${K}`]?: OrbPopover[K] };
         "orb-radio": Omit<OrbRadio, keyof OrbRadioAttributes> & { [K in keyof OrbRadio & keyof OrbRadioAttributes]?: OrbRadio[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `attr:${K}`]?: OrbRadioAttributes[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `prop:${K}`]?: OrbRadio[K] };
         "orb-radio-button": Omit<OrbRadioButton, keyof OrbRadioButtonAttributes> & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes]?: OrbRadioButton[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `attr:${K}`]?: OrbRadioButtonAttributes[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `prop:${K}`]?: OrbRadioButton[K] };
         "orb-radio-group": Omit<OrbRadioGroup, keyof OrbRadioGroupAttributes> & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes]?: OrbRadioGroup[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `attr:${K}`]?: OrbRadioGroupAttributes[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `prop:${K}`]?: OrbRadioGroup[K] };
         "orb-range": OrbRange;
-        "orb-reorder-item": OrbReorderItem;
-        "orb-reorder-list": OrbReorderList;
         "orb-rich-text": Omit<OrbRichText, keyof OrbRichTextAttributes> & { [K in keyof OrbRichText & keyof OrbRichTextAttributes]?: OrbRichText[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `attr:${K}`]?: OrbRichTextAttributes[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `prop:${K}`]?: OrbRichText[K] };
         "orb-shader-canvas": Omit<OrbShaderCanvas, keyof OrbShaderCanvasAttributes> & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes]?: OrbShaderCanvas[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `attr:${K}`]?: OrbShaderCanvasAttributes[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `prop:${K}`]?: OrbShaderCanvas[K] };
         "orb-split-panel": OrbSplitPanel;
@@ -2828,27 +2893,28 @@ declare module "@stencil/core" {
             "orb-dropzone": LocalJSX.IntrinsicElements["orb-dropzone"] & JSXBase.HTMLAttributes<HTMLOrbDropzoneElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
-            "orb-item": LocalJSX.IntrinsicElements["orb-item"] & JSXBase.HTMLAttributes<HTMLOrbItemElement>;
             "orb-knob": LocalJSX.IntrinsicElements["orb-knob"] & JSXBase.HTMLAttributes<HTMLOrbKnobElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
             "orb-layout-swap": LocalJSX.IntrinsicElements["orb-layout-swap"] & JSXBase.HTMLAttributes<HTMLOrbLayoutSwapElement>;
+            "orb-li": LocalJSX.IntrinsicElements["orb-li"] & JSXBase.HTMLAttributes<HTMLOrbLiElement>;
             "orb-link": LocalJSX.IntrinsicElements["orb-link"] & JSXBase.HTMLAttributes<HTMLOrbLinkElement>;
             "orb-list": LocalJSX.IntrinsicElements["orb-list"] & JSXBase.HTMLAttributes<HTMLOrbListElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
+            "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
+            "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
             "orb-option": LocalJSX.IntrinsicElements["orb-option"] & JSXBase.HTMLAttributes<HTMLOrbOptionElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
             "orb-pill": LocalJSX.IntrinsicElements["orb-pill"] & JSXBase.HTMLAttributes<HTMLOrbPillElement>;
             "orb-pill-group": LocalJSX.IntrinsicElements["orb-pill-group"] & JSXBase.HTMLAttributes<HTMLOrbPillGroupElement>;
+            "orb-pipe": LocalJSX.IntrinsicElements["orb-pipe"] & JSXBase.HTMLAttributes<HTMLOrbPipeElement>;
             "orb-placeholder": LocalJSX.IntrinsicElements["orb-placeholder"] & JSXBase.HTMLAttributes<HTMLOrbPlaceholderElement>;
             "orb-popover": LocalJSX.IntrinsicElements["orb-popover"] & JSXBase.HTMLAttributes<HTMLOrbPopoverElement>;
             "orb-radio": LocalJSX.IntrinsicElements["orb-radio"] & JSXBase.HTMLAttributes<HTMLOrbRadioElement>;
             "orb-radio-button": LocalJSX.IntrinsicElements["orb-radio-button"] & JSXBase.HTMLAttributes<HTMLOrbRadioButtonElement>;
             "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
             "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
-            "orb-reorder-item": LocalJSX.IntrinsicElements["orb-reorder-item"] & JSXBase.HTMLAttributes<HTMLOrbReorderItemElement>;
-            "orb-reorder-list": LocalJSX.IntrinsicElements["orb-reorder-list"] & JSXBase.HTMLAttributes<HTMLOrbReorderListElement>;
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**
              * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
