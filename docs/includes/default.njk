@@ -54,29 +54,29 @@
   </header>
   <nav data-landmark="sidebar" aria-label="Main navigation">
     <orb-tree id="main-nav-tree">
-      <orb-branch href="/" label="Home"></orb-branch>
-      <orb-branch label="Installation"></orb-branch>
-      <orb-branch label="Tutorials" open>
-        <orb-branch label="Forms"></orb-branch>
-        <orb-branch label="Themes"></orb-branch>
-        <orb-branch label="Data Tables"></orb-branch>
-        <orb-branch label="Design Patterns"></orb-branch>
-      </orb-branch>
-      <orb-branch label="Components" open>
+      <orb-ti href="/" label="Home"></orb-ti>
+      <orb-ti label="Installation"></orb-ti>
+      <orb-ti label="Tutorials" open>
+        <orb-ti label="Forms"></orb-ti>
+        <orb-ti label="Themes"></orb-ti>
+        <orb-ti label="Data Tables"></orb-ti>
+        <orb-ti label="Design Patterns"></orb-ti>
+      </orb-ti>
+      <orb-ti label="Components" open>
         {% for component in collections.componentsNav %}
-          <orb-branch label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-branch>
+          <orb-ti label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-ti>
         {% endfor %}
-      </orb-branch>
-      <orb-branch label="CSS Utilities" open>
-        <orb-branch label="Design Tokens"></orb-branch>
-        <orb-branch label="Classes"></orb-branch>
-      </orb-branch>
+      </orb-ti>
+      <orb-ti label="CSS Utilities" open>
+        <orb-ti label="Design Tokens"></orb-ti>
+        <orb-ti label="Classes"></orb-ti>
+      </orb-ti>
     </orb-tree>
     <script type="module">
       await customElements.whenDefined('orb-tree')
-      await customElements.whenDefined('orb-branch')
+      await customElements.whenDefined('orb-ti')
       const tree = document.querySelector('orb-tree#main-nav-tree')
-      const branches = Array.from(tree.querySelectorAll('orb-branch'))
+      const branches = Array.from(tree.querySelectorAll('orb-ti'))
       const currentPath = window.location.href.replace(window.location.origin, '')
       const currentBranch = branches.find(b => b.href == currentPath)
       tree.value = currentBranch?.label

@@ -23,7 +23,7 @@ export class OrbTree {
   @Event() valueChange: EventEmitter<string | string[]>;
 
   private get branches() {
-    return Array.from(this.element.querySelectorAll("orb-branch"));
+    return Array.from(this.element.querySelectorAll("orb-ti"));
   }
 
   componentWillLoad() {
@@ -32,7 +32,7 @@ export class OrbTree {
   }
 
   async componentWillRender() {
-    await customElements.whenDefined("orb-branch");
+    await customElements.whenDefined("orb-ti");
     const { branches, selection, indentation, value } = this;
     branches.forEach((branch) => {
       branch.selection = selection;
@@ -56,7 +56,7 @@ export class OrbTree {
 
   @Listen("click")
   async onClick({ target }: MouseEvent) {
-    await customElements.whenDefined("orb-branch");
+    await customElements.whenDefined("orb-ti");
     if (this.isBranch(target)) {
       const { branches, selection } = this;
       const isLeaf = await target.isLeaf();
@@ -78,7 +78,7 @@ export class OrbTree {
           );
         } else {
           target
-            .querySelectorAll("orb-branch")
+            .querySelectorAll("orb-ti")
             .forEach((branch) => (branch.selected = target.selected));
         }
         this.setParents(target);
@@ -109,13 +109,13 @@ export class OrbTree {
     }
   }
 
-  private isBranch = (target: any): target is HTMLOrbBranchElement =>
-    target instanceof HTMLElement && target.tagName == "ORB-BRANCH";
+  private isBranch = (target: any): target is HTMLOrbTiElement =>
+    target instanceof HTMLElement && target.tagName == "ORB-TI";
 
-  private async setParents(branch: HTMLOrbBranchElement) {
+  private async setParents(branch: HTMLOrbTiElement) {
     const parentBranch = branch.parentElement;
     if (this.isBranch(parentBranch)) {
-      const children = Array.from(parentBranch.querySelectorAll("orb-branch"));
+      const children = Array.from(parentBranch.querySelectorAll("orb-ti"));
       parentBranch.selected = children.every((child) => child.selected)
         ? true
         : children.some((child) => child.selected)

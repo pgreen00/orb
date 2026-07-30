@@ -13,13 +13,13 @@ sidebar_label: 'Tree'
     <orb-radio-button value="leaf">Leaf</orb-radio-button>
   </orb-radio-group>
   <orb-tree id="selection-tree" selection="single">
-    <orb-branch label="Branch 1">
-      <orb-branch label="Branch 1.a"></orb-branch>
-      <orb-branch label="Branch 1.b"></orb-branch>
-      <orb-branch label="Branch 1.c"></orb-branch>
-    </orb-branch>
-    <orb-branch label="Branch 2"></orb-branch>
-    <orb-branch label="Branch 3"></orb-branch>
+    <orb-ti label="Branch 1">
+      <orb-ti label="Branch 1.a"></orb-ti>
+      <orb-ti label="Branch 1.b"></orb-ti>
+      <orb-ti label="Branch 1.c"></orb-ti>
+    </orb-ti>
+    <orb-ti label="Branch 2"></orb-ti>
+    <orb-ti label="Branch 3"></orb-ti>
   </orb-tree>
 </orb-stack>
 ```

@@ -24,13 +24,13 @@ function getDepth(child: HTMLElement, ancestor: HTMLElement) {
 }
 
 @Component({
-  tag: "orb-branch",
-  styleUrl: "orb-branch.css",
+  tag: "orb-ti",
+  styleUrl: "orb-tree-item.css",
   shadow: {
     delegatesFocus: true,
   },
 })
-export class OrbBranch {
+export class OrbTreeItem {
   private hasChildren = false;
   private isChild = false;
   @Element() element: HTMLElement;
@@ -43,8 +43,8 @@ export class OrbBranch {
   @Prop() href?: string;
 
   componentWillRender() {
-    this.hasChildren = this.element.querySelector("orb-branch") !== null;
-    this.isChild = this.element.parentElement.closest("orb-branch") != null;
+    this.hasChildren = this.element.querySelector("orb-ti") !== null;
+    this.isChild = this.element.parentElement.closest("orb-ti") != null;
     const depth = getDepth(this.element, this.element.closest("orb-tree"));
     this.element.style.setProperty("--depth", depth.toString());
   }

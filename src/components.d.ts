@@ -42,25 +42,6 @@ export namespace Components {
         "open": boolean;
         "show": () => Promise<void>;
     }
-    interface OrbBranch {
-        "href"?: string;
-        /**
-          * @default false
-         */
-        "indentation": boolean;
-        "isLeaf": () => Promise<boolean>;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "open": boolean;
-        /**
-          * @default false
-         */
-        "selected": boolean | null;
-        "selection"?: "single" | "multiple" | "leaf";
-        "value"?: string;
-    }
     interface OrbBreadcrumb {
         "href"?: string;
     }
@@ -768,6 +749,25 @@ export namespace Components {
          */
         "wrap"?: string;
     }
+    interface OrbTi {
+        "href"?: string;
+        /**
+          * @default false
+         */
+        "indentation": boolean;
+        "isLeaf": () => Promise<boolean>;
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "open": boolean;
+        /**
+          * @default false
+         */
+        "selected": boolean | null;
+        "selection"?: "single" | "multiple" | "leaf";
+        "value"?: string;
+    }
     interface OrbToc {
     }
     interface OrbToggle {
@@ -956,12 +956,6 @@ declare global {
     var HTMLOrbAlertElement: {
         prototype: HTMLOrbAlertElement;
         new (): HTMLOrbAlertElement;
-    };
-    interface HTMLOrbBranchElement extends Components.OrbBranch, HTMLStencilElement {
-    }
-    var HTMLOrbBranchElement: {
-        prototype: HTMLOrbBranchElement;
-        new (): HTMLOrbBranchElement;
     };
     interface HTMLOrbBreadcrumbElement extends Components.OrbBreadcrumb, HTMLStencilElement {
     }
@@ -1439,6 +1433,12 @@ declare global {
         prototype: HTMLOrbTextboxElement;
         new (): HTMLOrbTextboxElement;
     };
+    interface HTMLOrbTiElement extends Components.OrbTi, HTMLStencilElement {
+    }
+    var HTMLOrbTiElement: {
+        prototype: HTMLOrbTiElement;
+        new (): HTMLOrbTiElement;
+    };
     interface HTMLOrbTocElement extends Components.OrbToc, HTMLStencilElement {
     }
     var HTMLOrbTocElement: {
@@ -1524,7 +1524,6 @@ declare global {
     interface HTMLElementTagNameMap {
         "orb-accordion": HTMLOrbAccordionElement;
         "orb-alert": HTMLOrbAlertElement;
-        "orb-branch": HTMLOrbBranchElement;
         "orb-breadcrumb": HTMLOrbBreadcrumbElement;
         "orb-breadcrumbs": HTMLOrbBreadcrumbsElement;
         "orb-button": HTMLOrbButtonElement;
@@ -1579,6 +1578,7 @@ declare global {
         "orb-tab-panel": HTMLOrbTabPanelElement;
         "orb-tabs": HTMLOrbTabsElement;
         "orb-textbox": HTMLOrbTextboxElement;
+        "orb-ti": HTMLOrbTiElement;
         "orb-toc": HTMLOrbTocElement;
         "orb-toggle": HTMLOrbToggleElement;
         "orb-toolbar": HTMLOrbToolbarElement;
@@ -1614,24 +1614,6 @@ declare namespace LocalJSX {
           * @default false
          */
         "open"?: boolean;
-    }
-    interface OrbBranch {
-        "href"?: string;
-        /**
-          * @default false
-         */
-        "indentation"?: boolean;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "open"?: boolean;
-        /**
-          * @default false
-         */
-        "selected"?: boolean | null;
-        "selection"?: "single" | "multiple" | "leaf";
-        "value"?: string;
     }
     interface OrbBreadcrumb {
         "href"?: string;
@@ -2428,6 +2410,24 @@ declare namespace LocalJSX {
          */
         "wrap"?: string;
     }
+    interface OrbTi {
+        "href"?: string;
+        /**
+          * @default false
+         */
+        "indentation"?: boolean;
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "open"?: boolean;
+        /**
+          * @default false
+         */
+        "selected"?: boolean | null;
+        "selection"?: "single" | "multiple" | "leaf";
+        "value"?: string;
+    }
     interface OrbToc {
     }
     interface OrbToggle {
@@ -2543,15 +2543,6 @@ declare namespace LocalJSX {
         "color": Color;
         "duration": number;
         "open": boolean;
-    }
-    interface OrbBranchAttributes {
-        "selection": "single" | "multiple" | "leaf";
-        "indentation": boolean;
-        "open": boolean;
-        "value": string;
-        "label": string;
-        "selected": boolean | null;
-        "href": string;
     }
     interface OrbBreadcrumbAttributes {
         "href": string;
@@ -2793,6 +2784,15 @@ declare namespace LocalJSX {
         "required": boolean;
         "step": string;
     }
+    interface OrbTiAttributes {
+        "selection": "single" | "multiple" | "leaf";
+        "indentation": boolean;
+        "open": boolean;
+        "value": string;
+        "label": string;
+        "selected": boolean | null;
+        "href": string;
+    }
     interface OrbToggleAttributes {
         "originalValue": boolean;
         "value": boolean;
@@ -2831,7 +2831,6 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "orb-accordion": OrbAccordion;
         "orb-alert": Omit<OrbAlert, keyof OrbAlertAttributes> & { [K in keyof OrbAlert & keyof OrbAlertAttributes]?: OrbAlert[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `attr:${K}`]?: OrbAlertAttributes[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `prop:${K}`]?: OrbAlert[K] };
-        "orb-branch": Omit<OrbBranch, keyof OrbBranchAttributes> & { [K in keyof OrbBranch & keyof OrbBranchAttributes]?: OrbBranch[K] } & { [K in keyof OrbBranch & keyof OrbBranchAttributes as `attr:${K}`]?: OrbBranchAttributes[K] } & { [K in keyof OrbBranch & keyof OrbBranchAttributes as `prop:${K}`]?: OrbBranch[K] };
         "orb-breadcrumb": Omit<OrbBreadcrumb, keyof OrbBreadcrumbAttributes> & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes]?: OrbBreadcrumb[K] } & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes as `attr:${K}`]?: OrbBreadcrumbAttributes[K] } & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes as `prop:${K}`]?: OrbBreadcrumb[K] };
         "orb-breadcrumbs": Omit<OrbBreadcrumbs, keyof OrbBreadcrumbsAttributes> & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes]?: OrbBreadcrumbs[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `attr:${K}`]?: OrbBreadcrumbsAttributes[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `prop:${K}`]?: OrbBreadcrumbs[K] };
         "orb-button": Omit<OrbButton, keyof OrbButtonAttributes> & { [K in keyof OrbButton & keyof OrbButtonAttributes]?: OrbButton[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `attr:${K}`]?: OrbButtonAttributes[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `prop:${K}`]?: OrbButton[K] };
@@ -2886,6 +2885,7 @@ declare namespace LocalJSX {
         "orb-tab-panel": Omit<OrbTabPanel, keyof OrbTabPanelAttributes> & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes]?: OrbTabPanel[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `attr:${K}`]?: OrbTabPanelAttributes[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `prop:${K}`]?: OrbTabPanel[K] };
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
+        "orb-ti": Omit<OrbTi, keyof OrbTiAttributes> & { [K in keyof OrbTi & keyof OrbTiAttributes]?: OrbTi[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `attr:${K}`]?: OrbTiAttributes[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `prop:${K}`]?: OrbTi[K] };
         "orb-toc": OrbToc;
         "orb-toggle": Omit<OrbToggle, keyof OrbToggleAttributes> & { [K in keyof OrbToggle & keyof OrbToggleAttributes]?: OrbToggle[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `attr:${K}`]?: OrbToggleAttributes[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `prop:${K}`]?: OrbToggle[K] };
         "orb-toolbar": Omit<OrbToolbar, keyof OrbToolbarAttributes> & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes]?: OrbToolbar[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `attr:${K}`]?: OrbToolbarAttributes[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `prop:${K}`]?: OrbToolbar[K] };
@@ -2906,7 +2906,6 @@ declare module "@stencil/core" {
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
-            "orb-branch": LocalJSX.IntrinsicElements["orb-branch"] & JSXBase.HTMLAttributes<HTMLOrbBranchElement>;
             "orb-breadcrumb": LocalJSX.IntrinsicElements["orb-breadcrumb"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbElement>;
             "orb-breadcrumbs": LocalJSX.IntrinsicElements["orb-breadcrumbs"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbsElement>;
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
@@ -2971,6 +2970,7 @@ declare module "@stencil/core" {
              * its a textbox
              */
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
+            "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;
             "orb-toc": LocalJSX.IntrinsicElements["orb-toc"] & JSXBase.HTMLAttributes<HTMLOrbTocElement>;
             "orb-toggle": LocalJSX.IntrinsicElements["orb-toggle"] & JSXBase.HTMLAttributes<HTMLOrbToggleElement>;
             "orb-toolbar": LocalJSX.IntrinsicElements["orb-toolbar"] & JSXBase.HTMLAttributes<HTMLOrbToolbarElement>;
