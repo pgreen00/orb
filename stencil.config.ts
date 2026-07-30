@@ -7,8 +7,8 @@ import { generatePipeManifest } from "./scripts/generate-pipe-manifest.mjs";
 import { writeFileSync, appendFileSync, mkdirSync } from "fs";
 
 generatePipeManifest({
-  pipesDir: "src/components/orb-pipe/pipes",
-  outFile: "src/components/orb-pipe/pipes.generated.ts",
+  pipesDir: "src/components/pipe/pipes",
+  outFile: "src/components/pipe/pipes.generated.ts",
 });
 
 export const config: Config = {

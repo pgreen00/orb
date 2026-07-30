@@ -1,0 +1,135 @@
+import {
+  Component,
+  Element,
+  Event,
+  EventEmitter,
+  forceUpdate,
+  Host,
+  Listen,
+  Prop,
+  Watch,
+} from "@stencil/core";
+
+@Component({
+  tag: "orb-tree",
+  styleUrl: "tree.css",
+  shadow: true,
+})
+export class Tree {
+  @Element() element: HTMLOrbTreeElement;
+  @Prop({ mutable: true }) value?: string | string[];
+  @Prop() selection: "single" | "multiple" | "leaf" = "leaf";
+  @Prop() indentation = false;
+  @Event() valueChange: EventEmitter<string | string[]>;
+
+  private get branches() {
+    return Array.from(this.element.querySelectorAll("orb-ti"));
+  }
+
+  componentWillLoad() {
+    if (this.selection == "multiple" && !Array.isArray(this.value))
+      this.value = [];
+  }
+
+  async componentWillRender() {
+    await customElements.whenDefined("orb-ti");
+    const { branches, selection, indentation, value } = this;
+    branches.forEach((branch) => {
+      branch.selection = selection;
+      branch.indentation = indentation;
+    });
+    const selectedBranch = branches.find((b) => value == (b.value ?? b.label));
+    if (selectedBranch && !selectedBranch.selected) {
+      this.onClick({ target: selectedBranch } as any);
+    }
+  }
+
+  @Watch("selection")
+  onSelectionChange() {
+    forceUpdate(this.element);
+  }
+
+  @Watch("value")
+  valueChanged() {
+    this.valueChange.emit(this.value);
+  }
+
+  @Listen("click")
+  async onClick({ target }: MouseEvent) {
+    await customElements.whenDefined("orb-ti");
+    if (this.isBranch(target)) {
+      const { branches, selection } = this;
+      const isLeaf = await target.isLeaf();
+      if ((selection == "leaf" && isLeaf) || selection == "single") {
+        this.value = target.value || target.label;
+        branches.forEach(
+          (branch) =>
+            (branch.selected = this.value === (branch.value || branch.label)),
+        );
+      } else if (this.selection == "leaf") {
+        target.open = !target.open;
+      } else if (this.selection == "multiple") {
+        target.selected = !target.selected;
+        if (isLeaf && target.selected) {
+          this.value = [...this.value, target.value || target.label];
+        } else if (isLeaf) {
+          this.value = (this.value as Array<string>).filter(
+            (v) => v != (target.value || target.label),
+          );
+        } else {
+          target
+            .querySelectorAll("orb-ti")
+            .forEach((branch) => (branch.selected = target.selected));
+        }
+        this.setParents(target);
+      }
+    }
+  }
+
+  @Listen("keyup")
+  async onKeyup({ target, key }: KeyboardEvent) {
+    if (this.isBranch(target)) {
+      const hasChildren = !(await target.isLeaf());
+      const { branches } = this;
+      if (key == "ArrowRight" && hasChildren && !target.open) {
+        target.open = true;
+      } else if (key == "ArrowLeft" && hasChildren && target.open) {
+        target.open = false;
+      } else if (key == "ArrowUp") {
+        const index = branches.indexOf(target);
+        if (index > 0) {
+          branches[index - 1].focus();
+        }
+      } else if (key == "ArrowDown") {
+        const index = branches.indexOf(target);
+        if (index < branches.length - 1) {
+          branches[index + 1].focus();
+        }
+      }
+    }
+  }
+
+  private isBranch = (target: any): target is HTMLOrbTiElement =>
+    target instanceof HTMLElement && target.tagName == "ORB-TI";
+
+  private async setParents(branch: HTMLOrbTiElement) {
+    const parentBranch = branch.parentElement;
+    if (this.isBranch(parentBranch)) {
+      const children = Array.from(parentBranch.querySelectorAll("orb-ti"));
+      parentBranch.selected = children.every((child) => child.selected)
+        ? true
+        : children.some((child) => child.selected)
+          ? null
+          : false;
+      this.setParents(parentBranch);
+    }
+  }
+
+  render() {
+    return (
+      <Host>
+        <slot></slot>
+      </Host>
+    );
+  }
+}

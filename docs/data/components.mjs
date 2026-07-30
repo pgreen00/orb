@@ -25,21 +25,14 @@ function loadComponentDocs() {
 export default function () {
   const files = glob.sync("src/components/**/*.md");
   const cmps = loadComponentDocs();
-  const byTag = new Map(cmps.map((c) => [c.tag, c]));
+  const byDir = new Map(cmps.map((c) => [path.dirname(c.filePath), c]));
 
   return files.map((filePath) => {
     const raw = fs.readFileSync(filePath, "utf8");
     const { data, content } = matter(raw);
 
     const componentName = path.basename(filePath, ".md");
-
-    // The .md basename is the component's tag (e.g. orb-button). If Stencil has
-    // metadata for it, lead with the class-level JSDoc description (as plain
-    // prose — deliberately NOT under an "## Overview" heading like Stencil's own
-    // readme does) and append the freshly generated API tables after the
-    // hand-written body. Components without metadata (e.g. not yet built) render
-    // their hand-written content unchanged.
-    const cmp = byTag.get(componentName);
+    const cmp = byDir.get(path.dirname(filePath));
     const body = cmp
       ? [cmp.docs?.trim(), content.trim(), generateApiTables(cmp, cmps)]
           .filter(Boolean)

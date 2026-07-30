@@ -5,21 +5,21 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { Color } from "./utils/color";
-import { OverlayData } from "./components/orb-overlay/orb-overlay";
-import { OverlayData as OverlayData1 } from "./components/orb-overlay/orb-overlay";
+import { Color, Color as ColorValue } from "./utils/color";
+import { OverlayData } from "./components/overlay/overlay";
+import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { Placement } from "@floating-ui/dom";
-import { EditorChangeEvent } from "./components/orb-rich-text/orb-rich-text";
-import { ShaderErrorDetail } from "./components/orb-shader-canvas/orb-shader-canvas";
-export { Color } from "./utils/color";
-export { OverlayData } from "./components/orb-overlay/orb-overlay";
-export { OverlayData as OverlayData1 } from "./components/orb-overlay/orb-overlay";
+import { EditorChangeEvent } from "./components/rich-text/rich-text";
+import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
+export { Color, Color as ColorValue } from "./utils/color";
+export { OverlayData } from "./components/overlay/overlay";
+export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { Placement } from "@floating-ui/dom";
-export { EditorChangeEvent } from "./components/orb-rich-text/orb-rich-text";
-export { ShaderErrorDetail } from "./components/orb-shader-canvas/orb-shader-canvas";
+export { EditorChangeEvent } from "./components/rich-text/rich-text";
+export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export namespace Components {
     /**
-     * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
@@ -135,15 +135,15 @@ export namespace Components {
         /**
           * Fixed color
          */
-        "color"?: Color;
+        "color"?: ColorValue;
         /**
           * Color in dark mode
          */
-        "dark"?: Color;
+        "dark"?: ColorValue;
         /**
           * Color in light mode
          */
-        "light"?: Color;
+        "light"?: ColorValue;
     }
     interface OrbCombobox {
         /**
@@ -930,7 +930,7 @@ export interface OrbWizardCustomEvent<T> extends CustomEvent<T> {
 }
 declare global {
     /**
-     * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface HTMLOrbAccordionElement extends Components.OrbAccordion, HTMLStencilElement {
@@ -1593,7 +1593,7 @@ declare namespace LocalJSX {
     type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}` | `prop:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K | `prop:${K}`]?: never } | { [P in `prop:${K}`]: PropT } & { [P in K | `attr:${K}`]?: never };
 
     /**
-     * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
@@ -1729,15 +1729,15 @@ declare namespace LocalJSX {
         /**
           * Fixed color
          */
-        "color"?: Color;
+        "color"?: ColorValue;
         /**
           * Color in dark mode
          */
-        "dark"?: Color;
+        "dark"?: ColorValue;
         /**
           * Color in light mode
          */
-        "light"?: Color;
+        "light"?: ColorValue;
     }
     interface OrbCombobox {
         /**
@@ -2574,9 +2574,9 @@ declare namespace LocalJSX {
         "required": boolean;
     }
     interface OrbColorAttributes {
-        "color": Color;
-        "light": Color;
-        "dark": Color;
+        "color": ColorValue;
+        "light": ColorValue;
+        "dark": ColorValue;
     }
     interface OrbComboboxAttributes {
         "value": string;
@@ -2901,7 +2901,7 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             /**
-             * Accordions are wrappers for <orb-link href="../orb-details">OrbDetails</orb-link>. When an inner detail is opened, the others are automatically closed.
+             * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
              * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
