@@ -8,8 +8,11 @@ import { Component, Host } from "@stencil/core";
 export class OrbListItem {
   render() {
     return (
-      <Host>
-        <slot></slot>
+      <Host role="listitem">
+        <span part="label">
+          <slot />
+        </span>
+        <slot name="sublist" />
       </Host>
     );
   }

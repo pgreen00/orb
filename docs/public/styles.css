@@ -146,7 +146,15 @@ main {
   box-sizing: border-box;
   border: solid 1px var(--orb-divider-color);
   border-radius: var(--orb-radius-lg);
+  overflow: hidden;
   & > div {
     padding: var(--orb-spacing-md);
+    overflow: auto;
+    &:has(pre:only-child) {
+      background-color: light-dark(
+        var(--orb-neutral-25),
+        var(--orb-neutral-900)
+      );
+    }
   }
 }

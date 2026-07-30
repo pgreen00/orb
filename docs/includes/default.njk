@@ -34,18 +34,21 @@
         <img src="/hex-tag.svg" alt="logo" height="42" width="42" />
         <span class="orb-margin-left-xs">Orb Design System</span>
       </orb-link>
+      <orb-button class="icon-only" fill="clear" size="lg" slot="end">
+        <iconify-icon height="2rem" width="2rem" icon="mdi:search"></iconify-icon>
+      </orb-button>
       <orb-link href="https://github.com/pgreen00/orb" target="_blank" neutral underline="false" slot="end">
-        <iconify-icon height="2.5rem" width="2.5rem" icon="mdi:github"></iconify-icon>
+        <iconify-icon height="2.5rem" width="2.5rem" icon="akar-icons:github-fill"></iconify-icon>
       </orb-link>
       <orb-popover slot="end" placement="bottom-end" trigger-action="hover">
-        <orb-button class="icon-only" slot="trigger">
-          <iconify-icon height="24" width="24" icon="mdi:moon-and-stars"></iconify-icon>
+        <orb-button class="icon-only" slot="trigger" size="lg">
+          <iconify-icon height="1.5rem" width="1.5rem" icon="mdi:moon-and-stars"></iconify-icon>
         </orb-button>
-        <orb-stack space="xs">
-          <orb-button fill="clear" onclick="setTheme('system')">System</orb-button>
-          <orb-button fill="clear" onclick="setTheme('light')">Light</orb-button>
-          <orb-button fill="clear" onclick="setTheme('dark')">Dark</orb-button>
-        </orb-stack>
+        <orb-menu>
+          <orb-mi onclick="setTheme('system')">System</orb-mi>
+          <orb-mi onclick="setTheme('light')">Light</orb-mi>
+          <orb-mi checked onclick="setTheme('dark')">Dark</orb-mi>
+        </orb-menu>
       </orb-popover>
     </orb-toolbar>
   </header>
@@ -55,35 +58,19 @@
       <orb-branch label="Installation"></orb-branch>
       <orb-branch label="Tutorials" open>
         <orb-branch label="Forms"></orb-branch>
+        <orb-branch label="Themes"></orb-branch>
         <orb-branch label="Data Tables"></orb-branch>
-        <orb-branch label="Sessions"></orb-branch>
-        <orb-branch label="Design Patterns">
-          <orb-branch label="Loading State"></orb-branch>
-          <orb-branch label="Permissions"></orb-branch>
-          <orb-branch label="Simple Entities"></orb-branch>
-          <orb-branch label="Advanced Entities">
-            <orb-branch label="List View"></orb-branch>
-            <orb-branch label="Creation Wizard"></orb-branch>
-            <orb-branch label="Details View"></orb-branch>
-          </orb-branch>
-          <orb-branch label="Nested Relationships"></orb-branch>
-        </orb-branch>
+        <orb-branch label="Design Patterns"></orb-branch>
       </orb-branch>
       <orb-branch label="Components" open>
         {% for component in collections.componentsNav %}
           <orb-branch label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-branch>
         {% endfor %}
       </orb-branch>
-      <orb-branch label="Design Tokens" open>
-        <orb-branch label="Colors"></orb-branch>
-        <orb-branch label="Elevation"></orb-branch>
-        <orb-branch label="Font"></orb-branch>
-        <orb-branch label="Radius"></orb-branch>
-        <orb-branch label="Spacing"></orb-branch>
-        <orb-branch label="Transition"></orb-branch>
+      <orb-branch label="CSS Utilities" open>
+        <orb-branch label="Design Tokens"></orb-branch>
+        <orb-branch label="Classes"></orb-branch>
       </orb-branch>
-      <orb-branch label="CSS Classes"></orb-branch>
-      <orb-branch label="Changelog"></orb-branch>
     </orb-tree>
     <script type="module">
       await customElements.whenDefined('orb-tree')

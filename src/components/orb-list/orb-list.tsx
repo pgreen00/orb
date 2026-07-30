@@ -1,4 +1,4 @@
-import { Component, Host } from "@stencil/core";
+import { Component, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-list",
@@ -6,9 +6,11 @@ import { Component, Host } from "@stencil/core";
   shadow: true,
 })
 export class OrbList {
+  @Prop({ reflect: true }) dense = false;
+
   render() {
     return (
-      <Host>
+      <Host role="list">
         <slot></slot>
       </Host>
     );

@@ -1,4 +1,4 @@
-import { Component, Prop } from "@stencil/core";
+import { Component, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-placeholder",
@@ -12,6 +12,6 @@ export class OrbPlaceholder {
   @Prop({ reflect: true }) animated = true;
 
   render() {
-    return <slot />;
+    return <Host />;
   }
 }

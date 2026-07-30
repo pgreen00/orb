@@ -311,10 +311,18 @@ export namespace Components {
         "underline": boolean;
     }
     interface OrbList {
+        /**
+          * @default false
+         */
+        "dense": boolean;
     }
     interface OrbLoading {
     }
     interface OrbMenu {
+        /**
+          * @default false
+         */
+        "bar": boolean;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -328,6 +336,10 @@ export namespace Components {
     | "3xl";
     }
     interface OrbMi {
+        /**
+          * @default false
+         */
+        "checked": boolean;
     }
     interface OrbMidi {
     }
@@ -1906,10 +1918,18 @@ declare namespace LocalJSX {
         "underline"?: boolean;
     }
     interface OrbList {
+        /**
+          * @default false
+         */
+        "dense"?: boolean;
     }
     interface OrbLoading {
     }
     interface OrbMenu {
+        /**
+          * @default false
+         */
+        "bar"?: boolean;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -1923,6 +1943,10 @@ declare namespace LocalJSX {
     | "3xl";
     }
     interface OrbMi {
+        /**
+          * @default false
+         */
+        "checked"?: boolean;
     }
     interface OrbMidi {
     }
@@ -2619,6 +2643,12 @@ declare namespace LocalJSX {
         "download": string;
         "neutral": boolean;
     }
+    interface OrbListAttributes {
+        "dense": boolean;
+    }
+    interface OrbMenuAttributes {
+        "bar": boolean;
+    }
     interface OrbMeshAttributes {
         "space": | "3xs"
     | "2xs"
@@ -2629,6 +2659,9 @@ declare namespace LocalJSX {
     | "xl"
     | "2xs"
     | "3xl";
+    }
+    interface OrbMiAttributes {
+        "checked": boolean;
     }
     interface OrbNoteAttributes {
         "invalid": boolean;
@@ -2825,11 +2858,11 @@ declare namespace LocalJSX {
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
         "orb-li": OrbLi;
         "orb-link": Omit<OrbLink, keyof OrbLinkAttributes> & { [K in keyof OrbLink & keyof OrbLinkAttributes]?: OrbLink[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `attr:${K}`]?: OrbLinkAttributes[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `prop:${K}`]?: OrbLink[K] };
-        "orb-list": OrbList;
+        "orb-list": Omit<OrbList, keyof OrbListAttributes> & { [K in keyof OrbList & keyof OrbListAttributes]?: OrbList[K] } & { [K in keyof OrbList & keyof OrbListAttributes as `attr:${K}`]?: OrbListAttributes[K] } & { [K in keyof OrbList & keyof OrbListAttributes as `prop:${K}`]?: OrbList[K] };
         "orb-loading": OrbLoading;
-        "orb-menu": OrbMenu;
+        "orb-menu": Omit<OrbMenu, keyof OrbMenuAttributes> & { [K in keyof OrbMenu & keyof OrbMenuAttributes]?: OrbMenu[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `attr:${K}`]?: OrbMenuAttributes[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `prop:${K}`]?: OrbMenu[K] };
         "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
-        "orb-mi": OrbMi;
+        "orb-mi": Omit<OrbMi, keyof OrbMiAttributes> & { [K in keyof OrbMi & keyof OrbMiAttributes]?: OrbMi[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `attr:${K}`]?: OrbMiAttributes[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `prop:${K}`]?: OrbMi[K] };
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
         "orb-option": Omit<OrbOption, keyof OrbOptionAttributes> & { [K in keyof OrbOption & keyof OrbOptionAttributes]?: OrbOption[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `attr:${K}`]?: OrbOptionAttributes[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `prop:${K}`]?: OrbOption[K] };

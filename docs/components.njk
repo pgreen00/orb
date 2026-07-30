@@ -24,17 +24,21 @@ eleventyComputed:
       .article-body {
         max-width: 800px;
         min-width: 0;
-        flex: 1;
         display: flex;
         flex-direction: column;
         gap: 2rem;
+        flex: 1 1 0;
       }
       aside {
-        flex: 1;
         min-width: 200px;
         position: sticky;
         top: calc(var(--top-height) + 4rem);
         height: fit-content;
+      }
+      @media (max-width: 767px) {
+        aside {
+          display: none;
+        }
       }
     }
   </style>

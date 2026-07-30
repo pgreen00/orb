@@ -1,4 +1,4 @@
-import { Component, Host } from "@stencil/core";
+import { Component, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-menu",
@@ -6,9 +6,11 @@ import { Component, Host } from "@stencil/core";
   shadow: true,
 })
 export class OrbMenu {
+  @Prop() bar = false;
+
   render() {
     return (
-      <Host>
+      <Host role={this.bar ? "menubar" : "menu"}>
         <slot></slot>
       </Host>
     );

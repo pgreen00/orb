@@ -1,6 +1,6 @@
 html {
   height: 100dvh;
-  width: 100svw;
+  width: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -117,7 +117,7 @@ body {
       overflow-x: hidden;
       box-sizing: border-box;
       scrollbar-width: thin;
-      padding: var(--orb-spacing-xs);
+      padding: var(--orb-spacing-sm);
       grid-area: side;
       border-right: solid 1px var(--border-color);
     }

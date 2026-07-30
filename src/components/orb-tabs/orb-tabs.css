@@ -23,4 +23,5 @@
   box-sizing: border-box;
   padding: var(--orb-spacing-lg);
   background-color: var(--base-background);
+  overflow: auto;
 }

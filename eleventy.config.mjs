@@ -60,7 +60,7 @@ export default async function (eleventyConfig) {
         const id = `${Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join("")}`;
         const getTemplateId = ({ language }) => `template-${id}-${language}`;
         const getTemplateEl = ({ language, original }) =>
-          `<template id="${getTemplateId({ language })}">${original}</template>`;
+          `<orb-tab-panel name="${getTemplateId({ language })}">${original}</orb-tab-panel>`;
         const getPillEl = ({ language }) => {
           const normalized =
             language == "html"
@@ -70,7 +70,7 @@ export default async function (eleventyConfig) {
                 : language == "wgsl"
                   ? "WGSL"
                   : language;
-          return `<orb-pill template="${getTemplateId({ language })}">${normalized}</orb-pill>`;
+          return `<orb-tab-button panel="${getTemplateId({ language })}">${normalized}</orb-tab-button>`;
         };
         if (codeBlocks.length == 1 && html) {
           return `
@@ -92,12 +92,10 @@ export default async function (eleventyConfig) {
               ${js ? `<script type="module">${js.content}</script>` : ""}
             </div>
             <orb-divider spacing="none"></orb-divider>
-            <div>
-              <orb-pill-group>
-                ${codeBlocks.map(getPillEl).join("\n")}
-              </orb-pill-group>
+            <orb-tabs>
+              ${codeBlocks.map(getPillEl).join("\n")}
               ${codeBlocks.map(getTemplateEl).join("\n")}
-            </div>
+            </orb-tabs>
           </div>
         `;
       } else {
@@ -109,14 +107,26 @@ export default async function (eleventyConfig) {
   const defaultTableOpen = md.renderer.rules.table_open;
   const defaultTableClose = md.renderer.rules.table_close;
 
-  md.renderer.rules.table_open = function (tokens, idx, options, env, renderer) {
+  md.renderer.rules.table_open = function (
+    tokens,
+    idx,
+    options,
+    env,
+    renderer,
+  ) {
     const table = defaultTableOpen
       ? defaultTableOpen(tokens, idx, options, env, renderer)
       : renderer.renderToken(tokens, idx, options);
     return `<div class="table-container">${table}`;
   };
 
-  md.renderer.rules.table_close = function (tokens, idx, options, env, renderer) {
+  md.renderer.rules.table_close = function (
+    tokens,
+    idx,
+    options,
+    env,
+    renderer,
+  ) {
     const table = defaultTableClose
       ? defaultTableClose(tokens, idx, options, env, renderer)
       : renderer.renderToken(tokens, idx, options);
