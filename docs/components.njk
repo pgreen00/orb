@@ -12,14 +12,16 @@ eleventyComputed:
 <article>
   <style>
     @scope {
-      :scope {
-        padding: 4rem;
+      header {
+        padding: 2rem 4rem;
       }
       .article-grid {
         display: flex;
         flex-wrap: wrap-reverse;
         align-items: baseline;
         gap: 2rem;
+        padding-inline: 4rem;
+        padding-bottom: 2rem;
       }
       .article-body {
         max-width: 800px;
@@ -43,7 +45,8 @@ eleventyComputed:
     }
   </style>
   <header>
-    <h1>{{ component.title }}</h1>
+    <h1>{{ component.label }}</h1>
+    <orb-color light="neutral-750" dark="neutral">{{ component.title }}</orb-color>
   </header>
   <div class="article-grid">
     <div class="article-body">

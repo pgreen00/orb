@@ -1,5 +1,4 @@
 import { Component, Host, Prop } from "@stencil/core";
-import { shade, Color as ColorValue } from "../../utils/color";
 
 @Component({
   tag: "orb-color",
@@ -7,26 +6,33 @@ import { shade, Color as ColorValue } from "../../utils/color";
 })
 export class Color {
   /** Fixed color */
-  @Prop({ reflect: true }) color?: ColorValue;
+  @Prop() color?: string;
 
   /** Color in light mode */
-  @Prop() light?: ColorValue;
+  @Prop() light?: string;
 
   /** Color in dark mode */
-  @Prop() dark?: ColorValue;
+  @Prop() dark?: string;
 
   private get cssValue() {
     if (this.color) {
-      return shade(this.color, 500);
+      return this.parseColor(this.color);
     } else {
-      return `light-dark(${this.light ? shade(this.light, 500) : shade("neutral", 900)}, ${this.dark ? shade(this.dark, 500) : shade("neutral", 50)})`;
+      return `light-dark(${this.parseColor(this.light ?? "neutral")}, ${this.parseColor(this.dark ?? "neutral")})`;
     }
+  }
+
+  private parseColor(color: string) {
+    const parts = color.split("-");
+    const accent = parts[0];
+    const shade = parts.at(1) ?? "500";
+    return `var(--orb-${accent}-${shade})`;
   }
 
   render() {
     return (
       <Host>
-        <style>{`:host{display:contents;color:${this.cssValue};}`}</style>
+        <style>{`:host{display:inline-flex;color:${this.cssValue};}`}</style>
         <slot />
       </Host>
     );

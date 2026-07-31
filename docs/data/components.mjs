@@ -45,6 +45,7 @@ export default function () {
       content: body,
       data: data,
       sourcePath: filePath,
+      label: data.sidebar_label,
     };
   });
 }

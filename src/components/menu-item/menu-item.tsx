@@ -7,7 +7,9 @@ import { CheckIcon } from "../../utils/icons";
   shadow: true,
 })
 export class MenuItem {
-  @Prop() checked = false;
+  @Prop({ reflect: true }) checked = false;
+  @Prop() value?: string;
+
   render() {
     return (
       <Host role="menuitem">

@@ -2,7 +2,7 @@ import { Component, Element, Listen } from "@stencil/core";
 import { OrbDetailsCustomEvent } from "../../components";
 
 /**
- * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+ * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
  * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
  */
 @Component({

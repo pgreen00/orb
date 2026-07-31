@@ -9,10 +9,13 @@ import { Component, Prop } from "@stencil/core";
 })
 export class Link {
   /** Underlines the text */
-  @Prop() underline = true;
+  @Prop() underline = false;
 
   /** Makes text bold */
   @Prop() bold = false;
+
+  /** Makes text the current color, rather than the primary color */
+  @Prop() accent = false;
 
   /** Passed to anchor */
   @Prop() href?: string;
@@ -26,9 +29,6 @@ export class Link {
   /** Passed to anchor */
   @Prop() download?: string;
 
-  /** Makes text the current color, rather than the primary color */
-  @Prop() neutral = false;
-
   render() {
     return (
       <a
@@ -36,12 +36,16 @@ export class Link {
         tabindex={0}
         href={this.href}
         target={this.target}
-        rel={this.rel}
+        rel={
+          this.target !== undefined && this.rel === undefined
+            ? "noreferrer noopener"
+            : this.rel
+        }
         download={this.download}
         class={{
           underline: this.underline,
           bold: this.bold,
-          neutral: this.neutral,
+          accent: this.accent,
         }}
       >
         <slot></slot>

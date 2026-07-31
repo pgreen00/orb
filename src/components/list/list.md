@@ -10,11 +10,11 @@ sidebar_label: 'List'
   <orb-li>Apples</orb-li>
   <orb-li>
     Bananas
-    <orb-list slot="sublist">
+    <orb-list>
       <orb-li>Apples</orb-li>
       <orb-li>
         Bananas
-        <orb-list slot="sublist">
+        <orb-list>
           <orb-li>Apples</orb-li>
           <orb-li>Bananas</orb-li>
           <orb-li>Oranges</orb-li>

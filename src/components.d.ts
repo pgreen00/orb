@@ -5,13 +5,13 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { Color, Color as ColorValue } from "./utils/color";
+import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
-export { Color, Color as ColorValue } from "./utils/color";
+export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { Placement } from "@floating-ui/dom";
@@ -19,7 +19,7 @@ export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export namespace Components {
     /**
-     * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
@@ -135,15 +135,15 @@ export namespace Components {
         /**
           * Fixed color
          */
-        "color"?: ColorValue;
+        "color"?: string;
         /**
           * Color in dark mode
          */
-        "dark"?: ColorValue;
+        "dark"?: string;
         /**
           * Color in light mode
          */
-        "light"?: ColorValue;
+        "light"?: string;
     }
     interface OrbCombobox {
         /**
@@ -260,6 +260,11 @@ export namespace Components {
     }
     interface OrbLink {
         /**
+          * Makes text the current color, rather than the primary color
+          * @default false
+         */
+        "accent": boolean;
+        /**
           * Makes text bold
           * @default false
          */
@@ -273,11 +278,6 @@ export namespace Components {
          */
         "href"?: string;
         /**
-          * Makes text the current color, rather than the primary color
-          * @default false
-         */
-        "neutral": boolean;
-        /**
           * Passed to anchor
          */
         "rel"?: string;
@@ -287,7 +287,7 @@ export namespace Components {
         "target"?: string;
         /**
           * Underlines the text
-          * @default true
+          * @default false
          */
         "underline": boolean;
     }
@@ -321,6 +321,7 @@ export namespace Components {
           * @default false
          */
         "checked": boolean;
+        "value"?: string;
     }
     interface OrbMidi {
     }
@@ -521,6 +522,8 @@ export namespace Components {
         "value"?: any;
     }
     interface OrbRange {
+    }
+    interface OrbRelativeTime {
     }
     interface OrbRichText {
         "clear": () => Promise<void>;
@@ -768,6 +771,8 @@ export namespace Components {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
+    interface OrbTimer {
+    }
     interface OrbToc {
     }
     interface OrbToggle {
@@ -892,6 +897,10 @@ export interface OrbDropzoneCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbDropzoneElement;
 }
+export interface OrbMenuCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbMenuElement;
+}
 export interface OrbOverlayCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbOverlayElement;
@@ -930,7 +939,7 @@ export interface OrbWizardCustomEvent<T> extends CustomEvent<T> {
 }
 declare global {
     /**
-     * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface HTMLOrbAccordionElement extends Components.OrbAccordion, HTMLStencilElement {
@@ -1193,7 +1202,18 @@ declare global {
         prototype: HTMLOrbLoadingElement;
         new (): HTMLOrbLoadingElement;
     };
+    interface HTMLOrbMenuElementEventMap {
+        "action": { checked: boolean; value?: string };
+    }
     interface HTMLOrbMenuElement extends Components.OrbMenu, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbMenuElementEventMap>(type: K, listener: (this: HTMLOrbMenuElement, ev: OrbMenuCustomEvent<HTMLOrbMenuElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbMenuElementEventMap>(type: K, listener: (this: HTMLOrbMenuElement, ev: OrbMenuCustomEvent<HTMLOrbMenuElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbMenuElement: {
         prototype: HTMLOrbMenuElement;
@@ -1327,6 +1347,12 @@ declare global {
         prototype: HTMLOrbRangeElement;
         new (): HTMLOrbRangeElement;
     };
+    interface HTMLOrbRelativeTimeElement extends Components.OrbRelativeTime, HTMLStencilElement {
+    }
+    var HTMLOrbRelativeTimeElement: {
+        prototype: HTMLOrbRelativeTimeElement;
+        new (): HTMLOrbRelativeTimeElement;
+    };
     interface HTMLOrbRichTextElementEventMap {
         "editorChange": EditorChangeEvent;
         "editorFocus": FocusEvent;
@@ -1438,6 +1464,12 @@ declare global {
     var HTMLOrbTiElement: {
         prototype: HTMLOrbTiElement;
         new (): HTMLOrbTiElement;
+    };
+    interface HTMLOrbTimerElement extends Components.OrbTimer, HTMLStencilElement {
+    }
+    var HTMLOrbTimerElement: {
+        prototype: HTMLOrbTimerElement;
+        new (): HTMLOrbTimerElement;
     };
     interface HTMLOrbTocElement extends Components.OrbToc, HTMLStencilElement {
     }
@@ -1568,6 +1600,7 @@ declare global {
         "orb-radio-button": HTMLOrbRadioButtonElement;
         "orb-radio-group": HTMLOrbRadioGroupElement;
         "orb-range": HTMLOrbRangeElement;
+        "orb-relative-time": HTMLOrbRelativeTimeElement;
         "orb-rich-text": HTMLOrbRichTextElement;
         "orb-shader-canvas": HTMLOrbShaderCanvasElement;
         "orb-split-panel": HTMLOrbSplitPanelElement;
@@ -1579,6 +1612,7 @@ declare global {
         "orb-tabs": HTMLOrbTabsElement;
         "orb-textbox": HTMLOrbTextboxElement;
         "orb-ti": HTMLOrbTiElement;
+        "orb-timer": HTMLOrbTimerElement;
         "orb-toc": HTMLOrbTocElement;
         "orb-toggle": HTMLOrbToggleElement;
         "orb-toolbar": HTMLOrbToolbarElement;
@@ -1593,7 +1627,7 @@ declare namespace LocalJSX {
     type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}` | `prop:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K | `prop:${K}`]?: never } | { [P in `prop:${K}`]: PropT } & { [P in K | `attr:${K}`]?: never };
 
     /**
-     * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
@@ -1729,15 +1763,15 @@ declare namespace LocalJSX {
         /**
           * Fixed color
          */
-        "color"?: ColorValue;
+        "color"?: string;
         /**
           * Color in dark mode
          */
-        "dark"?: ColorValue;
+        "dark"?: string;
         /**
           * Color in light mode
          */
-        "light"?: ColorValue;
+        "light"?: string;
     }
     interface OrbCombobox {
         /**
@@ -1868,6 +1902,11 @@ declare namespace LocalJSX {
     }
     interface OrbLink {
         /**
+          * Makes text the current color, rather than the primary color
+          * @default false
+         */
+        "accent"?: boolean;
+        /**
           * Makes text bold
           * @default false
          */
@@ -1881,11 +1920,6 @@ declare namespace LocalJSX {
          */
         "href"?: string;
         /**
-          * Makes text the current color, rather than the primary color
-          * @default false
-         */
-        "neutral"?: boolean;
-        /**
           * Passed to anchor
          */
         "rel"?: string;
@@ -1895,7 +1929,7 @@ declare namespace LocalJSX {
         "target"?: string;
         /**
           * Underlines the text
-          * @default true
+          * @default false
          */
         "underline"?: boolean;
     }
@@ -1912,6 +1946,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "bar"?: boolean;
+        "onAction"?: (event: OrbMenuCustomEvent<{ checked: boolean; value?: string }>) => void;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -1929,6 +1964,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "checked"?: boolean;
+        "value"?: string;
     }
     interface OrbMidi {
     }
@@ -2165,6 +2201,8 @@ declare namespace LocalJSX {
         "value"?: any;
     }
     interface OrbRange {
+    }
+    interface OrbRelativeTime {
     }
     interface OrbRichText {
         /**
@@ -2428,6 +2466,8 @@ declare namespace LocalJSX {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
+    interface OrbTimer {
+    }
     interface OrbToc {
     }
     interface OrbToggle {
@@ -2574,9 +2614,9 @@ declare namespace LocalJSX {
         "required": boolean;
     }
     interface OrbColorAttributes {
-        "color": ColorValue;
-        "light": ColorValue;
-        "dark": ColorValue;
+        "color": string;
+        "light": string;
+        "dark": string;
     }
     interface OrbComboboxAttributes {
         "value": string;
@@ -2628,11 +2668,11 @@ declare namespace LocalJSX {
     interface OrbLinkAttributes {
         "underline": boolean;
         "bold": boolean;
+        "accent": boolean;
         "href": string;
         "target": string;
         "rel": string;
         "download": string;
-        "neutral": boolean;
     }
     interface OrbListAttributes {
         "dense": boolean;
@@ -2653,6 +2693,7 @@ declare namespace LocalJSX {
     }
     interface OrbMiAttributes {
         "checked": boolean;
+        "value": string;
     }
     interface OrbNoteAttributes {
         "invalid": boolean;
@@ -2875,6 +2916,7 @@ declare namespace LocalJSX {
         "orb-radio-button": Omit<OrbRadioButton, keyof OrbRadioButtonAttributes> & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes]?: OrbRadioButton[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `attr:${K}`]?: OrbRadioButtonAttributes[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `prop:${K}`]?: OrbRadioButton[K] };
         "orb-radio-group": Omit<OrbRadioGroup, keyof OrbRadioGroupAttributes> & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes]?: OrbRadioGroup[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `attr:${K}`]?: OrbRadioGroupAttributes[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `prop:${K}`]?: OrbRadioGroup[K] };
         "orb-range": OrbRange;
+        "orb-relative-time": OrbRelativeTime;
         "orb-rich-text": Omit<OrbRichText, keyof OrbRichTextAttributes> & { [K in keyof OrbRichText & keyof OrbRichTextAttributes]?: OrbRichText[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `attr:${K}`]?: OrbRichTextAttributes[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `prop:${K}`]?: OrbRichText[K] };
         "orb-shader-canvas": Omit<OrbShaderCanvas, keyof OrbShaderCanvasAttributes> & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes]?: OrbShaderCanvas[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `attr:${K}`]?: OrbShaderCanvasAttributes[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `prop:${K}`]?: OrbShaderCanvas[K] };
         "orb-split-panel": OrbSplitPanel;
@@ -2886,6 +2928,7 @@ declare namespace LocalJSX {
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
         "orb-ti": Omit<OrbTi, keyof OrbTiAttributes> & { [K in keyof OrbTi & keyof OrbTiAttributes]?: OrbTi[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `attr:${K}`]?: OrbTiAttributes[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `prop:${K}`]?: OrbTi[K] };
+        "orb-timer": OrbTimer;
         "orb-toc": OrbToc;
         "orb-toggle": Omit<OrbToggle, keyof OrbToggleAttributes> & { [K in keyof OrbToggle & keyof OrbToggleAttributes]?: OrbToggle[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `attr:${K}`]?: OrbToggleAttributes[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `prop:${K}`]?: OrbToggle[K] };
         "orb-toolbar": Omit<OrbToolbar, keyof OrbToolbarAttributes> & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes]?: OrbToolbar[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `attr:${K}`]?: OrbToolbarAttributes[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `prop:${K}`]?: OrbToolbar[K] };
@@ -2901,7 +2944,7 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             /**
-             * Accordions are wrappers for <orb-link href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+             * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
              * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
@@ -2950,6 +2993,7 @@ declare module "@stencil/core" {
             "orb-radio-button": LocalJSX.IntrinsicElements["orb-radio-button"] & JSXBase.HTMLAttributes<HTMLOrbRadioButtonElement>;
             "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
             "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
+            "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**
              * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
@@ -2971,6 +3015,7 @@ declare module "@stencil/core" {
              */
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
             "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;
+            "orb-timer": LocalJSX.IntrinsicElements["orb-timer"] & JSXBase.HTMLAttributes<HTMLOrbTimerElement>;
             "orb-toc": LocalJSX.IntrinsicElements["orb-toc"] & JSXBase.HTMLAttributes<HTMLOrbTocElement>;
             "orb-toggle": LocalJSX.IntrinsicElements["orb-toggle"] & JSXBase.HTMLAttributes<HTMLOrbToggleElement>;
             "orb-toolbar": LocalJSX.IntrinsicElements["orb-toolbar"] & JSXBase.HTMLAttributes<HTMLOrbToolbarElement>;

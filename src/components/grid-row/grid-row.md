@@ -1,4 +1,4 @@
 ---
-title: 'OrbGridRow | <orb-gr>'
+title: 'OrbGr | <orb-gr>'
 sidebar_label: 'Grid Row'
 ---

@@ -1,4 +1,4 @@
 ---
-title: 'OrbMenuItem | <orb-mi>'
+title: 'OrbMi | <orb-mi>'
 sidebar_label: 'Menu Item'
 ---

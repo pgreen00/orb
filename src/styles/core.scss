@@ -56,7 +56,7 @@
   --orb-main-content-color-g: light-dark(var(--orb-neutral-75), color-mix(in srgb, var(--orb-primary-150) 10%, var(--orb-neutral-950) 90%));
 }
 
-orb-menu:has([checked]) orb-mi {
+orb-menu:has([checked]:not([checked=false])) orb-mi {
   --gutter-width: 1rem;
   --gap: 0.5rem;
 }

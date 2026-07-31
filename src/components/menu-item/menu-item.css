@@ -20,7 +20,7 @@ slot:not([name]) {
   flex: 1;
   display: inline-flex;
   align-items: center;
-  min-width: 12ch;
+  min-width: calc(12ch - var(--gutter-width));
 }
 
 [part*="gutter"] {
