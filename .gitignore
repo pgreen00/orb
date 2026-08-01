@@ -38,4 +38,4 @@ UserInterfaceState.xcuserstate
 /playwright/.auth/
 
 # Generated pipe manifest
-src/components/orb-pipe/pipes.generated.ts
+src/components/pipe/pipes.generated.ts
