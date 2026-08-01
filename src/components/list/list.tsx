@@ -1,4 +1,4 @@
-import { Component, Host, Prop } from "@stencil/core";
+import { AttachInternals, Component, Host, Prop } from "@stencil/core";
 
 @Component({
   tag: "orb-list",
@@ -7,10 +7,15 @@ import { Component, Host, Prop } from "@stencil/core";
 })
 export class List {
   @Prop({ reflect: true }) dense = false;
+  @AttachInternals() internals: ElementInternals;
+
+  componentWillLoad() {
+    this.internals.role = "list";
+  }
 
   render() {
     return (
-      <Host role="list">
+      <Host>
         <slot></slot>
       </Host>
     );

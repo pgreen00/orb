@@ -51,6 +51,10 @@ export class Button {
   /** Predefined colors */
   @Prop({ reflect: true }) color?: Color;
 
+  componentWillLoad() {
+    this.internals.role = "button";
+  }
+
   @Listen("click")
   handleClick() {
     if (this.type == "submit") {
@@ -82,7 +86,6 @@ export class Button {
   render() {
     return (
       <Host
-        role="button"
         aria-disabled={`${this.disabled || this.pending}`}
         tabindex={this.disabled || this.pending ? "-1" : "0"}
       >

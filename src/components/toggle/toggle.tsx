@@ -7,6 +7,7 @@ import {
   Event,
   Element,
   AttachInternals,
+  Watch,
 } from "@stencil/core";
 
 @Component({
@@ -16,18 +17,24 @@ import {
   formAssociated: true,
 })
 export class Toggle {
-  @AttachInternals() internals: ElementInternals;
+  @AttachInternals({
+    states: {
+      on: false,
+      off: true,
+    },
+  })
+  internals: ElementInternals;
   @Element() el!: HTMLElement;
 
   /**
    * Original value form will reset to
    */
-  @Prop() originalValue: boolean;
+  @Prop() defaultChecked: boolean;
 
   /**
    * Whether or not the toggle is active
    */
-  @Prop({ mutable: true }) value = false;
+  @Prop({ mutable: true }) checked = false;
 
   /**
    * If the label should be placed at the start or end of the toggle
@@ -37,42 +44,49 @@ export class Toggle {
   /**
    * Emits the new value whenever toggle is clicked
    */
-  @Event({ bubbles: false }) valueChange: EventEmitter<boolean>;
+  @Event({ bubbles: false }) checkedChange: EventEmitter<boolean>;
+
+  private resolve: Function;
+  private ready = new Promise((res) => (this.resolve = res));
+
+  componentDidLoad() {
+    this.resolve();
+  }
 
   componentWillLoad() {
-    if (this.originalValue === undefined) {
-      this.originalValue = this.value;
+    this.internals.role = "switch";
+    this.el.tabIndex = 0;
+    if (this.defaultChecked === undefined) {
+      this.defaultChecked = this.checked;
     }
   }
 
   formResetCallback() {
-    this.value = this.originalValue;
+    this.checked = this.defaultChecked;
   }
 
-  componentDidLoad() {
-    this.internals.role = "switch";
-    this.el.tabIndex = 0;
+  @Watch("checked", { immediate: true })
+  async onCheckedChange() {
+    await this.ready;
+    this.internals.states.add(this.checked ? "on" : "off");
+    this.internals.states.delete(!this.checked ? "on" : "off");
+    this.internals.ariaChecked = this.checked ? "true" : "false";
+    this.internals.setFormValue(this.checked ? "on" : "off");
   }
 
-  componentDidRender() {
-    this.internals.states.clear();
-    this.internals.states.add(this.value ? "checked" : "unchecked");
-    this.internals.ariaChecked = this.value ? "true" : "false";
-  }
-
-  @Listen("click", { capture: true })
+  @Listen("click")
   onClick() {
-    this.value = !this.value;
-    this.valueChange.emit(this.value);
+    this.checked = !this.checked;
+    this.checkedChange.emit(this.checked);
   }
 
-  @Listen("keydown", { capture: true })
+  @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
     if (ev.key === " ") {
       ev.preventDefault();
       ev.stopPropagation();
-      this.value = !this.value;
-      this.valueChange.emit(this.value);
+      this.checked = !this.checked;
+      this.checkedChange.emit(this.checked);
     }
   }
 

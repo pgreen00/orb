@@ -1,11 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
-@view-transition {
-  navigation: auto;
-}
-
 :root {
-  font-family: "Work Sans";
+  font-family: "Work Sans", sans-serif;
   font-size: clamp(12px, 10px + 0.5vw, 16px);
   line-height: 1.75;
   font-weight: var(--orb-font-regular);

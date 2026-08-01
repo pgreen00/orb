@@ -7,7 +7,6 @@ import {
   Watch,
   Listen,
   AttachInternals,
-  State,
   Host,
 } from "@stencil/core";
 
@@ -20,7 +19,6 @@ import {
 export class RadioGroup {
   @AttachInternals() internals!: ElementInternals;
   @Element() el!: HTMLOrbRadioGroupElement;
-  @State() tabindex = 0;
 
   /**
    * Requires a value before the form can be submitted
@@ -70,10 +68,6 @@ export class RadioGroup {
   }
 
   componentDidRender() {
-    this.internals.ariaLabel =
-      this.label || this.el.querySelector("[slot=label]")?.textContent;
-    this.internals.ariaDescription =
-      this.note || this.el.querySelector("[slot=note]")?.textContent;
     this.internals.ariaInvalid = this.internals.validity.valid
       ? "true"
       : "false";
@@ -131,19 +125,8 @@ export class RadioGroup {
     (radios.find((radio) => radio.value === this.value) ?? radios[0])?.focus();
   }
 
-  @Listen("focusin")
-  onFocusIn() {
-    this.tabindex = -1;
-  }
-
-  @Listen("focusout")
-  onFocusOut() {
-    this.tabindex = 0;
-  }
-
   @Listen("click")
-  handleNewValue(ev: Event) {
-    const { target } = ev;
+  handleNewValue({ target }: Event) {
     if (this.isRadio(target)) {
       this.value = target.value || target.textContent;
       this.valueChange.emit(this.value);
@@ -180,10 +163,25 @@ export class RadioGroup {
   render() {
     const buttons = this.el.querySelector("orb-radio-button") !== null;
     return (
-      <Host tabindex={this.tabindex}>
-        <slot name="label">
+      <Host>
+        <slot
+          name="label"
+          onSlotchange={({ target }) => {
+            console.log("1");
+            const slot = target as HTMLSlotElement;
+            this.internals.ariaLabelledByElements = slot.assignedElements();
+          }}
+        >
           {this.label && (
-            <orb-label required={this.required}>{this.label}</orb-label>
+            <orb-label
+              ref={(el) => {
+                console.log("2");
+                this.internals.ariaLabelledByElements = [el];
+              }}
+              required={this.required}
+            >
+              {this.label}
+            </orb-label>
           )}
         </slot>
         <div class={buttons ? "buttons" : "content"}>

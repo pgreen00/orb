@@ -6,7 +6,11 @@ sidebar_label: 'Radio Group'
 ::: live-code-demo
 
 ```html
-<orb-radio-group label="What is your favorite color?">
+<orb-radio-group>
+  <div slot="label">
+    <orb-label>What is your favorite colorrrr?</orb-label>
+    <orb-divider></orb-divider>
+  </div>
   <orb-radio>Red</orb-radio>
   <orb-radio>Blue</orb-radio>
   <orb-radio>Green</orb-radio>

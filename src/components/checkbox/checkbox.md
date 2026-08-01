@@ -6,7 +6,7 @@ sidebar_label: 'Checkbox'
 ::: live-code-demo
 
 ```html
-<orb-checkbox indeterminate>Do you like balloons?</orb-checkbox>
+<orb-checkbox required checked="mixed">Do you like balloons?</orb-checkbox>
 ```
 
 :::

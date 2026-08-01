@@ -104,32 +104,28 @@ export namespace Components {
     }
     interface OrbCheckbox {
         /**
-          * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
+          * Whether or not the checkbox is active
+          * @default "false"
          */
-        "data"?: string;
+        "checked": "true" | "false" | "mixed";
         /**
-          * If the checkbox should contain a 3rd indeterminate state
-          * @default false
+          * Original value form will reset to
          */
-        "indeterminate": boolean;
+        "defaultChecked"?: "true" | "false" | "mixed";
         /**
           * Whether or not the label should go before or after the checkbox
           * @default "end"
          */
         "labelPlacement": "start" | "end";
         /**
-          * Original value form will reset to
-         */
-        "originalValue"?: boolean;
-        /**
           * Marks the control as required in the form. This will only affect indeterminate checkboxes.
           * @default false
          */
         "required": boolean;
         /**
-          * Whether or not the checkbox is active
+          * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
          */
-        "value"?: boolean;
+        "value"?: string;
     }
     interface OrbColor {
         /**
@@ -777,19 +773,19 @@ export namespace Components {
     }
     interface OrbToggle {
         /**
+          * Whether or not the toggle is active
+          * @default false
+         */
+        "checked": boolean;
+        /**
+          * Original value form will reset to
+         */
+        "defaultChecked": boolean;
+        /**
           * If the label should be placed at the start or end of the toggle
           * @default "end"
          */
         "labelPlacement": "start" | "end";
-        /**
-          * Original value form will reset to
-         */
-        "originalValue": boolean;
-        /**
-          * Whether or not the toggle is active
-          * @default false
-         */
-        "value": boolean;
     }
     interface OrbToolbar {
         /**
@@ -1014,7 +1010,7 @@ declare global {
         new (): HTMLOrbCardElement;
     };
     interface HTMLOrbCheckboxElementEventMap {
-        "valueChange": boolean | undefined;
+        "checkedChange": "true" | "false" | "mixed";
     }
     interface HTMLOrbCheckboxElement extends Components.OrbCheckbox, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbCheckboxElementEventMap>(type: K, listener: (this: HTMLOrbCheckboxElement, ev: OrbCheckboxCustomEvent<HTMLOrbCheckboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1478,7 +1474,7 @@ declare global {
         new (): HTMLOrbTocElement;
     };
     interface HTMLOrbToggleElementEventMap {
-        "valueChange": boolean;
+        "checkedChange": boolean;
     }
     interface HTMLOrbToggleElement extends Components.OrbToggle, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbToggleElementEventMap>(type: K, listener: (this: HTMLOrbToggleElement, ev: OrbToggleCustomEvent<HTMLOrbToggleElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1716,9 +1712,14 @@ declare namespace LocalJSX {
     }
     interface OrbCheckbox {
         /**
-          * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
+          * Whether or not the checkbox is active
+          * @default "false"
          */
-        "data"?: string;
+        "checked"?: "true" | "false" | "mixed";
+        /**
+          * Original value form will reset to
+         */
+        "defaultChecked"?: "true" | "false" | "mixed";
         /**
           * If `true`, the user cannot interact with the element.
          */
@@ -1727,11 +1728,6 @@ declare namespace LocalJSX {
           * The `id` of a `<form>` element to associate this element with.
          */
         "form"?: string;
-        /**
-          * If the checkbox should contain a 3rd indeterminate state
-          * @default false
-         */
-        "indeterminate"?: boolean;
         /**
           * Whether or not the label should go before or after the checkbox
           * @default "end"
@@ -1744,20 +1740,16 @@ declare namespace LocalJSX {
         /**
           * Emits the current value whenever it's state changes
          */
-        "onValueChange"?: (event: OrbCheckboxCustomEvent<boolean | undefined>) => void;
-        /**
-          * Original value form will reset to
-         */
-        "originalValue"?: boolean;
+        "onCheckedChange"?: (event: OrbCheckboxCustomEvent<"true" | "false" | "mixed">) => void;
         /**
           * Marks the control as required in the form. This will only affect indeterminate checkboxes.
           * @default false
          */
         "required"?: boolean;
         /**
-          * Whether or not the checkbox is active
+          * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
          */
-        "value"?: boolean;
+        "value"?: string;
     }
     interface OrbColor {
         /**
@@ -2472,6 +2464,15 @@ declare namespace LocalJSX {
     }
     interface OrbToggle {
         /**
+          * Whether or not the toggle is active
+          * @default false
+         */
+        "checked"?: boolean;
+        /**
+          * Original value form will reset to
+         */
+        "defaultChecked"?: boolean;
+        /**
           * If `true`, the user cannot interact with the element.
          */
         "disabled"?: boolean;
@@ -2491,16 +2492,7 @@ declare namespace LocalJSX {
         /**
           * Emits the new value whenever toggle is clicked
          */
-        "onValueChange"?: (event: OrbToggleCustomEvent<boolean>) => void;
-        /**
-          * Original value form will reset to
-         */
-        "originalValue"?: boolean;
-        /**
-          * Whether or not the toggle is active
-          * @default false
-         */
-        "value"?: boolean;
+        "onCheckedChange"?: (event: OrbToggleCustomEvent<boolean>) => void;
     }
     interface OrbToolbar {
         /**
@@ -2606,11 +2598,10 @@ declare namespace LocalJSX {
         "color": Color;
     }
     interface OrbCheckboxAttributes {
-        "originalValue": boolean;
-        "data": string;
-        "value": boolean;
+        "defaultChecked": "true" | "false" | "mixed";
+        "value": string;
+        "checked": "true" | "false" | "mixed";
         "labelPlacement": "start" | "end";
-        "indeterminate": boolean;
         "required": boolean;
     }
     interface OrbColorAttributes {
@@ -2835,8 +2826,8 @@ declare namespace LocalJSX {
         "href": string;
     }
     interface OrbToggleAttributes {
-        "originalValue": boolean;
-        "value": boolean;
+        "defaultChecked": boolean;
+        "checked": boolean;
         "labelPlacement": "start" | "end";
     }
     interface OrbToolbarAttributes {
