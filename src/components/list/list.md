@@ -25,11 +25,6 @@ sidebar_label: 'List'
   </orb-li>
   <orb-li>Oranges</orb-li>
 </orb-list>
-<orb-list dense>
-  <orb-li>Apples</orb-li>
-  <orb-li>Bananas</orb-li>
-  <orb-li>Oranges</orb-li>
-</orb-list>
 ```
 
 :::

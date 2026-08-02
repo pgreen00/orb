@@ -10,9 +10,15 @@
   />
   <title>Orb Design System</title>
   <style>@view-transition {navigation: auto;
-  }</style>
+  }
+  </style>
+  <script type="module">
+    const t = localStorage.getItem('orb__theme') || 'system'
+    const el = document.documentElement
+    el.classList.toggle('orb-theme-light', t === 'light')
+    el.classList.toggle('orb-theme-dark', t === 'dark')
+  </script>
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/prism.css" />
   <link rel="stylesheet" href="/build/styles/core.css" />
   <link rel="stylesheet" href="/build/styles/landmarks.css" />
   <link rel="stylesheet" href="/build/styles/classes.css" />
@@ -105,17 +111,17 @@
 </body>
 
 <script type="module">
-  function setTheme(theme) {
+  async function setTheme(theme) {
     const htmlEl = document.querySelector('html')
     localStorage.setItem('orb__theme', theme ?? 'system')
     htmlEl.classList.toggle('orb-theme-light', theme === 'light')
     htmlEl.classList.toggle('orb-theme-dark', theme === 'dark')
     const menuItems = Array.from(document.querySelectorAll('#theme-menu > orb-mi'))
+    await customElements.whenDefined('orb-mi')
     for (const item of menuItems) {
       item.checked = theme == item.value
     }
   }
-  await customElements.whenDefined('orb-mi')
   setTheme(localStorage.getItem('orb__theme'))
   const themeMenu = document.querySelector('#theme-menu')
   themeMenu.addEventListener('action', ev => {
