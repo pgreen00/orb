@@ -30,7 +30,8 @@ export type CreateDialogOptions = {
   backdropDismiss?: boolean;
 };
 
-export const createDialog = (options: CreateDialogOptions) => {
+export const createDialog = (_options: CreateDialogOptions) => {
+  /*
   const dialog = document.createElement("orb-overlay");
   dialog.size = "sm";
   dialog.setHTMLUnsafe(`
@@ -136,4 +137,5 @@ export const createDialog = (options: CreateDialogOptions) => {
   form.addEventListener("submit", () => dialog.hide(), { once: true });
   dialog.addEventListener("dismiss", () => dialog.remove(), { once: true });
   return [dialog, form] as const;
+  */
 };

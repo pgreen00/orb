@@ -5,8 +5,6 @@ sidebar_label: 'Card'
 
 ## Usage
 
-### 
-
 ::: live-code-demo
 
 ```html
@@ -20,3 +18,4 @@ sidebar_label: 'Card'
 ```
 
 :::
+

@@ -1,28 +1,75 @@
+/*
+ * Shadow styles for the affordances orb-gc renders itself. Everything the
+ * consumer sees on the outside of the cell lives in grid.css, adopted into the
+ * light DOM, and is reachable with ordinary selectors. Only the sort indicator
+ * and resize handle are in here, since the light sheet cannot cross into this
+ * shadow root.
+ *
+ * Both are exposed as parts so they stay restyleable from outside.
+ */
+
 :host {
   display: block;
-  box-sizing: border-box;
-  background-color: light-dark(white, var(--orb-neutral-900));
-  --border-right: initial;
+  position: relative;
 }
 
-:host(:not(:last-child)) {
-  border-right: var(--border-right, 0);
+:host(:not([sortable])) .sort {
+  display: none;
 }
 
-orb-button {
-  opacity: 0;
-  transition: opacity var(--orb-transition-fast) ease-in-out;
-  &.hover {
-    opacity: 1;
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--orb-spacing-3xs);
+  vertical-align: middle;
+  margin-left: var(--orb-spacing-2xs);
+  /* held at low opacity so the column reads as sortable before it is sorted */
+  opacity: var(--sort-opacity, 0.35);
+  transition: opacity var(--orb-transition-fast, 150ms) ease,
+    transform var(--orb-transition-fast, 150ms) ease;
+}
+
+:host([data-sort-dir="asc"]) .sort,
+:host([data-sort-dir="desc"]) .sort {
+  --sort-opacity: 1;
+}
+
+:host([data-sort-dir="asc"]) .sort {
+  transform: rotate(180deg);
+}
+
+.sort-index {
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-regular);
+}
+
+/* rotating the chevron would spin the index with it */
+:host([data-sort-dir="asc"]) .sort-index {
+  transform: rotate(-180deg);
+}
+
+.resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--resize-width, 0.5rem);
+  cursor: col-resize;
+  touch-action: none;
+  /* sits over the border so the whole edge is grabbable */
+  transform: translateX(50%);
+}
+
+.resize:hover,
+.resize:active {
+  background-color: var(--resize-color, var(--orb-primary-500));
+  /* only the border width reads as active, not the whole hit area */
+  background-clip: content-box;
+  padding-inline: calc(var(--resize-width, 0.5rem) / 2 - 1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sort {
+    transition: none;
   }
-}
-
-svg.success {
-  color: light-dark(var(--orb-success-700), var(--orb-success-500));
-}
-
-:host([sticky]) {
-  position: sticky;
-  left: 0;
-  z-index: 1;
 }

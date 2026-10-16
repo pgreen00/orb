@@ -56,14 +56,17 @@ export class RadioGroup {
   @Event({ bubbles: false }) valueChange: EventEmitter<any>;
 
   componentWillLoad() {
+    this.internals.role = "radiogroup";
     this.internals.setFormValue(this.value);
     if (!this.originalValue) this.originalValue = this.value;
   }
 
   componentWillRender() {
     this.getRadios().forEach(
-      (radio) =>
-        (radio.selected = (radio.value || radio.textContent) === this.value),
+      (radio) => {
+        if ((radio.value || radio.textContent) === this.value) radio.dataset.selected = ''
+        else delete radio.dataset.selected;
+      },
     );
   }
 
@@ -75,7 +78,7 @@ export class RadioGroup {
     this.internals.states.clear();
     if (this.required) {
       this.internals.states.add("--required");
-      if (this.getRadios().every((t) => t.selected)) {
+      if (this.getRadios().some((t) => t.dataset.selected === "")) {
         this.internals.states.add("--valid");
       } else {
         this.internals.setValidity(
@@ -85,10 +88,6 @@ export class RadioGroup {
         this.internals.states.add("--invalid");
       }
     }
-  }
-
-  componentDidLoad() {
-    this.internals.role = "radiogroup";
   }
 
   formResetCallback() {

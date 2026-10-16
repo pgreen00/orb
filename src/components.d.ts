@@ -7,19 +7,21 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
+import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
+export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export namespace Components {
     /**
-     * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
@@ -118,6 +120,11 @@ export namespace Components {
          */
         "labelPlacement": "start" | "end";
         /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
+        /**
           * Marks the control as required in the form. This will only affect indeterminate checkboxes.
           * @default false
          */
@@ -141,36 +148,28 @@ export namespace Components {
          */
         "light"?: string;
     }
-    interface OrbCombobox {
-        /**
-          * @default false
-         */
-        "disabled": boolean;
-        /**
-          * @default false
-         */
-        "editable": boolean;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "multiple": boolean;
-        "note"?: string;
-        "placeholder"?: string;
-        /**
-          * @default false
-         */
-        "required": boolean;
-        "searchTerm": string;
-        /**
-          * @default "md"
-         */
-        "size": "sm" | "md" | "lg";
-        "value": any;
-    }
     interface OrbComp {
     }
     interface OrbControl {
+    }
+    /**
+     * A button that copies text to the clipboard, swapping to a checkmark to
+     * confirm. Copies the `value` prop when set, otherwise its own text content.
+     */
+    interface OrbCopyButton {
+        /**
+          * Accessible label for the button.
+          * @default "Copy"
+         */
+        "label": string;
+        /**
+          * @default "sm"
+         */
+        "size": "md" | "lg" | "sm" | "xs";
+        /**
+          * The text to copy. Falls back to the element's text content when omitted, which is how it behaves when wrapped around the content it copies.
+         */
+        "value"?: string;
     }
     interface OrbDatepicker {
         /**
@@ -219,28 +218,162 @@ export namespace Components {
     }
     interface OrbEq {
     }
+    /**
+     * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
+     * row header when `header` is set.
+     */
     interface OrbGc {
+        /**
+          * Text alignment. Numeric columns usually want `end`.
+         */
+        "align"?: "start" | "center" | "end";
+        /**
+          * How many columns the cell covers
+         */
         "colSpan"?: number;
         /**
+          * Column identity. Declared on the header cell and inherited by position for the body cells. Sort and filter intents name the column with this.
+         */
+        "field"?: string;
+        /**
+          * Marks a body cell as the row's header, for the identifying column
           * @default false
          */
-        "copy": boolean;
+        "header": boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
+        /**
+          * Lets the user drag this column's trailing edge
+          * @default false
+         */
+        "resizable": boolean;
+        /**
+          * How many rows the cell covers
+         */
         "rowSpan"?: number;
+        /**
+          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `sortIntent` when it is activated.
+          * @default false
+         */
+        "sortable": boolean;
+        /**
+          * Pins the column to one edge while the grid scrolls sideways
+         */
+        "sticky"?: "start" | "end" | "";
     }
+    /**
+     * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
+     * only carries state and aria.
+     */
     interface OrbGr {
         /**
+          * Skipped by keyboard navigation and not selectable
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
+        /**
+          * Absolute index across every page, for `aria-rowindex`. The grid falls back to the DOM order when this is omitted.
+         */
+        "rowIndex"?: number;
+        /**
+          * Stable identity for the row. Every intent the grid emits refers to rows by this rather than by index, so the consumer can sort and page freely.
+         */
+        "rowKey"?: string;
+        /**
+          * Which part of the grid this row belongs to
           * @default "body"
          */
-        "type": "header" | "body" | "footer";
+        "section": "head" | "body" | "foot";
+        /**
+          * Set by the grid. Only rows in a selectable grid expose `aria-selected`, since the attribute implies selectability even when false.
+          * @default false
+         */
+        "selectable": boolean;
+        /**
+          * Whether the row is selected. Set by the grid from its `selected` prop.
+          * @default false
+         */
+        "selected": boolean;
     }
+    /**
+     * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
+     * pages or selects on its own, it only emits intents describing what the user
+     * asked for. Reflecting that back is done by updating props.
+     */
     interface OrbGrid {
-        "columns"?: number;
-        "data": string[][];
+        /**
+          * Which grid lines to draw
+          * @default "rows"
+         */
+        "borders": "none" | "rows" | "cols" | "both";
+        /**
+          * Total columns, for `aria-colcount`. Inferred from the header when omitted.
+         */
+        "colCount"?: number;
+        /**
+          * Raw `grid-template-columns` value. Inferred from the header cells when omitted.
+         */
+        "columns"?: string;
+        /**
+          * Vertical padding of the cells
+          * @default "default"
+         */
+        "density": "compact" | "default" | "comfortable";
+        /**
+          * Whether the arrow keys walk cells or whole rows
+          * @default "cell"
+         */
+        "navigation": "cell" | "row";
+        /**
+          * Total rows across every page, for `aria-rowcount`. Use -1 when unknown.
+         */
+        "rowCount"?: number;
+        /**
+          * Keys of the currently selected rows. Controlled: the grid requests changes through `selectIntent` but never writes this itself.
+          * @default []
+         */
+        "selected": string[];
+        /**
+          * How many rows the user may select
+          * @default "none"
+         */
+        "selection": "none" | "single" | "multiple";
+        /**
+          * Current sort, as `field:direction` pairs. `"salary:desc"` or `"dept:asc,salary:desc"` for a multi column sort.
+         */
+        "sort"?: string;
+        /**
+          * How many columns may be sorted at once
+          * @default "none"
+         */
+        "sortMode": "none" | "single" | "multiple";
+        /**
+          * Swaps the body rows for the matching slot
+          * @default "ready"
+         */
+        "state": "ready" | "loading" | "empty" | "error";
+        /**
+          * Alternates the background of body rows
+          * @default false
+         */
+        "striped": boolean;
     }
     interface OrbKnob {
     }
     interface OrbLabel {
-        "required"?: boolean;
+        "for"?: string;
+        /**
+          * @default false
+         */
+        "required": boolean;
     }
     interface OrbLayoutSwap {
         /**
@@ -251,47 +384,6 @@ export namespace Components {
           * @default false
          */
         "container": boolean;
-    }
-    interface OrbLi {
-    }
-    interface OrbLink {
-        /**
-          * Makes text the current color, rather than the primary color
-          * @default false
-         */
-        "accent": boolean;
-        /**
-          * Makes text bold
-          * @default false
-         */
-        "bold": boolean;
-        /**
-          * Passed to anchor
-         */
-        "download"?: string;
-        /**
-          * Passed to anchor
-         */
-        "href"?: string;
-        /**
-          * Passed to anchor
-         */
-        "rel"?: string;
-        /**
-          * Passed to anchor
-         */
-        "target"?: string;
-        /**
-          * Underlines the text
-          * @default false
-         */
-        "underline": boolean;
-    }
-    interface OrbList {
-        /**
-          * @default false
-         */
-        "dense": boolean;
     }
     interface OrbLoading {
     }
@@ -322,18 +414,13 @@ export namespace Components {
     interface OrbMidi {
     }
     interface OrbNote {
-        "invalid"?: boolean;
+        "for"?: string;
+        /**
+          * @default false
+         */
+        "invalid": boolean;
     }
-    interface OrbOption {
-        /**
-          * @default false
-         */
-        "disabled": boolean;
-        /**
-          * @default false
-         */
-        "selected": boolean;
-        "value": any;
+    interface OrbOutput {
     }
     interface OrbOverlay {
         /**
@@ -366,6 +453,8 @@ export namespace Components {
          */
         "size": "sm" | "md" | "lg";
     }
+    interface OrbPagination {
+    }
     interface OrbPill {
         /**
           * Predefined colors
@@ -387,12 +476,20 @@ export namespace Components {
     }
     interface OrbPillGroup {
     }
+    /**
+     * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
+     */
     interface OrbPipe {
         /**
           * A unix-like pipe expression. The first segment is a literal seed value and each subsequent segment is a pipe invocation with optional arguments.
           * @example "handheldInterfaceDefinition | reverseCase | titlecase"
          */
         "input": string;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
     }
     interface OrbPlaceholder {
         /**
@@ -470,10 +567,6 @@ export namespace Components {
         "triggerAction": "click" | "context-menu" | "hover";
     }
     interface OrbRadio {
-        /**
-          * If the option is currently selected
-         */
-        "selected"?: boolean;
         /**
           * The value of this option and the radio group will compare against
          */
@@ -651,102 +744,34 @@ export namespace Components {
           * @default false
          */
         "closable": boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
     }
     /**
      * its a textbox
      */
     interface OrbTextbox {
         /**
-          * Optional debounce of the didInput event
+          * Optional debounce of the form controls input event
           * @default 0
          */
         "debounce": number;
-        /**
-          * Renders input as disabled and prevents changes
-          * @default false
-         */
-        "disabled": boolean;
         /**
           * Text above the control
          */
         "label"?: string;
         /**
-          * Passed to native input
-         */
-        "max"?: any;
-        /**
-          * Passed to native input
-         */
-        "maxlength"?: number;
-        /**
-          * Passed to native input
-         */
-        "min"?: any;
-        /**
-          * Passed to native input
-         */
-        "minlength"?: number;
-        /**
-          * Whether the control is a multiline textarea
-          * @default false
-         */
-        "multiline": boolean;
-        /**
           * Informational message directly below the control
          */
         "note"?: string;
         /**
-          * Passed to native input
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
          */
-        "pattern"?: string;
-        /**
-          * Input placeholder text
-         */
-        "placeholder"?: string;
-        /**
-          * Renders input as read only and prevents changes
-          * @default false
-         */
-        "readonly": boolean;
-        /**
-          * Marks as required in form and adds asterisk to the end of the label
-          * @default false
-         */
-        "required": boolean;
-        /**
-          * Container size
-          * @default "md"
-         */
-        "size": "md" | "lg" | "sm";
-        /**
-          * Passed to native input
-         */
-        "step"?: string;
-        /**
-          * @default "text"
-         */
-        "type": | "text"
-    | "number"
-    | "search"
-    | "email"
-    | "phone"
-    | "url"
-    | "money"
-    | "date"
-    | "time"
-    | "datetime"
-    | "daterange"
-    | "password"
-    | "ssn"
-    | InputMaskOptions;
-        /**
-          * Current value of the input
-         */
-        "value": any;
-        /**
-          * Passed to native textarea
-         */
-        "wrap"?: string;
+        "ready": Promise<unknown>;
     }
     interface OrbTi {
         "href"?: string;
@@ -786,6 +811,11 @@ export namespace Components {
           * @default "end"
          */
         "labelPlacement": "start" | "end";
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
     }
     interface OrbToolbar {
         /**
@@ -824,6 +854,11 @@ export namespace Components {
           * @default 10
          */
         "offsetY": number;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
     }
     interface OrbTree {
         /**
@@ -877,10 +912,6 @@ export interface OrbCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCheckboxElement;
 }
-export interface OrbComboboxCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLOrbComboboxElement;
-}
 export interface OrbDatepickerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbDatepickerElement;
@@ -892,6 +923,10 @@ export interface OrbDetailsCustomEvent<T> extends CustomEvent<T> {
 export interface OrbDropzoneCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbDropzoneElement;
+}
+export interface OrbGridCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbGridElement;
 }
 export interface OrbMenuCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -917,10 +952,6 @@ export interface OrbShaderCanvasCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbShaderCanvasElement;
 }
-export interface OrbTextboxCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLOrbTextboxElement;
-}
 export interface OrbToggleCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbToggleElement;
@@ -935,7 +966,7 @@ export interface OrbWizardCustomEvent<T> extends CustomEvent<T> {
 }
 declare global {
     /**
-     * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface HTMLOrbAccordionElement extends Components.OrbAccordion, HTMLStencilElement {
@@ -1032,24 +1063,6 @@ declare global {
         prototype: HTMLOrbColorElement;
         new (): HTMLOrbColorElement;
     };
-    interface HTMLOrbComboboxElementEventMap {
-        "valueChange": any;
-        "searchTermChange": any;
-    }
-    interface HTMLOrbComboboxElement extends Components.OrbCombobox, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLOrbComboboxElementEventMap>(type: K, listener: (this: HTMLOrbComboboxElement, ev: OrbComboboxCustomEvent<HTMLOrbComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLOrbComboboxElementEventMap>(type: K, listener: (this: HTMLOrbComboboxElement, ev: OrbComboboxCustomEvent<HTMLOrbComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLOrbComboboxElement: {
-        prototype: HTMLOrbComboboxElement;
-        new (): HTMLOrbComboboxElement;
-    };
     interface HTMLOrbCompElement extends Components.OrbComp, HTMLStencilElement {
     }
     var HTMLOrbCompElement: {
@@ -1061,6 +1074,16 @@ declare global {
     var HTMLOrbControlElement: {
         prototype: HTMLOrbControlElement;
         new (): HTMLOrbControlElement;
+    };
+    /**
+     * A button that copies text to the clipboard, swapping to a checkmark to
+     * confirm. Copies the `value` prop when set, otherwise its own text content.
+     */
+    interface HTMLOrbCopyButtonElement extends Components.OrbCopyButton, HTMLStencilElement {
+    }
+    var HTMLOrbCopyButtonElement: {
+        prototype: HTMLOrbCopyButtonElement;
+        new (): HTMLOrbCopyButtonElement;
     };
     interface HTMLOrbDatepickerElementEventMap {
         "valueChange": number;
@@ -1138,19 +1161,47 @@ declare global {
         prototype: HTMLOrbEqElement;
         new (): HTMLOrbEqElement;
     };
+    /**
+     * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
+     * row header when `header` is set.
+     */
     interface HTMLOrbGcElement extends Components.OrbGc, HTMLStencilElement {
     }
     var HTMLOrbGcElement: {
         prototype: HTMLOrbGcElement;
         new (): HTMLOrbGcElement;
     };
+    /**
+     * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
+     * only carries state and aria.
+     */
     interface HTMLOrbGrElement extends Components.OrbGr, HTMLStencilElement {
     }
     var HTMLOrbGrElement: {
         prototype: HTMLOrbGrElement;
         new (): HTMLOrbGrElement;
     };
+    interface HTMLOrbGridElementEventMap {
+        "sortIntent": SortIntent;
+        "selectIntent": SelectIntent;
+        "activate": ActivateIntent;
+        "expand": ExpandIntent;
+        "resizeIntent": ResizeIntent;
+    }
+    /**
+     * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
+     * pages or selects on its own, it only emits intents describing what the user
+     * asked for. Reflecting that back is done by updating props.
+     */
     interface HTMLOrbGridElement extends Components.OrbGrid, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbGridElementEventMap>(type: K, listener: (this: HTMLOrbGridElement, ev: OrbGridCustomEvent<HTMLOrbGridElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbGridElementEventMap>(type: K, listener: (this: HTMLOrbGridElement, ev: OrbGridCustomEvent<HTMLOrbGridElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbGridElement: {
         prototype: HTMLOrbGridElement;
@@ -1173,24 +1224,6 @@ declare global {
     var HTMLOrbLayoutSwapElement: {
         prototype: HTMLOrbLayoutSwapElement;
         new (): HTMLOrbLayoutSwapElement;
-    };
-    interface HTMLOrbLiElement extends Components.OrbLi, HTMLStencilElement {
-    }
-    var HTMLOrbLiElement: {
-        prototype: HTMLOrbLiElement;
-        new (): HTMLOrbLiElement;
-    };
-    interface HTMLOrbLinkElement extends Components.OrbLink, HTMLStencilElement {
-    }
-    var HTMLOrbLinkElement: {
-        prototype: HTMLOrbLinkElement;
-        new (): HTMLOrbLinkElement;
-    };
-    interface HTMLOrbListElement extends Components.OrbList, HTMLStencilElement {
-    }
-    var HTMLOrbListElement: {
-        prototype: HTMLOrbListElement;
-        new (): HTMLOrbListElement;
     };
     interface HTMLOrbLoadingElement extends Components.OrbLoading, HTMLStencilElement {
     }
@@ -1239,11 +1272,11 @@ declare global {
         prototype: HTMLOrbNoteElement;
         new (): HTMLOrbNoteElement;
     };
-    interface HTMLOrbOptionElement extends Components.OrbOption, HTMLStencilElement {
+    interface HTMLOrbOutputElement extends Components.OrbOutput, HTMLStencilElement {
     }
-    var HTMLOrbOptionElement: {
-        prototype: HTMLOrbOptionElement;
-        new (): HTMLOrbOptionElement;
+    var HTMLOrbOutputElement: {
+        prototype: HTMLOrbOutputElement;
+        new (): HTMLOrbOutputElement;
     };
     interface HTMLOrbOverlayElementEventMap {
         "present": any;
@@ -1263,6 +1296,12 @@ declare global {
         prototype: HTMLOrbOverlayElement;
         new (): HTMLOrbOverlayElement;
     };
+    interface HTMLOrbPaginationElement extends Components.OrbPagination, HTMLStencilElement {
+    }
+    var HTMLOrbPaginationElement: {
+        prototype: HTMLOrbPaginationElement;
+        new (): HTMLOrbPaginationElement;
+    };
     interface HTMLOrbPillElement extends Components.OrbPill, HTMLStencilElement {
     }
     var HTMLOrbPillElement: {
@@ -1275,6 +1314,9 @@ declare global {
         prototype: HTMLOrbPillGroupElement;
         new (): HTMLOrbPillGroupElement;
     };
+    /**
+     * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
+     */
     interface HTMLOrbPipeElement extends Components.OrbPipe, HTMLStencilElement {
     }
     var HTMLOrbPipeElement: {
@@ -1435,21 +1477,10 @@ declare global {
         prototype: HTMLOrbTabsElement;
         new (): HTMLOrbTabsElement;
     };
-    interface HTMLOrbTextboxElementEventMap {
-        "valueChange": any;
-    }
     /**
      * its a textbox
      */
     interface HTMLOrbTextboxElement extends Components.OrbTextbox, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbTextboxElement: {
         prototype: HTMLOrbTextboxElement;
@@ -1560,9 +1591,9 @@ declare global {
         "orb-card": HTMLOrbCardElement;
         "orb-checkbox": HTMLOrbCheckboxElement;
         "orb-color": HTMLOrbColorElement;
-        "orb-combobox": HTMLOrbComboboxElement;
         "orb-comp": HTMLOrbCompElement;
         "orb-control": HTMLOrbControlElement;
+        "orb-copy-button": HTMLOrbCopyButtonElement;
         "orb-datepicker": HTMLOrbDatepickerElement;
         "orb-daw": HTMLOrbDawElement;
         "orb-details": HTMLOrbDetailsElement;
@@ -1576,17 +1607,15 @@ declare global {
         "orb-knob": HTMLOrbKnobElement;
         "orb-label": HTMLOrbLabelElement;
         "orb-layout-swap": HTMLOrbLayoutSwapElement;
-        "orb-li": HTMLOrbLiElement;
-        "orb-link": HTMLOrbLinkElement;
-        "orb-list": HTMLOrbListElement;
         "orb-loading": HTMLOrbLoadingElement;
         "orb-menu": HTMLOrbMenuElement;
         "orb-mesh": HTMLOrbMeshElement;
         "orb-mi": HTMLOrbMiElement;
         "orb-midi": HTMLOrbMidiElement;
         "orb-note": HTMLOrbNoteElement;
-        "orb-option": HTMLOrbOptionElement;
+        "orb-output": HTMLOrbOutputElement;
         "orb-overlay": HTMLOrbOverlayElement;
+        "orb-pagination": HTMLOrbPaginationElement;
         "orb-pill": HTMLOrbPillElement;
         "orb-pill-group": HTMLOrbPillGroupElement;
         "orb-pipe": HTMLOrbPipeElement;
@@ -1623,7 +1652,7 @@ declare namespace LocalJSX {
     type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}` | `prop:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K | `prop:${K}`]?: never } | { [P in `prop:${K}`]: PropT } & { [P in K | `attr:${K}`]?: never };
 
     /**
-     * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+     * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
      * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
@@ -1742,6 +1771,11 @@ declare namespace LocalJSX {
          */
         "onCheckedChange"?: (event: OrbCheckboxCustomEvent<"true" | "false" | "mixed">) => void;
         /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
+        /**
           * Marks the control as required in the form. This will only affect indeterminate checkboxes.
           * @default false
          */
@@ -1765,46 +1799,28 @@ declare namespace LocalJSX {
          */
         "light"?: string;
     }
-    interface OrbCombobox {
-        /**
-          * @default false
-         */
-        "disabled"?: boolean;
-        /**
-          * @default false
-         */
-        "editable"?: boolean;
-        /**
-          * The `id` of a `<form>` element to associate this element with.
-         */
-        "form"?: string;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "multiple"?: boolean;
-        /**
-          * The name of the element, used when submitting an HTML form.
-         */
-        "name"?: string;
-        "note"?: string;
-        "onSearchTermChange"?: (event: OrbComboboxCustomEvent<any>) => void;
-        "onValueChange"?: (event: OrbComboboxCustomEvent<any>) => void;
-        "placeholder"?: string;
-        /**
-          * @default false
-         */
-        "required"?: boolean;
-        "searchTerm"?: string;
-        /**
-          * @default "md"
-         */
-        "size"?: "sm" | "md" | "lg";
-        "value"?: any;
-    }
     interface OrbComp {
     }
     interface OrbControl {
+    }
+    /**
+     * A button that copies text to the clipboard, swapping to a checkmark to
+     * confirm. Copies the `value` prop when set, otherwise its own text content.
+     */
+    interface OrbCopyButton {
+        /**
+          * Accessible label for the button.
+          * @default "Copy"
+         */
+        "label"?: string;
+        /**
+          * @default "sm"
+         */
+        "size"?: "md" | "lg" | "sm" | "xs";
+        /**
+          * The text to copy. Falls back to the element's text content when omitted, which is how it behaves when wrapped around the content it copies.
+         */
+        "value"?: string;
     }
     interface OrbDatepicker {
         /**
@@ -1857,27 +1873,181 @@ declare namespace LocalJSX {
     }
     interface OrbEq {
     }
+    /**
+     * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
+     * row header when `header` is set.
+     */
     interface OrbGc {
+        /**
+          * Text alignment. Numeric columns usually want `end`.
+         */
+        "align"?: "start" | "center" | "end";
+        /**
+          * How many columns the cell covers
+         */
         "colSpan"?: number;
         /**
+          * Column identity. Declared on the header cell and inherited by position for the body cells. Sort and filter intents name the column with this.
+         */
+        "field"?: string;
+        /**
+          * Marks a body cell as the row's header, for the identifying column
           * @default false
          */
-        "copy"?: boolean;
+        "header"?: boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
+        /**
+          * Lets the user drag this column's trailing edge
+          * @default false
+         */
+        "resizable"?: boolean;
+        /**
+          * How many rows the cell covers
+         */
         "rowSpan"?: number;
+        /**
+          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `sortIntent` when it is activated.
+          * @default false
+         */
+        "sortable"?: boolean;
+        /**
+          * Pins the column to one edge while the grid scrolls sideways
+         */
+        "sticky"?: "start" | "end" | "";
     }
+    /**
+     * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
+     * only carries state and aria.
+     */
     interface OrbGr {
         /**
+          * Skipped by keyboard navigation and not selectable
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
+        /**
+          * Absolute index across every page, for `aria-rowindex`. The grid falls back to the DOM order when this is omitted.
+         */
+        "rowIndex"?: number;
+        /**
+          * Stable identity for the row. Every intent the grid emits refers to rows by this rather than by index, so the consumer can sort and page freely.
+         */
+        "rowKey"?: string;
+        /**
+          * Which part of the grid this row belongs to
           * @default "body"
          */
-        "type"?: "header" | "body" | "footer";
+        "section"?: "head" | "body" | "foot";
+        /**
+          * Set by the grid. Only rows in a selectable grid expose `aria-selected`, since the attribute implies selectability even when false.
+          * @default false
+         */
+        "selectable"?: boolean;
+        /**
+          * Whether the row is selected. Set by the grid from its `selected` prop.
+          * @default false
+         */
+        "selected"?: boolean;
     }
+    /**
+     * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
+     * pages or selects on its own, it only emits intents describing what the user
+     * asked for. Reflecting that back is done by updating props.
+     */
     interface OrbGrid {
-        "columns"?: number;
-        "data"?: string[][];
+        /**
+          * Which grid lines to draw
+          * @default "rows"
+         */
+        "borders"?: "none" | "rows" | "cols" | "both";
+        /**
+          * Total columns, for `aria-colcount`. Inferred from the header when omitted.
+         */
+        "colCount"?: number;
+        /**
+          * Raw `grid-template-columns` value. Inferred from the header cells when omitted.
+         */
+        "columns"?: string;
+        /**
+          * Vertical padding of the cells
+          * @default "default"
+         */
+        "density"?: "compact" | "default" | "comfortable";
+        /**
+          * Whether the arrow keys walk cells or whole rows
+          * @default "cell"
+         */
+        "navigation"?: "cell" | "row";
+        /**
+          * A row or cell was activated by double click or Enter. Cancelable: preventing it stops focus moving into a cell that holds its own focusable content.
+         */
+        "onActivate"?: (event: OrbGridCustomEvent<ActivateIntent>) => void;
+        /**
+          * Requests a row be expanded or collapsed
+         */
+        "onExpand"?: (event: OrbGridCustomEvent<ExpandIntent>) => void;
+        /**
+          * Requests a new column width
+         */
+        "onResizeIntent"?: (event: OrbGridCustomEvent<ResizeIntent>) => void;
+        /**
+          * Requests a new selection. Nothing changes until `selected` is updated.
+         */
+        "onSelectIntent"?: (event: OrbGridCustomEvent<SelectIntent>) => void;
+        /**
+          * Requests a new sort. Nothing changes until `sort` is updated.
+         */
+        "onSortIntent"?: (event: OrbGridCustomEvent<SortIntent>) => void;
+        /**
+          * Total rows across every page, for `aria-rowcount`. Use -1 when unknown.
+         */
+        "rowCount"?: number;
+        /**
+          * Keys of the currently selected rows. Controlled: the grid requests changes through `selectIntent` but never writes this itself.
+          * @default []
+         */
+        "selected"?: string[];
+        /**
+          * How many rows the user may select
+          * @default "none"
+         */
+        "selection"?: "none" | "single" | "multiple";
+        /**
+          * Current sort, as `field:direction` pairs. `"salary:desc"` or `"dept:asc,salary:desc"` for a multi column sort.
+         */
+        "sort"?: string;
+        /**
+          * How many columns may be sorted at once
+          * @default "none"
+         */
+        "sortMode"?: "none" | "single" | "multiple";
+        /**
+          * Swaps the body rows for the matching slot
+          * @default "ready"
+         */
+        "state"?: "ready" | "loading" | "empty" | "error";
+        /**
+          * Alternates the background of body rows
+          * @default false
+         */
+        "striped"?: boolean;
     }
     interface OrbKnob {
     }
     interface OrbLabel {
+        "for"?: string;
+        /**
+          * @default false
+         */
         "required"?: boolean;
     }
     interface OrbLayoutSwap {
@@ -1889,47 +2059,6 @@ declare namespace LocalJSX {
           * @default false
          */
         "container"?: boolean;
-    }
-    interface OrbLi {
-    }
-    interface OrbLink {
-        /**
-          * Makes text the current color, rather than the primary color
-          * @default false
-         */
-        "accent"?: boolean;
-        /**
-          * Makes text bold
-          * @default false
-         */
-        "bold"?: boolean;
-        /**
-          * Passed to anchor
-         */
-        "download"?: string;
-        /**
-          * Passed to anchor
-         */
-        "href"?: string;
-        /**
-          * Passed to anchor
-         */
-        "rel"?: string;
-        /**
-          * Passed to anchor
-         */
-        "target"?: string;
-        /**
-          * Underlines the text
-          * @default false
-         */
-        "underline"?: boolean;
-    }
-    interface OrbList {
-        /**
-          * @default false
-         */
-        "dense"?: boolean;
     }
     interface OrbLoading {
     }
@@ -1961,18 +2090,13 @@ declare namespace LocalJSX {
     interface OrbMidi {
     }
     interface OrbNote {
+        "for"?: string;
+        /**
+          * @default false
+         */
         "invalid"?: boolean;
     }
-    interface OrbOption {
-        /**
-          * @default false
-         */
-        "disabled"?: boolean;
-        /**
-          * @default false
-         */
-        "selected"?: boolean;
-        "value"?: any;
+    interface OrbOutput {
     }
     interface OrbOverlay {
         /**
@@ -2011,6 +2135,8 @@ declare namespace LocalJSX {
          */
         "size"?: "sm" | "md" | "lg";
     }
+    interface OrbPagination {
+    }
     interface OrbPill {
         /**
           * Predefined colors
@@ -2032,12 +2158,20 @@ declare namespace LocalJSX {
     }
     interface OrbPillGroup {
     }
+    /**
+     * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
+     */
     interface OrbPipe {
         /**
           * A unix-like pipe expression. The first segment is a literal seed value and each subsequent segment is a pipe invocation with optional arguments.
           * @example "handheldInterfaceDefinition | reverseCase | titlecase"
          */
         "input": string;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
     }
     interface OrbPlaceholder {
         /**
@@ -2133,10 +2267,6 @@ declare namespace LocalJSX {
         "triggerAction"?: "click" | "context-menu" | "hover";
     }
     interface OrbRadio {
-        /**
-          * If the option is currently selected
-         */
-        "selected"?: boolean;
         /**
           * The value of this option and the radio group will compare against
          */
@@ -2331,114 +2461,34 @@ declare namespace LocalJSX {
           * @default false
          */
         "closable"?: boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
     }
     /**
      * its a textbox
      */
     interface OrbTextbox {
         /**
-          * Optional debounce of the didInput event
+          * Optional debounce of the form controls input event
           * @default 0
          */
         "debounce"?: number;
-        /**
-          * Renders input as disabled and prevents changes
-          * @default false
-         */
-        "disabled"?: boolean;
-        /**
-          * The `id` of a `<form>` element to associate this element with.
-         */
-        "form"?: string;
         /**
           * Text above the control
          */
         "label"?: string;
         /**
-          * Passed to native input
-         */
-        "max"?: any;
-        /**
-          * Passed to native input
-         */
-        "maxlength"?: number;
-        /**
-          * Passed to native input
-         */
-        "min"?: any;
-        /**
-          * Passed to native input
-         */
-        "minlength"?: number;
-        /**
-          * Whether the control is a multiline textarea
-          * @default false
-         */
-        "multiline"?: boolean;
-        /**
-          * The name of the element, used when submitting an HTML form.
-         */
-        "name"?: string;
-        /**
           * Informational message directly below the control
          */
         "note"?: string;
         /**
-          * Emits as the user types
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
          */
-        "onValueChange"?: (event: OrbTextboxCustomEvent<any>) => void;
-        /**
-          * Passed to native input
-         */
-        "pattern"?: string;
-        /**
-          * Input placeholder text
-         */
-        "placeholder"?: string;
-        /**
-          * Renders input as read only and prevents changes
-          * @default false
-         */
-        "readonly"?: boolean;
-        /**
-          * Marks as required in form and adds asterisk to the end of the label
-          * @default false
-         */
-        "required"?: boolean;
-        /**
-          * Container size
-          * @default "md"
-         */
-        "size"?: "md" | "lg" | "sm";
-        /**
-          * Passed to native input
-         */
-        "step"?: string;
-        /**
-          * @default "text"
-         */
-        "type"?: | "text"
-    | "number"
-    | "search"
-    | "email"
-    | "phone"
-    | "url"
-    | "money"
-    | "date"
-    | "time"
-    | "datetime"
-    | "daterange"
-    | "password"
-    | "ssn"
-    | InputMaskOptions;
-        /**
-          * Current value of the input
-         */
-        "value"?: any;
-        /**
-          * Passed to native textarea
-         */
-        "wrap"?: string;
+        "ready"?: Promise<unknown>;
     }
     interface OrbTi {
         "href"?: string;
@@ -2493,6 +2543,11 @@ declare namespace LocalJSX {
           * Emits the new value whenever toggle is clicked
          */
         "onCheckedChange"?: (event: OrbToggleCustomEvent<boolean>) => void;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
     }
     interface OrbToolbar {
         /**
@@ -2531,6 +2586,11 @@ declare namespace LocalJSX {
           * @default 10
          */
         "offsetY"?: number;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
     }
     interface OrbTree {
         /**
@@ -2609,17 +2669,10 @@ declare namespace LocalJSX {
         "light": string;
         "dark": string;
     }
-    interface OrbComboboxAttributes {
+    interface OrbCopyButtonAttributes {
         "value": string;
         "label": string;
-        "note": string;
-        "disabled": boolean;
-        "placeholder": string;
-        "required": boolean;
-        "multiple": boolean;
-        "editable": boolean;
-        "size": "sm" | "md" | "lg";
-        "searchTerm": string;
+        "size": "md" | "lg" | "sm" | "xs";
     }
     interface OrbDatepickerAttributes {
         "type": "date" | "datetime" | "time";
@@ -2639,34 +2692,43 @@ declare namespace LocalJSX {
         "spacing": "sm" | "md" | "lg" | "none";
     }
     interface OrbGcAttributes {
+        "field": string;
         "colSpan": number;
         "rowSpan": number;
-        "copy": boolean;
+        "sortable": boolean;
+        "sticky": "start" | "end" | "";
+        "align": "start" | "center" | "end";
+        "resizable": boolean;
+        "header": boolean;
     }
     interface OrbGrAttributes {
-        "type": "header" | "body" | "footer";
+        "selected": boolean;
+        "selectable": boolean;
+        "section": "head" | "body" | "foot";
+        "rowKey": string;
+        "disabled": boolean;
+        "rowIndex": number;
     }
     interface OrbGridAttributes {
-        "columns": number;
+        "columns": string;
+        "rowCount": number;
+        "colCount": number;
+        "density": "compact" | "default" | "comfortable";
+        "striped": boolean;
+        "borders": "none" | "rows" | "cols" | "both";
+        "selection": "none" | "single" | "multiple";
+        "sort": string;
+        "sortMode": "none" | "single" | "multiple";
+        "state": "ready" | "loading" | "empty" | "error";
+        "navigation": "cell" | "row";
     }
     interface OrbLabelAttributes {
         "required": boolean;
+        "for": string;
     }
     interface OrbLayoutSwapAttributes {
         "container": boolean;
         "breakpoint": Breakpoint | string;
-    }
-    interface OrbLinkAttributes {
-        "underline": boolean;
-        "bold": boolean;
-        "accent": boolean;
-        "href": string;
-        "target": string;
-        "rel": string;
-        "download": string;
-    }
-    interface OrbListAttributes {
-        "dense": boolean;
     }
     interface OrbMenuAttributes {
         "bar": boolean;
@@ -2688,11 +2750,7 @@ declare namespace LocalJSX {
     }
     interface OrbNoteAttributes {
         "invalid": boolean;
-    }
-    interface OrbOptionAttributes {
-        "value": string;
-        "selected": boolean;
-        "disabled": boolean;
+        "for": string;
     }
     interface OrbOverlayAttributes {
         "backdropDismiss": boolean;
@@ -2728,7 +2786,6 @@ declare namespace LocalJSX {
     }
     interface OrbRadioAttributes {
         "value": string;
-        "selected": boolean;
     }
     interface OrbRadioButtonAttributes {
         "value": string;
@@ -2784,37 +2841,9 @@ declare namespace LocalJSX {
         "closable": boolean;
     }
     interface OrbTextboxAttributes {
-        "type": | "text"
-    | "number"
-    | "search"
-    | "email"
-    | "phone"
-    | "url"
-    | "money"
-    | "date"
-    | "time"
-    | "datetime"
-    | "daterange"
-    | "password"
-    | "ssn"
-    | InputMaskOptions;
-        "value": string;
         "label": string;
         "note": string;
-        "size": "md" | "lg" | "sm";
-        "placeholder": string;
         "debounce": number;
-        "disabled": boolean;
-        "readonly": boolean;
-        "wrap": string;
-        "multiline": boolean;
-        "min": string;
-        "max": string;
-        "minlength": number;
-        "maxlength": number;
-        "pattern": string;
-        "required": boolean;
-        "step": string;
     }
     interface OrbTiAttributes {
         "selection": "single" | "multiple" | "leaf";
@@ -2871,9 +2900,9 @@ declare namespace LocalJSX {
         "orb-card": Omit<OrbCard, keyof OrbCardAttributes> & { [K in keyof OrbCard & keyof OrbCardAttributes]?: OrbCard[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `attr:${K}`]?: OrbCardAttributes[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `prop:${K}`]?: OrbCard[K] };
         "orb-checkbox": Omit<OrbCheckbox, keyof OrbCheckboxAttributes> & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes]?: OrbCheckbox[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `attr:${K}`]?: OrbCheckboxAttributes[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `prop:${K}`]?: OrbCheckbox[K] };
         "orb-color": Omit<OrbColor, keyof OrbColorAttributes> & { [K in keyof OrbColor & keyof OrbColorAttributes]?: OrbColor[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `attr:${K}`]?: OrbColorAttributes[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `prop:${K}`]?: OrbColor[K] };
-        "orb-combobox": Omit<OrbCombobox, keyof OrbComboboxAttributes> & { [K in keyof OrbCombobox & keyof OrbComboboxAttributes]?: OrbCombobox[K] } & { [K in keyof OrbCombobox & keyof OrbComboboxAttributes as `attr:${K}`]?: OrbComboboxAttributes[K] } & { [K in keyof OrbCombobox & keyof OrbComboboxAttributes as `prop:${K}`]?: OrbCombobox[K] };
         "orb-comp": OrbComp;
         "orb-control": OrbControl;
+        "orb-copy-button": Omit<OrbCopyButton, keyof OrbCopyButtonAttributes> & { [K in keyof OrbCopyButton & keyof OrbCopyButtonAttributes]?: OrbCopyButton[K] } & { [K in keyof OrbCopyButton & keyof OrbCopyButtonAttributes as `attr:${K}`]?: OrbCopyButtonAttributes[K] } & { [K in keyof OrbCopyButton & keyof OrbCopyButtonAttributes as `prop:${K}`]?: OrbCopyButton[K] };
         "orb-datepicker": Omit<OrbDatepicker, keyof OrbDatepickerAttributes> & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes]?: OrbDatepicker[K] } & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes as `attr:${K}`]?: OrbDatepickerAttributes[K] } & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes as `prop:${K}`]?: OrbDatepicker[K] };
         "orb-daw": OrbDaw;
         "orb-details": Omit<OrbDetails, keyof OrbDetailsAttributes> & { [K in keyof OrbDetails & keyof OrbDetailsAttributes]?: OrbDetails[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `attr:${K}`]?: OrbDetailsAttributes[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `prop:${K}`]?: OrbDetails[K] };
@@ -2887,17 +2916,15 @@ declare namespace LocalJSX {
         "orb-knob": OrbKnob;
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
-        "orb-li": OrbLi;
-        "orb-link": Omit<OrbLink, keyof OrbLinkAttributes> & { [K in keyof OrbLink & keyof OrbLinkAttributes]?: OrbLink[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `attr:${K}`]?: OrbLinkAttributes[K] } & { [K in keyof OrbLink & keyof OrbLinkAttributes as `prop:${K}`]?: OrbLink[K] };
-        "orb-list": Omit<OrbList, keyof OrbListAttributes> & { [K in keyof OrbList & keyof OrbListAttributes]?: OrbList[K] } & { [K in keyof OrbList & keyof OrbListAttributes as `attr:${K}`]?: OrbListAttributes[K] } & { [K in keyof OrbList & keyof OrbListAttributes as `prop:${K}`]?: OrbList[K] };
         "orb-loading": OrbLoading;
         "orb-menu": Omit<OrbMenu, keyof OrbMenuAttributes> & { [K in keyof OrbMenu & keyof OrbMenuAttributes]?: OrbMenu[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `attr:${K}`]?: OrbMenuAttributes[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `prop:${K}`]?: OrbMenu[K] };
         "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
         "orb-mi": Omit<OrbMi, keyof OrbMiAttributes> & { [K in keyof OrbMi & keyof OrbMiAttributes]?: OrbMi[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `attr:${K}`]?: OrbMiAttributes[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `prop:${K}`]?: OrbMi[K] };
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
-        "orb-option": Omit<OrbOption, keyof OrbOptionAttributes> & { [K in keyof OrbOption & keyof OrbOptionAttributes]?: OrbOption[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `attr:${K}`]?: OrbOptionAttributes[K] } & { [K in keyof OrbOption & keyof OrbOptionAttributes as `prop:${K}`]?: OrbOption[K] };
+        "orb-output": OrbOutput;
         "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
+        "orb-pagination": OrbPagination;
         "orb-pill": Omit<OrbPill, keyof OrbPillAttributes> & { [K in keyof OrbPill & keyof OrbPillAttributes]?: OrbPill[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `attr:${K}`]?: OrbPillAttributes[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `prop:${K}`]?: OrbPill[K] };
         "orb-pill-group": OrbPillGroup;
         "orb-pipe": Omit<OrbPipe, keyof OrbPipeAttributes> & { [K in keyof OrbPipe & keyof OrbPipeAttributes]?: OrbPipe[K] } & { [K in keyof OrbPipe & keyof OrbPipeAttributes as `attr:${K}`]?: OrbPipeAttributes[K] } & { [K in keyof OrbPipe & keyof OrbPipeAttributes as `prop:${K}`]?: OrbPipe[K] } & OneOf<"input", OrbPipe["input"], OrbPipeAttributes["input"]>;
@@ -2935,7 +2962,7 @@ declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
             /**
-             * Accordions are wrappers for <orb-link accent underline href="../details">Details</orb-link>. When an inner detail is opened, the others are automatically closed.
+             * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
              * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
@@ -2948,9 +2975,13 @@ declare module "@stencil/core" {
             "orb-card": LocalJSX.IntrinsicElements["orb-card"] & JSXBase.HTMLAttributes<HTMLOrbCardElement>;
             "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;
             "orb-color": LocalJSX.IntrinsicElements["orb-color"] & JSXBase.HTMLAttributes<HTMLOrbColorElement>;
-            "orb-combobox": LocalJSX.IntrinsicElements["orb-combobox"] & JSXBase.HTMLAttributes<HTMLOrbComboboxElement>;
             "orb-comp": LocalJSX.IntrinsicElements["orb-comp"] & JSXBase.HTMLAttributes<HTMLOrbCompElement>;
             "orb-control": LocalJSX.IntrinsicElements["orb-control"] & JSXBase.HTMLAttributes<HTMLOrbControlElement>;
+            /**
+             * A button that copies text to the clipboard, swapping to a checkmark to
+             * confirm. Copies the `value` prop when set, otherwise its own text content.
+             */
+            "orb-copy-button": LocalJSX.IntrinsicElements["orb-copy-button"] & JSXBase.HTMLAttributes<HTMLOrbCopyButtonElement>;
             "orb-datepicker": LocalJSX.IntrinsicElements["orb-datepicker"] & JSXBase.HTMLAttributes<HTMLOrbDatepickerElement>;
             "orb-daw": LocalJSX.IntrinsicElements["orb-daw"] & JSXBase.HTMLAttributes<HTMLOrbDawElement>;
             "orb-details": LocalJSX.IntrinsicElements["orb-details"] & JSXBase.HTMLAttributes<HTMLOrbDetailsElement>;
@@ -2958,25 +2989,39 @@ declare module "@stencil/core" {
             "orb-divider": LocalJSX.IntrinsicElements["orb-divider"] & JSXBase.HTMLAttributes<HTMLOrbDividerElement>;
             "orb-dropzone": LocalJSX.IntrinsicElements["orb-dropzone"] & JSXBase.HTMLAttributes<HTMLOrbDropzoneElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
+            /**
+             * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
+             * row header when `header` is set.
+             */
             "orb-gc": LocalJSX.IntrinsicElements["orb-gc"] & JSXBase.HTMLAttributes<HTMLOrbGcElement>;
+            /**
+             * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
+             * only carries state and aria.
+             */
             "orb-gr": LocalJSX.IntrinsicElements["orb-gr"] & JSXBase.HTMLAttributes<HTMLOrbGrElement>;
+            /**
+             * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
+             * pages or selects on its own, it only emits intents describing what the user
+             * asked for. Reflecting that back is done by updating props.
+             */
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
             "orb-knob": LocalJSX.IntrinsicElements["orb-knob"] & JSXBase.HTMLAttributes<HTMLOrbKnobElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
             "orb-layout-swap": LocalJSX.IntrinsicElements["orb-layout-swap"] & JSXBase.HTMLAttributes<HTMLOrbLayoutSwapElement>;
-            "orb-li": LocalJSX.IntrinsicElements["orb-li"] & JSXBase.HTMLAttributes<HTMLOrbLiElement>;
-            "orb-link": LocalJSX.IntrinsicElements["orb-link"] & JSXBase.HTMLAttributes<HTMLOrbLinkElement>;
-            "orb-list": LocalJSX.IntrinsicElements["orb-list"] & JSXBase.HTMLAttributes<HTMLOrbListElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
             "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
-            "orb-option": LocalJSX.IntrinsicElements["orb-option"] & JSXBase.HTMLAttributes<HTMLOrbOptionElement>;
+            "orb-output": LocalJSX.IntrinsicElements["orb-output"] & JSXBase.HTMLAttributes<HTMLOrbOutputElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
+            "orb-pagination": LocalJSX.IntrinsicElements["orb-pagination"] & JSXBase.HTMLAttributes<HTMLOrbPaginationElement>;
             "orb-pill": LocalJSX.IntrinsicElements["orb-pill"] & JSXBase.HTMLAttributes<HTMLOrbPillElement>;
             "orb-pill-group": LocalJSX.IntrinsicElements["orb-pill-group"] & JSXBase.HTMLAttributes<HTMLOrbPillGroupElement>;
+            /**
+             * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
+             */
             "orb-pipe": LocalJSX.IntrinsicElements["orb-pipe"] & JSXBase.HTMLAttributes<HTMLOrbPipeElement>;
             "orb-placeholder": LocalJSX.IntrinsicElements["orb-placeholder"] & JSXBase.HTMLAttributes<HTMLOrbPlaceholderElement>;
             "orb-popover": LocalJSX.IntrinsicElements["orb-popover"] & JSXBase.HTMLAttributes<HTMLOrbPopoverElement>;

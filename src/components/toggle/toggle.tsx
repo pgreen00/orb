@@ -9,6 +9,7 @@ import {
   AttachInternals,
   Watch,
 } from "@stencil/core";
+import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-toggle",
@@ -16,7 +17,7 @@ import {
   shadow: true,
   formAssociated: true,
 })
-export class Toggle {
+export class Toggle extends ReadyController {
   @AttachInternals({
     states: {
       on: false,
@@ -45,13 +46,6 @@ export class Toggle {
    * Emits the new value whenever toggle is clicked
    */
   @Event({ bubbles: false }) checkedChange: EventEmitter<boolean>;
-
-  private resolve: Function;
-  private ready = new Promise((res) => (this.resolve = res));
-
-  componentDidLoad() {
-    this.resolve();
-  }
 
   componentWillLoad() {
     this.internals.role = "switch";

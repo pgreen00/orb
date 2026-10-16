@@ -1,7 +1,22 @@
-const loaderTemplate = (componentsEntries) => `let observer;
-let components = {
+const loaderTemplate = (componentsEntries) => `let components = {
 ${componentsEntries},
 };
+
+const roots = new WeakSet();
+let observer;
+
+function getObserver() {
+  observer ||= new MutationObserver((mutations) => {
+    for (const { addedNodes } of mutations) {
+      for (const node of addedNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          load(node);
+        }
+      }
+    }
+  });
+  return observer;
+}
 
 async function load(root) {
   const rootTagName = root instanceof Element ? root.tagName.toLowerCase() : "";
@@ -34,23 +49,26 @@ async function register(tagName) {
 function cleanUp(tagName) {
   delete components[tagName];
   if (!Object.keys(components).length) {
-    observer.disconnect();
+    observer?.disconnect();
   }
 }
 
-async function start(root = document.body) {
-  observer = new MutationObserver((mutations) => {
-    for (const { addedNodes } of mutations) {
-      for (const node of addedNodes) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          load(node);
-        }
-      }
-    }
-  });
+/**
+ * Watch a root for undefined Orb elements and lazily register them.
+ * Call with a ShadowRoot to cover components inside your own shadow DOM.
+ * @param {Element | Document | DocumentFragment | ShadowRoot} [root]
+ * @returns {Promise<void>}
+ */
+export async function start(root = document.body) {
+  if (!root || roots.has(root)) {
+    return;
+  }
+  roots.add(root);
 
-  load(root);
-  observer.observe(root, { subtree: true, childList: true });
+  if (Object.keys(components).length) {
+    getObserver().observe(root, { subtree: true, childList: true });
+  }
+  await load(root);
 }
 
 start();

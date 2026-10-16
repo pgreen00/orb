@@ -8,7 +8,6 @@ import {
 } from "@floating-ui/dom";
 import { Component, Host, Prop, State, Watch, Element } from "@stencil/core";
 import {
-  AsyncSubject,
   Subscription,
   fromEvent,
   debounceTime,
@@ -17,18 +16,19 @@ import {
   merge,
   debounce,
   tap,
+  from,
 } from "rxjs";
 import { getDOMRect } from "../../utils/get-dom-rect";
+import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-tooltip",
   styleUrl: "tooltip.css",
   shadow: true,
 })
-export class Tooltip {
+export class Tooltip extends ReadyController {
   @Element() el!: HTMLElement;
   @State() open = false;
-  private ready = new AsyncSubject<void>();
   private sub?: Subscription;
   private get containerEl() {
     return this.el.shadowRoot.querySelector<HTMLSlotElement>(
@@ -52,17 +52,12 @@ export class Tooltip {
   /** Vertical offset used when auto positioning the popover content */
   @Prop() offsetY = 10;
 
-  componentDidLoad() {
-    this.ready.next();
-    this.ready.complete();
-  }
-
   connectedCallback() {
     const mouseMoveDebounce = fromEvent(window, "mousemove").pipe(
       debounceTime(50),
     );
 
-    this.sub = this.ready
+    this.sub = from(this.ready)
       .pipe(
         map(() => this.el.querySelector<HTMLElement>(":not([slot])")),
         switchMap((triggerEl) =>
@@ -80,7 +75,7 @@ export class Tooltip {
       .subscribe((res) => (this.open = res == "enter"));
 
     this.sub.add(
-      this.ready
+      from(this.ready)
         .pipe(tap(() => (this.containerEl.popover = "manual")))
         .subscribe(),
     );

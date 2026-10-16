@@ -3,10 +3,6 @@ title: "OrbPipe | <orb-pipe>"
 sidebar_label: "Pipe"
 ---
 
-## Usage
-
-`<orb-pipe>` takes a unix-like expression, runs it through a chain of transforms, and renders the result as text.
-
 ::: live-code-demo
 
 ```html
@@ -14,6 +10,7 @@ sidebar_label: "Pipe"
   <orb-pipe input="handheldInterfaceDefinition | reverseCase | titlecase"></orb-pipe>
   <orb-pipe input="1200000000 | bytes -bit"></orb-pipe>
   <orb-pipe input="1000 | coalesce 0 | bytes"></orb-pipe>
+  <orb-pipe input="CASE-8210 | copy"></orb-pipe>
 </orb-stack>
 ```
 
@@ -21,11 +18,26 @@ sidebar_label: "Pipe"
 
 An expression reads left to right. The **first segment is a literal seed value**, not a pipe — everything after it is a pipe that receives the previous result:
 
-```
-handheldInterfaceDefinition  |  reverseCase  |  titlecase
-└─ seed value ────────────┘     └─ pipe ──┘     └─ pipe ─┘
-     ↓                               ↓                ↓
-"handheldInterfaceDefinition" → "handheld interface definition" → "Handheld Interface Definition"
+```mermaid
+flowchart LR
+  subgraph seg1["seed value"]
+    s1["handheldInterfaceDefinition"]
+  end
+  subgraph seg2["pipe"]
+    s2["reverseCase"]
+  end
+  subgraph seg3["pipe"]
+    s3["titlecase"]
+  end
+
+  v1["&quot;handheldInterfaceDefinition&quot;"]
+  v2["&quot;handheld interface definition&quot;"]
+  v3["&quot;Handheld Interface Definition&quot;"]
+
+  s1 -.-> v1
+  s2 -.-> v2
+  s3 -.-> v3
+  v1 --> v2 --> v3
 ```
 
 Because the seed is a literal, a single `<orb-pipe>` with no pipes just renders that text — the pipes are where the value comes from.

@@ -50,7 +50,6 @@
     "chokidar-cli": "^3.0.0",
     "concurrently": "^10.0.4",
     "date-fns": "^4.1.0",
-    "flexsearch": "^0.8.212",
     "glob": "^13.0.2",
     "interactjs": "^1.10.27",
     "live-server": "^1.2.2",

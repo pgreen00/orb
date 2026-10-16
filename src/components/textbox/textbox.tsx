@@ -4,23 +4,11 @@ import {
   Prop,
   Element,
   State,
-  Event as StencilEvent,
-  EventEmitter,
-  AttachInternals,
-  Listen,
   Watch,
-  forceUpdate,
+  Listen,
 } from "@stencil/core";
-import { debounceEvent } from "../../utils/debounce-event";
-import {
-  InputMask,
-  InputMaskOptions as MaskOptions,
-} from "../../utils/input-mask";
-import { BehaviorSubject, filter, Subscription, switchMap } from "rxjs";
-import { Masks } from "./masks";
 import { EyeIcon, EyeOffIcon } from "../../utils/icons";
-
-type InputMaskOptions = Omit<MaskOptions, "inputElement">;
+import { ReadyController } from "../../utils/ready-controller";
 
 /**
  * its a textbox
@@ -29,42 +17,23 @@ type InputMaskOptions = Omit<MaskOptions, "inputElement">;
   tag: "orb-textbox",
   styleUrl: "textbox.css",
   shadow: {
-    delegatesFocus: true,
-  },
-  formAssociated: true,
+    slotAssignment: 'manual'
+  }
 })
-export class Textbox {
-  private inputEl: HTMLElement;
-  private containerEl: HTMLElement;
-  private mask = new BehaviorSubject<InputMask | null>(null);
-  private sub?: Subscription;
-  private valueSnapshot: any;
-
+export class Textbox extends ReadyController {
+  private startSlot: HTMLSlotElement;
+  private controlSlot: HTMLSlotElement;
+  private afterSlot: HTMLSlotElement;
+  private noteSlot: HTMLSlotElement;
+  private labelSlot: HTMLSlotElement;
+  private formControl: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+  private mutationObs: MutationObserver;
   @Element() hostEl: HTMLElement;
-  @AttachInternals() internals: ElementInternals;
-  @State() touched = false;
   @State() showPassword = false;
-
-  @Prop({ reflect: true }) type:
-    | "text"
-    | "number"
-    | "search"
-    | "email"
-    | "phone"
-    | "url"
-    | "money"
-    | "date"
-    | "time"
-    | "datetime"
-    | "daterange"
-    | "password"
-    | "ssn"
-    | InputMaskOptions = "text";
-
-  /**
-   * Current value of the input
-   */
-  @Prop({ mutable: true }) value: any;
+  @State() hasPasswordInput = false;
+  @State() hasSearchinput = false;
+  @State() userInvalid = false;
+  @State() validationMessage?: string;
 
   /**
    * Text above the control
@@ -77,357 +46,115 @@ export class Textbox {
   @Prop() note?: string;
 
   /**
-   * Container size
-   */
-  @Prop() size: "md" | "lg" | "sm" = "md";
-
-  /**
-   * Input placeholder text
-   */
-  @Prop() placeholder?: string;
-
-  /**
-   * Optional debounce of the didInput event
+   * Optional debounce of the form controls input event
    */
   @Prop() debounce = 0;
 
-  /**
-   * Renders input as disabled and prevents changes
-   */
-  @Prop() disabled = false;
-
-  /**
-   * Renders input as read only and prevents changes
-   */
-  @Prop() readonly = false;
-
-  /**
-   * Passed to native textarea
-   */
-  @Prop() wrap?: string;
-
-  /**
-   * Whether the control is a multiline textarea
-   */
-  @Prop() multiline = false;
-
-  /**
-   * Passed to native input
-   */
-  @Prop() min?: any;
-
-  /**
-   * Passed to native input
-   */
-  @Prop() max?: any;
-
-  /**
-   * Passed to native input
-   */
-  @Prop() minlength?: number;
-
-  /**
-   * Passed to native input
-   */
-  @Prop() maxlength?: number;
-
-  /**
-   * Passed to native input
-   */
-  @Prop() pattern?: string;
-
-  /**
-   * Marks as required in form and adds asterisk to the end of the label
-   */
-  @Prop() required = false;
-
-  /**
-   * Passed to native input
-   */
-  @Prop() step?: string;
-
-  /**
-   * Emits as the user types
-   */
-  @StencilEvent() valueChange: EventEmitter<any>;
-
-  componentWillLoad() {
-    if (this.debounce)
-      this.valueChange = debounceEvent(this.valueChange, this.debounce);
-  }
-
-  componentDidLoad() {
-    this.valueSnapshot = this.value;
-    if (this.value) {
-      this.internals.setFormValue(this.value);
-      this.inputEl.textContent = this.value;
-    }
-    if (this.type == "phone") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.PHONE,
-        }),
-      );
-    } else if (this.type == "password") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          formatter: (raw) => raw,
-          masker: (raw) =>
-            this.showPassword
-              ? raw
-              : Array.from({ length: raw.length })
-                  .map(() => "·")
-                  .join(""),
-        }),
-      );
-    } else if (this.type == "money") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.MONEY,
-        }),
-      );
-    } else if (this.type == "ssn") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          formatter: (raw) => {
-            const digits = raw.replace(/\D/g, "").slice(0, 9);
-            if (digits.length <= 3) return digits;
-            if (digits.length <= 5)
-              return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-            return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
-          },
-          extractor: (formatted) => formatted.replace(/\D/g, ""),
-          masker: (rawValue, formattedValue) => {
-            if (rawValue.length <= 5) {
-              return formattedValue.replace(/\d/g, "X");
-            }
-            let digitCount = 0;
-            return formattedValue
-              .split("")
-              .map((char) => {
-                if (/\d/.test(char)) {
-                  digitCount++;
-                  return digitCount <= 5 ? "X" : char;
-                }
-                return char;
-              })
-              .join("");
-          },
-        }),
-      );
-    } else if (this.type == "number") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.NUMBER,
-        }),
-      );
-    } else if (this.type == "time") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.TIME,
-        }),
-      );
-    } else if (this.type == "date") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.DATE,
-        }),
-      );
-    } else if (this.type == "datetime") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.DATETIME,
-        }),
-      );
-    } else if (this.type == "daterange") {
-      this.mask.next(
-        new InputMask({
-          inputElement: this.inputEl,
-          ...Masks.DATERANGE,
-        }),
-      );
-    }
-  }
-
-  componentWillRender() {
-    const requiredError =
-      this.required && (this.value == "" || this.value == undefined);
-    const minLengthError =
-      this.minlength && (this.value ?? "").length < this.minlength;
-    const maxLengthError =
-      this.maxlength && (this.value ?? "").length > this.maxlength;
-    const patternError =
-      this.pattern && !new RegExp(this.pattern).test(this.value ?? "");
-    const hasError =
-      requiredError || maxLengthError || minLengthError || patternError;
-    if (hasError) {
-      const errorMessage = requiredError
-        ? "This field is required"
-        : minLengthError
-          ? `This field must be at least ${this.minlength} characters long`
-          : maxLengthError
-            ? `This field must be less than ${this.maxlength} characters long`
-            : patternError
-              ? `Invalid pattern`
-              : undefined;
-      this.internals.setValidity(
-        {
-          valueMissing: requiredError,
-          tooShort: minLengthError,
-          tooLong: maxLengthError,
-          patternMismatch: patternError,
-        },
-        errorMessage,
-        this.containerEl,
-      );
-    } else {
-      this.internals.setValidity({});
-    }
-  }
-
-  componentDidRender() {
-    this.internals.role = "textbox";
-    if (this.label) {
-      this.internals.ariaLabel = this.label;
-    } else {
-      const label = this.hostEl.querySelector("[slot=label]");
-      if (label) (this.internals as any).ariaLabelledByElements = [label];
-    }
-    this.internals.ariaDescription =
-      this.note || this.hostEl.querySelector("[slot=note]")?.textContent;
-    this.internals.ariaInvalid = this.internals.validity.valid
-      ? "true"
-      : "false";
-    this.internals.ariaRequired = this.required ? "true" : "false";
-    this.internals.ariaDisabled = this.disabled ? "true" : "false";
-    this.internals.ariaReadOnly = this.readonly ? "true" : "false";
-    this.internals.ariaMultiLine = this.multiline ? "true" : "false";
-    this.internals.ariaPlaceholder = this.placeholder;
-    this.internals.ariaValueText = this.value;
-    //this.internals.ariaAutoComplete = this.autoComplete
-
-    this.internals.states.clear();
-    this.internals.states.add(
-      !this.internals.validity.valid ? "--invalid" : "--valid",
-    );
-    if (this.touched)
-      this.internals.states.add(
-        !this.internals.validity.valid ? "--user-invalid" : "--user-valid",
-      );
-    this.internals.states.add(this.required ? "--required" : "--optional");
-    this.internals.states.add(this.disabled ? "--disabled" : "--enabled");
-    this.internals.states.add(this.readonly ? "--readonly" : "--readwrite");
-    this.internals.states.add(this.multiline ? "--multiline" : "--singleline");
-    this.internals.states.add(this.value ? "--filled" : "--empty");
-  }
-
-  formResetCallback() {
-    this.touched = false;
-    this.value = this.valueSnapshot;
-    this.valueChange.emit(this.value);
-  }
-
   connectedCallback() {
-    this.sub = this.mask
-      .pipe(
-        filter((mask) => !!mask),
-        switchMap((mask) => mask["rawValue"].asObservable()),
-      )
-      .subscribe((value) => {
-        this.value = value;
-        this.valueChange.emit(value);
-      });
+    this.mutationObs = new MutationObserver(() => this.setSlots());
+    this.mutationObs.observe(this.hostEl, { childList: true });
+    this.setSlots()
   }
 
   disconnectedCallback() {
-    this.sub?.unsubscribe();
+    this.mutationObs.disconnect();
   }
 
-  @Watch("value")
-  handleValueChange() {
-    this.internals.setFormValue(this.value || null);
-    if (!this.mask.value && this.inputEl.textContent !== this.value) {
-      this.inputEl.textContent = this.value;
-    } else if (
-      this.mask.value &&
-      this.mask.value["rawValue"].value !== this.value
-    ) {
-      //this.mask.value.textContent = this.value;
-      this.inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+  @Watch('showPassword')
+  handleShowPasswordChange() {
+    if (this.formControl instanceof HTMLInputElement) {
+      this.formControl.type = this.showPassword ? 'text' : 'password';
     }
   }
 
-  @Watch("showPassword")
-  onShowPasswordChange() {
-    this.inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+  @Watch('label', { immediate: true })
+  onLabelChange() {
+    if (this.formControl && this.label) {
+      this.formControl.ariaLabel = this.label;
+    }
   }
 
-  @Listen("blur")
+  @Watch('note', { immediate: true })
+  onNoteChange() {
+    if (this.formControl && this.note) {
+      this.formControl.ariaDescription = this.note;
+    }
+  }
+
+  @Listen('invalid', { capture: true })
+  onInvalid() {
+    this.userInvalid = this.formControl.matches(':user-invalid')
+    this.validationMessage = this.formControl.validationMessage
+  }
+
+  @Listen('blur', { capture: true })
   onBlur() {
-    this.touched = true;
+    this.userInvalid = this.formControl.matches(':user-invalid')
+    this.validationMessage = this.formControl.validationMessage
   }
 
-  @Listen("invalid")
-  onInvalid(_ev: Event) {
-    this.touched = true;
+  @Listen('input')
+  onInput() {
+    this.userInvalid = this.formControl.matches(':user-invalid')
+    this.validationMessage = this.formControl.validationMessage
   }
 
-  private onKeydown = (ev: KeyboardEvent) => {
-    if (this.multiline && ev.key === "Enter" && ev.shiftKey)
-      ev.stopPropagation();
-    else if (ev.key === "Enter") ev.preventDefault();
-  };
+  @Listen('change')
+  onChange() {
+    this.userInvalid = this.formControl.matches(':user-invalid')
+    this.validationMessage = this.formControl.validationMessage
+  }
 
-  private onInput = () => {
-    this.touched = true;
-    this.inputEl.querySelectorAll("br").forEach((b) => b.remove());
-    if (!this.mask.value) {
-      this.value = this.inputEl.textContent;
-      this.valueChange.emit(this.value);
-    }
-  };
+  private async setSlots() {
+    await this.ready;
+    this.formControl = this.hostEl.querySelector('input, select, textarea, orb-output');
+    this.hasPasswordInput = !!this.hostEl.querySelector('input[type=password]');
+    this.hasSearchinput = !!this.hostEl.querySelector('input[type=search]');
+    const children = Array.from(this.hostEl.children)
+    this.startSlot.assign(
+      ...children.filter(el => el.matches('[slot=start]'))
+    )
+    this.labelSlot.assign(
+      ...children.filter(el => el.tagName === 'ORB-LABEL')
+    )
+    this.noteSlot.assign(
+      ...children.filter(el => el.tagName === 'ORB-NOTE')
+    )
+    this.controlSlot.assign(
+      ...children.filter(el => el.matches('input, select, textarea, orb-output'))
+    )
+    this.afterSlot.assign(
+      ...children.filter(el => el.matches('[slot=after]'))
+    )
+    this.onLabelChange()
+    this.onNoteChange()
+  }
 
   render() {
     return (
-      <Host data-error={this.internals.validationMessage || null}>
+      <Host>
         <div part="after-container">
-          <div
-            ref={(el) => (this.containerEl = el)}
-            part="container"
-            class={{
-              [this.size]: true,
-              disabled: this.disabled,
-              multiline: this.multiline,
-            }}
-          >
-            <slot name="label" onSlotchange={() => forceUpdate(this.hostEl)}>
-              {this.label && (
-                <orb-label part="label" required={this.required}>
-                  {this.label}
-                </orb-label>
-              )}
+          <div part="container" class={{
+            search: this.hasSearchinput,
+            error: this.userInvalid
+          }}>
+            <slot ref={el => this.startSlot = el}></slot>
+
+            <slot
+              ref={el => this.labelSlot = el}
+              onSlotchange={() => {
+                if (!this.formControl) return;
+                this.formControl.ariaLabelledByElements = this.labelSlot.assignedElements()
+              }}
+            >
+              {this.label && <orb-label>{this.label}</orb-label>}
             </slot>
 
-            <div
-              ref={(el) => (this.inputEl = el)}
-              part="input"
-              tabindex={0}
-              contenteditable="plaintext-only"
-              onKeyDown={this.onKeydown}
-              onInput={this.onInput}
-              data-placeholder={this.placeholder}
-            />
+            <slot ref={el => this.controlSlot = el} />
 
-            {this.type === "password" && (
+            {this.hasPasswordInput && (
               <orb-button
+                tabindex={-1}
                 class="icon-only"
                 fill="clear"
                 onClick={() => (this.showPassword = !this.showPassword)}
@@ -435,16 +162,24 @@ export class Textbox {
                 {this.showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </orb-button>
             )}
-
-            <slot name="end" />
           </div>
 
-          <slot name="after" />
+          <slot ref={el => this.afterSlot = el} />
         </div>
 
-        <slot name="note" onSlotchange={() => forceUpdate(this.hostEl)}>
-          {this.note && <orb-note part="note">{this.note}</orb-note>}
+        <slot
+          ref={el => this.noteSlot = el}
+          onSlotchange={() => {
+            if (!this.formControl) return;
+            this.formControl.ariaDescribedByElements = this.noteSlot.assignedElements()
+          }}
+        >
+          {this.note && <orb-note>{this.note}</orb-note>}
         </slot>
+
+        {this.userInvalid && (
+          <orb-note invalid>{this.validationMessage}</orb-note>
+        )}
       </Host>
     );
   }

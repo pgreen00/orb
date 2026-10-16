@@ -32,8 +32,10 @@ export const config: Config = {
       async generator(_config, _compilerCtx, buildCtx) {
         const files = [
           "src/styles/classes.scss:dist/styles/classes.css",
-          "src/styles/core.scss:dist/styles/core.css",
+          "src/styles/variables.scss:dist/styles/variables.css",
           "src/styles/landmarks.scss:dist/styles/landmarks.css",
+          "src/styles/native.scss:dist/styles/native.css",
+          "src/styles/index.scss:dist/styles/index.css",
         ];
         execSync(`npx sass --no-source-map ${files.join(" ")}`);
 

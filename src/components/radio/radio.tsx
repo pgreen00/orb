@@ -1,4 +1,4 @@
-import { Component, Prop, Element, Host } from "@stencil/core";
+import { Component, Prop, Element, Host, AttachInternals, State, Watch } from "@stencil/core";
 import { RadioEmpty, RadioFill } from "../../utils/icons";
 
 @Component({
@@ -7,25 +7,30 @@ import { RadioEmpty, RadioFill } from "../../utils/icons";
   shadow: true,
 })
 export class Radio {
+  @AttachInternals() internals: ElementInternals
   @Element() el!: HTMLElement;
+  @State() selected = false;
 
   /**
    * The value of this option and the radio group will compare against
    */
   @Prop() value: any;
 
-  /**
-   * If the option is currently selected
-   */
-  @Prop() selected?: boolean;
+  componentWillLoad() {
+    this.internals.role = 'radio'
+    this.el.tabIndex = -1
+    this.onSelectedChange(this.el.dataset.selected)
+  }
+
+  @Watch('data-selected')
+  onSelectedChange(selected?: string) {
+    this.selected = selected === '';
+    this.internals.ariaChecked = this.selected ? "true" : "false"
+  }
 
   render() {
     return (
-      <Host
-        role="radio"
-        tabindex={-1}
-        aria-checked={this.selected ? "true" : "false"}
-      >
+      <Host>
         {this.selected ? <RadioFill /> : <RadioEmpty />}
         <slot />
       </Host>

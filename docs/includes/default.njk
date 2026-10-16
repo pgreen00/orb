@@ -3,15 +3,13 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/hex-tag.svg" />
+  <link rel="icon" type="image/png" href="/orb.png" />
   <meta
     name="viewport"
     content="width=device-width, user-scalable=no"
   />
   <title>Orb Design System</title>
-  <style>@view-transition {navigation: auto;
-  }
-  </style>
+  <style>@view-transition {navigation: auto;}</style>
   <script type="module">
     const t = localStorage.getItem('orb__theme') || 'system'
     const el = document.documentElement
@@ -19,9 +17,7 @@
     el.classList.toggle('orb-theme-dark', t === 'dark')
   </script>
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="stylesheet" href="/build/styles/core.css" />
-  <link rel="stylesheet" href="/build/styles/landmarks.css" />
-  <link rel="stylesheet" href="/build/styles/classes.css" />
+  <link rel="stylesheet" href="/build/styles/index.css" />
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
   <script type="importmap">
     {
@@ -38,16 +34,16 @@
 <body>
   <header>
     <orb-toolbar>
-      <orb-link class="banner-title" bold href="/">
-        <img src="/hex-tag.svg" alt="logo" height="42" width="42" />
+      <a class="banner-title orb-font-semi-bold" href="/">
+        <img src="/orb.png" alt="logo" height="42" width="42" />
         <span class="orb-margin-left-xs">Orb Design System</span>
-      </orb-link>
+      </a>
       <orb-button class="icon-only" fill="clear" size="lg" slot="end">
         <iconify-icon height="2rem" width="2rem" icon="mdi:search"></iconify-icon>
       </orb-button>
-      <orb-link href="https://github.com/pgreen00/orb" target="_blank" slot="end">
+      <a href="https://github.com/pgreen00/orb" target="_blank" slot="end">
         <iconify-icon height="2.5rem" width="2.5rem" icon="akar-icons:github-fill"></iconify-icon>
-      </orb-link>
+      </a>
       <orb-popover slot="end" placement="bottom-end" trigger-action="hover">
         <orb-button class="icon-only" slot="trigger" size="lg">
           <iconify-icon height="1.5rem" width="1.5rem" icon="mdi:moon-and-stars"></iconify-icon>

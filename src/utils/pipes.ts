@@ -1,4 +1,10 @@
-export type PipeValue = string | number | null | undefined;
+/**
+ * A `DocumentFragment` renders as markup rather than text, which is how a pipe
+ * emits elements (a markdown renderer, an icon, a link) instead of characters.
+ * Building the nodes is the pipe's job, so it also owns escaping whatever it
+ * interpolated — returning a string keeps the safe text-only behaviour.
+ */
+export type PipeValue = string | number | DocumentFragment | null | undefined;
 
 export type Pipe = (
   input: PipeValue,
@@ -15,6 +21,19 @@ export interface LazyPipe {
 }
 
 export type PipeDefinition = Pipe | LazyPipe;
+
+/**
+ * Detects a fragment without an `instanceof` check, so a fragment created in
+ * another document or realm (a `<template>` from an iframe, say) still counts.
+ * @internal
+ */
+export function isFragment(value: PipeValue): value is DocumentFragment {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as Node).nodeType === 11
+  );
+}
 
 const registry = new Map<string, PipeDefinition>();
 const resolved = new Map<string, Pipe>();

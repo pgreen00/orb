@@ -1,12 +1,12 @@
 :host {
   box-sizing: border-box;
+  position: relative;
   display: block;
   padding: var(--orb-spacing-sm);
   box-shadow: var(--orb-shadow-sm);
   border: 1px solid light-dark(transparent, var(--orb-neutral-800));
   background-color: light-dark(white, var(--orb-neutral-900));
   border-radius: var(--orb-radius-md);
-  overflow: hidden;
 }
 
 :host([color="primary"]) {
@@ -31,4 +31,14 @@
   color: var(--orb-neutral-75);
   background-color: var(--orb-danger-500);
   border-color: transparent;
+}
+
+[part=label] {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-inline: 0.5rem;
+  background-color: var(--orb-background-color);
+  transform: translate(1rem, -50%);
 }

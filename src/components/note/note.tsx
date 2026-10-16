@@ -1,4 +1,4 @@
-import { Component, Host, Prop } from "@stencil/core";
+import { Component, Host, Prop, Watch, Element } from "@stencil/core";
 
 @Component({
   tag: "orb-note",
@@ -6,12 +6,26 @@ import { Component, Host, Prop } from "@stencil/core";
   shadow: true,
 })
 export class Note {
-  @Prop({ reflect: true }) invalid?: boolean;
+  @Element() el: HTMLElement;
+
+  @Prop({ reflect: true }) invalid = false;
+  @Prop() for?: string;
+
+  @Watch('for', { immediate: true })
+  onForChange() {
+    if (this.for) {
+      const root = this.el.getRootNode() as ShadowRoot | HTMLDocument
+      const target = root.getElementById(this.for)
+      if (target) {
+        target.ariaDescribedByElements = [this.el]
+      }
+    }
+  }
 
   render() {
     return (
-      <Host aria-hidden="true">
-        <slot></slot>
+      <Host>
+        <slot/>
       </Host>
     );
   }

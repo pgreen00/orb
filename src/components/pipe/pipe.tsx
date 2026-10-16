@@ -1,14 +1,32 @@
-import { Component, Host, Prop, State, Watch } from "@stencil/core";
-import { onPipesChanged, resolvePipe, type PipeValue } from "../../utils/pipes.js";
+import { Component, Element, Host, Prop, State, Watch } from "@stencil/core";
+import {
+  isFragment,
+  onPipesChanged,
+  resolvePipe,
+  type PipeValue,
+} from "../../utils/pipes.js";
 import { builtinPipes } from "./pipes.generated.js";
 import { parseInput } from "./parse.js";
+import { ReadyController } from "../../utils/ready-controller.js";
 
+/**
+ * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
+ */
 @Component({
   tag: "orb-pipe",
   styleUrl: "pipe.css",
   shadow: true,
 })
-export class Pipe {
+export class Pipe extends ReadyController {
+  @Element() el: HTMLElement;
+  @State() output: string | DocumentFragment = "";
+  @State() resolved = false;
+  @State() errored = false;
+  private runId = 0;
+  private missingPipe = false;
+  private unsubscribe?: () => void;
+  private warned = new Set<string>();
+
   /**
    * A unix-like pipe expression. The first segment is a literal seed value and
    * each subsequent segment is a pipe invocation with optional arguments.
@@ -17,34 +35,26 @@ export class Pipe {
    */
   @Prop() input!: string;
 
-  @State() output = "";
-  @State() resolved = false;
-  @State() errored = false;
-
-  /** Guards against a slow pipe chain overwriting a newer one. */
-  private runId = 0;
-  /** Set when evaluation stopped because a pipe name wasn't registered yet. */
-  private missingPipe = false;
-  private unsubscribe?: () => void;
-  /** Pipe names already reported, so a retry doesn't warn twice. */
-  private warned = new Set<string>();
-
-  componentWillLoad() {
-    // Elements are usually upgraded before a deferred module registers its
-    // pipes, so retry when the registry gains something this chain was missing.
+  connectedCallback() {
     this.unsubscribe = onPipesChanged(() => {
       if (this.missingPipe) this.run();
     });
-    return this.run();
   }
 
   disconnectedCallback() {
     this.unsubscribe?.();
   }
 
-  @Watch("input")
-  inputChanged() {
+  @Watch("input", { immediate: true })
+  async onInputChange() {
+    await this.ready;
     this.run();
+  }
+
+  @Watch("output", { immediate: true })
+  async onOutputChange() {
+    await this.ready;
+    this.el.replaceChildren(this.output);
   }
 
   /**
@@ -99,7 +109,6 @@ export class Pipe {
           missing = true;
           break;
         }
-        // Keep the last good value if an individual pipe throws.
         const next = await pipe(value, ...args);
         value = next;
       }
@@ -111,15 +120,22 @@ export class Pipe {
     if (id !== this.runId) return;
 
     this.missingPipe = missing;
-    this.output = value == null ? "" : String(value);
+    this.output = isFragment(value)
+      ? (value.cloneNode(true) as DocumentFragment)
+      : value == null
+        ? ""
+        : String(value);
     this.errored = failed;
     this.resolved = true;
   }
 
   render() {
     return (
-      <Host data-resolved={this.resolved ? "" : null} data-error={this.errored ? "" : null}>
-        {this.output}
+      <Host
+        data-resolved={this.resolved ? "" : null}
+        data-error={this.errored ? "" : null}
+      >
+        <slot />
       </Host>
     );
   }

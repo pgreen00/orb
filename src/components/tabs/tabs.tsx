@@ -1,4 +1,5 @@
 import { Component, Element, Host, Listen, Prop, Watch } from "@stencil/core";
+import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-tabs",
@@ -7,12 +8,10 @@ import { Component, Element, Host, Listen, Prop, Watch } from "@stencil/core";
     slotAssignment: "manual",
   },
 })
-export class Tabs {
+export class Tabs extends ReadyController {
   @Element() el: HTMLElement;
   private tabSlot: HTMLSlotElement;
   private panelSlot: HTMLSlotElement;
-  private readyResolve: Function;
-  private ready = new Promise((res) => (this.readyResolve = res));
   private assignSlots = () => {
     this.tabSlot.assign(...this.el.querySelectorAll("orb-tab-button"));
   };
@@ -39,7 +38,7 @@ export class Tabs {
     this.active ??=
       this.el.querySelector<HTMLOrbTabPanelElement>("orb-tab-panel")?.name;
     this.assignSlots();
-    this.readyResolve();
+    super.componentDidLoad()
   }
 
   @Watch("closable", { immediate: true })

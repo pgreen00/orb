@@ -4,7 +4,9 @@ import { Color } from "../../utils/color";
 @Component({
   tag: "orb-card",
   styleUrl: "card.css",
-  shadow: true,
+  shadow: {
+    delegatesFocus: true
+  },
 })
 export class Card {
   @Prop({ reflect: true }) color?: Color;

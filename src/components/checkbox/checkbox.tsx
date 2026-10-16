@@ -14,6 +14,7 @@ import {
   SquareCheckIcon,
   SquareIcon,
 } from "../../utils/icons";
+import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-checkbox",
@@ -21,7 +22,7 @@ import {
   shadow: true,
   formAssociated: true,
 })
-export class Checkbox {
+export class Checkbox extends ReadyController {
   @AttachInternals({
     states: {
       required: false,
@@ -64,13 +65,6 @@ export class Checkbox {
   @Event({ bubbles: false }) checkedChange: EventEmitter<
     "true" | "false" | "mixed"
   >;
-
-  private resolve: Function;
-  private ready = new Promise((res) => (this.resolve = res));
-
-  componentDidLoad() {
-    this.resolve();
-  }
 
   componentWillLoad() {
     this.internals.role = "checkbox";

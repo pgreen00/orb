@@ -1,103 +1,66 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: var(--orb-spacing-xs);
+  gap: 0.5em;
 }
 
-:host(:state(--user-invalid)) div[part="container"] {
-  border-color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
+[part=after-container] {
+  display: flex;
+  gap: 1em;
+  align-items: center;
 }
 
-orb-note {
-  margin-left: var(--orb-spacing-md);
+orb-note,::slotted(orb-note) {
+  margin-left: 1em;
 }
 
 div[part="container"] {
   position: relative;
   box-sizing: border-box;
   display: flex;
-  gap: var(--orb-spacing-md);
-  border-radius: var(--orb-radius-md);
-  border: solid 1px light-dark(var(--orb-neutral-500), var(--orb-neutral-400));
+  gap: 1em;
   align-items: center;
   background-color: transparent;
   color: inherit;
-  padding-inline: var(--orb-spacing-md);
-  cursor: text;
-
-  &.sm {
-    height: 2.5rem;
-
-    textarea {
-      height: 6rem;
-    }
-  }
-
-  &.md {
-    height: 3rem;
-
-    textarea {
-      height: 8rem;
-    }
-  }
-
-  &.lg {
-    height: 3.5rem;
-
-    textarea {
-      height: 10rem;
-    }
-  }
-
-  &.multiline {
-    align-items: baseline;
-    height: fit-content;
-  }
-
-  &.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &:focus-within {
-    border-color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
-  }
-}
-
-[part="input"] {
-  background-color: inherit;
-  color: inherit;
-  font-family: inherit;
-  box-shadow: none;
+  padding-inline: 1em;
   flex: 1;
-  min-width: 0;
-  box-sizing: border-box;
-  outline: 0;
-  border: 0;
-  margin: 0;
-  padding: 0;
+  cursor: text;
+  min-height: 3em;
   font-size: var(--orb-font-md);
-  font-weight: var(--orb-font-light);
-  white-space: nowrap;
-  overflow-y: hidden;
-  overflow-x: auto;
-  -webkit-user-select: text;
-  user-select: text;
-  cursor: inherit;
+  font-weight: var(--orb-font-semi-bold);
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
 
-  &[data-placeholder]:empty::before {
-    content: attr(data-placeholder);
-    color: light-dark(var(--orb-neutral-700), var(--orb-neutral-600));
-    cursor: inherit;
+  &.search {
+    border-radius: var(--orb-radius-pill);
+    border: solid 1px light-dark(var(--orb-neutral-500), var(--orb-neutral-400));
+    &:focus-within {
+      border-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+    }
+    &.error {
+      border-color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
+    }
+  }
+
+  &:not(.search) {
+    border-bottom: solid 2px light-dark(var(--orb-neutral-500), var(--orb-neutral-400));
+    &:focus-within {
+      border-bottom-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+    }
+    &.error {
+      border-bottom-color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
+    }
   }
 }
 
-:host(:state(--user-invalid))::after {
-  display: inline-flex;
-  font-weight: var(--orb-font-light);
-  color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
-  font-size: var(--orb-font-sm);
-  gap: var(--orb-spacing-2xs);
-  margin-left: var(--orb-spacing-md);
-  content: attr(data-error);
+::slotted(input),
+::slotted(select),
+::slotted(textarea) {
+  font-size: 1em;
+  flex: 1;
+  text-align: right;
+}
+
+::slotted(input[type=search]),
+::slotted(textarea) {
+  text-align: left;
 }

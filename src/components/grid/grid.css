@@ -1,12 +1,203 @@
-:host {
-  display: grid;
-  grid-template-columns: repeat(var(--columns), 1fr);
-  overflow: auto;
-  box-sizing: border-box;
-  border: 1px solid light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
-  border-radius: var(--orb-radius-md);
-  font-size: var(--orb-font-sm);
-  transform: translateZ(0);
+/*
+ * Single stylesheet for orb-grid, orb-gr and orb-gc.
+ *
+ * Adopted into the light DOM by grid.tsx before the elements are defined, so
+ * selectors can cross what would otherwise be three shadow boundaries.
+ *
+ * Two layers, split by how badly an override can break things:
+ *   structure - grid formatting, display: contents, sticky offsets, spans.
+ *               Override and the grid stops behaving like a grid.
+ *   theme     - every color, border, space and font. All routed through vars.
+ *
+ * Nothing lives outside a layer, so unlayered consumer CSS always wins without
+ * an !important fight. A consumer can also drop our visuals wholesale with an
+ * empty `@layer orb.grid.theme {}` and keep structure intact.
+ */
 
-  --columns: initial;
+@layer orb.grid.structure, orb.grid.theme;
+
+@layer orb.grid.structure {
+  orb-grid {
+    display: grid;
+    grid-template-columns: var(--columns);
+    overflow: auto;
+    box-sizing: border-box;
+    /* containing block for the sticky cells, and its own compositing layer */
+    transform: translateZ(0);
+  }
+
+  orb-gr {
+    display: contents;
+  }
+
+  orb-gc {
+    display: block;
+    box-sizing: border-box;
+    /* without this a long unbroken string refuses to shrink into its track */
+    min-width: 0;
+    grid-column: span var(--col-span, 1);
+    grid-row: span var(--row-span, 1);
+    content-visibility: auto;
+    contain-intrinsic-size: auto 3rem;
+  }
+
+  /*
+   * Sticky ladder, spaced to leave room between rungs:
+   *   10 sticky column
+   *   20 header/footer row
+   *   30 header/footer cell that is also a sticky column
+   */
+  orb-gc[sticky] {
+    position: sticky;
+    z-index: 10;
+  }
+
+  /* `sticky` with no value is the start edge */
+  orb-gc[sticky=""],
+  orb-gc[sticky="start"] {
+    left: var(--sticky-start, 0);
+  }
+
+  orb-gc[sticky="end"] {
+    right: var(--sticky-end, 0);
+  }
+
+  orb-gr[section="head"] > orb-gc {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  orb-gr[section="foot"] > orb-gc {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+  }
+
+  :is(orb-gr[section="head"], orb-gr[section="foot"]) > orb-gc[sticky] {
+    z-index: 30;
+  }
+
+  /*
+   * Body rows stay in the DOM while loading or empty so scroll position and the
+   * consumer's own templating survive the round trip. aria-busy carries the
+   * state to assistive tech.
+   */
+  orb-grid:is([state="loading"], [state="empty"]) > orb-gr[section="body"] {
+    display: none;
+  }
+}
+
+@layer orb.grid.theme {
+  orb-grid {
+    --border-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
+    --border-color-soft: light-dark(
+      var(--orb-neutral-200),
+      var(--orb-neutral-800)
+    );
+    --text-color: light-dark(var(--orb-neutral-900), var(--orb-neutral-100));
+    --cell-background: light-dark(var(--orb-neutral-25), var(--orb-neutral-950));
+    --head-background: light-dark(
+      var(--orb-neutral-150),
+      var(--orb-neutral-825)
+    );
+    --head-background-hover: light-dark(
+      var(--orb-neutral-200),
+      var(--orb-neutral-800)
+    );
+    --foot-background: light-dark(var(--orb-neutral-50), var(--orb-neutral-875));
+    --row-background-hover: light-dark(
+      var(--orb-neutral-125),
+      var(--orb-neutral-850)
+    );
+    --row-background-stripe: light-dark(
+      var(--orb-neutral-75),
+      var(--orb-neutral-900)
+    );
+    --row-background-selected: light-dark(
+      var(--orb-primary-150),
+      var(--orb-primary-450)
+    );
+    --cell-padding-block: var(--orb-spacing-sm);
+    --cell-padding-inline: var(--orb-spacing-md);
+    --focus-color: var(--orb-primary-500);
+
+    border: 1px solid var(--border-color);
+    border-radius: var(--orb-radius-md);
+    font-size: var(--orb-font-sm);
+    color: var(--text-color);
+  }
+
+  /* density only moves the vertical padding; cells already grow to fit content */
+  orb-grid[density="compact"] {
+    --cell-padding-block: var(--orb-spacing-2xs);
+  }
+
+  orb-grid[density="comfortable"] {
+    --cell-padding-block: var(--orb-spacing-md);
+  }
+
+  orb-gc {
+    padding: var(--cell-padding-block) var(--cell-padding-inline);
+    background-color: var(--cell-background);
+    text-align: var(--align, start);
+  }
+
+  orb-gr[section="head"] > orb-gc {
+    background-color: var(--head-background);
+    font-weight: var(--orb-font-semi-bold);
+    white-space: nowrap;
+    user-select: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  orb-gr[section="foot"] > orb-gc {
+    background-color: var(--foot-background);
+    font-weight: var(--orb-font-semi-bold);
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* stripe first so hover and selection outrank it */
+  :where(orb-grid[striped])
+    > orb-gr[section="body"]:where(:nth-of-type(odd))
+    > orb-gc {
+    background-color: var(--row-background-stripe);
+  }
+
+  orb-gr[section="body"]:hover > orb-gc {
+    background-color: var(--row-background-hover);
+  }
+
+  orb-gr[section="body"][selected] > orb-gc {
+    background-color: var(--row-background-selected);
+  }
+
+  orb-gr[disabled] > orb-gc {
+    opacity: 0.5;
+  }
+
+  orb-grid:is([borders="rows"], [borders="both"])
+    > orb-gr[section="body"]:not(:last-of-type)
+    > orb-gc {
+    border-bottom: 1px solid var(--border-color-soft);
+  }
+
+  orb-grid:is([borders="cols"], [borders="both"])
+    > orb-gr
+    > orb-gc:not(:last-child) {
+    border-right: 1px solid var(--border-color-soft);
+  }
+
+  orb-gc:focus-visible {
+    outline: 2px solid var(--focus-color);
+    outline-offset: -2px;
+  }
+
+  orb-gc[sortable] {
+    cursor: pointer;
+  }
+
+  orb-gc[sortable]:hover {
+    background-color: var(--head-background-hover);
+  }
 }

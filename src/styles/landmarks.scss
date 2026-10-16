@@ -105,6 +105,7 @@ body {
     border-top: solid 1px var(--border-color);
     padding-inline: var(--orb-spacing-sm);
     height: var(--foot-height);
+    background-color: var(--orb-background-color);
   }
 
   @media (min-width: 768px) {

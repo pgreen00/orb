@@ -1,0 +1,14 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+}
+
+svg {
+  width: 1em;
+  height: 1em;
+}
+
+svg.success {
+  color: light-dark(var(--orb-success-700), var(--orb-success-500));
+}
