@@ -8,7 +8,7 @@
     name="viewport"
     content="width=device-width, user-scalable=no"
   />
-  <title>Orb Design System</title>
+  <title>{% if title %}{{ title }} | Orb Design System{% else %}Orb Design System{% endif %}</title>
   <style>@view-transition {navigation: auto;}</style>
   <script type="module">
     const t = localStorage.getItem('orb__theme') || 'system'

@@ -6,7 +6,7 @@ pagination:
 layout: default.njk
 permalink: "/components/{{ component.name }}/"
 eleventyComputed:
-  title: "{{ component.title }}"
+  title: "{{ component.label or component.title }}"
 ---
 
 <article>
