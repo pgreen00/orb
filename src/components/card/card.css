@@ -3,9 +3,8 @@
   position: relative;
   display: block;
   padding: var(--orb-spacing-sm);
-  box-shadow: var(--orb-shadow-sm);
-  border: 1px solid light-dark(transparent, var(--orb-neutral-800));
-  background-color: light-dark(white, var(--orb-neutral-900));
+  border: 1px solid light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
+  background-color: light-dark(var(--orb-neutral-50), var(--orb-neutral-900));
   border-radius: var(--orb-radius-md);
 }
 
@@ -13,32 +12,26 @@
   color: var(--orb-neutral-75);
   background-color: var(--orb-primary-500);
   border-color: transparent;
+  box-shadow: var(--orb-shadow-md);
 }
 
 :host([color="success"]) {
   color: var(--orb-neutral-925);
   background-color: var(--orb-success-500);
   border-color: transparent;
+  box-shadow: var(--orb-shadow-md);
 }
 
 :host([color="warning"]) {
   color: var(--orb-neutral-925);
   background-color: var(--orb-warning-500);
   border-color: transparent;
+  box-shadow: var(--orb-shadow-md);
 }
 
 :host([color="danger"]) {
   color: var(--orb-neutral-75);
   background-color: var(--orb-danger-500);
   border-color: transparent;
-}
-
-[part=label] {
-  box-sizing: border-box;
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding-inline: 0.5rem;
-  background-color: var(--orb-background-color);
-  transform: translate(1rem, -50%);
+  box-shadow: var(--orb-shadow-md);
 }

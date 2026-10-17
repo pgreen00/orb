@@ -31,7 +31,8 @@
   height: var(--height);
   color: var(--color, inherit);
   background-color: var(--background, transparent);
-  transition: all var(--orb-transition-fast) ease-in-out;
+  transition: var(--orb-transition-x-fast) ease-in-out;
+  transition-property: background-color;
   outline-color: var(--orb-primary-300);
   outline-offset: 3px;
 }
