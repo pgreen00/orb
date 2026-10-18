@@ -7,10 +7,10 @@ sidebar_label: 'Tree'
 
 ```html
 <orb-stack>
-  <orb-radio-group id="selection-radio-group" value="single" label="Selection Type">
-    <orb-radio-button value="single">Single</orb-radio-button>
-    <orb-radio-button value="multiple">Multiple</orb-radio-button>
-    <orb-radio-button value="leaf">Leaf</orb-radio-button>
+  <orb-radio-group id="selection-radio-group" value="single" label="Selection Type" buttons>
+    <orb-radio value="single">Single</orb-radio>
+    <orb-radio value="multiple">Multiple</orb-radio>
+    <orb-radio value="leaf">Leaf</orb-radio>
   </orb-radio-group>
   <orb-tree id="selection-tree" selection="single">
     <orb-ti label="Branch 1">

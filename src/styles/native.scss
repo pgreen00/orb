@@ -14,7 +14,8 @@ h5,
 h6,
 p,
 ul,
-ol {
+ol,
+dl {
   margin-block-start: 0;
   margin-block-end: 0;
   margin-inline-start: 0;
@@ -59,6 +60,61 @@ p {
 small {
   font-size: var(--orb-font-sm);
   font-weight: var(--orb-font-light);
+}
+
+ul,
+ol {
+  font-size: var(--orb-font-md);
+  font-weight: var(--orb-font-regular);
+  padding-inline-start: var(--orb-spacing-lg);
+  list-style-position: outside;
+
+  li + li {
+    margin-block-start: var(--orb-spacing-2xs);
+  }
+
+  li::marker {
+    color: light-dark(var(--orb-neutral-600), var(--orb-neutral-400));
+  }
+
+  & ul,
+  & ol {
+    margin-block: var(--orb-spacing-2xs);
+  }
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ol {
+  list-style-type: decimal;
+
+  li::marker {
+    font-weight: var(--orb-font-bold);
+  }
+}
+
+dl {
+  font-size: var(--orb-font-md);
+  font-weight: var(--orb-font-regular);
+
+  dt {
+    font-weight: var(--orb-font-bold);
+  }
+
+  dd {
+    margin: 0;
+    padding-inline-start: var(--orb-spacing-lg);
+  }
+
+  dt + dd {
+    margin-block-start: var(--orb-spacing-3xs);
+  }
+
+  dd + dt {
+    margin-block-start: var(--orb-spacing-sm);
+  }
 }
 
 a {
@@ -112,10 +168,10 @@ a {
     }
     &.tile orb-card {
       transition: var(--orb-transition-fast) ease-in-out;
-      transition-property: transform, border-color;
+      transition-property: scale, border-color;
       &:hover {
         border-color: var(--accent-color);
-        transform: scale(1.03);
+        scale: 1.03;
       }
     }
   }

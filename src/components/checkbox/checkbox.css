@@ -9,10 +9,17 @@
   outline-color: var(--orb-primary-200);
   outline-offset: 2px;
   box-sizing: border-box;
+  --square-check-color: var(--orb-neutral-50);
+  --square-check-bg: var(--orb-primary-500);
+  --square-border: light-dark(var(--orb-neutral-500), var(--orb-neutral-700));
+  --square-minus-border: var(--orb-primary-500);
+  --square-minus-bg: var(--orb-primary-500);
+  --square-minus-color: var(--orb-neutral-50);
 }
 
 svg {
-  color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 :host(:disabled) {

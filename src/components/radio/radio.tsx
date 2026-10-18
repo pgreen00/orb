@@ -26,6 +26,7 @@ export class Radio {
   onSelectedChange(selected?: string) {
     this.selected = selected === '';
     this.internals.ariaChecked = this.selected ? "true" : "false"
+    this.internals.states[this.selected ? 'add' : 'delete']('selected')
   }
 
   render() {

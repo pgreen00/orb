@@ -9,6 +9,33 @@
   font-size: 1.2rem;
 }
 
+.section-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  a {
+    height: 2.5em;
+    padding-inline: var(--orb-spacing-sm);
+    border-radius: var(--orb-radius-md);
+    white-space: nowrap;
+    color: light-dark(var(--orb-neutral-650), var(--orb-neutral-250));
+    transition: background-color var(--orb-transition-x-fast) ease-in-out;
+
+    &:hover {
+      background-color: var(--hover-background);
+    }
+
+    &[aria-current="page"] {
+      color: light-dark(var(--orb-primary-600), var(--orb-primary-300));
+      font-weight: var(--orb-font-semi-bold);
+    }
+  }
+}
+
 a.header-anchor {
   color: inherit;
   font-size: inherit;

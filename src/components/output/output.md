@@ -1,4 +1,4 @@
 ---
-title: 'OrbInput | <orb-input>'
-sidebar_label: 'Input'
+title: 'OrbOutput | <orb-output>'
+sidebar_label: 'Output'
 ---

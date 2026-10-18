@@ -51,6 +51,11 @@ export class RadioGroup {
   @Prop({ mutable: true }) value?: any;
 
   /**
+   * Displays the radios as a group of buttons
+   */
+  @Prop() buttons = false;
+
+  /**
    * Emits the selected value whenever it changes
    */
   @Event({ bubbles: false }) valueChange: EventEmitter<any>;
@@ -98,18 +103,16 @@ export class RadioGroup {
 
   private getRadios() {
     return Array.from(
-      this.el.querySelectorAll<HTMLOrbRadioElement | HTMLOrbRadioButtonElement>(
-        "orb-radio, orb-radio-button",
-      ),
+      this.el.querySelectorAll("orb-radio")
     );
   }
 
   private isRadio(
     target: EventTarget | null,
-  ): target is HTMLOrbRadioElement | HTMLOrbRadioButtonElement {
+  ): target is HTMLOrbRadioElement {
     return (
       target instanceof HTMLElement &&
-      (target.tagName == "ORB-RADIO" || target.tagName == "ORB-RADIO-BUTTON")
+      (target.tagName == "ORB-RADIO")
     );
   }
 
@@ -160,9 +163,9 @@ export class RadioGroup {
   }
 
   render() {
-    const buttons = this.el.querySelector("orb-radio-button") !== null;
     return (
       <Host>
+        <style>{`:host{--mode:${this.buttons ? 'buttons' : 'radios'};}`}</style>
         <slot
           name="label"
           onSlotchange={({ target }) => {
@@ -183,7 +186,7 @@ export class RadioGroup {
             </orb-label>
           )}
         </slot>
-        <div class={buttons ? "buttons" : "content"}>
+        <div class={this.buttons ? "buttons" : "content"}>
           <slot />
         </div>
         <slot name="note">{this.note && <orb-note>{this.note}</orb-note>}</slot>

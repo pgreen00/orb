@@ -133,22 +133,22 @@ export class Textbox extends ReadyController {
   render() {
     return (
       <Host>
+        <slot
+          ref={el => this.labelSlot = el}
+          onSlotchange={() => {
+            if (!this.formControl) return;
+            this.formControl.ariaLabelledByElements = this.labelSlot.assignedElements()
+          }}
+        >
+          {this.label && <orb-label>{this.label}</orb-label>}
+        </slot>
+
         <div part="after-container">
           <div part="container" class={{
             search: this.hasSearchinput,
             error: this.userInvalid
           }}>
             <slot ref={el => this.startSlot = el}></slot>
-
-            <slot
-              ref={el => this.labelSlot = el}
-              onSlotchange={() => {
-                if (!this.formControl) return;
-                this.formControl.ariaLabelledByElements = this.labelSlot.assignedElements()
-              }}
-            >
-              {this.label && <orb-label>{this.label}</orb-label>}
-            </slot>
 
             <slot ref={el => this.controlSlot = el} />
 

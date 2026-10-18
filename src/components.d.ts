@@ -572,18 +572,12 @@ export namespace Components {
          */
         "value": any;
     }
-    interface OrbRadioButton {
+    interface OrbRadioGroup {
         /**
-          * Changes the styling of the card to indicate it is selected
+          * Displays the radios as a group of buttons
           * @default false
          */
-        "selected": boolean;
-        /**
-          * The value for this option that bw-card-group will compare against
-         */
-        "value"?: string;
-    }
-    interface OrbRadioGroup {
+        "buttons": boolean;
         /**
           * Disables the controls
           * @default false
@@ -1356,12 +1350,6 @@ declare global {
         prototype: HTMLOrbRadioElement;
         new (): HTMLOrbRadioElement;
     };
-    interface HTMLOrbRadioButtonElement extends Components.OrbRadioButton, HTMLStencilElement {
-    }
-    var HTMLOrbRadioButtonElement: {
-        prototype: HTMLOrbRadioButtonElement;
-        new (): HTMLOrbRadioButtonElement;
-    };
     interface HTMLOrbRadioGroupElementEventMap {
         "valueChange": any;
     }
@@ -1622,7 +1610,6 @@ declare global {
         "orb-placeholder": HTMLOrbPlaceholderElement;
         "orb-popover": HTMLOrbPopoverElement;
         "orb-radio": HTMLOrbRadioElement;
-        "orb-radio-button": HTMLOrbRadioButtonElement;
         "orb-radio-group": HTMLOrbRadioGroupElement;
         "orb-range": HTMLOrbRangeElement;
         "orb-relative-time": HTMLOrbRelativeTimeElement;
@@ -2272,18 +2259,12 @@ declare namespace LocalJSX {
          */
         "value"?: any;
     }
-    interface OrbRadioButton {
+    interface OrbRadioGroup {
         /**
-          * Changes the styling of the card to indicate it is selected
+          * Displays the radios as a group of buttons
           * @default false
          */
-        "selected"?: boolean;
-        /**
-          * The value for this option that bw-card-group will compare against
-         */
-        "value"?: string;
-    }
-    interface OrbRadioGroup {
+        "buttons"?: boolean;
         /**
           * Disables the controls
           * @default false
@@ -2787,10 +2768,6 @@ declare namespace LocalJSX {
     interface OrbRadioAttributes {
         "value": string;
     }
-    interface OrbRadioButtonAttributes {
-        "value": string;
-        "selected": boolean;
-    }
     interface OrbRadioGroupAttributes {
         "required": boolean;
         "disabled": boolean;
@@ -2798,6 +2775,7 @@ declare namespace LocalJSX {
         "label": string;
         "note": string;
         "value": string;
+        "buttons": boolean;
     }
     interface OrbRichTextAttributes {
         "placeholder": string;
@@ -2931,7 +2909,6 @@ declare namespace LocalJSX {
         "orb-placeholder": Omit<OrbPlaceholder, keyof OrbPlaceholderAttributes> & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes]?: OrbPlaceholder[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `attr:${K}`]?: OrbPlaceholderAttributes[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `prop:${K}`]?: OrbPlaceholder[K] };
         "orb-popover": Omit<OrbPopover, keyof OrbPopoverAttributes> & { [K in keyof OrbPopover & keyof OrbPopoverAttributes]?: OrbPopover[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `attr:${K}`]?: OrbPopoverAttributes[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `prop:${K}`]?: OrbPopover[K] };
         "orb-radio": Omit<OrbRadio, keyof OrbRadioAttributes> & { [K in keyof OrbRadio & keyof OrbRadioAttributes]?: OrbRadio[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `attr:${K}`]?: OrbRadioAttributes[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `prop:${K}`]?: OrbRadio[K] };
-        "orb-radio-button": Omit<OrbRadioButton, keyof OrbRadioButtonAttributes> & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes]?: OrbRadioButton[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `attr:${K}`]?: OrbRadioButtonAttributes[K] } & { [K in keyof OrbRadioButton & keyof OrbRadioButtonAttributes as `prop:${K}`]?: OrbRadioButton[K] };
         "orb-radio-group": Omit<OrbRadioGroup, keyof OrbRadioGroupAttributes> & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes]?: OrbRadioGroup[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `attr:${K}`]?: OrbRadioGroupAttributes[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `prop:${K}`]?: OrbRadioGroup[K] };
         "orb-range": OrbRange;
         "orb-relative-time": OrbRelativeTime;
@@ -3026,7 +3003,6 @@ declare module "@stencil/core" {
             "orb-placeholder": LocalJSX.IntrinsicElements["orb-placeholder"] & JSXBase.HTMLAttributes<HTMLOrbPlaceholderElement>;
             "orb-popover": LocalJSX.IntrinsicElements["orb-popover"] & JSXBase.HTMLAttributes<HTMLOrbPopoverElement>;
             "orb-radio": LocalJSX.IntrinsicElements["orb-radio"] & JSXBase.HTMLAttributes<HTMLOrbRadioElement>;
-            "orb-radio-button": LocalJSX.IntrinsicElements["orb-radio-button"] & JSXBase.HTMLAttributes<HTMLOrbRadioButtonElement>;
             "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
             "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
             "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;

@@ -11,7 +11,8 @@ sidebar_label: "Textbox"
 <orb-stack>
   <orb-textbox>
     <orb-label>Phone number</orb-label>
-    <input type="tel" value="2705569657"/>
+    <input required type="tel" value="2705569657"/>
+    <orb-note>Include area code</orb-note>
   </orb-textbox>
   <orb-textbox label="Full Name">
     <input required placeholder="Type your name..."/>
@@ -43,7 +44,7 @@ sidebar_label: "Textbox"
   <orb-textbox>
     <orb-label>Food</orb-label>
     <select name="select-input">
-      <option hidden>Choose a food…</option>
+      <option hidden></option>
       <optgroup label="Fruits">
         <option value="apple">Apple</option>
         <option value="banana">Banana</option>
@@ -54,6 +55,21 @@ sidebar_label: "Textbox"
       </optgroup>
     </select>
   </orb-textbox>
+  <orb-textbox>
+    <orb-label>With datalist</orb-label>
+    <input name="list-input" list="food-list">
+  </orb-textbox>
+  <datalist id="food-list">
+    <option value="Cherry"/>
+    <optgroup label="Fruits">
+      <option>Apple</option>
+      <option>Banana</option>
+    </optgroup>
+    <optgroup label="Vegetables">
+      <option>Carrot</option>
+      <option>Pea</option>
+    </optgroup>
+  </datalist>
   <orb-textbox label="Message">
     <textarea placeholder="Notes"></textarea>
     <orb-button slot="after" class="icon-only">
