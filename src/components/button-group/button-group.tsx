@@ -1,21 +1,19 @@
-import { Component, Element, Host } from "@stencil/core";
+import { AttachInternals, Component, Element } from "@stencil/core";
 
 @Component({
   tag: "orb-button-group",
   styleUrl: "button-group.css",
+  shadow: true
 })
 export class ButtonGroup {
   @Element() el: HTMLElement;
+  @AttachInternals() internals: ElementInternals
 
-  componentDidLoad() {
-    const buttons = Array.from(
-      this.el.querySelectorAll(":scope > orb-button, :scope > * > orb-button"),
-    );
-    buttons.at(0)?.classList.add("__first");
-    buttons.at(-1)?.classList.add("__last");
+  componentWillLoad() {
+    this.internals.role = "group"
   }
 
   render() {
-    return <Host />;
+    return <slot/>;
   }
 }

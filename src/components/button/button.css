@@ -219,3 +219,25 @@
   align-items: center;
   justify-content: center;
 }
+
+@container style(--mode: button-group) {
+  :host {
+    border-radius: 0;
+  }
+
+  :host([fill=outline]:not(:last-child)) {
+    border-right: none !important;
+  }
+
+  :host([fill=solid]:not(:last-child)) {
+    border-right: solid 1px var(--orb-background-color) !important;
+  }
+
+  :host(:first-child) {
+    border-radius: var(--button-group-radius) 0 0 var(--button-group-radius);
+  }
+
+  :host(:last-child) {
+    border-radius: 0 var(--button-group-radius) var(--button-group-radius) 0;
+  }
+}

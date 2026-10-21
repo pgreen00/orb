@@ -1,27 +1,6 @@
-orb-button-group {
-  display: flex;
-  width: fit-content;
-
-  & > orb-button,
-  & > * > orb-button {
-    &[color][fill="solid"]:not(.__last)::part(inner-button) {
-      border-right-color: currentColor;
-    }
-
-    &::part(inner-button) {
-      border-radius: 0;
-      border-left: none;
-    }
-
-    &.__first::part(inner-button) {
-      border-left: solid 1px var(--border-color, transparent);
-      border-top-left-radius: var(--orb-radius-md);
-      border-bottom-left-radius: var(--orb-radius-md);
-    }
-
-    &.__last::part(inner-button) {
-      border-top-right-radius: var(--orb-radius-md);
-      border-bottom-right-radius: var(--orb-radius-md);
-    }
-  }
+:host {
+  display: inline-flex;
+  container: orb-button-group / inline-size;
+  --mode: button-group;
+  --button-group-radius: var(--orb-radius-pill);
 }
