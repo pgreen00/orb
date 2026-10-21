@@ -1,7 +1,7 @@
 :host {
   display: inline-flex;
   align-items: center;
-  gap: var(--orb-spacing-2xs);
+  gap: var(--orb-spacing-xs);
   width: fit-content;
   cursor: pointer;
   -webkit-user-select: none;

@@ -123,11 +123,8 @@ dialog {
 
 :host([side="bottom"]) dialog {
   top: unset;
-  @media (any-pointer: coarse) {
-    --drag-height: 24px;
-    border-top-left-radius: var(--orb-radius-xl);
-    border-top-right-radius: var(--orb-radius-xl);
-  }
+  border-top-left-radius: var(--orb-radius-xl);
+  border-top-right-radius: var(--orb-radius-xl);
 }
 
 :host([side="left"]) dialog,
@@ -136,29 +133,40 @@ dialog {
   width: var(--width);
 }
 
-:host([side="top"]) dialog,
 :host([side="bottom"]) dialog {
   width: 100%;
   height: var(--width);
 }
 
 .drag {
-  display: none;
-  @media (any-pointer: coarse) {
-    display: flex;
-    height: var(--drag-height);
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    align-items: center;
-    justify-content: center;
-    &::after {
-      content: "";
-      display: block;
-      width: 20%;
-      height: 6px;
-      border-radius: var(--orb-radius-xl);
-      background-color: var(--color);
-    }
+  display: flex;
+  height: 1.5rem;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  align-items: center;
+  justify-content: center;
+  &::after {
+    content: "";
+    display: block;
+    width: 20%;
+    height: 0.75rem;
+    border-radius: var(--orb-radius-xl);
+    background-color: var(--color);
   }
+}
+
+.inner {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+:host(:not([side])[size=sm]) .inner {
+  height: auto;
+}
+
+::slotted(.orb--overlay-template-root) {
+  display: contents;
 }

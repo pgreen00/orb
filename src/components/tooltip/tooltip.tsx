@@ -1,50 +1,39 @@
 import {
   autoUpdate,
-  ComputePositionReturn,
   computePosition,
   offset,
   autoPlacement,
   size,
 } from "@floating-ui/dom";
-import { Component, Host, Prop, State, Watch, Element } from "@stencil/core";
+import { Component, Host, Prop, State, Watch, Element, AttachInternals } from "@stencil/core";
 import {
   Subscription,
   fromEvent,
   debounceTime,
   map,
-  switchMap,
   merge,
   debounce,
-  tap,
-  from,
 } from "rxjs";
-import { getDOMRect } from "../../utils/get-dom-rect";
-import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-tooltip",
   styleUrl: "tooltip.css",
   shadow: true,
 })
-export class Tooltip extends ReadyController {
+export class Tooltip {
+  @AttachInternals() internals!: ElementInternals;
   @Element() el!: HTMLElement;
   @State() open = false;
   private sub?: Subscription;
-  private get containerEl() {
-    return this.el.shadowRoot.querySelector<HTMLSlotElement>(
-      "slot[name=content]",
-    );
-  }
   private get referenceEl() {
-    return {
-      getBoundingClientRect: () =>
-        getDOMRect(this.el.querySelector(":scope > :not([slot])")),
-    };
+    return this.findExternalTrigger() ?? {
+      getBoundingClientRect: () => new DOMRect(),
+    }
   }
   private cleanup?: () => void;
 
-  /** The content of the tooltip */
-  @Prop() content?: string;
+  /** The target element of the tooltip */
+  @Prop() for!: string;
 
   /** Horizontal offset used when auto positioning the popover content */
   @Prop() offsetX = 0;
@@ -52,60 +41,64 @@ export class Tooltip extends ReadyController {
   /** Vertical offset used when auto positioning the popover content */
   @Prop() offsetY = 10;
 
+  componentWillLoad() {
+    this.internals.role = "tooltip";
+    this.el.popover = "manual";
+  }
+
   connectedCallback() {
+    const triggerEl = this.findExternalTrigger()
+    if (!triggerEl) {
+      console.warn("Tooltip trigger not found: ", this.for)
+      return;
+    }
     const mouseMoveDebounce = fromEvent(window, "mousemove").pipe(
       debounceTime(50),
     );
-
-    this.sub = from(this.ready)
-      .pipe(
-        map(() => this.el.querySelector<HTMLElement>(":not([slot])")),
-        switchMap((triggerEl) =>
-          merge(
-            fromEvent(triggerEl, "mouseenter").pipe(
-              map(() => "enter" as const),
-            ),
-            fromEvent(triggerEl, "mouseleave").pipe(
-              map(() => "leave" as const),
-            ),
-          ),
-        ),
-        debounce(() => mouseMoveDebounce),
-      )
+    this.sub = merge(
+      fromEvent(triggerEl, "mouseenter").pipe(
+        map(() => "enter" as const),
+      ),
+      fromEvent(triggerEl, "mouseleave").pipe(
+        map(() => "leave" as const),
+      ),
+    )
+      .pipe(debounce(() => mouseMoveDebounce))
       .subscribe((res) => (this.open = res == "enter"));
-
-    this.sub.add(
-      from(this.ready)
-        .pipe(tap(() => (this.containerEl.popover = "manual")))
-        .subscribe(),
-    );
   }
 
   disconnectedCallback() {
     this.sub?.unsubscribe();
   }
 
+  @Watch('for', { immediate: true })
+  onForChange() {
+    const el = this.findExternalTrigger()
+    if (el) el.ariaDescribedByElements = [...(el.ariaDescribedByElements ?? []), this.el]
+  }
+
   @Watch("open")
   async onOpenChange(open: boolean) {
     if (open) {
-      this.setPosition(await this.computePosition());
-      this.cleanup = autoUpdate(this.referenceEl, this.containerEl, () =>
-        this.computePosition().then(this.setPosition),
-      );
-      this.containerEl.showPopover();
+      await this.setPosition();
+      this.cleanup = autoUpdate(this.referenceEl, this.el, () => this.setPosition());
+      this.el.showPopover();
+      await this.el.animate(
+        { opacity: [0, 1] },
+        { duration: 150, easing: "ease-in-out" },
+      ).finished;
     } else {
       this.cleanup();
-      this.containerEl.hidePopover();
+      await this.el.animate(
+        { opacity: [1, 0] },
+        { duration: 150, easing: "ease-in-out" },
+      ).finished;
+      this.el.hidePopover();
     }
   }
 
-  private setPosition = ({ x, y }: ComputePositionReturn) => {
-    this.containerEl.style.left = `${x}px`;
-    this.containerEl.style.top = `${y}px`;
-  };
-
-  private computePosition() {
-    return computePosition(this.referenceEl, this.containerEl, {
+  private async setPosition() {
+    const { x, y } = await computePosition(this.referenceEl, this.el, {
       strategy: "fixed",
       middleware: [
         offset({
@@ -115,27 +108,41 @@ export class Tooltip extends ReadyController {
         autoPlacement(),
         size({
           apply: ({ availableHeight, availableWidth }) => {
-            this.containerEl.style.setProperty(
+            this.el.style.setProperty(
               "--available-height",
               `${availableHeight - this.offsetY}px`,
             );
-            this.containerEl.style.setProperty(
+            this.el.style.setProperty(
               "--available-width",
               `${availableWidth - this.offsetX}px`,
             );
           },
         }),
       ],
-    });
+    })
+    this.el.style.left = `${x}px`;
+    this.el.style.top = `${y}px`;
+  };
+
+  private findExternalTrigger() {
+    const root = this.el.getRootNode();
+    if (
+      root instanceof ShadowRoot ||
+      root instanceof HTMLDocument ||
+      root instanceof DocumentFragment
+    )
+      return root.getElementById(this.for);
+    else if (root instanceof HTMLElement) {
+      return root.querySelector(`#${this.for}`);
+    } else {
+      return null;
+    }
   }
 
   render() {
     return (
-      <Host role="tooltip">
-        <slot />
-        <slot name="content">
-          {this.content && <span>{this.content}</span>}
-        </slot>
+      <Host>
+        <slot/>
       </Host>
     );
   }

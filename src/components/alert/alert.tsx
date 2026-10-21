@@ -81,7 +81,7 @@ export class Alert {
 
   @Method()
   didDismiss() {
-    return new Promise((resolve) => {
+    return new Promise<OverlayData>((resolve) => {
       this.el.addEventListener("dismiss", (e) => resolve(e.detail), {
         once: true,
       });

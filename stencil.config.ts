@@ -40,8 +40,8 @@ export const config: Config = {
         execSync(`npx sass --no-source-map ${files.join(" ")}`);
 
         const tagNames = buildCtx.components.map((c) => c.tagName).sort();
-        const fouc = `:is(${tagNames.join(",")}):not(:defined){visibility:hidden}\n`;
-        appendFileSync("dist/styles/core.css", fouc);
+        const fouc = `:is(${tagNames.join(",")}):not(:defined){visibility:hidden;}\n`;
+        appendFileSync("dist/styles/index.css", fouc);
       },
     },
     {

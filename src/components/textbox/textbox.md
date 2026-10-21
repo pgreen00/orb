@@ -29,12 +29,14 @@ sidebar_label: "Textbox"
   <orb-textbox label="Number">
     <input type="number"/>
   </orb-textbox>
-  <orb-textbox label="Time">
-    <input type="time"/>
-  </orb-textbox>
-  <orb-textbox label="Date">
-    <input type="date"/>
-  </orb-textbox>
+  <orb-stack mode="row">
+    <orb-textbox label="Date">
+      <input type="date"/>
+    </orb-textbox>
+    <orb-textbox label="Time">
+      <input type="time"/>
+    </orb-textbox>
+  </orb-stack>
   <orb-textbox label="Email">
     <input type="email"/>
   </orb-textbox>

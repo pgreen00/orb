@@ -11,7 +11,23 @@ export class Placeholder {
    */
   @Prop({ reflect: true }) animated = true;
 
+  /**
+   * The width of the placeholder
+   */
+  @Prop({ reflect: true }) width: string;
+
+  /**
+   * The height of the placeholder
+   */
+  @Prop({ reflect: true }) height: string;
+
   render() {
-    return <Host />;
+    return (
+      <Host>
+        <style>
+          {`:host{width:${this.width};height:${this.height};}`}
+        </style>
+      </Host>
+    );
   }
 }

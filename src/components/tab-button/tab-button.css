@@ -14,7 +14,7 @@
   position: relative;
 }
 
-:host(:not(:last-of-type)) {
+:host {
   border-right: solid 1px var(--tab-border);
 }
 

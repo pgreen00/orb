@@ -8,13 +8,13 @@ import {
   Event,
   Watch,
   Method,
+  State,
 } from "@stencil/core";
 import {
   arrow,
   autoPlacement,
   autoUpdate,
   computePosition,
-  ComputePositionReturn,
   flip,
   offset,
   Placement,
@@ -22,13 +22,14 @@ import {
   size,
 } from "@floating-ui/dom";
 import { debounceTime, fromEvent, Subscription } from "rxjs";
+import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-popover",
   styleUrl: "popover.css",
   shadow: true,
 })
-export class Popover {
+export class Popover extends ReadyController {
   @Element() el!: HTMLOrbPopoverElement;
 
   private contentEl!: HTMLElement;
@@ -38,7 +39,11 @@ export class Popover {
   private arrowEl?: HTMLElement;
 
   private get triggerElement() {
-    return this.el.querySelector(":scope > [slot=trigger]");
+    if (this.trigger) {
+      return this.findExternalTrigger();
+    } else {
+      return this.el.querySelector(":scope > [slot=trigger]");
+    }
   }
 
   private mouseEvent?: MouseEvent;
@@ -50,28 +55,23 @@ export class Popover {
   private cleanup?: () => void;
 
   private get referenceEl() {
-    return {
-      getBoundingClientRect: () => {
-        if (this.positionStrategy === "element") {
-          return (
-            this.triggerElement ?? (this.mouseEvent?.target as Element)
-          ).getBoundingClientRect();
-        } else {
-          return new DOMRect(
-            this.mouseEvent?.clientX,
-            this.mouseEvent?.clientY,
-          );
-        }
-      },
-    };
+    const { triggerElement, mouseEvent } = this;
+    if (triggerElement) {
+      return triggerElement;
+    } else if (mouseEvent) {
+      const { clientX, clientY } = mouseEvent;
+      return {
+        getBoundingClientRect: () => new DOMRect(clientX, clientY),
+      };
+    } else {
+      console.warn("No reference element found", this.el);
+      return null;
+    }
   }
 
   private mouseSub?: Subscription;
 
-  /**
-   * Opens/closes the popover
-   */
-  @Prop({ mutable: true }) open = false;
+  @State() open = false;
 
   /**
    * Where the popover should be placed
@@ -79,19 +79,13 @@ export class Popover {
   @Prop() placement?: Placement;
 
   /** Backdrop will dismiss the popover on click when enabled */
-  @Prop() backdropDismiss = true;
+  @Prop() hideOnBackdropClick = true;
 
   /**
    * Popover will automatically dismiss itself when something is
    * clicked in the popover when enabled
    */
-  @Prop() dismissOnClick = false;
-
-  /**
-   * If the popover should position itself using the mouse event or
-   * the triggerElement.
-   */
-  @Prop() positionStrategy: "click" | "element" = "element";
+  @Prop() hideOnContentClick = false;
 
   /** Horizontal offset used when auto positioning the popover content */
   @Prop() offsetX = 0;
@@ -100,11 +94,11 @@ export class Popover {
   @Prop() offsetY = 10;
 
   /**
-   * @click Popover will show on left click or tap on mobile.
-   * @context-menu Popover will show on right click or press on mobile.
-   * @hover Popover will show on hover or tap on mobile.
+   * - **click**: Popover will show on left click or tap on mobile.
+   * - **context-menu**: Popover will show on right click or press on mobile.
+   * - **hover**: Popover will show on hover or tap on mobile.
    */
-  @Prop() triggerAction: "click" | "context-menu" | "hover" = "click";
+  @Prop() showOn: "click" | "context-menu" | "hover" = "click";
 
   /**
    * If the popover should match the width of the trigger element
@@ -131,6 +125,9 @@ export class Popover {
    */
   @Prop() arrowPadding = 6;
 
+  /** Id of the element that will trigger the popover to open */
+  @Prop() trigger?: string;
+
   /**
    * Emits before the popover starts opening
    */
@@ -151,15 +148,6 @@ export class Popover {
    */
   @Event({ bubbles: false }) dismissEnd: EventEmitter;
 
-  /**
-   * Emits when the popover has completed it's initial render
-   */
-  @Event({ bubbles: false }) ready: EventEmitter;
-
-  componentDidLoad() {
-    this.ready.emit();
-  }
-
   componentWillRender() {
     if (this.triggerElement && this.matchWidth) {
       this.el.style.setProperty(
@@ -177,19 +165,16 @@ export class Popover {
 
   disconnectedCallback() {
     this.mouseSub?.unsubscribe();
+    this.cleanup?.();
   }
 
   @Watch("open")
   async handleOpenChange(open: boolean) {
     if (open) {
       this.presentStart.emit();
-      if (this.init) {
-        await this.init();
-      }
-      this.setPosition(await this.computePosition());
-      this.cleanup = autoUpdate(this.referenceEl, this.containerEl, () =>
-        this.computePosition().then(this.setPosition),
-      );
+      await this.init?.();
+      await this.setPosition();
+      this.cleanup = autoUpdate(this.referenceEl, this.containerEl, () => this.setPosition());
       this.containerEl.showPopover();
       await this.containerEl.animate(
         { opacity: [0, 1] },
@@ -204,11 +189,9 @@ export class Popover {
       ).finished;
       this.containerEl.hidePopover();
       this.cleanup?.();
-      if (this.destroy) {
-        await this.destroy();
-      }
+      await this.destroy?.();
       this.dismissEnd.emit({
-        role: this.role ?? "manualClose",
+        role: this.role,
         data: this.data,
       });
       this.role = undefined;
@@ -218,41 +201,29 @@ export class Popover {
 
   @Listen("click", { capture: true, target: "window" })
   handleWindowClick(ev: MouseEvent) {
+    const trigger = this.triggerElement
     const path = ev.composedPath();
-    if (this.triggerAction == "click") {
-      if (this.open) {
-        if (this.backdropDismiss && !path.includes(this.containerEl)) {
-          this.hide("backdropDismiss");
-          this.open = false;
-        }
-
-        if (this.dismissOnClick && path.includes(this.containerEl)) {
-          this.open = false;
-          this.hide("clickDismiss");
-        }
-      } else {
-        this.mouseEvent = ev;
-        if (path.includes(this.triggerElement)) {
-          this.open = true;
-        }
-      }
+    const clickedBackdrop = this.hideOnBackdropClick && !path.includes(this.containerEl) && !path.includes(trigger);
+    const clickedContainer = this.hideOnContentClick && path.includes(this.containerEl);
+    const clickedTrigger = path.includes(trigger);
+    if (this.open && (clickedBackdrop || clickedContainer || clickedTrigger)) {
+      this.open = false;
+    } else if (!this.open && clickedTrigger && this.showOn == "click") {
+      this.open = true;
     }
   }
 
   @Listen("contextmenu", { capture: true, target: "window" })
   handleWindowContextMenu(ev: MouseEvent) {
-    const path = ev.composedPath();
-    if (this.triggerAction == "context-menu" && !this.open) {
-      this.mouseEvent = ev;
-      if (path.includes(this.triggerElement)) {
-        ev.preventDefault();
-        this.open = true;
-      }
+    if (this.showOn == "context-menu" && !this.open && ev.composedPath().includes(this.triggerElement)) {
+      ev.preventDefault();
+      this.open = true;
     }
   }
 
   @Method()
-  async show() {
+  async show(event: MouseEvent) {
+    this.mouseEvent = event;
     this.open = true;
   }
 
@@ -263,43 +234,13 @@ export class Popover {
     this.open = false;
   }
 
-  private setPosition = ({
-    x,
-    y,
-    middlewareData,
-    placement,
-  }: ComputePositionReturn) => {
-    if (middlewareData.arrow) {
-      this.arrowEl.removeAttribute("class");
-      this.arrowEl.classList.add(placement);
-      if (middlewareData.arrow.x) {
-        this.arrowEl.style.left = `${middlewareData.arrow.x}px`;
-      } else if (middlewareData.arrow.y) {
-        this.arrowEl.style.top = `${middlewareData.arrow.y}px`;
-      }
-    }
-    this.containerEl.style.left = `${x}px`;
-    this.containerEl.style.top = `${y}px`;
-  };
-
-  private onMouseMove = (ev: MouseEvent) => {
-    const node = ev.target as Node;
-    const { triggerAction, triggerElement, el } = this;
-    if (triggerAction === "hover") {
-      if (
-        triggerAction === "hover" &&
-        (el.contains(node) || triggerElement?.contains(node))
-      ) {
-        this.mouseEvent = ev;
-        this.open = true;
-      } else {
-        this.hide("hoverDismiss");
-      }
-    }
-  };
-
-  private computePosition() {
-    return computePosition(this.referenceEl, this.containerEl, {
+  private async setPosition() {
+    const {
+      x,
+      y,
+      middlewareData,
+      placement,
+    } = await computePosition(this.referenceEl, this.containerEl, {
       placement: this.placement,
       strategy: "fixed",
       middleware: [
@@ -328,7 +269,45 @@ export class Popover {
             })
           : false,
       ],
-    });
+    })
+    if (middlewareData.arrow) {
+      this.arrowEl.removeAttribute("class");
+      this.arrowEl.classList.add(placement);
+      if (middlewareData.arrow.x) {
+        this.arrowEl.style.left = `${middlewareData.arrow.x}px`;
+      } else if (middlewareData.arrow.y) {
+        this.arrowEl.style.top = `${middlewareData.arrow.y}px`;
+      }
+    }
+    this.containerEl.style.left = `${x}px`;
+    this.containerEl.style.top = `${y}px`;
+  };
+
+  private onMouseMove = ({ target }: MouseEvent) => {
+    const node = target as Node;
+    const { showOn, triggerElement, el } = this;
+    if (showOn === "hover") {
+      if (el.contains(node) || triggerElement?.contains(node)) {
+        this.open = true;
+      } else {
+        this.open = false;
+      }
+    }
+  };
+
+  private findExternalTrigger() {
+    const root = this.el.getRootNode();
+    if (
+      root instanceof ShadowRoot ||
+      root instanceof HTMLDocument ||
+      root instanceof DocumentFragment
+    )
+      return root.getElementById(this.trigger);
+    else if (root instanceof HTMLElement) {
+      return root.querySelector(`#${this.trigger}`);
+    } else {
+      return null;
+    }
   }
 
   render() {

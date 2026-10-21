@@ -32,7 +32,7 @@ export namespace Components {
          */
         "closable": boolean;
         "color"?: Color;
-        "didDismiss": () => Promise<unknown>;
+        "didDismiss": () => Promise<OverlayData>;
         /**
           * @default 0
          */
@@ -424,11 +424,6 @@ export namespace Components {
     }
     interface OrbOverlay {
         /**
-          * Backdrop will close the modal on click when enabled
-          * @default true
-         */
-        "backdropDismiss": boolean;
-        /**
           * Optionally execute a promise after closing completes
          */
         "destroy"?: () => void | Promise<void>;
@@ -438,20 +433,34 @@ export namespace Components {
          */
         "init"?: () => void | Promise<void>;
         /**
+          * Prevents the overlay from closing when clicking the backdrop or pressing the escape key. The overlay can still be closed via the `hide()` method or the `open` property.
+          * @default false
+         */
+        "manualHide": boolean;
+        /**
           * Opens and closes modal
           * @default false
          */
         "open": boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
         "show": () => Promise<void>;
         /**
-          * Side of the screen where the drawer will be displayed
+          * Side of the screen where the overlay will be displayed
          */
-        "side"?: "left" | "right" | "bottom" | "top";
+        "side"?: Side;
         /**
           * Size of the overlay
           * @default "md"
          */
         "size": "sm" | "md" | "lg";
+        /**
+          * Id of the element that will trigger the overlay to open
+         */
+        "trigger"?: string;
     }
     interface OrbPagination {
     }
@@ -497,6 +506,14 @@ export namespace Components {
           * @default true
          */
         "animated": boolean;
+        /**
+          * The height of the placeholder
+         */
+        "height": string;
+        /**
+          * The width of the placeholder
+         */
+        "width": string;
     }
     interface OrbPopover {
         /**
@@ -510,20 +527,20 @@ export namespace Components {
          */
         "arrowPadding": number;
         /**
-          * Backdrop will dismiss the popover on click when enabled
-          * @default true
-         */
-        "backdropDismiss": boolean;
-        /**
           * Execute a callback after the popover has dismissed
          */
         "destroy"?: () => Promise<void> | void;
+        "hide": (role?: string, data?: any) => Promise<void>;
+        /**
+          * Backdrop will dismiss the popover on click when enabled
+          * @default true
+         */
+        "hideOnBackdropClick": boolean;
         /**
           * Popover will automatically dismiss itself when something is clicked in the popover when enabled
           * @default false
          */
-        "dismissOnClick": boolean;
-        "hide": (role?: string, data?: any) => Promise<void>;
+        "hideOnContentClick": boolean;
         /**
           * Execute a callback before the popover starts presenting
          */
@@ -544,27 +561,24 @@ export namespace Components {
          */
         "offsetY": number;
         /**
-          * Opens/closes the popover
-          * @default false
-         */
-        "open": boolean;
-        /**
           * Where the popover should be placed
          */
         "placement"?: Placement;
         /**
-          * If the popover should position itself using the mouse event or the triggerElement.
-          * @default "element"
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
          */
-        "positionStrategy": "click" | "element";
-        "show": () => Promise<void>;
+        "ready": Promise<unknown>;
+        "show": (event: MouseEvent) => Promise<void>;
         /**
-          * @click Popover will show on left click or tap on mobile.
-          * @context-menu Popover will show on right click or press on mobile.
-          * @hover Popover will show on hover or tap on mobile.
+          * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile.
           * @default "click"
          */
-        "triggerAction": "click" | "context-menu" | "hover";
+        "showOn": "click" | "context-menu" | "hover";
+        /**
+          * Id of the element that will trigger the popover to open
+         */
+        "trigger"?: string;
     }
     interface OrbRadio {
         /**
@@ -606,7 +620,30 @@ export namespace Components {
     }
     interface OrbRange {
     }
+    /**
+     * Displays a date as a localized phrase relative to now, such as "3 hours ago"
+     * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+     */
     interface OrbRelativeTime {
+        /**
+          * The date to calculate the time from. Defaults to the current date and time. Strings should be ISO 8601 so they parse the same in every browser.
+         */
+        "date"?: Date | string;
+        /**
+          * The formatting style to use.
+          * @default "long"
+         */
+        "format": "long" | "short" | "narrow";
+        /**
+          * When `auto`, values such as "yesterday" and "tomorrow" are shown when possible. When `always`, values such as "1 day ago" are shown.
+          * @default "auto"
+         */
+        "numeric": "always" | "auto";
+        /**
+          * Keep the displayed value up to date as time passes.
+          * @default false
+         */
+        "sync": boolean;
     }
     interface OrbRichText {
         "clear": () => Promise<void>;
@@ -695,8 +732,38 @@ export namespace Components {
         "width"?: number;
     }
     interface OrbSplitPanel {
+        /**
+          * Set internally. Do not use.
+          * @default false
+         */
+        "afterPrimary": boolean;
+        /**
+          * Set internally. Do not use.
+          * @default false
+         */
+        "beforePrimary": boolean;
+        /**
+          * Fixes the width/height and prevents resizing
+          * @default false
+         */
+        "fixed": boolean;
+        /**
+          * Marks element as the primary panel in the view and sets it's width/height to take up the remaining available space. Every view must have exactly one primary panel.
+          * @default false
+         */
+        "primary": boolean;
+        /**
+          * Set internally. Do not use.
+          * @default false
+         */
+        "vertical": boolean;
     }
     interface OrbSplitView {
+        /**
+          * Aligns the panels vertically instead of horizontally
+          * @default false
+         */
+        "vertical": boolean;
     }
     interface OrbStack {
         "align"?: string;
@@ -786,7 +853,33 @@ export namespace Components {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
+    /**
+     * A countdown that displays the time remaining and emits `countdownComplete`
+     * when it reaches zero.
+     */
     interface OrbTimer {
+        /**
+          * Start counting down as soon as the timer loads.
+          * @default false
+         */
+        "autostart": boolean;
+        /**
+          * The length of the countdown in milliseconds. Changing it resets the time remaining unless the timer is running.
+          * @default 60_000
+         */
+        "duration": number;
+        /**
+          * Pauses the countdown, keeping the time remaining so it can be resumed.
+         */
+        "pause": () => Promise<void>;
+        /**
+          * Resets the countdown to the full duration and starts it again.
+         */
+        "restart": () => Promise<void>;
+        /**
+          * Starts or resumes the countdown. Starts from the full duration if the timer has already completed.
+         */
+        "start": () => Promise<void>;
     }
     interface OrbToc {
     }
@@ -835,9 +928,9 @@ export namespace Components {
     }
     interface OrbTooltip {
         /**
-          * The content of the tooltip
+          * The target element of the tooltip
          */
-        "content"?: string;
+        "for": string;
         /**
           * Horizontal offset used when auto positioning the popover content
           * @default 0
@@ -848,11 +941,6 @@ export namespace Components {
           * @default 10
          */
         "offsetY": number;
-        /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready": Promise<unknown>;
     }
     interface OrbTree {
         /**
@@ -945,6 +1033,10 @@ export interface OrbRichTextCustomEvent<T> extends CustomEvent<T> {
 export interface OrbShaderCanvasCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbShaderCanvasElement;
+}
+export interface OrbTimerCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbTimerElement;
 }
 export interface OrbToggleCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1328,7 +1420,6 @@ declare global {
         "presentEnd": any;
         "dismissStart": any;
         "dismissEnd": any;
-        "ready": any;
     }
     interface HTMLOrbPopoverElement extends Components.OrbPopover, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbPopoverElementEventMap>(type: K, listener: (this: HTMLOrbPopoverElement, ev: OrbPopoverCustomEvent<HTMLOrbPopoverElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1373,6 +1464,10 @@ declare global {
         prototype: HTMLOrbRangeElement;
         new (): HTMLOrbRangeElement;
     };
+    /**
+     * Displays a date as a localized phrase relative to now, such as "3 hours ago"
+     * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+     */
     interface HTMLOrbRelativeTimeElement extends Components.OrbRelativeTime, HTMLStencilElement {
     }
     var HTMLOrbRelativeTimeElement: {
@@ -1480,7 +1575,22 @@ declare global {
         prototype: HTMLOrbTiElement;
         new (): HTMLOrbTiElement;
     };
+    interface HTMLOrbTimerElementEventMap {
+        "countdownComplete": any;
+    }
+    /**
+     * A countdown that displays the time remaining and emits `countdownComplete`
+     * when it reaches zero.
+     */
     interface HTMLOrbTimerElement extends Components.OrbTimer, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbTimerElementEventMap>(type: K, listener: (this: HTMLOrbTimerElement, ev: OrbTimerCustomEvent<HTMLOrbTimerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbTimerElementEventMap>(type: K, listener: (this: HTMLOrbTimerElement, ev: OrbTimerCustomEvent<HTMLOrbTimerElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbTimerElement: {
         prototype: HTMLOrbTimerElement;
@@ -2087,11 +2197,6 @@ declare namespace LocalJSX {
     }
     interface OrbOverlay {
         /**
-          * Backdrop will close the modal on click when enabled
-          * @default true
-         */
-        "backdropDismiss"?: boolean;
-        /**
           * Optionally execute a promise after closing completes
          */
         "destroy"?: () => void | Promise<void>;
@@ -2099,6 +2204,11 @@ declare namespace LocalJSX {
           * Optionally execute a promise before presentation begins
          */
         "init"?: () => void | Promise<void>;
+        /**
+          * Prevents the overlay from closing when clicking the backdrop or pressing the escape key. The overlay can still be closed via the `hide()` method or the `open` property.
+          * @default false
+         */
+        "manualHide"?: boolean;
         /**
           * Emits whenever the overlay has finished closing. Emits the role and optional data object passed to the hide() method.
          */
@@ -2113,14 +2223,23 @@ declare namespace LocalJSX {
          */
         "open"?: boolean;
         /**
-          * Side of the screen where the drawer will be displayed
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
          */
-        "side"?: "left" | "right" | "bottom" | "top";
+        "ready"?: Promise<unknown>;
+        /**
+          * Side of the screen where the overlay will be displayed
+         */
+        "side"?: Side;
         /**
           * Size of the overlay
           * @default "md"
          */
         "size"?: "sm" | "md" | "lg";
+        /**
+          * Id of the element that will trigger the overlay to open
+         */
+        "trigger"?: string;
     }
     interface OrbPagination {
     }
@@ -2166,6 +2285,14 @@ declare namespace LocalJSX {
           * @default true
          */
         "animated"?: boolean;
+        /**
+          * The height of the placeholder
+         */
+        "height"?: string;
+        /**
+          * The width of the placeholder
+         */
+        "width"?: string;
     }
     interface OrbPopover {
         /**
@@ -2179,19 +2306,19 @@ declare namespace LocalJSX {
          */
         "arrowPadding"?: number;
         /**
-          * Backdrop will dismiss the popover on click when enabled
-          * @default true
-         */
-        "backdropDismiss"?: boolean;
-        /**
           * Execute a callback after the popover has dismissed
          */
         "destroy"?: () => Promise<void> | void;
         /**
+          * Backdrop will dismiss the popover on click when enabled
+          * @default true
+         */
+        "hideOnBackdropClick"?: boolean;
+        /**
           * Popover will automatically dismiss itself when something is clicked in the popover when enabled
           * @default false
          */
-        "dismissOnClick"?: boolean;
+        "hideOnContentClick"?: boolean;
         /**
           * Execute a callback before the popover starts presenting
          */
@@ -2228,30 +2355,23 @@ declare namespace LocalJSX {
          */
         "onPresentStart"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
-          * Emits when the popover has completed it's initial render
-         */
-        "onReady"?: (event: OrbPopoverCustomEvent<any>) => void;
-        /**
-          * Opens/closes the popover
-          * @default false
-         */
-        "open"?: boolean;
-        /**
           * Where the popover should be placed
          */
         "placement"?: Placement;
         /**
-          * If the popover should position itself using the mouse event or the triggerElement.
-          * @default "element"
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
          */
-        "positionStrategy"?: "click" | "element";
+        "ready"?: Promise<unknown>;
         /**
-          * @click Popover will show on left click or tap on mobile.
-          * @context-menu Popover will show on right click or press on mobile.
-          * @hover Popover will show on hover or tap on mobile.
+          * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile.
           * @default "click"
          */
-        "triggerAction"?: "click" | "context-menu" | "hover";
+        "showOn"?: "click" | "context-menu" | "hover";
+        /**
+          * Id of the element that will trigger the popover to open
+         */
+        "trigger"?: string;
     }
     interface OrbRadio {
         /**
@@ -2305,7 +2425,30 @@ declare namespace LocalJSX {
     }
     interface OrbRange {
     }
+    /**
+     * Displays a date as a localized phrase relative to now, such as "3 hours ago"
+     * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+     */
     interface OrbRelativeTime {
+        /**
+          * The date to calculate the time from. Defaults to the current date and time. Strings should be ISO 8601 so they parse the same in every browser.
+         */
+        "date"?: Date | string;
+        /**
+          * The formatting style to use.
+          * @default "long"
+         */
+        "format"?: "long" | "short" | "narrow";
+        /**
+          * When `auto`, values such as "yesterday" and "tomorrow" are shown when possible. When `always`, values such as "1 day ago" are shown.
+          * @default "auto"
+         */
+        "numeric"?: "always" | "auto";
+        /**
+          * Keep the displayed value up to date as time passes.
+          * @default false
+         */
+        "sync"?: boolean;
     }
     interface OrbRichText {
         /**
@@ -2381,8 +2524,38 @@ declare namespace LocalJSX {
         "width"?: number;
     }
     interface OrbSplitPanel {
+        /**
+          * Set internally. Do not use.
+          * @default false
+         */
+        "afterPrimary"?: boolean;
+        /**
+          * Set internally. Do not use.
+          * @default false
+         */
+        "beforePrimary"?: boolean;
+        /**
+          * Fixes the width/height and prevents resizing
+          * @default false
+         */
+        "fixed"?: boolean;
+        /**
+          * Marks element as the primary panel in the view and sets it's width/height to take up the remaining available space. Every view must have exactly one primary panel.
+          * @default false
+         */
+        "primary"?: boolean;
+        /**
+          * Set internally. Do not use.
+          * @default false
+         */
+        "vertical"?: boolean;
     }
     interface OrbSplitView {
+        /**
+          * Aligns the panels vertically instead of horizontally
+          * @default false
+         */
+        "vertical"?: boolean;
     }
     interface OrbStack {
         "align"?: string;
@@ -2489,7 +2662,25 @@ declare namespace LocalJSX {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string;
     }
+    /**
+     * A countdown that displays the time remaining and emits `countdownComplete`
+     * when it reaches zero.
+     */
     interface OrbTimer {
+        /**
+          * Start counting down as soon as the timer loads.
+          * @default false
+         */
+        "autostart"?: boolean;
+        /**
+          * The length of the countdown in milliseconds. Changing it resets the time remaining unless the timer is running.
+          * @default 60_000
+         */
+        "duration"?: number;
+        /**
+          * Emitted when the countdown reaches zero.
+         */
+        "onCountdownComplete"?: (event: OrbTimerCustomEvent<any>) => void;
     }
     interface OrbToc {
     }
@@ -2554,9 +2745,9 @@ declare namespace LocalJSX {
     }
     interface OrbTooltip {
         /**
-          * The content of the tooltip
+          * The target element of the tooltip
          */
-        "content"?: string;
+        "for": string;
         /**
           * Horizontal offset used when auto positioning the popover content
           * @default 0
@@ -2567,11 +2758,6 @@ declare namespace LocalJSX {
           * @default 10
          */
         "offsetY"?: number;
-        /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready"?: Promise<unknown>;
     }
     interface OrbTree {
         /**
@@ -2734,10 +2920,11 @@ declare namespace LocalJSX {
         "for": string;
     }
     interface OrbOverlayAttributes {
-        "backdropDismiss": boolean;
+        "manualHide": boolean;
         "open": boolean;
         "size": "sm" | "md" | "lg";
-        "side": "left" | "right" | "bottom" | "top";
+        "side": Side;
+        "trigger": string;
     }
     interface OrbPillAttributes {
         "outline": boolean;
@@ -2751,19 +2938,20 @@ declare namespace LocalJSX {
     }
     interface OrbPlaceholderAttributes {
         "animated": boolean;
+        "width": string;
+        "height": string;
     }
     interface OrbPopoverAttributes {
-        "open": boolean;
         "placement": Placement;
-        "backdropDismiss": boolean;
-        "dismissOnClick": boolean;
-        "positionStrategy": "click" | "element";
+        "hideOnBackdropClick": boolean;
+        "hideOnContentClick": boolean;
         "offsetX": number;
         "offsetY": number;
-        "triggerAction": "click" | "context-menu" | "hover";
+        "showOn": "click" | "context-menu" | "hover";
         "matchWidth": boolean;
         "arrow": boolean;
         "arrowPadding": number;
+        "trigger": string;
     }
     interface OrbRadioAttributes {
         "value": string;
@@ -2776,6 +2964,12 @@ declare namespace LocalJSX {
         "note": string;
         "value": string;
         "buttons": boolean;
+    }
+    interface OrbRelativeTimeAttributes {
+        "date": Date | string;
+        "format": "long" | "short" | "narrow";
+        "numeric": "always" | "auto";
+        "sync": boolean;
     }
     interface OrbRichTextAttributes {
         "placeholder": string;
@@ -2792,6 +2986,16 @@ declare namespace LocalJSX {
         "fragmentEntry": string;
         "dpr": number;
         "paused": boolean;
+    }
+    interface OrbSplitPanelAttributes {
+        "primary": boolean;
+        "fixed": boolean;
+        "vertical": boolean;
+        "beforePrimary": boolean;
+        "afterPrimary": boolean;
+    }
+    interface OrbSplitViewAttributes {
+        "vertical": boolean;
     }
     interface OrbStackAttributes {
         "mode": "row" | "column";
@@ -2832,6 +3036,10 @@ declare namespace LocalJSX {
         "selected": boolean | null;
         "href": string;
     }
+    interface OrbTimerAttributes {
+        "duration": number;
+        "autostart": boolean;
+    }
     interface OrbToggleAttributes {
         "defaultChecked": boolean;
         "checked": boolean;
@@ -2851,7 +3059,7 @@ declare namespace LocalJSX {
     | "3xl";
     }
     interface OrbTooltipAttributes {
-        "content": string;
+        "for": string;
         "offsetX": number;
         "offsetY": number;
     }
@@ -2911,11 +3119,11 @@ declare namespace LocalJSX {
         "orb-radio": Omit<OrbRadio, keyof OrbRadioAttributes> & { [K in keyof OrbRadio & keyof OrbRadioAttributes]?: OrbRadio[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `attr:${K}`]?: OrbRadioAttributes[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `prop:${K}`]?: OrbRadio[K] };
         "orb-radio-group": Omit<OrbRadioGroup, keyof OrbRadioGroupAttributes> & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes]?: OrbRadioGroup[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `attr:${K}`]?: OrbRadioGroupAttributes[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `prop:${K}`]?: OrbRadioGroup[K] };
         "orb-range": OrbRange;
-        "orb-relative-time": OrbRelativeTime;
+        "orb-relative-time": Omit<OrbRelativeTime, keyof OrbRelativeTimeAttributes> & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes]?: OrbRelativeTime[K] } & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes as `attr:${K}`]?: OrbRelativeTimeAttributes[K] } & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes as `prop:${K}`]?: OrbRelativeTime[K] };
         "orb-rich-text": Omit<OrbRichText, keyof OrbRichTextAttributes> & { [K in keyof OrbRichText & keyof OrbRichTextAttributes]?: OrbRichText[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `attr:${K}`]?: OrbRichTextAttributes[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `prop:${K}`]?: OrbRichText[K] };
         "orb-shader-canvas": Omit<OrbShaderCanvas, keyof OrbShaderCanvasAttributes> & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes]?: OrbShaderCanvas[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `attr:${K}`]?: OrbShaderCanvasAttributes[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `prop:${K}`]?: OrbShaderCanvas[K] };
-        "orb-split-panel": OrbSplitPanel;
-        "orb-split-view": OrbSplitView;
+        "orb-split-panel": Omit<OrbSplitPanel, keyof OrbSplitPanelAttributes> & { [K in keyof OrbSplitPanel & keyof OrbSplitPanelAttributes]?: OrbSplitPanel[K] } & { [K in keyof OrbSplitPanel & keyof OrbSplitPanelAttributes as `attr:${K}`]?: OrbSplitPanelAttributes[K] } & { [K in keyof OrbSplitPanel & keyof OrbSplitPanelAttributes as `prop:${K}`]?: OrbSplitPanel[K] };
+        "orb-split-view": Omit<OrbSplitView, keyof OrbSplitViewAttributes> & { [K in keyof OrbSplitView & keyof OrbSplitViewAttributes]?: OrbSplitView[K] } & { [K in keyof OrbSplitView & keyof OrbSplitViewAttributes as `attr:${K}`]?: OrbSplitViewAttributes[K] } & { [K in keyof OrbSplitView & keyof OrbSplitViewAttributes as `prop:${K}`]?: OrbSplitView[K] };
         "orb-stack": Omit<OrbStack, keyof OrbStackAttributes> & { [K in keyof OrbStack & keyof OrbStackAttributes]?: OrbStack[K] } & { [K in keyof OrbStack & keyof OrbStackAttributes as `attr:${K}`]?: OrbStackAttributes[K] } & { [K in keyof OrbStack & keyof OrbStackAttributes as `prop:${K}`]?: OrbStack[K] };
         "orb-synth": OrbSynth;
         "orb-tab-button": Omit<OrbTabButton, keyof OrbTabButtonAttributes> & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes]?: OrbTabButton[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `attr:${K}`]?: OrbTabButtonAttributes[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `prop:${K}`]?: OrbTabButton[K] };
@@ -2923,11 +3131,11 @@ declare namespace LocalJSX {
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
         "orb-ti": Omit<OrbTi, keyof OrbTiAttributes> & { [K in keyof OrbTi & keyof OrbTiAttributes]?: OrbTi[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `attr:${K}`]?: OrbTiAttributes[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `prop:${K}`]?: OrbTi[K] };
-        "orb-timer": OrbTimer;
+        "orb-timer": Omit<OrbTimer, keyof OrbTimerAttributes> & { [K in keyof OrbTimer & keyof OrbTimerAttributes]?: OrbTimer[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `attr:${K}`]?: OrbTimerAttributes[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `prop:${K}`]?: OrbTimer[K] };
         "orb-toc": OrbToc;
         "orb-toggle": Omit<OrbToggle, keyof OrbToggleAttributes> & { [K in keyof OrbToggle & keyof OrbToggleAttributes]?: OrbToggle[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `attr:${K}`]?: OrbToggleAttributes[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `prop:${K}`]?: OrbToggle[K] };
         "orb-toolbar": Omit<OrbToolbar, keyof OrbToolbarAttributes> & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes]?: OrbToolbar[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `attr:${K}`]?: OrbToolbarAttributes[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `prop:${K}`]?: OrbToolbar[K] };
-        "orb-tooltip": Omit<OrbTooltip, keyof OrbTooltipAttributes> & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes]?: OrbTooltip[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `attr:${K}`]?: OrbTooltipAttributes[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `prop:${K}`]?: OrbTooltip[K] };
+        "orb-tooltip": Omit<OrbTooltip, keyof OrbTooltipAttributes> & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes]?: OrbTooltip[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `attr:${K}`]?: OrbTooltipAttributes[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `prop:${K}`]?: OrbTooltip[K] } & OneOf<"for", OrbTooltip["for"], OrbTooltipAttributes["for"]>;
         "orb-tree": Omit<OrbTree, keyof OrbTreeAttributes> & { [K in keyof OrbTree & keyof OrbTreeAttributes]?: OrbTree[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `attr:${K}`]?: OrbTreeAttributes[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `prop:${K}`]?: OrbTree[K] };
         "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
         "orb-view-manager": OrbViewManager;
@@ -3005,6 +3213,10 @@ declare module "@stencil/core" {
             "orb-radio": LocalJSX.IntrinsicElements["orb-radio"] & JSXBase.HTMLAttributes<HTMLOrbRadioElement>;
             "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
             "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
+            /**
+             * Displays a date as a localized phrase relative to now, such as "3 hours ago"
+             * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+             */
             "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**
@@ -3027,6 +3239,10 @@ declare module "@stencil/core" {
              */
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
             "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;
+            /**
+             * A countdown that displays the time remaining and emits `countdownComplete`
+             * when it reaches zero.
+             */
             "orb-timer": LocalJSX.IntrinsicElements["orb-timer"] & JSXBase.HTMLAttributes<HTMLOrbTimerElement>;
             "orb-toc": LocalJSX.IntrinsicElements["orb-toc"] & JSXBase.HTMLAttributes<HTMLOrbTocElement>;
             "orb-toggle": LocalJSX.IntrinsicElements["orb-toggle"] & JSXBase.HTMLAttributes<HTMLOrbToggleElement>;

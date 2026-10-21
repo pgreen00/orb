@@ -1,3 +1,84 @@
+/**
+ * @prop --divider-thickness: Size of the divider
+ * @prop --divider-color: Color of the divider
+ */
+
 :host {
+  --divider-thickness: 20px;
+  --divider-color: var(--orb-divider-color);
+  width: auto;
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+:host([vertical]) {
+  height: auto;
+  width: 100%;
+}
+
+:host([primary]) {
+  flex: 1;
+}
+
+.divider {
+  display: none;
+  position: absolute;
+  height: 100%;
+  box-sizing: border-box;
+  width: var(--divider-thickness);
+  cursor: col-resize;
+  z-index: 1;
+}
+
+:host([vertical]) .divider {
+  width: 100%;
+  height: var(--divider-thickness);
+  cursor: row-resize;
+}
+
+:host([before-primary]:not([vertical])) {
+  border-right: solid 1px var(--divider-color);
+}
+
+:host([after-primary]:not([vertical])) {
+  border-left: solid 1px var(--divider-color);
+}
+
+:host([before-primary][vertical]) {
   display: block;
+  border-bottom: solid 1px var(--divider-color);
+}
+
+:host([after-primary][vertical]) {
+  display: block;
+  border-top: solid 1px var(--divider-color);
+}
+
+:host([before-primary]:not([vertical])) .divider {
+  display: block;
+  right: 0;
+  transform: translateX(calc(var(--divider-thickness) / 2));
+}
+
+:host([after-primary]:not([vertical])) .divider {
+  display: block;
+  left: 0;
+  transform: translateX(calc(calc(var(--divider-thickness) / 2) * -1));
+}
+
+:host([before-primary][vertical]) .divider {
+  display: block;
+  bottom: 0;
+  transform: translateY(calc(var(--divider-thickness) / 2));
+}
+
+:host([after-primary][vertical]) .divider {
+  display: block;
+  top: 0;
+  transform: translateY(calc(calc(var(--divider-thickness) / 2) * -1));
+}
+
+:host([fixed]) .divider {
+  cursor: default;
 }

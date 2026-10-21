@@ -1,3 +1,4 @@
 :host {
   display: block;
+  font-variant-numeric: tabular-nums;
 }

@@ -1,3 +1,10 @@
 :host {
-  display: block;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+:host([vertical]) {
+  flex-direction: column;
 }

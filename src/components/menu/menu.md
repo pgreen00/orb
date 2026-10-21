@@ -6,8 +6,7 @@ sidebar_label: 'Menu'
 ::: live-code-demo
 
 ```html
-<orb-popover>
-  <orb-button slot="trigger">Open Popover</orb-button>
+<orb-popover ex>
   <orb-menu>
     <orb-mi>
       <iconify-icon icon="mdi:minimize" slot="icon"></iconify-icon>
@@ -32,6 +31,14 @@ sidebar_label: 'Menu'
     </orb-mi>
   </orb-menu>
 </orb-popover>
+```
+
+```javascript
+document.body.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  const popover = document.querySelector('orb-popover[ex]');
+  popover.show(e);
+});
 ```
 
 :::

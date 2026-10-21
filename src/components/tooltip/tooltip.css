@@ -1,18 +1,4 @@
 :host {
-  display: contents;
-
-  --padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
-  --background: light-dark(var(--orb-neutral-950), var(--orb-neutral-800));
-  --color: var(--orb-neutral-300);
-  --border: none;
-  --radius: var(--orb-radius-md);
-}
-
-[popover] {
-  opacity: 0;
-  transition:
-    opacity 0.2s ease-in-out,
-    display 0.2s ease-in-out allow-discrete;
   box-shadow: var(--orb-shadow-sm);
   max-width: var(--available-width);
   max-height: var(--available-height);
@@ -24,14 +10,10 @@
   box-sizing: border-box;
   padding: var(--padding);
   margin: 0;
-}
 
-[popover]:popover-open {
-  opacity: 1;
-}
-
-@starting-style {
-  [popover]:popover-open {
-    opacity: 0;
-  }
+  --padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  --background: light-dark(var(--orb-neutral-950), var(--orb-neutral-800));
+  --color: var(--orb-neutral-300);
+  --border: none;
+  --radius: var(--orb-radius-md);
 }
