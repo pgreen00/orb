@@ -1,5 +1,6 @@
 interface ElementInternals {
   ariaLabelledByElements: readonly Element[];
+  ariaDescribedByElements: readonly Element[];
 }
 
 interface HTMLElement {

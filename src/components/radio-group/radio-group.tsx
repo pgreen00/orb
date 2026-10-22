@@ -168,20 +168,10 @@ export class RadioGroup {
         <style>{`:host{--mode:${this.buttons ? 'buttons' : 'radios'};}`}</style>
         <slot
           name="label"
-          onSlotchange={({ target }) => {
-            console.log("1");
-            const slot = target as HTMLSlotElement;
-            this.internals.ariaLabelledByElements = slot.assignedElements();
-          }}
+          ref={el => this.internals.ariaLabelledByElements = [el]}
         >
           {this.label && (
-            <orb-label
-              ref={(el) => {
-                console.log("2");
-                this.internals.ariaLabelledByElements = [el];
-              }}
-              required={this.required}
-            >
+            <orb-label required={this.required}>
               {this.label}
             </orb-label>
           )}
@@ -189,7 +179,12 @@ export class RadioGroup {
         <div class={this.buttons ? "buttons" : "content"}>
           <slot />
         </div>
-        <slot name="note">{this.note && <orb-note>{this.note}</orb-note>}</slot>
+        <slot
+          name="note"
+          ref={el => this.internals.ariaDescribedByElements = [el]}
+        >
+          {this.note && <orb-note>{this.note}</orb-note>}
+        </slot>
       </Host>
     );
   }

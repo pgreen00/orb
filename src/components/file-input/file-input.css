@@ -1,0 +1,53 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  box-sizing: border-box;
+  height: 200px;
+  width: 300px;
+}
+
+[part=dropzone] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
+  border-radius: var(--orb-radius-lg);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+  color: light-dark(var(--orb-neutral-750), var(--orb-neutral-600));
+  gap: 1.5rem;
+  transition:
+    border-color 250ms,
+    background-color 250ms;
+  &.hover {
+    outline: 2px solid var(--orb-primary-300);
+    outline-offset: 3px;
+    background-color: light-dark(
+      var(--orb-neutral-100),
+      var(--orb-neutral-850)
+    );
+  }
+  &:focus-within {
+    outline: 2px solid var(--orb-primary-300);
+    outline-offset: 3px;
+  }
+}
+
+input {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+svg {
+  width: 3rem;
+  height: 3rem;
+}

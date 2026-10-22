@@ -214,9 +214,26 @@ export namespace Components {
          */
         "type": "horizontal" | "vertical";
     }
-    interface OrbDropzone {
-    }
     interface OrbEq {
+    }
+    interface OrbFileInput {
+        /**
+          * Label that shows above the control
+         */
+        "label"?: string;
+        /**
+          * Additional info that shows below the control
+         */
+        "note"?: string;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
+        /**
+          * Requires a value before the form can be submitted
+         */
+        "required"?: boolean;
     }
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
@@ -1002,9 +1019,9 @@ export interface OrbDetailsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbDetailsElement;
 }
-export interface OrbDropzoneCustomEvent<T> extends CustomEvent<T> {
+export interface OrbFileInputCustomEvent<T> extends CustomEvent<T> {
     detail: T;
-    target: HTMLOrbDropzoneElement;
+    target: HTMLOrbFileInputElement;
 }
 export interface OrbGridCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1224,28 +1241,28 @@ declare global {
         prototype: HTMLOrbDividerElement;
         new (): HTMLOrbDividerElement;
     };
-    interface HTMLOrbDropzoneElementEventMap {
-        "dataDrop": DataTransfer;
-    }
-    interface HTMLOrbDropzoneElement extends Components.OrbDropzone, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLOrbDropzoneElementEventMap>(type: K, listener: (this: HTMLOrbDropzoneElement, ev: OrbDropzoneCustomEvent<HTMLOrbDropzoneElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLOrbDropzoneElementEventMap>(type: K, listener: (this: HTMLOrbDropzoneElement, ev: OrbDropzoneCustomEvent<HTMLOrbDropzoneElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLOrbDropzoneElement: {
-        prototype: HTMLOrbDropzoneElement;
-        new (): HTMLOrbDropzoneElement;
-    };
     interface HTMLOrbEqElement extends Components.OrbEq, HTMLStencilElement {
     }
     var HTMLOrbEqElement: {
         prototype: HTMLOrbEqElement;
         new (): HTMLOrbEqElement;
+    };
+    interface HTMLOrbFileInputElementEventMap {
+        "dataDrop": DataTransfer | FileList;
+    }
+    interface HTMLOrbFileInputElement extends Components.OrbFileInput, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbFileInputElementEventMap>(type: K, listener: (this: HTMLOrbFileInputElement, ev: OrbFileInputCustomEvent<HTMLOrbFileInputElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbFileInputElementEventMap>(type: K, listener: (this: HTMLOrbFileInputElement, ev: OrbFileInputCustomEvent<HTMLOrbFileInputElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbFileInputElement: {
+        prototype: HTMLOrbFileInputElement;
+        new (): HTMLOrbFileInputElement;
     };
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
@@ -1697,8 +1714,8 @@ declare global {
         "orb-details": HTMLOrbDetailsElement;
         "orb-discard-form": HTMLOrbDiscardFormElement;
         "orb-divider": HTMLOrbDividerElement;
-        "orb-dropzone": HTMLOrbDropzoneElement;
         "orb-eq": HTMLOrbEqElement;
+        "orb-file-input": HTMLOrbFileInputElement;
         "orb-gc": HTMLOrbGcElement;
         "orb-gr": HTMLOrbGrElement;
         "orb-grid": HTMLOrbGridElement;
@@ -1965,10 +1982,39 @@ declare namespace LocalJSX {
          */
         "type"?: "horizontal" | "vertical";
     }
-    interface OrbDropzone {
-        "onDataDrop"?: (event: OrbDropzoneCustomEvent<DataTransfer>) => void;
-    }
     interface OrbEq {
+    }
+    interface OrbFileInput {
+        /**
+          * If `true`, the user cannot interact with the element.
+         */
+        "disabled"?: boolean;
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        /**
+          * Label that shows above the control
+         */
+        "label"?: string;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
+        /**
+          * Additional info that shows below the control
+         */
+        "note"?: string;
+        "onDataDrop"?: (event: OrbFileInputCustomEvent<DataTransfer | FileList>) => void;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
+        /**
+          * Requires a value before the form can be submitted
+         */
+        "required"?: boolean;
     }
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
@@ -2858,6 +2904,11 @@ declare namespace LocalJSX {
         "type": "horizontal" | "vertical";
         "spacing": "sm" | "md" | "lg" | "none";
     }
+    interface OrbFileInputAttributes {
+        "label": string;
+        "note": string;
+        "required": boolean;
+    }
     interface OrbGcAttributes {
         "field": string;
         "colSpan": number;
@@ -3094,8 +3145,8 @@ declare namespace LocalJSX {
         "orb-details": Omit<OrbDetails, keyof OrbDetailsAttributes> & { [K in keyof OrbDetails & keyof OrbDetailsAttributes]?: OrbDetails[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `attr:${K}`]?: OrbDetailsAttributes[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `prop:${K}`]?: OrbDetails[K] };
         "orb-discard-form": OrbDiscardForm;
         "orb-divider": Omit<OrbDivider, keyof OrbDividerAttributes> & { [K in keyof OrbDivider & keyof OrbDividerAttributes]?: OrbDivider[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `attr:${K}`]?: OrbDividerAttributes[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `prop:${K}`]?: OrbDivider[K] };
-        "orb-dropzone": OrbDropzone;
         "orb-eq": OrbEq;
+        "orb-file-input": Omit<OrbFileInput, keyof OrbFileInputAttributes> & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes]?: OrbFileInput[K] } & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes as `attr:${K}`]?: OrbFileInputAttributes[K] } & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes as `prop:${K}`]?: OrbFileInput[K] };
         "orb-gc": Omit<OrbGc, keyof OrbGcAttributes> & { [K in keyof OrbGc & keyof OrbGcAttributes]?: OrbGc[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `attr:${K}`]?: OrbGcAttributes[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `prop:${K}`]?: OrbGc[K] };
         "orb-gr": Omit<OrbGr, keyof OrbGrAttributes> & { [K in keyof OrbGr & keyof OrbGrAttributes]?: OrbGr[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `attr:${K}`]?: OrbGrAttributes[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `prop:${K}`]?: OrbGr[K] };
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
@@ -3172,8 +3223,8 @@ declare module "@stencil/core" {
             "orb-details": LocalJSX.IntrinsicElements["orb-details"] & JSXBase.HTMLAttributes<HTMLOrbDetailsElement>;
             "orb-discard-form": LocalJSX.IntrinsicElements["orb-discard-form"] & JSXBase.HTMLAttributes<HTMLOrbDiscardFormElement>;
             "orb-divider": LocalJSX.IntrinsicElements["orb-divider"] & JSXBase.HTMLAttributes<HTMLOrbDividerElement>;
-            "orb-dropzone": LocalJSX.IntrinsicElements["orb-dropzone"] & JSXBase.HTMLAttributes<HTMLOrbDropzoneElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
+            "orb-file-input": LocalJSX.IntrinsicElements["orb-file-input"] & JSXBase.HTMLAttributes<HTMLOrbFileInputElement>;
             /**
              * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
              * row header when `header` is set.
