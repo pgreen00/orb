@@ -9,6 +9,7 @@ import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
+import { PageChangeDetail } from "./components/pagination/pagination";
 import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
@@ -16,6 +17,7 @@ export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
+export { PageChangeDetail } from "./components/pagination/pagination";
 export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
@@ -520,7 +522,85 @@ export namespace Components {
          */
         "trigger"?: string;
     }
+    /**
+     * Splits a long list into pages and lets the user move between them. Renders
+     * native buttons by default, or links when `href-template` is set.
+     */
     interface OrbPagination {
+        /**
+          * The pagination's visual appearance
+          * @default "outlined"
+         */
+        "appearance": "outlined" | "filled" | "plain";
+        /**
+          * The number of pages to always show at the start and end
+          * @default 1
+         */
+        "boundaryCount": number;
+        /**
+          * Disables the pagination
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * `standard` shows the full page list. `compact` shows a "1 of 5" label between the previous and next buttons.
+          * @default "standard"
+         */
+        "format": "standard" | "compact";
+        /**
+          * Renders nothing when there's only one page
+          * @default false
+         */
+        "hideSinglePage": boolean;
+        /**
+          * Renders page items as links instead of buttons. Use `{page}` as a placeholder for the page number, or assign a function that returns the URL.
+         */
+        "hrefTemplate"?: string | ((page: number) => string);
+        /**
+          * A label that describes the pagination to assistive devices
+          * @default ""
+         */
+        "label": string;
+        /**
+          * The current page, starting at 1
+          * @default 1
+         */
+        "page": number;
+        /**
+          * The number of items shown per page
+          * @default 10
+         */
+        "pageSize": number;
+        /**
+          * The number of pages to show on each side of the current page
+          * @default 2
+         */
+        "siblingCount": number;
+        /**
+          * The total number of items to paginate
+          * @default 0
+         */
+        "total": number;
+        /**
+          * The total number of pages, derived from `total` and `pageSize`
+          * @readonly
+         */
+        "totalPages": number;
+        /**
+          * Shows buttons that jump to the first and last pages
+          * @default false
+         */
+        "withEdges": boolean;
+        /**
+          * Shows a summary of the items on the current page
+          * @default false
+         */
+        "withSummary": boolean;
+        /**
+          * Hides the previous and next buttons
+          * @default false
+         */
+        "withoutNav": boolean;
     }
     interface OrbPill {
         /**
@@ -540,8 +620,6 @@ export namespace Components {
          */
         "removable": boolean;
         "template"?: string;
-    }
-    interface OrbPillGroup {
     }
     /**
      * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
@@ -1076,6 +1154,10 @@ export interface OrbOverlayCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbOverlayElement;
 }
+export interface OrbPaginationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbPaginationElement;
+}
 export interface OrbPopoverCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbPopoverElement;
@@ -1441,7 +1523,23 @@ declare global {
         prototype: HTMLOrbOverlayElement;
         new (): HTMLOrbOverlayElement;
     };
+    interface HTMLOrbPaginationElementEventMap {
+        "beforePageChange": PageChangeDetail;
+        "pageChange": PageChangeDetail;
+    }
+    /**
+     * Splits a long list into pages and lets the user move between them. Renders
+     * native buttons by default, or links when `href-template` is set.
+     */
     interface HTMLOrbPaginationElement extends Components.OrbPagination, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbPaginationElementEventMap>(type: K, listener: (this: HTMLOrbPaginationElement, ev: OrbPaginationCustomEvent<HTMLOrbPaginationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbPaginationElementEventMap>(type: K, listener: (this: HTMLOrbPaginationElement, ev: OrbPaginationCustomEvent<HTMLOrbPaginationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbPaginationElement: {
         prototype: HTMLOrbPaginationElement;
@@ -1452,12 +1550,6 @@ declare global {
     var HTMLOrbPillElement: {
         prototype: HTMLOrbPillElement;
         new (): HTMLOrbPillElement;
-    };
-    interface HTMLOrbPillGroupElement extends Components.OrbPillGroup, HTMLStencilElement {
-    }
-    var HTMLOrbPillGroupElement: {
-        prototype: HTMLOrbPillGroupElement;
-        new (): HTMLOrbPillGroupElement;
     };
     /**
      * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
@@ -1774,7 +1866,6 @@ declare global {
         "orb-overlay": HTMLOrbOverlayElement;
         "orb-pagination": HTMLOrbPaginationElement;
         "orb-pill": HTMLOrbPillElement;
-        "orb-pill-group": HTMLOrbPillGroupElement;
         "orb-pipe": HTMLOrbPipeElement;
         "orb-placeholder": HTMLOrbPlaceholderElement;
         "orb-popover": HTMLOrbPopoverElement;
@@ -2361,7 +2452,93 @@ declare namespace LocalJSX {
          */
         "trigger"?: string;
     }
+    /**
+     * Splits a long list into pages and lets the user move between them. Renders
+     * native buttons by default, or links when `href-template` is set.
+     */
     interface OrbPagination {
+        /**
+          * The pagination's visual appearance
+          * @default "outlined"
+         */
+        "appearance"?: "outlined" | "filled" | "plain";
+        /**
+          * The number of pages to always show at the start and end
+          * @default 1
+         */
+        "boundaryCount"?: number;
+        /**
+          * Disables the pagination
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * `standard` shows the full page list. `compact` shows a "1 of 5" label between the previous and next buttons.
+          * @default "standard"
+         */
+        "format"?: "standard" | "compact";
+        /**
+          * Renders nothing when there's only one page
+          * @default false
+         */
+        "hideSinglePage"?: boolean;
+        /**
+          * Renders page items as links instead of buttons. Use `{page}` as a placeholder for the page number, or assign a function that returns the URL.
+         */
+        "hrefTemplate"?: string | ((page: number) => string);
+        /**
+          * A label that describes the pagination to assistive devices
+          * @default ""
+         */
+        "label"?: string;
+        /**
+          * Emitted when the page is about to change. Call `preventDefault()` to cancel.
+         */
+        "onBeforePageChange"?: (event: OrbPaginationCustomEvent<PageChangeDetail>) => void;
+        /**
+          * Emitted after the page changes
+         */
+        "onPageChange"?: (event: OrbPaginationCustomEvent<PageChangeDetail>) => void;
+        /**
+          * The current page, starting at 1
+          * @default 1
+         */
+        "page"?: number;
+        /**
+          * The number of items shown per page
+          * @default 10
+         */
+        "pageSize"?: number;
+        /**
+          * The number of pages to show on each side of the current page
+          * @default 2
+         */
+        "siblingCount"?: number;
+        /**
+          * The total number of items to paginate
+          * @default 0
+         */
+        "total"?: number;
+        /**
+          * The total number of pages, derived from `total` and `pageSize`
+          * @readonly
+         */
+        "totalPages"?: number;
+        /**
+          * Shows buttons that jump to the first and last pages
+          * @default false
+         */
+        "withEdges"?: boolean;
+        /**
+          * Shows a summary of the items on the current page
+          * @default false
+         */
+        "withSummary"?: boolean;
+        /**
+          * Hides the previous and next buttons
+          * @default false
+         */
+        "withoutNav"?: boolean;
     }
     interface OrbPill {
         /**
@@ -2381,8 +2558,6 @@ declare namespace LocalJSX {
          */
         "removable"?: boolean;
         "template"?: string;
-    }
-    interface OrbPillGroup {
     }
     /**
      * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
@@ -3057,6 +3232,23 @@ declare namespace LocalJSX {
         "side": Side;
         "trigger": string;
     }
+    interface OrbPaginationAttributes {
+        "appearance": "outlined" | "filled" | "plain";
+        "boundaryCount": number;
+        "disabled": boolean;
+        "format": "standard" | "compact";
+        "hideSinglePage": boolean;
+        "hrefTemplate": string | ((page: number) => string);
+        "label": string;
+        "page": number;
+        "pageSize": number;
+        "siblingCount": number;
+        "total": number;
+        "totalPages": number;
+        "withEdges": boolean;
+        "withoutNav": boolean;
+        "withSummary": boolean;
+    }
     interface OrbPillAttributes {
         "outline": boolean;
         "removable": boolean;
@@ -3241,9 +3433,8 @@ declare namespace LocalJSX {
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
         "orb-output": OrbOutput;
         "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
-        "orb-pagination": OrbPagination;
+        "orb-pagination": Omit<OrbPagination, keyof OrbPaginationAttributes> & { [K in keyof OrbPagination & keyof OrbPaginationAttributes]?: OrbPagination[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `attr:${K}`]?: OrbPaginationAttributes[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `prop:${K}`]?: OrbPagination[K] };
         "orb-pill": Omit<OrbPill, keyof OrbPillAttributes> & { [K in keyof OrbPill & keyof OrbPillAttributes]?: OrbPill[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `attr:${K}`]?: OrbPillAttributes[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `prop:${K}`]?: OrbPill[K] };
-        "orb-pill-group": OrbPillGroup;
         "orb-pipe": Omit<OrbPipe, keyof OrbPipeAttributes> & { [K in keyof OrbPipe & keyof OrbPipeAttributes]?: OrbPipe[K] } & { [K in keyof OrbPipe & keyof OrbPipeAttributes as `attr:${K}`]?: OrbPipeAttributes[K] } & { [K in keyof OrbPipe & keyof OrbPipeAttributes as `prop:${K}`]?: OrbPipe[K] } & OneOf<"input", OrbPipe["input"], OrbPipeAttributes["input"]>;
         "orb-placeholder": Omit<OrbPlaceholder, keyof OrbPlaceholderAttributes> & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes]?: OrbPlaceholder[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `attr:${K}`]?: OrbPlaceholderAttributes[K] } & { [K in keyof OrbPlaceholder & keyof OrbPlaceholderAttributes as `prop:${K}`]?: OrbPlaceholder[K] };
         "orb-popover": Omit<OrbPopover, keyof OrbPopoverAttributes> & { [K in keyof OrbPopover & keyof OrbPopoverAttributes]?: OrbPopover[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `attr:${K}`]?: OrbPopoverAttributes[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `prop:${K}`]?: OrbPopover[K] };
@@ -3332,9 +3523,12 @@ declare module "@stencil/core" {
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
             "orb-output": LocalJSX.IntrinsicElements["orb-output"] & JSXBase.HTMLAttributes<HTMLOrbOutputElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
+            /**
+             * Splits a long list into pages and lets the user move between them. Renders
+             * native buttons by default, or links when `href-template` is set.
+             */
             "orb-pagination": LocalJSX.IntrinsicElements["orb-pagination"] & JSXBase.HTMLAttributes<HTMLOrbPaginationElement>;
             "orb-pill": LocalJSX.IntrinsicElements["orb-pill"] & JSXBase.HTMLAttributes<HTMLOrbPillElement>;
-            "orb-pill-group": LocalJSX.IntrinsicElements["orb-pill-group"] & JSXBase.HTMLAttributes<HTMLOrbPillGroupElement>;
             /**
              * Pipes take a unix-like expression, run it through a chain of transforms, and renders the result as text.
              */

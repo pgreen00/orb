@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.2em;
+  font-size: var(--orb-font-md);
 }
 
 [part=after-container] {
@@ -22,7 +23,6 @@ div[part="container"] {
   flex: 1;
   cursor: text;
   min-height: 3em;
-  font-size: var(--orb-font-md);
   font-weight: var(--orb-font-semi-bold);
   color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
   border-radius: var(--orb-radius-md);
