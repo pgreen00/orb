@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en" class="orb-theme-dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/orb.png" />
+  <meta
+    name="viewport"
+    content="width=device-width, user-scalable=no"
+  />
+  <title>Orb Design System</title>
+  <style>@view-transition {navigation: auto;}</style>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/build/styles/index.css" />
+  <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "orb-style": "/build/components/index.js",
+        "orb-style/": "/build/components/"
+      }
+    }
+  </script>
+  <script type="module" src="/build/loader.js"></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Classless CSS Demo</h1>
+    <p>A kitchen-sink of native HTML elements for testing styles.</p>
+    <nav>
+      <a class="accent underline" href="#text">Text</a> ·
+      <a href="#lists">Lists</a> ·
+      <a href="#tables">Tables</a> ·
+      <a href="#forms">Forms</a> ·
+      <a href="#interactive">Interactive</a> ·
+      <a href="#media">Media</a> ·
+      <a href="#misc">Misc</a>
+    </nav>
+  </header>
+
+  <main class="orb-padding">
+
+    <section id="headings">
+      <h1>Heading 1</h1>
+      <h2>Heading 2</h2>
+      <h3>Heading 3</h3>
+      <h4>Heading 4</h4>
+      <h5>Heading 5</h5>
+      <h6>Heading 6</h6>
+    </section>
+
+    <section id="text">
+      <h2>Text-level semantics</h2>
+      <p>
+        This is a paragraph with <strong>strong importance</strong>,
+        <em>emphasis</em>, <b>bold text</b>, <i>italic text</i>,
+        <mark>highlighted text</mark>, <small>small print</small>,
+        <del>deleted text</del>, <ins>inserted text</ins>,
+        <sub>subscript</sub>, <sup>superscript</sup>,
+        <u>underlined</u>, and <s>strikethrough</s>.
+      </p>
+      <p>
+        Abbreviation: <abbr title="Cascading Style Sheets">CSS</abbr>.
+        Citation: <cite>The Design of Everyday Things</cite>.
+        Quote: <q>To be, or not to be.</q>
+        Code: <code>const x = 42;</code>
+        Keyboard: <kbd>Ctrl</kbd> + <kbd>C</kbd>
+        Sample output: <samp>Segmentation fault</samp>
+        Variable: <var>x</var> = <var>y</var> + 2
+        Time: <time datetime="2026-09-09">Sept 9, 2026</time>
+      </p>
+      <blockquote cite="https://example.com">
+        <p>Simplicity is the ultimate sophistication.</p>
+        <footer>— <cite>Leonardo da Vinci</cite></footer>
+      </blockquote>
+      <address>
+        Contact: <a href="mailto:test@example.com">test@example.com</a><br>
+        123 Main St, Anytown, USA
+      </address>
+      <pre><code>function hello() {
+    console.log("Hello, world!");
+  }</code></pre>
+      <hr/>
+    </section>
+
+    <section id="lists">
+      <h2>Lists</h2>
+      <h3>Unordered</h3>
+      <ul>
+        <li>Item one</li>
+        <li>Item two
+          <ul>
+            <li>Nested item</li>
+            <li>Another nested item</li>
+          </ul>
+        </li>
+        <li>Item three</li>
+      </ul>
+      <h3>Ordered</h3>
+      <ol>
+        <li>First</li>
+        <li>Second</li>
+        <li>Third</li>
+      </ol>
+      <h3>Description list</h3>
+      <dl>
+        <dt>HTML</dt>
+        <dd>HyperText Markup Language</dd>
+        <dt>CSS</dt>
+        <dd>Cascading Style Sheets</dd>
+      </dl>
+    </section>
+
+    <section id="tables">
+      <h2>Tables</h2>
+      <table>
+        <caption>Quarterly Results</caption>
+        <colgroup>
+          <col>
+          <col span="2">
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">Quarter</th>
+            <th scope="col">Revenue</th>
+            <th scope="col">Profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Q1</th>
+            <td>$10,000</td>
+            <td>$2,000</td>
+          </tr>
+          <tr>
+            <th scope="row">Q2</th>
+            <td>$12,000</td>
+            <td>$3,500</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">Total</th>
+            <td>$22,000</td>
+            <td>$5,500</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <section id="forms">
+      <h2>Forms</h2>
+      <form>
+        <fieldset style="max-width: 350px;">
+          <legend>Personal Info</legend>
+
+          <orb-stack>
+            <orb-textbox label="Name">
+              <input required name="textInput" placeholder="Your name"/>
+            </orb-textbox>
+            <orb-textbox>
+              <orb-label>Email</orb-label>
+              <input type="email" name="emailInput" placeholder="you@example.com"/>
+            </orb-textbox>
+            <orb-textbox label="Password">
+              <input type="password" name="passwordInput" placeholder="Password..." minlength="8" required/>
+              <orb-note>Must be at least 8 characters</orb-note>
+            </orb-textbox>
+            <orb-textbox note="Yo gabba gabba">
+              <iconify-icon slot="start" icon="mdi:search" class="orb-font-2xl"></iconify-icon>
+              <input aria-label="Search" type="search" name="searchInput" placeholder="Search for something..."/>
+            </orb-textbox>
+            <label class="orb-font-lg">
+              Phone <input type="tel" name="tel-input">
+            </label>
+            <label>
+              URL <input type="url" id="url-input" name="url-input">
+            </label>
+            <label>
+              Number <input type="number" name="number-input" min="0" max="10">
+            </label>
+            <label>
+              Range <input type="range" name="range-input" min="0" max="100">
+            </label>
+            <label>
+              Date <input type="date" name="date-input">
+            </label>
+            <label>
+              Time <input type="time" name="time-input">
+            </label>
+            <label>
+              Datetime-local <input type="datetime-local" name="datetime-input">
+            </label>
+            <label>
+              Month <input type="month" name="month-input">
+            </label>
+            <label>
+              Week <input type="week" name="week-input">
+            </label>
+            <label>
+              Color <input type="color" name="color-input" value="#3366ff">
+            </label>
+            <label>
+              File <input type="file" name="file-input">
+            </label>
+            <label>
+              With datalist <input name="list-input" list="fruit-list">
+            </label>
+            <datalist id="fruit-list">
+              <option value="Apple">
+              <option value="Banana">
+              <option value="Cherry">
+            </datalist>
+
+            <label>
+              Select
+              <select name="select-input">
+                <option hidden>Choose a food…</option>
+                <optgroup label="Fruits">
+                  <option value="apple">Apple</option>
+                  <option value="banana">Banana</option>
+                </optgroup>
+                <optgroup label="Vegetables">
+                  <option value="carrot">Carrot</option>
+                  <option value="pea">Pea</option>
+                </optgroup>
+              </select>
+            </label>
+
+            <label>
+              Inventory Code <output tabindex="0">#AS63M</output>
+            </label>
+          </orb-stack>
+        </fieldset>
+
+        <fieldset>
+          <legend>Choices</legend>
+
+          <label>
+            <input type="checkbox" name="checkbox1" checked>
+            Checkbox (checked)
+          </label>
+          <label>
+            <input type="checkbox" name="checkbox2">
+            Checkbox (unchecked)
+          </label>
+          <label>
+            <input type="checkbox" name="checkbox3" disabled>
+            Checkbox (disabled)
+          </label>
+
+          <br>
+
+          <label>
+            <input type="radio" name="radio-group" value="a" checked>
+            Radio A
+          </label>
+          <label>
+            <input type="radio" name="radio-group" value="b">
+            Radio B
+          </label>
+
+          <label>
+            Multi-select
+            <select id="select-multiple" name="select-multiple" multiple size="3">
+              <option value="1">Option 1</option>
+              <option value="2">Option 2</option>
+              <option value="3">Option 3</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Other</legend>
+
+          <label for="textarea-input">Textarea</label>
+          <textarea id="textarea-input" name="textarea-input" rows="4" placeholder="Write something..."></textarea>
+
+          <label for="meter-input">Meter (disk usage)</label>
+          <meter id="meter-input" min="0" max="100" value="70">70%</meter>
+
+          <label for="progress-input">Progress</label>
+          <progress id="progress-input" value="40" max="100">40%</progress>
+
+          <label for="output-input">Output</label>
+          <output id="output-input" name="output-input" for="number-input">Result: 0</output>
+
+          <label>
+            <input type="text" readonly value="Read-only field">
+            Read-only
+          </label>
+
+          <label>
+            <input type="text" disabled value="Disabled field">
+            Disabled
+          </label>
+        </fieldset>
+
+        <button type="submit">Submit</button>
+        <button type="reset">Reset</button>
+        <button type="button">Button</button>
+        <button type="button" disabled>Disabled Button</button>
+      </form>
+    </section>
+
+    <section id="interactive">
+      <h2>Interactive elements</h2>
+
+      <details>
+        <summary>Click to expand</summary>
+        <p>Hidden content revealed by the details/summary element.</p>
+      </details>
+
+      <details open>
+        <summary>Already open</summary>
+        <p>This one starts expanded.</p>
+      </details>
+
+      <br>
+
+      <button type="button" onclick="document.getElementById('demo-dialog').showModal()">
+        Open Dialog
+      </button>
+
+      <dialog id="demo-dialog" class="orb-padding">
+        <h3>Dialog Title</h3>
+        <p>This is a native <code>&lt;dialog&gt;</code> element.</p>
+        <form method="dialog">
+          <button type="submit">Close</button>
+        </form>
+      </dialog>
+    </section>
+
+    <section id="media">
+      <h2>Media & embedded content</h2>
+
+      <figure>
+        <img src="https://placehold.co/600x300" alt="Placeholder image">
+        <figcaption>Fig. 1 — A placeholder image with a caption.</figcaption>
+      </figure>
+
+      <audio controls>
+        <source src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+
+      <video controls width="400" poster="https://placehold.co/400x225">
+        <source src="" type="video/mp4">
+        Your browser does not support the video element.
+      </video>
+
+      <p>
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="28" fill="currentColor" />
+        </svg>
+        Inline SVG example.
+      </p>
+    </section>
+
+    <section id="misc">
+      <h2>Misc</h2>
+
+      <p>
+        <a href="#">A regular link</a> —
+        <a href="#" target="_blank" rel="noopener">Opens in new tab</a>
+      </p>
+
+      <article>
+        <h3>Article Title</h3>
+        <p>Articles are self-contained pieces of content.</p>
+      </article>
+
+      <aside>
+        <h4>Aside</h4>
+        <p>Tangential content, like a sidebar note.</p>
+      </aside>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Demo Company. All rights reserved.</p>
+  </footer>
+
+</body>
+
+</html>

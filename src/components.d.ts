@@ -218,9 +218,36 @@ export namespace Components {
     }
     interface OrbFileInput {
         /**
+          * Comma-separated list of acceptable file types, such as `image/*` or `.pdf`
+         */
+        "accept"?: string;
+        /**
+          * On mobile devices, which camera to capture from. Only used when `accept` includes an image, video, or audio type.
+         */
+        "capture"?: "user" | "environment";
+        /**
+          * Disables the control
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * The selected files
+          * @default []
+         */
+        "files": File[];
+        /**
           * Label that shows above the control
          */
         "label"?: string;
+        /**
+          * Allows more than one file to be selected
+          * @default false
+         */
+        "multiple": boolean;
+        /**
+          * Name the files are submitted under with form data
+         */
+        "name"?: string;
         /**
           * Additional info that shows below the control
          */
@@ -231,9 +258,23 @@ export namespace Components {
          */
         "ready": Promise<unknown>;
         /**
-          * Requires a value before the form can be submitted
+          * Requires at least one file before the form can be submitted
+          * @default false
          */
-        "required"?: boolean;
+        "required": boolean;
+        /**
+          * Clears custom errors and the user interaction state, so validation styling is hidden until the user interacts with the control again.
+         */
+        "resetValidity": () => Promise<void>;
+        /**
+          * Sets a custom validation error. Pass an empty string to clear it.
+         */
+        "setCustomValidity": (message: string) => Promise<void>;
+        /**
+          * Size of the control
+          * @default "md"
+         */
+        "size": "xs" | "sm" | "md" | "lg";
     }
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
@@ -1248,7 +1289,8 @@ declare global {
         new (): HTMLOrbEqElement;
     };
     interface HTMLOrbFileInputElementEventMap {
-        "dataDrop": DataTransfer | FileList;
+        "input": void;
+        "change": void;
     }
     interface HTMLOrbFileInputElement extends Components.OrbFileInput, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbFileInputElementEventMap>(type: K, listener: (this: HTMLOrbFileInputElement, ev: OrbFileInputCustomEvent<HTMLOrbFileInputElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1986,9 +2028,23 @@ declare namespace LocalJSX {
     }
     interface OrbFileInput {
         /**
-          * If `true`, the user cannot interact with the element.
+          * Comma-separated list of acceptable file types, such as `image/*` or `.pdf`
+         */
+        "accept"?: string;
+        /**
+          * On mobile devices, which camera to capture from. Only used when `accept` includes an image, video, or audio type.
+         */
+        "capture"?: "user" | "environment";
+        /**
+          * Disables the control
+          * @default false
          */
         "disabled"?: boolean;
+        /**
+          * The selected files
+          * @default []
+         */
+        "files"?: File[];
         /**
           * The `id` of a `<form>` element to associate this element with.
          */
@@ -1998,23 +2054,41 @@ declare namespace LocalJSX {
          */
         "label"?: string;
         /**
-          * The name of the element, used when submitting an HTML form.
+          * Allows more than one file to be selected
+          * @default false
+         */
+        "multiple"?: boolean;
+        /**
+          * Name the files are submitted under with form data
          */
         "name"?: string;
         /**
           * Additional info that shows below the control
          */
         "note"?: string;
-        "onDataDrop"?: (event: OrbFileInputCustomEvent<DataTransfer | FileList>) => void;
+        /**
+          * Emitted when files are added or removed
+         */
+        "onChange"?: (event: OrbFileInputCustomEvent<void>) => void;
+        /**
+          * Emitted when files are added or removed
+         */
+        "onInput"?: (event: OrbFileInputCustomEvent<void>) => void;
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
          */
         "ready"?: Promise<unknown>;
         /**
-          * Requires a value before the form can be submitted
+          * Requires at least one file before the form can be submitted
+          * @default false
          */
         "required"?: boolean;
+        /**
+          * Size of the control
+          * @default "md"
+         */
+        "size"?: "xs" | "sm" | "md" | "lg";
     }
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
@@ -2908,6 +2982,12 @@ declare namespace LocalJSX {
         "label": string;
         "note": string;
         "required": boolean;
+        "disabled": boolean;
+        "multiple": boolean;
+        "accept": string;
+        "capture": "user" | "environment";
+        "name": string;
+        "size": "xs" | "sm" | "md" | "lg";
     }
     interface OrbGcAttributes {
         "field": string;

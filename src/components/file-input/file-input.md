@@ -7,9 +7,8 @@ sidebar_label: 'File Input'
 
 ```html
 <orb-file-input
-  label="Upload a file"
-  note="Only PDF files are allowed"
-  accept=".pdf"
+  label="Upload a file!"
+  multiple
 ></orb-file-input>
 ```
 
