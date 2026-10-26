@@ -7,20 +7,24 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
+import { CardLayout } from "./components/card/card";
 import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { PageChangeDetail } from "./components/pagination/pagination";
 import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
+import { TabCloseDetail } from "./components/tab-button/tab-button";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
+export { CardLayout } from "./components/card/card";
 export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { PageChangeDetail } from "./components/pagination/pagination";
 export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
+export { TabCloseDetail } from "./components/tab-button/tab-button";
 export namespace Components {
     /**
      * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
@@ -103,8 +107,39 @@ export namespace Components {
     }
     interface OrbCalendar {
     }
+    /**
+     * A container for related content. The `layout` prop picks the structure, and
+     * each layout has its own named slots. The default slot always lands in the
+     * layout's main text area, so a card with only default content works in any
+     * layout. Sections whose slots are empty aren't shown.
+     */
     interface OrbCard {
-        "color"?: Color;
+        /**
+          * Content alignment in the feature and profile layouts
+          * @default "center"
+         */
+        "align": "start" | "center";
+        /**
+          * Emphasizes the card with an accent border. Intended for the pricing layout.
+          * @default false
+         */
+        "highlighted": boolean;
+        /**
+          * The structure of the card. Each layout renders different named slots.
+          * @default "stacked"
+         */
+        "layout": CardLayout;
+        /**
+          * Which side the media sits on in the horizontal layout. The card falls back to stacked when it's narrower than 30rem.
+          * @default "start"
+         */
+        "mediaPlacement": "start" | "end";
+        /**
+          * Colors the trend slot in the stat layout: green for `up`, red for `down`.
+         */
+        "trend"?: "up" | "down" | "flat";
+    }
+    interface OrbChannel {
     }
     interface OrbCheckbox {
         /**
@@ -135,6 +170,26 @@ export namespace Components {
           * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
          */
         "value"?: string;
+    }
+    /**
+     * Groups related checkboxes or toggles under a shared label. The host has the
+     * `group` role and takes its accessible name from the label and its
+     * description from the note.
+     */
+    interface OrbCheckboxGroup {
+        /**
+          * Label that shows above the controls
+         */
+        "label"?: string;
+        /**
+          * Lays the controls out in a column or a wrapping row
+          * @default "column"
+         */
+        "mode": "row" | "column";
+        /**
+          * Additional info that shows below the controls
+         */
+        "note"?: string;
     }
     interface OrbColor {
         /**
@@ -447,6 +502,32 @@ export namespace Components {
     }
     interface OrbLoading {
     }
+    /**
+     * Renders markdown from a child `<script type="text/markdown">` into the light
+     * DOM, so the output picks up the page's native element styles.
+     */
+    interface OrbMarkdown {
+        /**
+          * Converts single line breaks into `<br>` elements
+          * @default false
+         */
+        "breaks": boolean;
+        /**
+          * Allows raw HTML in the markdown. HTML is escaped by default. Only enable this for trusted content.
+          * @default false
+         */
+        "html": boolean;
+        /**
+          * Turns URL-like text into links
+          * @default true
+         */
+        "linkify": boolean;
+        /**
+          * Replaces quotes, dashes, and similar with typographic equivalents
+          * @default true
+         */
+        "typographer": boolean;
+    }
     interface OrbMenu {
         /**
           * @default false
@@ -738,6 +819,10 @@ export namespace Components {
          */
         "label"?: string;
         /**
+          * Lays the radios out in a column or a row. Defaults to `column` for radios and `row` when `buttons` is set.
+         */
+        "mode"?: "row" | "column";
+        /**
           * Additional info that shows below the control
          */
         "note"?: string;
@@ -923,17 +1008,34 @@ export namespace Components {
     }
     interface OrbSynth {
     }
+    /**
+     * The host is a plain wrapper. The element with `role="tab"` is inside the
+     * shadow root, and the close button sits beside it rather than inside it,
+     * because a tab can't contain other interactive controls.
+     */
     interface OrbTabButton {
         /**
           * @default false
          */
         "closable": boolean;
+        /**
+          * Accessible name for the tab. Use it for icon-only tabs, which have no text to name them.
+         */
+        "label"?: string;
         "panel"?: string;
-        "setActive": (isActive: boolean) => Promise<void>;
     }
+    /**
+     * Content inside a `<template>` child is lazy loaded: it's cloned into the
+     * panel the first time the panel is selected. With an offload delay, the clone
+     * is removed again after the panel has been inactive for that long, and
+     * re-created the next time it's selected.
+     */
     interface OrbTabPanel {
         "name"?: string;
-        "setActive": (isActive: boolean) => Promise<void>;
+        /**
+          * Milliseconds the panel stays inactive before its template content is removed. Overrides `offload-delay` on `orb-tabs`. Only applies to content inside a `<template>`.
+         */
+        "offloadDelay"?: number;
     }
     interface OrbTabs {
         "active"?: string;
@@ -942,10 +1044,35 @@ export namespace Components {
          */
         "closable": boolean;
         /**
+          * Removes the tab button and panel for `panel`. If it was the active tab, the next tab becomes active, or the previous one when it was last. Doesn't emit `tabClose`.
+         */
+        "closeTab": (panel: string) => Promise<void>;
+        /**
+          * Milliseconds an inactive panel waits before removing its lazy loaded `<template>` content. The content is re-created when the panel is selected again. Leave unset to keep loaded content. Panels can override this with their own `offload-delay`.
+         */
+        "offloadDelay"?: number;
+        /**
+          * Displays the tab buttons as rounded pills in a toolbar, like modern browser tabs, instead of traditional connected tabs
+          * @default false
+         */
+        "pills": boolean;
+        /**
+          * Which edge of the panels the tabs appear on. `top` and `bottom` lay the tabs out horizontally, `start` and `end` stack them vertically.
+          * @default "top"
+         */
+        "placement": "top" | "bottom" | "start" | "end";
+        /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
          */
         "ready": Promise<unknown>;
+        /**
+          * Wraps the tabs onto new lines when they don't fit. Without it, the tab bar scrolls instead. Only applies to `top` and `bottom` placements.
+          * @default false
+         */
+        "wrap": boolean;
+    }
+    interface OrbTagInput {
     }
     /**
      * its a textbox
@@ -1174,6 +1301,10 @@ export interface OrbShaderCanvasCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbShaderCanvasElement;
 }
+export interface OrbTabButtonCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbTabButtonElement;
+}
 export interface OrbTimerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbTimerElement;
@@ -1260,11 +1391,23 @@ declare global {
         prototype: HTMLOrbCalendarElement;
         new (): HTMLOrbCalendarElement;
     };
+    /**
+     * A container for related content. The `layout` prop picks the structure, and
+     * each layout has its own named slots. The default slot always lands in the
+     * layout's main text area, so a card with only default content works in any
+     * layout. Sections whose slots are empty aren't shown.
+     */
     interface HTMLOrbCardElement extends Components.OrbCard, HTMLStencilElement {
     }
     var HTMLOrbCardElement: {
         prototype: HTMLOrbCardElement;
         new (): HTMLOrbCardElement;
+    };
+    interface HTMLOrbChannelElement extends Components.OrbChannel, HTMLStencilElement {
+    }
+    var HTMLOrbChannelElement: {
+        prototype: HTMLOrbChannelElement;
+        new (): HTMLOrbChannelElement;
     };
     interface HTMLOrbCheckboxElementEventMap {
         "checkedChange": "true" | "false" | "mixed";
@@ -1282,6 +1425,17 @@ declare global {
     var HTMLOrbCheckboxElement: {
         prototype: HTMLOrbCheckboxElement;
         new (): HTMLOrbCheckboxElement;
+    };
+    /**
+     * Groups related checkboxes or toggles under a shared label. The host has the
+     * `group` role and takes its accessible name from the label and its
+     * description from the note.
+     */
+    interface HTMLOrbCheckboxGroupElement extends Components.OrbCheckboxGroup, HTMLStencilElement {
+    }
+    var HTMLOrbCheckboxGroupElement: {
+        prototype: HTMLOrbCheckboxGroupElement;
+        new (): HTMLOrbCheckboxGroupElement;
     };
     interface HTMLOrbColorElement extends Components.OrbColor, HTMLStencilElement {
     }
@@ -1457,6 +1611,16 @@ declare global {
     var HTMLOrbLoadingElement: {
         prototype: HTMLOrbLoadingElement;
         new (): HTMLOrbLoadingElement;
+    };
+    /**
+     * Renders markdown from a child `<script type="text/markdown">` into the light
+     * DOM, so the output picks up the page's native element styles.
+     */
+    interface HTMLOrbMarkdownElement extends Components.OrbMarkdown, HTMLStencilElement {
+    }
+    var HTMLOrbMarkdownElement: {
+        prototype: HTMLOrbMarkdownElement;
+        new (): HTMLOrbMarkdownElement;
     };
     interface HTMLOrbMenuElementEventMap {
         "action": { checked: boolean; value?: string };
@@ -1693,12 +1857,34 @@ declare global {
         prototype: HTMLOrbSynthElement;
         new (): HTMLOrbSynthElement;
     };
+    interface HTMLOrbTabButtonElementEventMap {
+        "tabClose": TabCloseDetail;
+    }
+    /**
+     * The host is a plain wrapper. The element with `role="tab"` is inside the
+     * shadow root, and the close button sits beside it rather than inside it,
+     * because a tab can't contain other interactive controls.
+     */
     interface HTMLOrbTabButtonElement extends Components.OrbTabButton, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbTabButtonElementEventMap>(type: K, listener: (this: HTMLOrbTabButtonElement, ev: OrbTabButtonCustomEvent<HTMLOrbTabButtonElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbTabButtonElementEventMap>(type: K, listener: (this: HTMLOrbTabButtonElement, ev: OrbTabButtonCustomEvent<HTMLOrbTabButtonElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbTabButtonElement: {
         prototype: HTMLOrbTabButtonElement;
         new (): HTMLOrbTabButtonElement;
     };
+    /**
+     * Content inside a `<template>` child is lazy loaded: it's cloned into the
+     * panel the first time the panel is selected. With an offload delay, the clone
+     * is removed again after the panel has been inactive for that long, and
+     * re-created the next time it's selected.
+     */
     interface HTMLOrbTabPanelElement extends Components.OrbTabPanel, HTMLStencilElement {
     }
     var HTMLOrbTabPanelElement: {
@@ -1710,6 +1896,12 @@ declare global {
     var HTMLOrbTabsElement: {
         prototype: HTMLOrbTabsElement;
         new (): HTMLOrbTabsElement;
+    };
+    interface HTMLOrbTagInputElement extends Components.OrbTagInput, HTMLStencilElement {
+    }
+    var HTMLOrbTagInputElement: {
+        prototype: HTMLOrbTagInputElement;
+        new (): HTMLOrbTagInputElement;
     };
     /**
      * its a textbox
@@ -1838,7 +2030,9 @@ declare global {
         "orb-button-group": HTMLOrbButtonGroupElement;
         "orb-calendar": HTMLOrbCalendarElement;
         "orb-card": HTMLOrbCardElement;
+        "orb-channel": HTMLOrbChannelElement;
         "orb-checkbox": HTMLOrbCheckboxElement;
+        "orb-checkbox-group": HTMLOrbCheckboxGroupElement;
         "orb-color": HTMLOrbColorElement;
         "orb-comp": HTMLOrbCompElement;
         "orb-control": HTMLOrbControlElement;
@@ -1857,6 +2051,7 @@ declare global {
         "orb-label": HTMLOrbLabelElement;
         "orb-layout-swap": HTMLOrbLayoutSwapElement;
         "orb-loading": HTMLOrbLoadingElement;
+        "orb-markdown": HTMLOrbMarkdownElement;
         "orb-menu": HTMLOrbMenuElement;
         "orb-mesh": HTMLOrbMeshElement;
         "orb-mi": HTMLOrbMiElement;
@@ -1882,6 +2077,7 @@ declare global {
         "orb-tab-button": HTMLOrbTabButtonElement;
         "orb-tab-panel": HTMLOrbTabPanelElement;
         "orb-tabs": HTMLOrbTabsElement;
+        "orb-tag-input": HTMLOrbTagInputElement;
         "orb-textbox": HTMLOrbTextboxElement;
         "orb-ti": HTMLOrbTiElement;
         "orb-timer": HTMLOrbTimerElement;
@@ -1983,8 +2179,39 @@ declare namespace LocalJSX {
     }
     interface OrbCalendar {
     }
+    /**
+     * A container for related content. The `layout` prop picks the structure, and
+     * each layout has its own named slots. The default slot always lands in the
+     * layout's main text area, so a card with only default content works in any
+     * layout. Sections whose slots are empty aren't shown.
+     */
     interface OrbCard {
-        "color"?: Color;
+        /**
+          * Content alignment in the feature and profile layouts
+          * @default "center"
+         */
+        "align"?: "start" | "center";
+        /**
+          * Emphasizes the card with an accent border. Intended for the pricing layout.
+          * @default false
+         */
+        "highlighted"?: boolean;
+        /**
+          * The structure of the card. Each layout renders different named slots.
+          * @default "stacked"
+         */
+        "layout"?: CardLayout;
+        /**
+          * Which side the media sits on in the horizontal layout. The card falls back to stacked when it's narrower than 30rem.
+          * @default "start"
+         */
+        "mediaPlacement"?: "start" | "end";
+        /**
+          * Colors the trend slot in the stat layout: green for `up`, red for `down`.
+         */
+        "trend"?: "up" | "down" | "flat";
+    }
+    interface OrbChannel {
     }
     interface OrbCheckbox {
         /**
@@ -2031,6 +2258,26 @@ declare namespace LocalJSX {
           * By default, it will submit true or false depending on the checked state. Use this property to submit a custom value instead.
          */
         "value"?: string;
+    }
+    /**
+     * Groups related checkboxes or toggles under a shared label. The host has the
+     * `group` role and takes its accessible name from the label and its
+     * description from the note.
+     */
+    interface OrbCheckboxGroup {
+        /**
+          * Label that shows above the controls
+         */
+        "label"?: string;
+        /**
+          * Lays the controls out in a column or a wrapping row
+          * @default "column"
+         */
+        "mode"?: "row" | "column";
+        /**
+          * Additional info that shows below the controls
+         */
+        "note"?: string;
     }
     interface OrbColor {
         /**
@@ -2370,6 +2617,32 @@ declare namespace LocalJSX {
     }
     interface OrbLoading {
     }
+    /**
+     * Renders markdown from a child `<script type="text/markdown">` into the light
+     * DOM, so the output picks up the page's native element styles.
+     */
+    interface OrbMarkdown {
+        /**
+          * Converts single line breaks into `<br>` elements
+          * @default false
+         */
+        "breaks"?: boolean;
+        /**
+          * Allows raw HTML in the markdown. HTML is escaped by default. Only enable this for trusted content.
+          * @default false
+         */
+        "html"?: boolean;
+        /**
+          * Turns URL-like text into links
+          * @default true
+         */
+        "linkify"?: boolean;
+        /**
+          * Replaces quotes, dashes, and similar with typographic equivalents
+          * @default true
+         */
+        "typographer"?: boolean;
+    }
     interface OrbMenu {
         /**
           * @default false
@@ -2694,6 +2967,10 @@ declare namespace LocalJSX {
          */
         "label"?: string;
         /**
+          * Lays the radios out in a column or a row. Defaults to `column` for radios and `row` when `buttons` is set.
+         */
+        "mode"?: "row" | "column";
+        /**
           * The name of the element, used when submitting an HTML form.
          */
         "name"?: string;
@@ -2874,25 +3151,32 @@ declare namespace LocalJSX {
     }
     interface OrbSynth {
     }
+    /**
+     * The host is a plain wrapper. The element with `role="tab"` is inside the
+     * shadow root, and the close button sits beside it rather than inside it,
+     * because a tab can't contain other interactive controls.
+     */
     interface OrbTabButton {
         /**
           * @default false
          */
         "closable"?: boolean;
         /**
-          * If `true`, the user cannot interact with the element.
+          * Accessible name for the tab. Use it for icon-only tabs, which have no text to name them.
          */
-        "disabled"?: boolean;
+        "label"?: string;
         /**
-          * The `id` of a `<form>` element to associate this element with.
+          * Emitted when the close button is clicked, or Delete is pressed on the tab. Call `preventDefault()` to keep the tab open. Otherwise the tab button and its panel are removed.
          */
-        "form"?: string;
-        /**
-          * The name of the element, used when submitting an HTML form.
-         */
-        "name"?: string;
+        "onTabClose"?: (event: OrbTabButtonCustomEvent<TabCloseDetail>) => void;
         "panel"?: string;
     }
+    /**
+     * Content inside a `<template>` child is lazy loaded: it's cloned into the
+     * panel the first time the panel is selected. With an offload delay, the clone
+     * is removed again after the panel has been inactive for that long, and
+     * re-created the next time it's selected.
+     */
     interface OrbTabPanel {
         /**
           * If `true`, the user cannot interact with the element.
@@ -2903,6 +3187,10 @@ declare namespace LocalJSX {
          */
         "form"?: string;
         "name"?: string;
+        /**
+          * Milliseconds the panel stays inactive before its template content is removed. Overrides `offload-delay` on `orb-tabs`. Only applies to content inside a `<template>`.
+         */
+        "offloadDelay"?: number;
     }
     interface OrbTabs {
         "active"?: string;
@@ -2911,10 +3199,31 @@ declare namespace LocalJSX {
          */
         "closable"?: boolean;
         /**
+          * Milliseconds an inactive panel waits before removing its lazy loaded `<template>` content. The content is re-created when the panel is selected again. Leave unset to keep loaded content. Panels can override this with their own `offload-delay`.
+         */
+        "offloadDelay"?: number;
+        /**
+          * Displays the tab buttons as rounded pills in a toolbar, like modern browser tabs, instead of traditional connected tabs
+          * @default false
+         */
+        "pills"?: boolean;
+        /**
+          * Which edge of the panels the tabs appear on. `top` and `bottom` lay the tabs out horizontally, `start` and `end` stack them vertically.
+          * @default "top"
+         */
+        "placement"?: "top" | "bottom" | "start" | "end";
+        /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
          */
         "ready"?: Promise<unknown>;
+        /**
+          * Wraps the tabs onto new lines when they don't fit. Without it, the tab bar scrolls instead. Only applies to `top` and `bottom` placements.
+          * @default false
+         */
+        "wrap"?: boolean;
+    }
+    interface OrbTagInput {
     }
     /**
      * its a textbox
@@ -3117,7 +3426,11 @@ declare namespace LocalJSX {
         "color": Color;
     }
     interface OrbCardAttributes {
-        "color": Color;
+        "layout": CardLayout;
+        "mediaPlacement": "start" | "end";
+        "align": "start" | "center";
+        "trend": "up" | "down" | "flat";
+        "highlighted": boolean;
     }
     interface OrbCheckboxAttributes {
         "defaultChecked": "true" | "false" | "mixed";
@@ -3125,6 +3438,11 @@ declare namespace LocalJSX {
         "checked": "true" | "false" | "mixed";
         "labelPlacement": "start" | "end";
         "required": boolean;
+    }
+    interface OrbCheckboxGroupAttributes {
+        "label": string;
+        "note": string;
+        "mode": "row" | "column";
     }
     interface OrbColorAttributes {
         "color": string;
@@ -3202,6 +3520,12 @@ declare namespace LocalJSX {
     interface OrbLayoutSwapAttributes {
         "container": boolean;
         "breakpoint": Breakpoint | string;
+    }
+    interface OrbMarkdownAttributes {
+        "html": boolean;
+        "breaks": boolean;
+        "linkify": boolean;
+        "typographer": boolean;
     }
     interface OrbMenuAttributes {
         "bar": boolean;
@@ -3287,6 +3611,7 @@ declare namespace LocalJSX {
         "note": string;
         "value": string;
         "buttons": boolean;
+        "mode": "row" | "column";
     }
     interface OrbRelativeTimeAttributes {
         "date": Date | string;
@@ -3337,13 +3662,19 @@ declare namespace LocalJSX {
     interface OrbTabButtonAttributes {
         "panel": string;
         "closable": boolean;
+        "label": string;
     }
     interface OrbTabPanelAttributes {
         "name": string;
+        "offloadDelay": number;
     }
     interface OrbTabsAttributes {
         "active": string;
         "closable": boolean;
+        "pills": boolean;
+        "wrap": boolean;
+        "offloadDelay": number;
+        "placement": "top" | "bottom" | "start" | "end";
     }
     interface OrbTextboxAttributes {
         "label": string;
@@ -3407,7 +3738,9 @@ declare namespace LocalJSX {
         "orb-button-group": OrbButtonGroup;
         "orb-calendar": OrbCalendar;
         "orb-card": Omit<OrbCard, keyof OrbCardAttributes> & { [K in keyof OrbCard & keyof OrbCardAttributes]?: OrbCard[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `attr:${K}`]?: OrbCardAttributes[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `prop:${K}`]?: OrbCard[K] };
+        "orb-channel": OrbChannel;
         "orb-checkbox": Omit<OrbCheckbox, keyof OrbCheckboxAttributes> & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes]?: OrbCheckbox[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `attr:${K}`]?: OrbCheckboxAttributes[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `prop:${K}`]?: OrbCheckbox[K] };
+        "orb-checkbox-group": Omit<OrbCheckboxGroup, keyof OrbCheckboxGroupAttributes> & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes]?: OrbCheckboxGroup[K] } & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes as `attr:${K}`]?: OrbCheckboxGroupAttributes[K] } & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes as `prop:${K}`]?: OrbCheckboxGroup[K] };
         "orb-color": Omit<OrbColor, keyof OrbColorAttributes> & { [K in keyof OrbColor & keyof OrbColorAttributes]?: OrbColor[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `attr:${K}`]?: OrbColorAttributes[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `prop:${K}`]?: OrbColor[K] };
         "orb-comp": OrbComp;
         "orb-control": OrbControl;
@@ -3426,6 +3759,7 @@ declare namespace LocalJSX {
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
         "orb-loading": OrbLoading;
+        "orb-markdown": Omit<OrbMarkdown, keyof OrbMarkdownAttributes> & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes]?: OrbMarkdown[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `attr:${K}`]?: OrbMarkdownAttributes[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `prop:${K}`]?: OrbMarkdown[K] };
         "orb-menu": Omit<OrbMenu, keyof OrbMenuAttributes> & { [K in keyof OrbMenu & keyof OrbMenuAttributes]?: OrbMenu[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `attr:${K}`]?: OrbMenuAttributes[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `prop:${K}`]?: OrbMenu[K] };
         "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
         "orb-mi": Omit<OrbMi, keyof OrbMiAttributes> & { [K in keyof OrbMi & keyof OrbMiAttributes]?: OrbMi[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `attr:${K}`]?: OrbMiAttributes[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `prop:${K}`]?: OrbMi[K] };
@@ -3451,6 +3785,7 @@ declare namespace LocalJSX {
         "orb-tab-button": Omit<OrbTabButton, keyof OrbTabButtonAttributes> & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes]?: OrbTabButton[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `attr:${K}`]?: OrbTabButtonAttributes[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `prop:${K}`]?: OrbTabButton[K] };
         "orb-tab-panel": Omit<OrbTabPanel, keyof OrbTabPanelAttributes> & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes]?: OrbTabPanel[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `attr:${K}`]?: OrbTabPanelAttributes[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `prop:${K}`]?: OrbTabPanel[K] };
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
+        "orb-tag-input": OrbTagInput;
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
         "orb-ti": Omit<OrbTi, keyof OrbTiAttributes> & { [K in keyof OrbTi & keyof OrbTiAttributes]?: OrbTi[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `attr:${K}`]?: OrbTiAttributes[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `prop:${K}`]?: OrbTi[K] };
         "orb-timer": Omit<OrbTimer, keyof OrbTimerAttributes> & { [K in keyof OrbTimer & keyof OrbTimerAttributes]?: OrbTimer[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `attr:${K}`]?: OrbTimerAttributes[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `prop:${K}`]?: OrbTimer[K] };
@@ -3479,8 +3814,21 @@ declare module "@stencil/core" {
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
             "orb-calendar": LocalJSX.IntrinsicElements["orb-calendar"] & JSXBase.HTMLAttributes<HTMLOrbCalendarElement>;
+            /**
+             * A container for related content. The `layout` prop picks the structure, and
+             * each layout has its own named slots. The default slot always lands in the
+             * layout's main text area, so a card with only default content works in any
+             * layout. Sections whose slots are empty aren't shown.
+             */
             "orb-card": LocalJSX.IntrinsicElements["orb-card"] & JSXBase.HTMLAttributes<HTMLOrbCardElement>;
+            "orb-channel": LocalJSX.IntrinsicElements["orb-channel"] & JSXBase.HTMLAttributes<HTMLOrbChannelElement>;
             "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;
+            /**
+             * Groups related checkboxes or toggles under a shared label. The host has the
+             * `group` role and takes its accessible name from the label and its
+             * description from the note.
+             */
+            "orb-checkbox-group": LocalJSX.IntrinsicElements["orb-checkbox-group"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxGroupElement>;
             "orb-color": LocalJSX.IntrinsicElements["orb-color"] & JSXBase.HTMLAttributes<HTMLOrbColorElement>;
             "orb-comp": LocalJSX.IntrinsicElements["orb-comp"] & JSXBase.HTMLAttributes<HTMLOrbCompElement>;
             "orb-control": LocalJSX.IntrinsicElements["orb-control"] & JSXBase.HTMLAttributes<HTMLOrbControlElement>;
@@ -3516,6 +3864,11 @@ declare module "@stencil/core" {
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
             "orb-layout-swap": LocalJSX.IntrinsicElements["orb-layout-swap"] & JSXBase.HTMLAttributes<HTMLOrbLayoutSwapElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
+            /**
+             * Renders markdown from a child `<script type="text/markdown">` into the light
+             * DOM, so the output picks up the page's native element styles.
+             */
+            "orb-markdown": LocalJSX.IntrinsicElements["orb-markdown"] & JSXBase.HTMLAttributes<HTMLOrbMarkdownElement>;
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
             "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
@@ -3556,9 +3909,21 @@ declare module "@stencil/core" {
             "orb-split-view": LocalJSX.IntrinsicElements["orb-split-view"] & JSXBase.HTMLAttributes<HTMLOrbSplitViewElement>;
             "orb-stack": LocalJSX.IntrinsicElements["orb-stack"] & JSXBase.HTMLAttributes<HTMLOrbStackElement>;
             "orb-synth": LocalJSX.IntrinsicElements["orb-synth"] & JSXBase.HTMLAttributes<HTMLOrbSynthElement>;
+            /**
+             * The host is a plain wrapper. The element with `role="tab"` is inside the
+             * shadow root, and the close button sits beside it rather than inside it,
+             * because a tab can't contain other interactive controls.
+             */
             "orb-tab-button": LocalJSX.IntrinsicElements["orb-tab-button"] & JSXBase.HTMLAttributes<HTMLOrbTabButtonElement>;
+            /**
+             * Content inside a `<template>` child is lazy loaded: it's cloned into the
+             * panel the first time the panel is selected. With an offload delay, the clone
+             * is removed again after the panel has been inactive for that long, and
+             * re-created the next time it's selected.
+             */
             "orb-tab-panel": LocalJSX.IntrinsicElements["orb-tab-panel"] & JSXBase.HTMLAttributes<HTMLOrbTabPanelElement>;
             "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
+            "orb-tag-input": LocalJSX.IntrinsicElements["orb-tag-input"] & JSXBase.HTMLAttributes<HTMLOrbTagInputElement>;
             /**
              * its a textbox
              */

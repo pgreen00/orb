@@ -65,3 +65,23 @@
     display: none;
   }
 }
+
+/* Vertical button group: join the buttons top to bottom instead of side by side. */
+@container style(--mode: buttons) and style(--direction: column) {
+  :host(:not(:first-of-type)) {
+    border-left: solid 1px light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
+    border-top: 0;
+  }
+
+  :host(:first-of-type) {
+    border-radius: var(--orb-radius-md) var(--orb-radius-md) 0 0;
+  }
+
+  :host(:last-of-type) {
+    border-radius: 0 0 var(--orb-radius-md) var(--orb-radius-md);
+  }
+
+  :host(:first-of-type:last-of-type) {
+    border-radius: var(--orb-radius-md);
+  }
+}

@@ -18,13 +18,13 @@ export class Radio {
 
   componentWillLoad() {
     this.internals.role = 'radio'
-    this.el.tabIndex = -1
     this.onSelectedChange(this.el.dataset.selected)
   }
 
   @Watch('data-selected')
   onSelectedChange(selected?: string) {
     this.selected = selected === '';
+    this.el.tabIndex = this.selected ? 0 : -1
     this.internals.ariaChecked = this.selected ? "true" : "false"
     this.internals.states[this.selected ? 'add' : 'delete']('selected')
   }

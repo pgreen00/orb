@@ -56,6 +56,12 @@ export class RadioGroup {
   @Prop() buttons = false;
 
   /**
+   * Lays the radios out in a column or a row. Defaults to `column` for radios
+   * and `row` when `buttons` is set.
+   */
+  @Prop() mode?: "row" | "column";
+
+  /**
    * Emits the selected value whenever it changes
    */
   @Event({ bubbles: false }) valueChange: EventEmitter<any>;
@@ -66,7 +72,13 @@ export class RadioGroup {
     if (!this.originalValue) this.originalValue = this.value;
   }
 
+  private get direction() {
+    return this.mode ?? (this.buttons ? "row" : "column");
+  }
+
   componentWillRender() {
+    this.internals.ariaOrientation =
+      this.direction === "row" ? "horizontal" : "vertical";
     this.getRadios().forEach(
       (radio) => {
         if ((radio.value || radio.textContent) === this.value) radio.dataset.selected = ''
@@ -142,21 +154,21 @@ export class RadioGroup {
       if (key === "ArrowDown" || key === "ArrowRight") {
         ev.preventDefault();
         const radios = this.getRadios();
-        const index = radios.findIndex((radio) => radio.value === this.value);
+        const index = radios.findIndex((radio) => (radio.value || radio.textContent) === this.value);
         const radio = radios[(index + 1) % radios.length];
         radio.focus();
-        this.value = radio.value;
+        this.value = (radio.value || radio.textContent);
         this.valueChange.emit(this.value);
       } else if (key === "ArrowUp" || key === "ArrowLeft") {
         ev.preventDefault();
         const radios = this.getRadios();
-        const index = radios.findIndex((radio) => radio.value === this.value);
+        const index = radios.findIndex((radio) => (radio.value || radio.textContent) === this.value);
         const radio = radios[(index - 1 + radios.length) % radios.length];
         radio.focus();
-        this.value = radio.value;
+        this.value = (radio.value || radio.textContent);
         this.valueChange.emit(this.value);
       } else if (ev.key === " ") {
-        this.value = target.value;
+        this.value = (target.value || target.textContent);
         this.valueChange.emit(this.value);
       }
     }
@@ -165,7 +177,7 @@ export class RadioGroup {
   render() {
     return (
       <Host>
-        <style>{`:host{--mode:${this.buttons ? 'buttons' : 'radios'};}`}</style>
+        <style>{`:host{--mode:${this.buttons ? 'buttons' : 'radios'};--direction:${this.direction};}`}</style>
         <slot
           name="label"
           ref={el => this.internals.ariaLabelledByElements = [el]}
@@ -176,7 +188,13 @@ export class RadioGroup {
             </orb-label>
           )}
         </slot>
-        <div class={this.buttons ? "buttons" : "content"}>
+        <div
+          class={{
+            buttons: this.buttons,
+            content: !this.buttons,
+            [this.direction]: true,
+          }}
+        >
           <slot />
         </div>
         <slot

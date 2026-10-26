@@ -1,25 +1,93 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
   --base-background: light-dark(var(--orb-neutral-25), var(--orb-neutral-900));
   --tabs-background: light-dark(var(--orb-neutral-125), var(--orb-neutral-875));
-  --toolbar-background: light-dark(
-    var(--orb-neutral-175),
-    var(--orb-neutral-825)
-  );
-  --tab-border: light-dark(var(--orb-neutral-400), var(--orb-neutral-950));
+  --toolbar-background: var(--tabs-background);
+  --tab-border: var(--orb-divider-color);
 }
 
+/*
+ * Inline-size containment stops the tab bar's content from widening the
+ * component. Without it, parents that size children to fit their content
+ * (like a wrapping flex container) grow to fit every tab on one line, so the
+ * bar never overflows and can't scroll or wrap.
+ */
 [name="tabs"] {
+  contain: inline-size;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
   box-sizing: border-box;
   background-color: var(--toolbar-background);
 }
 
+/* Traditional labels can't truncate, so the bar scrolls instead of squeezing them. Pills truncate with an ellipsis, so they shrink first. */
+[name="tabs"]::slotted(orb-tab-button) {
+  flex-shrink: 0;
+}
+
+:host([pills]) [name="tabs"]::slotted(orb-tab-button) {
+  flex-shrink: 1;
+}
+
+:host([wrap]) [name="tabs"] {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+:host([placement="bottom"]) {
+  flex-direction: column-reverse;
+}
+
+/* Row directions follow the writing direction, so start and end flip in RTL. */
+:host([placement="start"]) {
+  flex-direction: row;
+}
+
+:host([placement="end"]) {
+  flex-direction: row-reverse;
+}
+
+:host([placement="start"]) [name="tabs"],
+:host([placement="end"]) [name="tabs"] {
+  contain: none;
+  flex: none;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  overflow-x: visible;
+  overflow-y: auto;
+}
+
+:host([pills]) [name="tabs"] {
+  gap: var(--orb-spacing-3xs);
+  padding: var(--orb-spacing-2xs);
+  border-bottom: 1px solid var(--tab-border);
+}
+
+:host([pills][placement="bottom"]) [name="tabs"] {
+  border-bottom: none;
+  border-top: 1px solid var(--tab-border);
+}
+
+:host([pills][placement="start"]) [name="tabs"] {
+  border-bottom: none;
+  border-inline-end: 1px solid var(--tab-border);
+}
+
+:host([pills][placement="end"]) [name="tabs"] {
+  border-bottom: none;
+  border-inline-start: 1px solid var(--tab-border);
+}
+
 [name="panels"] {
   display: block;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   box-sizing: border-box;
   padding: var(--orb-spacing-lg);
   background-color: var(--base-background);

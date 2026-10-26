@@ -17,6 +17,20 @@
   box-sizing: border-box;
 }
 
+.buttons.column {
+  flex-direction: column;
+  width: fit-content;
+}
+
 .content {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+}
+
+.content.row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--orb-spacing-md);
+  row-gap: var(--orb-spacing-2xs);
 }
