@@ -228,18 +228,40 @@ export namespace Components {
          */
         "value"?: string;
     }
+    /**
+     * An inline date and time picker. It renders a month calendar and/or time
+     * columns and reports the selected value as epoch milliseconds. It fills the
+     * width of its container, so it works inline, inside an `orb-card`, or as the
+     * content of an `orb-popover`.
+     * The day grid and each time column use a roving tabindex: one button in each
+     * is in the Tab order, and arrow keys move between the rest.
+     */
     interface OrbDatepicker {
         /**
+          * Includes a seconds column in the time picker
           * @default false
          */
         "includeSeconds": boolean;
+        /**
+          * Disables individual days. Return `true` to disable the given date.
+         */
         "isDateDisabled"?: (date: Date) => boolean;
+        /**
+          * Latest selectable instant (epoch ms). Days after its day are disabled.
+         */
         "max"?: number;
+        /**
+          * Earliest selectable instant (epoch ms). Days before its day are disabled.
+         */
         "min"?: number;
         /**
+          * Which controls to show: a calendar (`date`), a calendar and time (`datetime`), or just time (`time`)
           * @default "datetime"
          */
         "type": "date" | "datetime" | "time";
+        /**
+          * The selected value (epoch ms)
+         */
         "value"?: number;
     }
     interface OrbDaw {
@@ -1466,8 +1488,16 @@ declare global {
         new (): HTMLOrbCopyButtonElement;
     };
     interface HTMLOrbDatepickerElementEventMap {
-        "valueChange": number;
+        "valueChange": number | undefined;
     }
+    /**
+     * An inline date and time picker. It renders a month calendar and/or time
+     * columns and reports the selected value as epoch milliseconds. It fills the
+     * width of its container, so it works inline, inside an `orb-card`, or as the
+     * content of an `orb-popover`.
+     * The day grid and each time column use a roving tabindex: one button in each
+     * is in the Tab order, and arrow keys move between the rest.
+     */
     interface HTMLOrbDatepickerElement extends Components.OrbDatepicker, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbDatepickerElementEventMap>(type: K, listener: (this: HTMLOrbDatepickerElement, ev: OrbDatepickerCustomEvent<HTMLOrbDatepickerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2316,19 +2346,44 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
+    /**
+     * An inline date and time picker. It renders a month calendar and/or time
+     * columns and reports the selected value as epoch milliseconds. It fills the
+     * width of its container, so it works inline, inside an `orb-card`, or as the
+     * content of an `orb-popover`.
+     * The day grid and each time column use a roving tabindex: one button in each
+     * is in the Tab order, and arrow keys move between the rest.
+     */
     interface OrbDatepicker {
         /**
+          * Includes a seconds column in the time picker
           * @default false
          */
         "includeSeconds"?: boolean;
-        "isDateDisabled"?: (date: Date) => boolean;
-        "max"?: number;
-        "min"?: number;
-        "onValueChange"?: (event: OrbDatepickerCustomEvent<number>) => void;
         /**
+          * Disables individual days. Return `true` to disable the given date.
+         */
+        "isDateDisabled"?: (date: Date) => boolean;
+        /**
+          * Latest selectable instant (epoch ms). Days after its day are disabled.
+         */
+        "max"?: number;
+        /**
+          * Earliest selectable instant (epoch ms). Days before its day are disabled.
+         */
+        "min"?: number;
+        /**
+          * Emitted when the user changes the value. Detail is the new value in epoch milliseconds.
+         */
+        "onValueChange"?: (event: OrbDatepickerCustomEvent<number | undefined>) => void;
+        /**
+          * Which controls to show: a calendar (`date`), a calendar and time (`datetime`), or just time (`time`)
           * @default "datetime"
          */
         "type"?: "date" | "datetime" | "time";
+        /**
+          * The selected value (epoch ms)
+         */
         "value"?: number;
     }
     interface OrbDaw {
@@ -3837,6 +3892,14 @@ declare module "@stencil/core" {
              * confirm. Copies the `value` prop when set, otherwise its own text content.
              */
             "orb-copy-button": LocalJSX.IntrinsicElements["orb-copy-button"] & JSXBase.HTMLAttributes<HTMLOrbCopyButtonElement>;
+            /**
+             * An inline date and time picker. It renders a month calendar and/or time
+             * columns and reports the selected value as epoch milliseconds. It fills the
+             * width of its container, so it works inline, inside an `orb-card`, or as the
+             * content of an `orb-popover`.
+             * The day grid and each time column use a roving tabindex: one button in each
+             * is in the Tab order, and arrow keys move between the rest.
+             */
             "orb-datepicker": LocalJSX.IntrinsicElements["orb-datepicker"] & JSXBase.HTMLAttributes<HTMLOrbDatepickerElement>;
             "orb-daw": LocalJSX.IntrinsicElements["orb-daw"] & JSXBase.HTMLAttributes<HTMLOrbDawElement>;
             "orb-details": LocalJSX.IntrinsicElements["orb-details"] & JSXBase.HTMLAttributes<HTMLOrbDetailsElement>;

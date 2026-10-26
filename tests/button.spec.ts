@@ -24,7 +24,7 @@ test.describe("orb-button", () => {
 
     // mount() already waited for the element to upgrade, so the JS property
     // getter is available.
-    const isDisabled = await button.evaluate<any, any>((el) => el.disabled);
+    const isDisabled = await button.evaluate<any, any>((el: any) => el.disabled);
     expect(isDisabled).toBe(true);
   });
 });
