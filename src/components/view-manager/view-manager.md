@@ -84,9 +84,9 @@ This example adds a product in an overlay. "Add manufacturer" is a nested view i
 <orb-overlay trigger="product-wizard-trigger" side="left">
   <orb-view-manager id="product-manager" value="product-details">
     <orb-wizard id="product-wizard" slot="wizard" label="Add product progress">
-      <orb-wizard-item active>Details</orb-wizard-item>
-      <orb-wizard-item>Pricing</orb-wizard-item>
-      <orb-wizard-item>Release</orb-wizard-item>
+      <orb-wi active>Details</orb-wi>
+      <orb-wi>Pricing</orb-wi>
+      <orb-wi>Release</orb-wi>
     </orb-wizard>
 
     <orb-view id="product-details" label="Details" heading-level="2" show-wizard closable>

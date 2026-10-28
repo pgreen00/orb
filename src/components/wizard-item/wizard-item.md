@@ -1,23 +1,23 @@
 ---
-title: 'OrbWizardItem | <orb-wizard-item>'
+title: 'OrbWi | <orb-wi>'
 sidebar_label: 'Wizard Item'
 ---
 
 ## Usage
 
-`<orb-wizard-item>` is one step in an `<orb-wizard>`. Its content is the label. Add `active` to the current step and `completed` to finished ones. See [Wizard](/components/wizard/) for examples.
+`<orb-wi>` is one step in an `<orb-wizard>`. Its content is the label. Add `active` to the current step and `completed` to finished ones. See [Wizard](/components/wizard/) for examples.
 
 ::: live-code-demo
 
 ```html
 <orb-wizard>
-  <orb-wizard-item completed>Account</orb-wizard-item>
-  <orb-wizard-item active>
+  <orb-wi completed>Account</orb-wi>
+  <orb-wi active>
     Profile
     <span slot="note">Optional</span>
-  </orb-wizard-item>
-  <orb-wizard-item disabled>Team</orb-wizard-item>
-  <orb-wizard-item error="Email not verified">Notifications</orb-wizard-item>
+  </orb-wi>
+  <orb-wi disabled>Team</orb-wi>
+  <orb-wi error="Email not verified">Notifications</orb-wi>
 </orb-wizard>
 ```
 
@@ -36,4 +36,4 @@ The wizard sets these data attributes on each step, for styling. Don't set them 
 | `data-previous-completed` | The step before this one is completed |
 | `data-previous-variant` | The step before this one's variant, or `danger` if it has an error |
 
-Each step also has the `active`, `completed`, `locked`, and `error` custom states, so `orb-wizard-item:state(completed)::part(marker)` targets a completed step's marker.
+Each step also has the `active`, `completed`, `locked`, and `error` custom states, so `orb-wi:state(completed)::part(marker)` targets a completed step's marker.

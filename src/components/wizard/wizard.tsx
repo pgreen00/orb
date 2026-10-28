@@ -16,8 +16,8 @@ export interface WizardStepChangeDetail {
   index: number;
   /** Index of the previously active step, or -1 if there wasn't one */
   previousIndex: number;
-  step: HTMLOrbWizardItemElement;
-  previousStep?: HTMLOrbWizardItemElement;
+  step: HTMLOrbWiElement;
+  previousStep?: HTMLOrbWiElement;
 }
 
 /** Steps narrower than this (in em) stack when `orientation="auto"`. */
@@ -64,12 +64,12 @@ function labelOf(item: HTMLElement) {
 }
 
 /**
- * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
+ * Shows progress through a sequence of steps. Each `<orb-wi>` is a
  * step, and the one with the `active` attribute is the current step. The
  * wizard only shows progress: render each step's content yourself, and mark
  * steps `completed` from your own code.
  *
- * @slot - One or more `<orb-wizard-item>` elements
+ * @slot - One or more `<orb-wi>` elements
  */
 @Component({
   tag: "orb-wizard",
@@ -136,7 +136,7 @@ export class Wizard {
           r.attributeName === "active" &&
           (r.target as HTMLElement).hasAttribute("active"),
       )
-      .map((r) => r.target as HTMLOrbWizardItemElement)
+      .map((r) => r.target as HTMLOrbWiElement)
       .pop();
     this.sync(activated);
   });
@@ -147,7 +147,7 @@ export class Wizard {
   }
 
   async componentDidLoad() {
-    await customElements.whenDefined("orb-wizard-item");
+    await customElements.whenDefined("orb-wi");
     this.startObserving();
     this.loaded = true;
   }
@@ -218,7 +218,7 @@ export class Wizard {
    * locked.
    */
   @Method()
-  async goTo(step: number | HTMLOrbWizardItemElement) {
+  async goTo(step: number | HTMLOrbWiElement) {
     const target = typeof step === "number" ? this.items[step] : step;
     if (target) await this.requestStep(target);
   }
@@ -244,17 +244,17 @@ export class Wizard {
   @Listen("click")
   onClick(e: MouseEvent) {
     if (!this.clickable) return;
-    const item = (e.target as HTMLElement).closest?.("orb-wizard-item");
+    const item = (e.target as HTMLElement).closest?.("orb-wi");
     if (!item || item.parentElement !== this.el) return;
     const fromButton = e
       .composedPath()
       .some((node) => node instanceof HTMLButtonElement && node.part.contains("button"));
-    if (fromButton) this.requestStep(item as HTMLOrbWizardItemElement);
+    if (fromButton) this.requestStep(item as HTMLOrbWiElement);
   }
 
   private get items() {
     return Array.from(
-      this.el.querySelectorAll<HTMLOrbWizardItemElement>(":scope > orb-wizard-item"),
+      this.el.querySelectorAll<HTMLOrbWiElement>(":scope > orb-wi"),
     );
   }
 
@@ -263,16 +263,16 @@ export class Wizard {
   }
 
   /** Index of the first step that isn't completed or disabled. */
-  private firstIncomplete(items: HTMLOrbWizardItemElement[]) {
+  private firstIncomplete(items: HTMLOrbWiElement[]) {
     const index = items.findIndex((item) => !item.completed && !item.disabled);
     return index === -1 ? items.length : index;
   }
 
-  private isLocked(items: HTMLOrbWizardItemElement[], item: HTMLOrbWizardItemElement) {
+  private isLocked(items: HTMLOrbWiElement[], item: HTMLOrbWiElement) {
     return this.linear && items.indexOf(item) > this.firstIncomplete(items);
   }
 
-  private async requestStep(target: HTMLOrbWizardItemElement) {
+  private async requestStep(target: HTMLOrbWiElement) {
     const items = this.items;
     const previousStep = this.activeItem;
     const index = items.indexOf(target);
@@ -304,7 +304,7 @@ export class Wizard {
    * Keeps exactly one step active and passes each step its position, lock
    * state, and layout through data attributes.
    */
-  private sync(activated?: HTMLOrbWizardItemElement) {
+  private sync(activated?: HTMLOrbWiElement) {
     const items = this.items;
     if (!items.length) return;
 

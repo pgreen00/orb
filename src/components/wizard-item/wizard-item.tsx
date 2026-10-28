@@ -26,7 +26,7 @@ import { CheckIcon, CloseIcon } from "../../utils/icons";
  * @part error - The error message
  */
 @Component({
-  tag: "orb-wizard-item",
+  tag: "orb-wi",
   styleUrl: "wizard-item.css",
   shadow: true,
 })

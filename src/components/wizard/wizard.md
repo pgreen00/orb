@@ -5,15 +5,15 @@ sidebar_label: 'Wizard'
 
 ## Usage
 
-A wizard shows progress through a sequence of steps, such as a checkout, setup, or onboarding flow. Each `<orb-wizard-item>` is a step. Add `active` to the current step and `completed` to finished ones.
+A wizard shows progress through a sequence of steps, such as a checkout, setup, or onboarding flow. Each `<orb-wi>` is a step. Add `active` to the current step and `completed` to finished ones.
 
 ::: live-code-demo
 
 ```html
 <orb-wizard>
-  <orb-wizard-item completed>Cart</orb-wizard-item>
-  <orb-wizard-item active>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi completed>Cart</orb-wi>
+  <orb-wi active>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 ```
 
@@ -34,9 +34,9 @@ Add `clickable` to render each step as a button. Clicking a step, or focusing it
 
 ```html
 <orb-wizard clickable>
-  <orb-wizard-item completed>Cart</orb-wizard-item>
-  <orb-wizard-item active>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi completed>Cart</orb-wi>
+  <orb-wi active>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 ```
 
@@ -55,10 +55,10 @@ Add `linear` to require steps in order. Every step after the first incomplete on
 
 ```html
 <orb-wizard id="linear-wizard" linear clickable>
-  <orb-wizard-item completed>Cart</orb-wizard-item>
-  <orb-wizard-item active>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
-  <orb-wizard-item>Review</orb-wizard-item>
+  <orb-wi completed>Cart</orb-wi>
+  <orb-wi active>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
+  <orb-wi>Review</orb-wi>
 </orb-wizard>
 <orb-toolbar space="xs" style="margin-top: 1rem;">
   <orb-button id="linear-complete" fill="outline">Complete current step</orb-button>
@@ -69,7 +69,7 @@ Add `linear` to require steps in order. Every step after the first incomplete on
 ```javascript
 const wizard = document.querySelector("#linear-wizard");
 document.querySelector("#linear-complete").addEventListener("click", () => {
-  wizard.querySelector("orb-wizard-item[active]").completed = true;
+  wizard.querySelector("orb-wi[active]").completed = true;
 });
 ```
 
@@ -89,22 +89,22 @@ Set `orientation` to `vertical` to stack the steps, for a sidebar or narrow colu
 ```html
 <orb-mesh space="lg" style="--min-column-size: 14rem;">
   <orb-wizard orientation="vertical">
-    <orb-wizard-item completed>Mix</orb-wizard-item>
-    <orb-wizard-item completed>Knead</orb-wizard-item>
-    <orb-wizard-item active>
+    <orb-wi completed>Mix</orb-wi>
+    <orb-wi completed>Knead</orb-wi>
+    <orb-wi active>
       Proof
       <span slot="note">Let it rise. Resist poking it.</span>
-    </orb-wizard-item>
-    <orb-wizard-item>Bake</orb-wizard-item>
+    </orb-wi>
+    <orb-wi>Bake</orb-wi>
   </orb-wizard>
   <orb-wizard orientation="vertical" style="--gap: var(--orb-spacing-3xl);">
-    <orb-wizard-item completed>Mix</orb-wizard-item>
-    <orb-wizard-item completed>Knead</orb-wizard-item>
-    <orb-wizard-item active>
+    <orb-wi completed>Mix</orb-wi>
+    <orb-wi completed>Knead</orb-wi>
+    <orb-wi active>
       Proof
       <span slot="note">Let it rise. Resist poking it.</span>
-    </orb-wizard-item>
-    <orb-wizard-item>Bake</orb-wizard-item>
+    </orb-wi>
+    <orb-wi>Bake</orb-wi>
   </orb-wizard>
 </orb-mesh>
 ```
@@ -118,10 +118,10 @@ Set `orientation` to `auto` to lay steps out in a row and stack them when there'
 ```html
 <div style="resize: horizontal; overflow: hidden; border: 1px dashed; padding: 1rem; min-width: 10rem;">
   <orb-wizard orientation="auto">
-    <orb-wizard-item completed>Account</orb-wizard-item>
-    <orb-wizard-item completed>Profile</orb-wizard-item>
-    <orb-wizard-item active>Team</orb-wizard-item>
-    <orb-wizard-item>Notifications</orb-wizard-item>
+    <orb-wi completed>Account</orb-wi>
+    <orb-wi completed>Profile</orb-wi>
+    <orb-wi active>Team</orb-wi>
+    <orb-wi>Notifications</orb-wi>
   </orb-wizard>
 </div>
 ```
@@ -142,16 +142,16 @@ Set `variant` on a step to color its marker: `primary` (the default), `success`,
 ```html
 <orb-stack space="lg">
   <orb-wizard>
-    <orb-wizard-item active>Current</orb-wizard-item>
-    <orb-wizard-item variant="success">Success</orb-wizard-item>
-    <orb-wizard-item variant="warning">Warning</orb-wizard-item>
-    <orb-wizard-item variant="danger">Danger</orb-wizard-item>
+    <orb-wi active>Current</orb-wi>
+    <orb-wi variant="success">Success</orb-wi>
+    <orb-wi variant="warning">Warning</orb-wi>
+    <orb-wi variant="danger">Danger</orb-wi>
   </orb-wizard>
   <orb-wizard>
-    <orb-wizard-item completed variant="success">Success</orb-wizard-item>
-    <orb-wizard-item completed variant="warning">Warning</orb-wizard-item>
-    <orb-wizard-item completed variant="danger">Danger</orb-wizard-item>
-    <orb-wizard-item active variant="success">Active success</orb-wizard-item>
+    <orb-wi completed variant="success">Success</orb-wi>
+    <orb-wi completed variant="warning">Warning</orb-wi>
+    <orb-wi completed variant="danger">Danger</orb-wi>
+    <orb-wi active variant="success">Active success</orb-wi>
   </orb-wizard>
 </orb-stack>
 ```
@@ -168,10 +168,10 @@ Set `error` on a step to mark it as failed. The marker turns red with an X, and 
 
 ```html
 <orb-wizard>
-  <orb-wizard-item completed variant="success">Cart</orb-wizard-item>
-  <orb-wizard-item completed variant="success">Shipping</orb-wizard-item>
-  <orb-wizard-item active error="Card declined">Payment</orb-wizard-item>
-  <orb-wizard-item>Review</orb-wizard-item>
+  <orb-wi completed variant="success">Cart</orb-wi>
+  <orb-wi completed variant="success">Shipping</orb-wi>
+  <orb-wi active error="Card declined">Payment</orb-wi>
+  <orb-wi>Review</orb-wi>
 </orb-wizard>
 ```
 
@@ -188,19 +188,19 @@ The wizard is sized in `em`. Set `font-size` on it or an ancestor to scale marke
 ```html
 <orb-stack space="lg">
   <orb-wizard style="font-size: 0.75rem;">
-    <orb-wizard-item completed>Cart</orb-wizard-item>
-    <orb-wizard-item active>Shipping</orb-wizard-item>
-    <orb-wizard-item>Payment</orb-wizard-item>
+    <orb-wi completed>Cart</orb-wi>
+    <orb-wi active>Shipping</orb-wi>
+    <orb-wi>Payment</orb-wi>
   </orb-wizard>
   <orb-wizard>
-    <orb-wizard-item completed>Cart</orb-wizard-item>
-    <orb-wizard-item active>Shipping</orb-wizard-item>
-    <orb-wizard-item>Payment</orb-wizard-item>
+    <orb-wi completed>Cart</orb-wi>
+    <orb-wi active>Shipping</orb-wi>
+    <orb-wi>Payment</orb-wi>
   </orb-wizard>
   <orb-wizard style="font-size: 1.25rem;">
-    <orb-wizard-item completed>Cart</orb-wizard-item>
-    <orb-wizard-item active>Shipping</orb-wizard-item>
-    <orb-wizard-item>Payment</orb-wizard-item>
+    <orb-wi completed>Cart</orb-wi>
+    <orb-wi active>Shipping</orb-wi>
+    <orb-wi>Payment</orb-wi>
   </orb-wizard>
 </orb-stack>
 ```
@@ -216,14 +216,14 @@ Set `attention` on a step to `pulse` or `bounce` to animate its marker. Use it s
 ```html
 <orb-stack space="lg">
   <orb-wizard>
-    <orb-wizard-item completed>Create account</orb-wizard-item>
-    <orb-wizard-item active attention="pulse">Verify email</orb-wizard-item>
-    <orb-wizard-item>Set up profile</orb-wizard-item>
+    <orb-wi completed>Create account</orb-wi>
+    <orb-wi active attention="pulse">Verify email</orb-wi>
+    <orb-wi>Set up profile</orb-wi>
   </orb-wizard>
   <orb-wizard>
-    <orb-wizard-item completed>Create account</orb-wizard-item>
-    <orb-wizard-item active attention="bounce">Verify email</orb-wizard-item>
-    <orb-wizard-item>Set up profile</orb-wizard-item>
+    <orb-wi completed>Create account</orb-wi>
+    <orb-wi active attention="bounce">Verify email</orb-wi>
+    <orb-wi>Set up profile</orb-wi>
   </orb-wizard>
 </orb-stack>
 ```
@@ -240,21 +240,21 @@ Use the `note` slot for supporting text under a label, and the `icon` slot to re
 
 ```html
 <orb-wizard>
-  <orb-wizard-item completed>
+  <orb-wi completed>
     <iconify-icon slot="icon" icon="mdi:shopping"></iconify-icon>
     Ordered
     <span slot="note">Monday</span>
-  </orb-wizard-item>
-  <orb-wizard-item active>
+  </orb-wi>
+  <orb-wi active>
     <iconify-icon slot="icon" icon="mdi:truck"></iconify-icon>
     Shipped
     <span slot="note">Left the warehouse</span>
-  </orb-wizard-item>
-  <orb-wizard-item>
+  </orb-wi>
+  <orb-wi>
     <iconify-icon slot="icon" icon="mdi:home"></iconify-icon>
     Delivered
     <span slot="note">Thursday, probably</span>
-  </orb-wizard-item>
+  </orb-wi>
 </orb-wizard>
 ```
 
@@ -268,13 +268,13 @@ Add `loading` to a step to show a spinner in its marker, for example while an as
 
 ```html
 <orb-wizard>
-  <orb-wizard-item completed>Boil the kettle</orb-wizard-item>
-  <orb-wizard-item completed>Warm the pot</orb-wizard-item>
-  <orb-wizard-item active loading>
+  <orb-wi completed>Boil the kettle</orb-wi>
+  <orb-wi completed>Warm the pot</orb-wi>
+  <orb-wi active loading>
     Steep
     <span slot="note">Four minutes</span>
-  </orb-wizard-item>
-  <orb-wizard-item>Pour</orb-wizard-item>
+  </orb-wi>
+  <orb-wi>Pour</orb-wi>
 </orb-wizard>
 ```
 
@@ -288,10 +288,10 @@ Add `disabled` to a step that doesn't apply. It stays visible but can't be click
 
 ```html
 <orb-wizard id="disabled-wizard" clickable>
-  <orb-wizard-item active>Cart</orb-wizard-item>
-  <orb-wizard-item>Shipping</orb-wizard-item>
-  <orb-wizard-item disabled>Gift wrap</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi active>Cart</orb-wi>
+  <orb-wi>Shipping</orb-wi>
+  <orb-wi disabled>Gift wrap</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 <orb-toolbar space="xs" style="margin-top: 1rem;">
   <orb-button fill="outline" data-wizard="previous disabled-wizard">Back</orb-button>
@@ -313,9 +313,9 @@ Give the wizard an `id` and add `data-wizard` to any button on the page: `next <
 
 ```html
 <orb-wizard id="declarative-wizard">
-  <orb-wizard-item active>Cart</orb-wizard-item>
-  <orb-wizard-item>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi active>Cart</orb-wi>
+  <orb-wi>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 <orb-toolbar space="xs" style="margin-top: 1rem;">
   <orb-button fill="outline" data-wizard="previous declarative-wizard">Back</orb-button>
@@ -336,9 +336,9 @@ The wizard never sets `completed`. This demo marks the step it leaves complete w
 
 ```html
 <orb-wizard id="events-wizard">
-  <orb-wizard-item active>Cart</orb-wizard-item>
-  <orb-wizard-item>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi active>Cart</orb-wi>
+  <orb-wi>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 <orb-toolbar space="xs" style="margin-top: 1rem;">
   <orb-button fill="outline" data-wizard="previous events-wizard">Back</orb-button>
@@ -362,7 +362,7 @@ wizard.addEventListener("orbFinish", () => {
   output.textContent = "finish: every step is complete";
 });
 document.querySelector("#events-finish").addEventListener("click", () => {
-  wizard.querySelector("orb-wizard-item[active]").completed = true;
+  wizard.querySelector("orb-wi[active]").completed = true;
 });
 ```
 
@@ -380,9 +380,9 @@ Keep each step's content in your own elements and show the matching one from a `
 
 ```html
 <orb-wizard id="content-wizard">
-  <orb-wizard-item active>Cart</orb-wizard-item>
-  <orb-wizard-item>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi active>Cart</orb-wi>
+  <orb-wi>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 <orb-card style="margin-block: 1rem;">
   <p data-step="0">Review the items in your cart.</p>
@@ -413,9 +413,9 @@ wizard.addEventListener("orbStepChange", (event) => {
 
 ```html
 <orb-wizard id="guard-wizard">
-  <orb-wizard-item completed>Cart</orb-wizard-item>
-  <orb-wizard-item active>Shipping</orb-wizard-item>
-  <orb-wizard-item>Payment</orb-wizard-item>
+  <orb-wi completed>Cart</orb-wi>
+  <orb-wi active>Shipping</orb-wi>
+  <orb-wi>Payment</orb-wi>
 </orb-wizard>
 <orb-toolbar space="xs" style="margin-top: 1rem;">
   <orb-toggle id="guard-unsaved" checked>Unsaved changes</orb-toggle>
@@ -453,9 +453,9 @@ Set `active` on an item to make it the current step. The other steps become inac
 
 ```html
 <orb-wizard id="direct-wizard">
-  <orb-wizard-item active>One</orb-wizard-item>
-  <orb-wizard-item>Two</orb-wizard-item>
-  <orb-wizard-item>Three</orb-wizard-item>
+  <orb-wi active>One</orb-wi>
+  <orb-wi>Two</orb-wi>
+  <orb-wi>Three</orb-wi>
 </orb-wizard>
 <orb-toolbar space="xs" style="margin-top: 1rem;">
   <orb-button fill="outline" class="direct" data-index="0">One</orb-button>
@@ -469,12 +469,12 @@ Set `active` on an item to make it the current step. The other steps become inac
 const wizard = document.querySelector("#direct-wizard");
 document.querySelectorAll(".direct").forEach((button) => {
   button.addEventListener("click", () => {
-    wizard.querySelectorAll("orb-wizard-item")[button.dataset.index].active = true;
+    wizard.querySelectorAll("orb-wi")[button.dataset.index].active = true;
   });
 });
 let count = 3;
 document.querySelector("#direct-add").addEventListener("click", () => {
-  const item = document.createElement("orb-wizard-item");
+  const item = document.createElement("orb-wi");
   item.textContent = `Step ${++count}`;
   wizard.append(item);
 });
@@ -488,17 +488,17 @@ document.querySelector("#direct-add").addEventListener("click", () => {
 
 ### Customizing
 
-Use the custom properties on `orb-wizard` and the parts and custom states on `orb-wizard-item`. This example turns the wizard into a transit line.
+Use the custom properties on `orb-wizard` and the parts and custom states on `orb-wi`. This example turns the wizard into a transit line.
 
 ::: live-code-demo
 
 ```html
 <orb-wizard class="transit-wizard" orientation="auto" label="Piccadilly line">
-  <orb-wizard-item completed>Heathrow</orb-wizard-item>
-  <orb-wizard-item completed>Earl's Court<span slot="note">District line</span></orb-wizard-item>
-  <orb-wizard-item completed>Knightsbridge</orb-wizard-item>
-  <orb-wizard-item active attention="pulse">Green Park<span slot="note">Victoria and Jubilee lines</span></orb-wizard-item>
-  <orb-wizard-item>King's Cross</orb-wizard-item>
+  <orb-wi completed>Heathrow</orb-wi>
+  <orb-wi completed>Earl's Court<span slot="note">District line</span></orb-wi>
+  <orb-wi completed>Knightsbridge</orb-wi>
+  <orb-wi active attention="pulse">Green Park<span slot="note">Victoria and Jubilee lines</span></orb-wi>
+  <orb-wi>King's Cross</orb-wi>
 </orb-wizard>
 
 <style>
@@ -511,18 +511,18 @@ Use the custom properties on `orb-wizard` and the parts and custom states on `or
     --connector-color-active: var(--line);
   }
 
-  .transit-wizard orb-wizard-item::part(marker) {
+  .transit-wizard orb-wi::part(marker) {
     color: transparent;
     background-color: var(--orb-background-color, Canvas);
     border: 0.25em solid var(--line);
     box-shadow: none;
   }
 
-  .transit-wizard orb-wizard-item:state(completed)::part(marker) {
+  .transit-wizard orb-wi:state(completed)::part(marker) {
     background-color: var(--line);
   }
 
-  .transit-wizard orb-wizard-item:state(active)::part(marker) {
+  .transit-wizard orb-wi:state(active)::part(marker) {
     scale: 1.25;
   }
 </style>
