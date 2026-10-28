@@ -1,7 +1,39 @@
+/**
+ * @prop --padding: Inner padding of the header, content, and footer
+ * @prop --view-background: Background of the sticky header and footer. Defaults to the overlay or page background.
+ * @prop --fade-size: How far content fades as it passes under the header and footer, when `fade` is set
+ * @prop --sticky-top: Where the header sticks when the view isn't `scrollable`. Defaults to the landmarks layout's `--top-height`.
+ * @prop --sticky-bottom: Where the footer sticks when the view isn't `scrollable`. Defaults to the landmarks layout's `--foot-height`.
+ */
+
 :host {
+  --padding: var(--orb-spacing-sm) var(--orb-spacing-lg);
+  --surface: var(--view-background, var(--background, var(--orb-background-color)));
+  /* Where the header and footer stick. Without `scrollable`, they clear the
+     landmarks layout's page header and footer. */
+  --sticky-top: var(--top-height, 0px);
+  --sticky-bottom: var(--foot-height, 0px);
   display: flex;
   flex-direction: column;
-  --padding: var(--orb-spacing-xs) var(--orb-spacing-lg);
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+}
+
+/* A scrollable view is its own scroll container, so the header and footer
+   stick to its own edges. */
+:host(.scrollable) {
+  --sticky-top: 0px;
+  --sticky-bottom: 0px;
+  height: 100%;
+  overflow: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .end {
@@ -34,20 +66,70 @@
 
 header {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   flex-shrink: 0;
   position: sticky;
-  top: var(--top-height);
+  top: var(--sticky-top);
   z-index: 5;
   box-sizing: border-box;
   padding: var(--padding);
   border-bottom: solid 1px var(--orb-divider-color);
+  background-color: var(--surface);
+}
+
+.details {
+  min-width: 0;
+}
+
+.crumbs {
+  padding-bottom: var(--orb-spacing-2xs);
+}
+
+.wizard {
+  padding-block: var(--orb-spacing-xs) var(--orb-spacing-lg);
+}
+
+[part="label"]:focus {
+  outline: none;
+}
+
+/* Prominent: a large, airy header that scrolls away with the content, so it
+   doesn't take up space once the reader is past it. */
+header.prominent {
+  position: static;
+  gap: var(--orb-spacing-lg);
+  padding-block: var(--orb-spacing-3xl) var(--orb-spacing-2xl);
+
+  orb-toolbar {
+    align-items: flex-start;
+  }
+
+  [role="heading"] {
+    font-size: clamp(2rem, 1.5rem + 2.5cqi, 3.5rem);
+    font-weight: var(--orb-font-regular);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .details {
+    max-width: 48rem;
+    font-size: var(--orb-font-lg);
+    line-height: 1.5;
+  }
+}
+
+header:not(.prominent) .details {
+  padding-top: var(--orb-spacing-2xs);
 }
 
 [part="main-content"] {
-  flex: 1;
+  flex: 1 0 auto;
   padding: var(--padding);
   box-sizing: border-box;
+  /* Keeps anchored content clear of the page header and footer. The fade also
+     reads these back as resolved pixel values. */
+  scroll-margin-top: var(--sticky-top);
+  scroll-margin-bottom: var(--sticky-bottom);
 
   /* Distance content dissolves over as it passes the scroll host's edges. */
   --fade-size: 32px;
@@ -61,6 +143,12 @@ header {
   --fade-start: 0px;
   --fade-end: 100%;
   --fade-end-edge: 100%;
+}
+
+/* The fade separates content from the header and footer, so they drop their borders. */
+:host([fade]) header,
+:host([fade]) footer {
+  border: none;
 }
 
 :host([fade]) [part="main-content"] {
@@ -81,10 +169,26 @@ footer {
   justify-content: flex-end;
   align-items: center;
   position: sticky;
-  bottom: 0;
+  bottom: var(--sticky-bottom);
   z-index: 5;
+  box-sizing: border-box;
   padding: var(--padding);
   gap: var(--orb-spacing-sm);
+  border-top: solid 1px var(--orb-divider-color);
+  background-color: var(--surface);
+}
+
+/* Narrow views stack footer buttons full width, with the last button, usually
+   the primary action, on top. */
+@container (width < 30rem) {
+  footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  ::slotted([slot="footer"]) {
+    width: 100%;
+  }
 }
 
 orb-popover.hide {

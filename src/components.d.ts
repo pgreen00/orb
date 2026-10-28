@@ -16,6 +16,7 @@ import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
+import { ViewChangeDetail, ViewNavigateOptions } from "./components/view-manager/view-manager";
 import { WizardStepChangeDetail } from "./components/wizard/wizard";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
@@ -28,6 +29,7 @@ export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { TabCloseDetail } from "./components/tab-button/tab-button";
+export { ViewChangeDetail, ViewNavigateOptions } from "./components/view-manager/view-manager";
 export { WizardStepChangeDetail } from "./components/wizard/wizard";
 export namespace Components {
     /**
@@ -1350,22 +1352,84 @@ export namespace Components {
         "selection": "single" | "multiple" | "leaf";
         "value"?: string | string[];
     }
+    /**
+     * A layout for a page's worth of content, with a header, a body, and a footer
+     * for actions. By default the view scrolls its own content, which suits
+     * overlays. Turn off `scrollable` when the view lays out a whole page and the
+     * page itself scrolls. Either way, the header and footer stay in place.
+     */
     interface OrbView {
         /**
+          * Shows a close button in the header that closes the parent `orb-overlay`
           * @default false
          */
         "closable": boolean;
         /**
+          * Breadcrumbs from the parent `orb-view-manager`. Don't set directly.
+          * @default []
+         */
+        "crumbs": { id: string; label: string }[];
+        /**
+          * Runs after the view is hidden. Only applies inside an `orb-view-manager`.
+         */
+        "destroy"?: () => Promise<void> | void;
+        /**
+          * Fades content out as it scrolls under the header and footer
+          * @default false
+         */
+        "fade": boolean;
+        /**
+          * `minimal` is a compact header that stays in place while the content scrolls. `prominent` is a large header that scrolls away with the content. `none` hides the header.
           * @default "minimal"
          */
         "header": "none" | "minimal" | "prominent";
         /**
+          * The heading level of the `label`
           * @default "1"
          */
         "headingLevel": "1" | "2" | "3" | "4" | "5" | "6";
+        /**
+          * Runs before the view is shown. Only applies inside an `orb-view-manager`.
+         */
+        "init"?: () => Promise<void> | void;
+        /**
+          * The heading shown in the header
+         */
         "label"?: string;
+        /**
+          * Makes the view its own scroll container, filling its parent's height. Use this in overlays. Set it to `false` when the view lays out a whole page and the page scrolls instead. The header and footer then stick below and above the landmarks layout's page header and footer.
+          * @default true
+         */
+        "scrollable": boolean;
+        /**
+          * Shows the view manager's wizard in this view's header. Only applies inside an `orb-view-manager`.
+          * @default false
+         */
+        "showWizard": boolean;
     }
+    /**
+     * Manages a set of `orb-view` children, showing one at a time. Use it for
+     * multi-step wizards and nested flows, such as adding a related record
+     * without leaving a form. It animates between views, keeps breadcrumbs, places
+     * a shared `orb-wizard` in views that show it, and lazy loads each view's
+     * `<template>`.
+     * Navigate with `data-view-link="<id>"` on any button inside the manager, or
+     * call `navigate()`.
+     */
     interface OrbViewManager {
+        /**
+          * View ids in the breadcrumb trail. Store this with `value` to restore a flow, for example after a page refresh.
+          * @default []
+         */
+        "crumbs": string[];
+        /**
+          * Shows the view with this `id`, animating between views. Prefer `data-view-link` attributes for navigation in markup.
+         */
+        "navigate": (id: string, options?: ViewNavigateOptions) => Promise<void>;
+        /**
+          * The `id` of the view to show. Defaults to the first view. Setting it switches views without an animation and emits `viewMount`.
+         */
+        "value"?: string;
     }
     /**
      * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
@@ -1521,6 +1585,10 @@ export interface OrbToggleCustomEvent<T> extends CustomEvent<T> {
 export interface OrbTreeCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbTreeElement;
+}
+export interface OrbViewManagerCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbViewManagerElement;
 }
 export interface OrbWizardCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -2260,13 +2328,40 @@ declare global {
         prototype: HTMLOrbTreeElement;
         new (): HTMLOrbTreeElement;
     };
+    /**
+     * A layout for a page's worth of content, with a header, a body, and a footer
+     * for actions. By default the view scrolls its own content, which suits
+     * overlays. Turn off `scrollable` when the view lays out a whole page and the
+     * page itself scrolls. Either way, the header and footer stay in place.
+     */
     interface HTMLOrbViewElement extends Components.OrbView, HTMLStencilElement {
     }
     var HTMLOrbViewElement: {
         prototype: HTMLOrbViewElement;
         new (): HTMLOrbViewElement;
     };
+    interface HTMLOrbViewManagerElementEventMap {
+        "viewChange": ViewChangeDetail;
+        "viewMount": string;
+    }
+    /**
+     * Manages a set of `orb-view` children, showing one at a time. Use it for
+     * multi-step wizards and nested flows, such as adding a related record
+     * without leaving a form. It animates between views, keeps breadcrumbs, places
+     * a shared `orb-wizard` in views that show it, and lazy loads each view's
+     * `<template>`.
+     * Navigate with `data-view-link="<id>"` on any button inside the manager, or
+     * call `navigate()`.
+     */
     interface HTMLOrbViewManagerElement extends Components.OrbViewManager, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbViewManagerElementEventMap>(type: K, listener: (this: HTMLOrbViewManagerElement, ev: OrbViewManagerCustomEvent<HTMLOrbViewManagerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbViewManagerElementEventMap>(type: K, listener: (this: HTMLOrbViewManagerElement, ev: OrbViewManagerCustomEvent<HTMLOrbViewManagerElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbViewManagerElement: {
         prototype: HTMLOrbViewManagerElement;
@@ -3809,22 +3904,88 @@ declare namespace LocalJSX {
         "selection"?: "single" | "multiple" | "leaf";
         "value"?: string | string[];
     }
+    /**
+     * A layout for a page's worth of content, with a header, a body, and a footer
+     * for actions. By default the view scrolls its own content, which suits
+     * overlays. Turn off `scrollable` when the view lays out a whole page and the
+     * page itself scrolls. Either way, the header and footer stay in place.
+     */
     interface OrbView {
         /**
+          * Shows a close button in the header that closes the parent `orb-overlay`
           * @default false
          */
         "closable"?: boolean;
         /**
+          * Breadcrumbs from the parent `orb-view-manager`. Don't set directly.
+          * @default []
+         */
+        "crumbs"?: { id: string; label: string }[];
+        /**
+          * Runs after the view is hidden. Only applies inside an `orb-view-manager`.
+         */
+        "destroy"?: () => Promise<void> | void;
+        /**
+          * Fades content out as it scrolls under the header and footer
+          * @default false
+         */
+        "fade"?: boolean;
+        /**
+          * `minimal` is a compact header that stays in place while the content scrolls. `prominent` is a large header that scrolls away with the content. `none` hides the header.
           * @default "minimal"
          */
         "header"?: "none" | "minimal" | "prominent";
         /**
+          * The heading level of the `label`
           * @default "1"
          */
         "headingLevel"?: "1" | "2" | "3" | "4" | "5" | "6";
+        /**
+          * Runs before the view is shown. Only applies inside an `orb-view-manager`.
+         */
+        "init"?: () => Promise<void> | void;
+        /**
+          * The heading shown in the header
+         */
         "label"?: string;
+        /**
+          * Makes the view its own scroll container, filling its parent's height. Use this in overlays. Set it to `false` when the view lays out a whole page and the page scrolls instead. The header and footer then stick below and above the landmarks layout's page header and footer.
+          * @default true
+         */
+        "scrollable"?: boolean;
+        /**
+          * Shows the view manager's wizard in this view's header. Only applies inside an `orb-view-manager`.
+          * @default false
+         */
+        "showWizard"?: boolean;
     }
+    /**
+     * Manages a set of `orb-view` children, showing one at a time. Use it for
+     * multi-step wizards and nested flows, such as adding a related record
+     * without leaving a form. It animates between views, keeps breadcrumbs, places
+     * a shared `orb-wizard` in views that show it, and lazy loads each view's
+     * `<template>`.
+     * Navigate with `data-view-link="<id>"` on any button inside the manager, or
+     * call `navigate()`.
+     */
     interface OrbViewManager {
+        /**
+          * View ids in the breadcrumb trail. Store this with `value` to restore a flow, for example after a page refresh.
+          * @default []
+         */
+        "crumbs"?: string[];
+        /**
+          * Emitted after `navigate()` or a `data-view-link` button changes the view
+         */
+        "onViewChange"?: (event: OrbViewManagerCustomEvent<ViewChangeDetail>) => void;
+        /**
+          * Emitted when a view is shown without navigating: on load, or when `value` is set
+         */
+        "onViewMount"?: (event: OrbViewManagerCustomEvent<string>) => void;
+        /**
+          * The `id` of the view to show. Defaults to the first view. Setting it switches views without an animation and emits `viewMount`.
+         */
+        "value"?: string;
     }
     /**
      * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
@@ -4241,6 +4402,12 @@ declare namespace LocalJSX {
         "closable": boolean;
         "header": "none" | "minimal" | "prominent";
         "headingLevel": "1" | "2" | "3" | "4" | "5" | "6";
+        "fade": boolean;
+        "scrollable": boolean;
+        "showWizard": boolean;
+    }
+    interface OrbViewManagerAttributes {
+        "value": string;
     }
     interface OrbWizardAttributes {
         "label": string;
@@ -4327,7 +4494,7 @@ declare namespace LocalJSX {
         "orb-tooltip": Omit<OrbTooltip, keyof OrbTooltipAttributes> & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes]?: OrbTooltip[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `attr:${K}`]?: OrbTooltipAttributes[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `prop:${K}`]?: OrbTooltip[K] } & OneOf<"for", OrbTooltip["for"], OrbTooltipAttributes["for"]>;
         "orb-tree": Omit<OrbTree, keyof OrbTreeAttributes> & { [K in keyof OrbTree & keyof OrbTreeAttributes]?: OrbTree[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `attr:${K}`]?: OrbTreeAttributes[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `prop:${K}`]?: OrbTree[K] };
         "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
-        "orb-view-manager": OrbViewManager;
+        "orb-view-manager": Omit<OrbViewManager, keyof OrbViewManagerAttributes> & { [K in keyof OrbViewManager & keyof OrbViewManagerAttributes]?: OrbViewManager[K] } & { [K in keyof OrbViewManager & keyof OrbViewManagerAttributes as `attr:${K}`]?: OrbViewManagerAttributes[K] } & { [K in keyof OrbViewManager & keyof OrbViewManagerAttributes as `prop:${K}`]?: OrbViewManager[K] };
         "orb-wizard": Omit<OrbWizard, keyof OrbWizardAttributes> & { [K in keyof OrbWizard & keyof OrbWizardAttributes]?: OrbWizard[K] } & { [K in keyof OrbWizard & keyof OrbWizardAttributes as `attr:${K}`]?: OrbWizardAttributes[K] } & { [K in keyof OrbWizard & keyof OrbWizardAttributes as `prop:${K}`]?: OrbWizard[K] };
         "orb-wizard-item": Omit<OrbWizardItem, keyof OrbWizardItemAttributes> & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes]?: OrbWizardItem[K] } & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes as `attr:${K}`]?: OrbWizardItemAttributes[K] } & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes as `prop:${K}`]?: OrbWizardItem[K] };
     }
@@ -4503,7 +4670,22 @@ declare module "@stencil/core" {
             "orb-toolbar": LocalJSX.IntrinsicElements["orb-toolbar"] & JSXBase.HTMLAttributes<HTMLOrbToolbarElement>;
             "orb-tooltip": LocalJSX.IntrinsicElements["orb-tooltip"] & JSXBase.HTMLAttributes<HTMLOrbTooltipElement>;
             "orb-tree": LocalJSX.IntrinsicElements["orb-tree"] & JSXBase.HTMLAttributes<HTMLOrbTreeElement>;
+            /**
+             * A layout for a page's worth of content, with a header, a body, and a footer
+             * for actions. By default the view scrolls its own content, which suits
+             * overlays. Turn off `scrollable` when the view lays out a whole page and the
+             * page itself scrolls. Either way, the header and footer stay in place.
+             */
             "orb-view": LocalJSX.IntrinsicElements["orb-view"] & JSXBase.HTMLAttributes<HTMLOrbViewElement>;
+            /**
+             * Manages a set of `orb-view` children, showing one at a time. Use it for
+             * multi-step wizards and nested flows, such as adding a related record
+             * without leaving a form. It animates between views, keeps breadcrumbs, places
+             * a shared `orb-wizard` in views that show it, and lazy loads each view's
+             * `<template>`.
+             * Navigate with `data-view-link="<id>"` on any button inside the manager, or
+             * call `navigate()`.
+             */
             "orb-view-manager": LocalJSX.IntrinsicElements["orb-view-manager"] & JSXBase.HTMLAttributes<HTMLOrbViewManagerElement>;
             /**
              * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a

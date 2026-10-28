@@ -1,9 +1,9 @@
 :host {
   display: contents;
 
-  --background: light-dark(rgb(233, 236, 236), rgb(41, 45, 46));
-  --color: light-dark(var(--orb-neutral-900), var(--orb-neutral-50));
-  --border: solid 1px light-dark(rgb(197, 200, 204), rgb(86, 87, 90));
+  --background: var(--orb-background-color);
+  --color: var(--orb-text-color);
+  --border: solid 1px light-dark(transparent, var(--orb-divider-color));
 }
 
 @media (width >= 1200px) {

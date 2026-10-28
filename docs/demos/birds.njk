@@ -1,0 +1,593 @@
+---
+layout: false
+permalink: "/demos/birds/"
+---
+
+{% set featured = [
+  { name: "Steller's Jay", latin: "Cyanocitta stelleri", hue: 225, icon: "mdi:bird", habitat: "Conifer forests", note: "Loud, crested, and fearless at picnic tables." },
+  { name: "Anna's Hummingbird", latin: "Calypte anna", hue: 330, icon: "game-icons:hummingbird", habitat: "Gardens, year-round", note: "The only hummingbird that winters this far north." },
+  { name: "Varied Thrush", latin: "Ixoreus naevius", hue: 25, icon: "game-icons:bird-twitter", habitat: "Damp old-growth", note: "Its eerie, buzzing whistle carries through fog." },
+  { name: "Belted Kingfisher", latin: "Megaceryle alcyon", hue: 195, icon: "game-icons:eagle-emblem", habitat: "Rivers and shorelines", note: "Listen for the rattle before you see the dive." },
+  { name: "Pileated Woodpecker", latin: "Dryocopus pileatus", hue: 0, icon: "game-icons:woodpecker", habitat: "Mature forest", note: "Rectangular holes in snags give it away." },
+  { name: "Great Blue Heron", latin: "Ardea herodias", hue: 210, icon: "game-icons:stork-delivery", habitat: "Wetlands and tideflats", note: "Stands motionless for minutes, then strikes." }
+] %}
+
+{% set sightings = [
+  { bird: "Bald Eagle", place: "Skagit Flats", who: "M. Okafor", ago: 12, count: 4 },
+  { bird: "Varied Thrush", place: "Discovery Park", who: "J. Lindqvist", ago: 45, count: 1 },
+  { bird: "Anna's Hummingbird", place: "Backyard feeder, Ballard", who: "R. Patel", ago: 90, count: 2 },
+  { bird: "Harlequin Duck", place: "Point No Point", who: "S. Nakamura", ago: 180, count: 7 },
+  { bird: "Northern Pygmy-Owl", place: "Tiger Mountain", who: "A. Romero", ago: 300, count: 1 },
+  { bird: "Rufous Hummingbird", place: "Mount Rainier foothills", who: "D. Chen", ago: 720, count: 3 },
+  { bird: "Western Tanager", place: "Wenatchee River", who: "K. Byrne", ago: 1440, count: 2 },
+  { bird: "Black Oystercatcher", place: "Rialto Beach", who: "L. Moreau", ago: 2880, count: 5 }
+] %}
+
+{% set migration = [
+  { bird: "Rufous Hummingbird", arrives: "March", leaves: "August", winters: "Mexico" },
+  { bird: "Swainson's Thrush", arrives: "May", leaves: "September", winters: "Central America" },
+  { bird: "Western Tanager", arrives: "May", leaves: "September", winters: "Mexico" },
+  { bird: "Violet-green Swallow", arrives: "March", leaves: "September", winters: "Central America" },
+  { bird: "Snow Goose", arrives: "October", leaves: "April", winters: "Here (from Siberia)" },
+  { bird: "Trumpeter Swan", arrives: "November", leaves: "March", winters: "Here (from Alaska)" },
+  { bird: "Dunlin", arrives: "October", leaves: "May", winters: "Here (from the Arctic)" }
+] %}
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/orb.png" />
+  <meta name="viewport" content="width=device-width, user-scalable=no" />
+  <title>Feather & Fern | Birds of the Pacific Northwest</title>
+  <script type="module">
+    const t = localStorage.getItem('orb__theme') || 'system'
+    const el = document.documentElement
+    el.classList.toggle('orb-theme-light', t === 'light')
+    el.classList.toggle('orb-theme-dark', t === 'dark')
+  </script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/build/styles/index.css" />
+  <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "orb-style": "/build/components/index.js",
+        "orb-style/": "/build/components/"
+      }
+    }
+  </script>
+  <script type="module" src="/build/loader.js"></script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--orb-spacing-xs);
+      font-size: 1.2rem;
+      font-weight: var(--orb-font-bold);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand iconify-icon {
+      color: light-dark(var(--orb-success-750), var(--orb-success-500));
+    }
+
+    .site-nav {
+      display: flex;
+      gap: var(--orb-spacing-2xs);
+      margin-inline-start: var(--orb-spacing-lg);
+    }
+
+    .site-nav a {
+      padding: var(--orb-spacing-2xs) var(--orb-spacing-sm);
+      border-radius: var(--orb-radius-md);
+      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-300));
+    }
+
+    .site-nav a[aria-current="page"] {
+      color: inherit;
+      font-weight: var(--orb-font-semi-bold);
+    }
+
+    @media (width < 900px) {
+      .site-nav {
+        display: none;
+      }
+    }
+
+    body > footer {
+      justify-content: space-between;
+      font-size: var(--orb-font-sm);
+      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+    }
+
+    .sidebar-heading {
+      margin: var(--orb-spacing-sm) var(--orb-spacing-xs) var(--orb-spacing-2xs);
+      font-size: var(--orb-font-xs);
+      font-weight: var(--orb-font-semi-bold);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+    }
+
+    .page {
+      max-width: 72rem;
+    }
+
+    .page section {
+      margin-block-end: var(--orb-spacing-3xl);
+    }
+
+    .page h2 {
+      margin-block-end: var(--orb-spacing-sm);
+    }
+
+    .page section > p {
+      max-width: 46rem;
+      margin-block-end: var(--orb-spacing-md);
+    }
+
+    .lede {
+      font-size: var(--orb-font-lg);
+    }
+
+    orb-relative-time {
+      display: inline;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--orb-spacing-sm);
+      margin-block-end: var(--orb-spacing-md);
+      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+    }
+
+    .bird-media {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 16 / 9;
+      color: white;
+      font-size: 3.5rem;
+      background: linear-gradient(
+        135deg,
+        hsl(var(--hue) 55% 45%),
+        hsl(calc(var(--hue) + 40) 60% 30%)
+      );
+    }
+
+    .latin {
+      font-style: italic;
+      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+    }
+
+    .callout {
+      display: flex;
+      gap: var(--orb-spacing-md);
+      align-items: flex-start;
+      max-width: 46rem;
+      padding: var(--orb-spacing-md);
+      margin-block: var(--orb-spacing-md);
+      border-inline-start: 4px solid var(--orb-success-500);
+      border-radius: var(--orb-radius-md);
+      background: light-dark(var(--orb-success-50), color-mix(in srgb, var(--orb-success-900) 40%, transparent));
+    }
+
+    .callout iconify-icon {
+      flex-shrink: 0;
+      font-size: 1.5rem;
+      color: light-dark(var(--orb-success-750), var(--orb-success-400));
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      gap: var(--orb-spacing-xl);
+    }
+
+    .page dl {
+      max-width: 46rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <orb-toolbar>
+      <a class="brand" href="/demos/birds/">
+        <iconify-icon icon="mdi:feather" width="1.75rem" height="1.75rem" aria-hidden="true"></iconify-icon>
+        Feather & Fern
+      </a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="#featured" aria-current="page">Field guide</a>
+        <a href="#sightings">Sightings</a>
+        <a href="#migration">Migration</a>
+        <a href="#feeding">Backyard birding</a>
+      </nav>
+      <orb-button class="icon-only" fill="clear" slot="end" aria-label="Search">
+        <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:magnify" aria-hidden="true"></iconify-icon>
+      </orb-button>
+      <orb-popover slot="end" placement="bottom-end" show-on="hover">
+        <orb-button class="icon-only" fill="clear" slot="trigger" aria-label="Theme">
+          <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:moon-and-stars" aria-hidden="true"></iconify-icon>
+        </orb-button>
+        <orb-menu id="theme-menu">
+          <orb-mi value="system">
+            <iconify-icon slot="icon" icon="mdi:moon-and-stars"></iconify-icon>
+            System
+          </orb-mi>
+          <orb-mi value="light">
+            <iconify-icon slot="icon" icon="material-symbols:light-mode"></iconify-icon>
+            Light
+          </orb-mi>
+          <orb-mi value="dark">
+            <iconify-icon slot="icon" icon="material-symbols:dark-mode"></iconify-icon>
+            Dark
+          </orb-mi>
+        </orb-menu>
+      </orb-popover>
+      <orb-button slot="end" size="sm">Join the club</orb-button>
+    </orb-toolbar>
+  </header>
+
+  <nav data-landmark="sidebar" aria-label="On this page">
+    <p class="sidebar-heading">On this page</p>
+    <orb-tree>
+      <orb-ti label="Featured species" href="#featured"></orb-ti>
+      <orb-ti label="This week" href="#this-week"></orb-ti>
+      <orb-ti label="Recent sightings" href="#sightings"></orb-ti>
+      <orb-ti label="Identification" href="#identification"></orb-ti>
+      <orb-ti label="Migration calendar" href="#migration"></orb-ti>
+      <orb-ti label="Backyard birding" href="#feeding"></orb-ti>
+      <orb-ti label="Field notes" href="#field-notes"></orb-ti>
+      <orb-ti label="Conservation" href="#conservation"></orb-ti>
+      <orb-ti label="Glossary" href="#glossary"></orb-ti>
+      <orb-ti label="FAQ" href="#faq"></orb-ti>
+    </orb-tree>
+    <p class="sidebar-heading">Regions</p>
+    <orb-tree>
+      <orb-ti label="Puget Sound" href="#featured"></orb-ti>
+      <orb-ti label="Olympic Peninsula" href="#featured"></orb-ti>
+      <orb-ti label="Cascade Range" href="#featured"></orb-ti>
+      <orb-ti label="Columbia Basin" href="#featured"></orb-ti>
+    </orb-tree>
+  </nav>
+
+  <main>
+    <orb-view label="Birds of the Pacific Northwest" header="prominent" scrollable="false" fade>
+      <div slot="details">
+        <orb-breadcrumbs>
+          <orb-breadcrumb href="/demos/birds/">Home</orb-breadcrumb>
+          <orb-breadcrumb href="#featured">Field guide</orb-breadcrumb>
+          <orb-breadcrumb>Pacific Northwest</orb-breadcrumb>
+        </orb-breadcrumbs>
+        <p class="lede" style="margin-block: var(--orb-spacing-md);">
+          From rain-soaked old-growth to windswept tideflats, more than 400 species pass through Washington and Oregon each year. This guide covers the birds you're most likely to meet, and a few worth getting up early for.
+        </p>
+        <div class="meta">
+          <orb-pill color="success">Spring migration</orb-pill>
+          <span>Updated <orb-relative-time date="2026-10-21T09:00:00-07:00"></orb-relative-time></span>
+          <span>12 minute read</span>
+        </div>
+      </div>
+      <orb-button slot="header-end" fill="outline" size="sm">
+        <iconify-icon icon="mdi:share-variant" aria-hidden="true"></iconify-icon>
+        Share
+      </orb-button>
+      <orb-mi slot="actions" value="print">Print checklist</orb-mi>
+      <orb-mi slot="actions" value="download">Download field guide (PDF)</orb-mi>
+      <orb-mi slot="actions" value="report">Report a problem</orb-mi>
+
+      <div class="page">
+        <section id="featured">
+          <h2>Featured species</h2>
+          <p>Six birds that define the region. Each one is common enough to find on a weekend walk, and distinctive enough to recognize once you know what to look for.</p>
+          <orb-mesh space="md" style="--min-column-size: 16rem;">
+            {% for bird in featured %}
+              <orb-card>
+                <div slot="media" class="bird-media" style="--hue: {{ bird.hue }};">
+                  <iconify-icon icon="{{ bird.icon }}" aria-hidden="true"></iconify-icon>
+                </div>
+                <h3 slot="header" style="margin: 0;">{{ bird.name }}</h3>
+                <p class="latin" style="margin: 0;">{{ bird.latin }}</p>
+                <p style="margin: 0;">{{ bird.note }}</p>
+                <orb-pill slot="footer" outline>{{ bird.habitat }}</orb-pill>
+              </orb-card>
+            {% endfor %}
+          </orb-mesh>
+        </section>
+
+        <section id="this-week">
+          <h2>This week in the field</h2>
+          <p>Totals from member checklists submitted over the last seven days.</p>
+          <orb-mesh space="md" style="--min-column-size: 12rem;">
+            <orb-card layout="stat" trend="up">
+              <span slot="label">Checklists</span>
+              1,284
+              <span slot="trend">▲ 18%</span>
+            </orb-card>
+            <orb-card layout="stat" trend="up">
+              <span slot="label">Species reported</span>
+              197
+              <span slot="trend">▲ 11</span>
+            </orb-card>
+            <orb-card layout="stat" trend="down">
+              <span slot="label">Rarities</span>
+              3
+              <span slot="trend">▼ 2</span>
+            </orb-card>
+            <orb-card layout="stat" trend="flat">
+              <span slot="label">First of season</span>
+              14
+              <span slot="trend">No change</span>
+            </orb-card>
+          </orb-mesh>
+        </section>
+
+        <section id="sightings">
+          <h2>Recent sightings</h2>
+          <p>Reports from members across the region. Rare birds are confirmed by a reviewer before they appear here.</p>
+          <orb-stack space="2xs">
+            {% for s in sightings %}
+              <orb-card layout="compact" style="--thumbnail-radius: 50%;">
+                <iconify-icon slot="media" icon="mdi:binoculars" width="24" height="24" aria-hidden="true"></iconify-icon>
+                {{ s.bird }}{% if s.count > 1 %} ×{{ s.count }}{% endif %}
+                <span slot="subtitle">{{ s.place }} · {{ s.who }} · <span class="sighting-time" data-minutes-ago="{{ s.ago }}"></span></span>
+                <orb-button slot="end" size="sm" fill="clear">Details</orb-button>
+              </orb-card>
+            {% endfor %}
+          </orb-stack>
+          <div style="margin-top: var(--orb-spacing-md);">
+            <orb-pagination total="186" page-size="8" page="1" label="Sightings" with-summary></orb-pagination>
+          </div>
+        </section>
+
+        <section id="identification">
+          <h2>Identification</h2>
+          <p>Most birds can be identified with four questions. Work through them in order, and resist jumping straight to color, which changes with light, season, and age.</p>
+          <ol>
+            <li><strong>Size and shape.</strong> Compare it to birds you know. Is it sparrow-sized, robin-sized, or crow-sized? Note the bill, tail length, and posture.</li>
+            <li><strong>Behavior.</strong> Does it creep up tree trunks, hover, wade, or flick its tail? Behavior narrows things down faster than plumage.</li>
+            <li><strong>Habitat.</strong> A thrush in a parking lot is unusual. A gull at the dump is not. Range maps rule out more than you'd expect.</li>
+            <li><strong>Field marks.</strong> Only now look for wing bars, eye rings, streaks, and patches of color.</li>
+          </ol>
+          <div class="callout">
+            <iconify-icon icon="mdi:lightbulb-on-outline" aria-hidden="true"></iconify-icon>
+            <div>
+              <strong>Listen first.</strong> In dense forest you'll hear ten birds for every one you see. Learning five common songs, like the Pacific Wren, Song Sparrow, Spotted Towhee, American Robin, and Varied Thrush, will transform your walks.
+            </div>
+          </div>
+          <orb-tabs pills>
+            <orb-tab-button panel="id-forest">Forest</orb-tab-button>
+            <orb-tab-button panel="id-water">Water</orb-tab-button>
+            <orb-tab-button panel="id-open">Open country</orb-tab-button>
+            <orb-tab-panel name="id-forest">
+              <p>Look up and listen. Chestnut-backed Chickadees, Golden-crowned Kinglets, and Red-breasted Nuthatches travel together in winter flocks. Follow the chatter and you'll often find a Brown Creeper spiraling up a trunk nearby.</p>
+            </orb-tab-panel>
+            <orb-tab-panel name="id-water">
+              <p>Scan with a scope from shore. Diving ducks like Buffleheads and Common Goldeneyes ride low; dabblers like Mallards and Northern Pintails tip up. Watch for Pigeon Guillemots near piers, bright red feet and all.</p>
+            </orb-tab-panel>
+            <orb-tab-panel name="id-open">
+              <p>Check fence posts and power lines. American Kestrels, Western Meadowlarks, and in winter, Rough-legged Hawks hunting over farmland in the Skagit and Samish flats.</p>
+            </orb-tab-panel>
+          </orb-tabs>
+        </section>
+
+        <section id="migration">
+          <h2>Migration calendar</h2>
+          <p>Some birds come north to breed in our long summer days. Others arrive in fall to escape the Arctic winter. Dates shift a week or two each year with the weather.</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Species</th>
+                  <th>Arrives</th>
+                  <th>Leaves</th>
+                  <th>Spends winter in</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in migration %}
+                  <tr>
+                    <td>{{ m.bird }}</td>
+                    <td>{{ m.arrives }}</td>
+                    <td>{{ m.leaves }}</td>
+                    <td>{{ m.winters }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="feeding">
+          <h2>Backyard birding</h2>
+          <p>A feeder and a water source will bring more birds to your yard than anything else. Native plants bring the insects that most songbirds feed their young.</p>
+          <div class="two-col">
+            <div>
+              <h3>What to offer</h3>
+              <ul>
+                <li><strong>Black oil sunflower seed</strong> for chickadees, finches, and nuthatches</li>
+                <li><strong>Suet</strong> for woodpeckers, bushtits, and wrens, especially in winter</li>
+                <li><strong>Nyjer seed</strong> for Pine Siskins and American Goldfinches</li>
+                <li><strong>Sugar water</strong> (one part sugar to four parts water) for hummingbirds, changed every few days</li>
+                <li><strong>A shallow birdbath</strong>, heated in freezing weather</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Native plants to try</h3>
+              <ul>
+                <li>Red-flowering currant, an early nectar source for hummingbirds</li>
+                <li>Oregon grape, with berries that last into winter</li>
+                <li>Serviceberry, loved by robins and waxwings</li>
+                <li>Douglas aster, which feeds late-season pollinators and the birds that eat them</li>
+                <li>Snowberry, for cover and winter fruit</li>
+              </ul>
+            </div>
+          </div>
+          <div class="callout">
+            <iconify-icon icon="mdi:cat" aria-hidden="true"></iconify-icon>
+            <div>
+              <strong>Keep cats indoors.</strong> Outdoor cats kill more than two billion birds a year in North America. A catio or leash walks keep everyone happy.
+            </div>
+          </div>
+        </section>
+
+        <section id="field-notes">
+          <h2>Field notes</h2>
+          <p>Stories and tips from members.</p>
+          <orb-mesh space="md" style="--min-column-size: 20rem;">
+            <orb-card layout="horizontal">
+              <div slot="media" class="bird-media" style="--hue: 140;">
+                <iconify-icon icon="mdi:weather-fog" aria-hidden="true"></iconify-icon>
+              </div>
+              <h3 slot="header" style="margin: 0;">Birding in the fog</h3>
+              Why gray mornings on the coast are some of the best for seabirds, and how to keep your optics dry.
+              <orb-button slot="footer" size="sm" fill="outline">Read</orb-button>
+            </orb-card>
+            <orb-card layout="horizontal">
+              <div slot="media" class="bird-media" style="--hue: 40;">
+                <iconify-icon icon="mdi:owl" aria-hidden="true"></iconify-icon>
+              </div>
+              <h3 slot="header" style="margin: 0;">Owling etiquette</h3>
+              How to look for owls without disturbing them: no playback, no flash, and keep locations to yourself.
+              <orb-button slot="footer" size="sm" fill="outline">Read</orb-button>
+            </orb-card>
+            <orb-card layout="horizontal">
+              <div slot="media" class="bird-media" style="--hue: 280;">
+                <iconify-icon icon="mdi:camera" aria-hidden="true"></iconify-icon>
+              </div>
+              <h3 slot="header" style="margin: 0;">Your first bird camera</h3>
+              A bridge camera and patience will get you further than a big lens and a rush.
+              <orb-button slot="footer" size="sm" fill="outline">Read</orb-button>
+            </orb-card>
+            <orb-card layout="horizontal">
+              <div slot="media" class="bird-media" style="--hue: 100;">
+                <iconify-icon icon="mdi:notebook" aria-hidden="true"></iconify-icon>
+              </div>
+              <h3 slot="header" style="margin: 0;">Keeping a field journal</h3>
+              Sketching, even badly, makes you notice details that photos skip over.
+              <orb-button slot="footer" size="sm" fill="outline">Read</orb-button>
+            </orb-card>
+          </orb-mesh>
+        </section>
+
+        <section id="conservation">
+          <h2>Conservation</h2>
+          <p>North America has lost nearly three billion birds since 1970. The biggest causes are habitat loss, collisions with glass, and pesticides that wipe out the insects birds eat. Here's how to help.</p>
+          <orb-mesh space="md" style="--min-column-size: 14rem;">
+            <orb-card layout="feature">
+              <iconify-icon slot="icon" icon="mdi:window-closed-variant"></iconify-icon>
+              <h3 slot="header" style="margin: 0;">Make windows visible</h3>
+              Dot patterns or external screens stop most collisions.
+            </orb-card>
+            <orb-card layout="feature">
+              <iconify-icon slot="icon" icon="mdi:sprout"></iconify-icon>
+              <h3 slot="header" style="margin: 0;">Plant native</h3>
+              Native plants support up to ten times more caterpillars.
+            </orb-card>
+            <orb-card layout="feature">
+              <iconify-icon slot="icon" icon="mdi:clipboard-check-outline"></iconify-icon>
+              <h3 slot="header" style="margin: 0;">Submit checklists</h3>
+              Your counts feed population research every season.
+            </orb-card>
+            <orb-card layout="feature">
+              <iconify-icon slot="icon" icon="mdi:coffee"></iconify-icon>
+              <h3 slot="header" style="margin: 0;">Drink shade-grown coffee</h3>
+              It protects the forests where our migrants spend winter.
+            </orb-card>
+          </orb-mesh>
+          <h3 style="margin-top: var(--orb-spacing-xl);">The Great Backyard Count</h3>
+          <p>Every February, thousands of members count birds for 15 minutes or more and report what they see. Signing up takes three steps.</p>
+          <orb-wizard style="max-width: 46rem;">
+            <orb-wizard-item completed>Create an account</orb-wizard-item>
+            <orb-wizard-item active>
+              Pick a spot
+              <span slot="note">Your yard counts</span>
+            </orb-wizard-item>
+            <orb-wizard-item>Count and submit</orb-wizard-item>
+          </orb-wizard>
+        </section>
+
+        <section id="glossary">
+          <h2>Glossary</h2>
+          <dl>
+            <dt>Lifer</dt>
+            <dd>A species you've seen for the first time.</dd>
+            <dt>Pishing</dt>
+            <dd>Making a "psh-psh-psh" sound to draw curious songbirds out of cover. Use sparingly.</dd>
+            <dt>Jizz</dt>
+            <dd>The overall impression of a bird's size, shape, and movement, often enough to identify it at a glance.</dd>
+            <dt>Irruption</dt>
+            <dd>An irregular year when a species, like Pine Siskins or Evening Grosbeaks, moves south in large numbers.</dd>
+            <dt>Nemesis bird</dt>
+            <dd>A species you keep missing, no matter how many times you go looking.</dd>
+            <dt>Spark bird</dt>
+            <dd>The bird that first got you hooked.</dd>
+          </dl>
+        </section>
+
+        <section id="faq">
+          <h2>Frequently asked questions</h2>
+          <orb-stack space="xs" style="max-width: 46rem;">
+            <orb-details summary="What binoculars should I buy first?">
+              <p>Look for 8×42 binoculars. The 8× magnification is easy to hold steady, and 42mm lenses let in plenty of light for our cloudy days. Waterproofing isn't optional here.</p>
+            </orb-details>
+            <orb-details summary="I found a baby bird on the ground. What should I do?">
+              <p>If it has feathers and hops, it's a fledgling, and its parents are nearby. Leave it be and keep pets away. If it's bare or injured, contact a licensed wildlife rehabilitator.</p>
+            </orb-details>
+            <orb-details summary="Why did the birds stop coming to my feeder?">
+              <p>Usually a hawk has moved in, natural food has become plentiful, or the seed has gone stale. Clean your feeder, refresh the seed, and give it a couple of weeks.</p>
+            </orb-details>
+            <orb-details summary="Is it okay to use bird song apps in the field?">
+              <p>Listening is fine. Playing calls to attract birds stresses them, especially in breeding season, and is banned in many parks.</p>
+            </orb-details>
+          </orb-stack>
+        </section>
+      </div>
+
+      <orb-button slot="footer" fill="outline">Download checklist</orb-button>
+      <orb-button slot="footer" color="primary">
+        <iconify-icon icon="mdi:plus" aria-hidden="true"></iconify-icon>
+        Report a sighting
+      </orb-button>
+    </orb-view>
+  </main>
+
+  <footer>
+    <span>© 2026 Feather & Fern Birding Club</span>
+    <span>A demo page built with Orb</span>
+  </footer>
+</body>
+
+<script type="module">
+  async function setTheme(theme) {
+    const htmlEl = document.querySelector('html')
+    localStorage.setItem('orb__theme', theme ?? 'system')
+    htmlEl.classList.toggle('orb-theme-light', theme === 'light')
+    htmlEl.classList.toggle('orb-theme-dark', theme === 'dark')
+    const menuItems = Array.from(document.querySelectorAll('#theme-menu > orb-mi'))
+    await customElements.whenDefined('orb-mi')
+    for (const item of menuItems) {
+      item.checked = theme == item.value
+    }
+  }
+  setTheme(localStorage.getItem('orb__theme'))
+  document.querySelector('#theme-menu').addEventListener('action', ev => setTheme(ev.detail.value))
+
+  // Sighting times are relative to when the page is viewed.
+  document.querySelectorAll('.sighting-time').forEach((el) => {
+    const time = document.createElement('orb-relative-time')
+    time.setAttribute('date', new Date(Date.now() - Number(el.dataset.minutesAgo) * 60000).toISOString())
+    el.append(time)
+  })
+</script>
+
+</html>

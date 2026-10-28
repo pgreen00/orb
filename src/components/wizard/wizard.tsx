@@ -148,6 +148,16 @@ export class Wizard {
 
   async componentDidLoad() {
     await customElements.whenDefined("orb-wizard-item");
+    this.startObserving();
+    this.loaded = true;
+  }
+
+  /** Restarts the observers when the wizard is moved, for example between views. */
+  connectedCallback() {
+    if (this.loaded) this.startObserving();
+  }
+
+  private startObserving() {
     this.mutationObserver.observe(this.el, {
       childList: true,
       subtree: true,
@@ -156,7 +166,6 @@ export class Wizard {
     });
     this.resizeObserver.observe(this.el);
     this.sync();
-    this.loaded = true;
   }
 
   disconnectedCallback() {
