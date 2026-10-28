@@ -114,7 +114,7 @@ export function EventEditor(props: EventEditorProps) {
 
       <orb-toggle
         checked={allDay}
-        onCheckedChange={(e: CustomEvent<boolean>) => setAllDay(e.detail)}
+        onOrbCheckedChange={(e: CustomEvent<boolean>) => setAllDay(e.detail)}
       >
         All-day
       </orb-toggle>

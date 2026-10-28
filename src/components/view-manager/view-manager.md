@@ -73,7 +73,7 @@ Add `data-view-crumbs` to links for nested views. Going forwards adds the view t
 
 Put one `orb-wizard` in the `wizard` slot. The manager moves it to the top of the content of whichever view has `show-wizard`, and hides it on other views. Since it's the same element, its progress carries across views. Control it with `data-wizard` buttons, which work alongside `data-view-link` on the same button.
 
-Put each view's content in a `<template>` to lazy load it. The content is created when the view is shown and removed when it's hidden, so restore any form values from your own state when the view comes back. `viewChange` and `viewMount` tell you which view just appeared.
+Put each view's content in a `<template>` to lazy load it. The content is created when the view is shown and removed when it's hidden, so restore any form values from your own state when the view comes back. `orbViewChange` and `orbViewMount` tell you which view just appeared.
 
 This example adds a product in an overlay. "Add manufacturer" is a nested view inside the Details step, with breadcrumbs, and it doesn't show the wizard.
 
@@ -144,7 +144,7 @@ const wizard = document.querySelector("#product-wizard");
 const state = { details: {}, pricing: {}, manufacturers: ["Acme"] };
 
 // The wizard never marks steps complete itself.
-wizard.addEventListener("stepChange", (event) => {
+wizard.addEventListener("orbStepChange", (event) => {
   const { index, previousIndex, step, previousStep } = event.detail;
   if (previousStep && index > previousIndex) previousStep.completed = true;
   else step.completed = false;
@@ -172,8 +172,8 @@ const restore = (id) => {
     );
   }
 };
-manager.addEventListener("viewMount", (event) => restore(event.detail));
-manager.addEventListener("viewChange", (event) => restore(event.detail.to));
+manager.addEventListener("orbViewMount", (event) => restore(event.detail));
+manager.addEventListener("orbViewChange", (event) => restore(event.detail.to));
 // The first view may have mounted before this script ran.
 restore(manager.value);
 
@@ -216,7 +216,7 @@ manager.addEventListener("submit", (event) => {
 
 ## Setting the View
 
-Set `value` to a view's `id` to show it without an animation. That emits `viewMount` instead of `viewChange`. To restore a flow, for example after a page refresh, save `value` and `crumbs` and set both.
+Set `value` to a view's `id` to show it without an animation. That emits `orbViewMount` instead of `orbViewChange`. To restore a flow, for example after a page refresh, save `value` and `crumbs` and set both.
 
 ::: live-code-demo
 
@@ -245,8 +245,8 @@ Set `value` to a view's `id` to show it without an animation. That emits `viewMo
 ```javascript
 const manager = document.querySelector("#set-manager");
 const log = document.querySelector("#set-log");
-manager.addEventListener("viewMount", (event) => (log.textContent = `viewMount: ${event.detail}`));
-manager.addEventListener("viewChange", (event) => {
+manager.addEventListener("orbViewMount", (event) => (log.textContent = `viewMount: ${event.detail}`));
+manager.addEventListener("orbViewChange", (event) => {
   log.textContent = `viewChange: ${event.detail.from} → ${event.detail.to}, crumbs: ${manager.crumbs.join(" / ")}`;
 });
 document.querySelectorAll(".set-view").forEach((button) => {
@@ -262,14 +262,14 @@ document.querySelector("#set-restore").addEventListener("click", () => {
 
 **Manual test:**
 - "Show B" switches instantly and logs `viewMount: set-b`.
-- "Go to C" animates and logs `viewChange` with the crumbs.
+- "Go to C" animates and logs `orbViewChange` with the crumbs.
 - "Restore A / B / C" shows View C with the full trail.
 
 ## Lifecycle
 
 Set `init` and `destroy` on a view to run code before it's shown and after it's hidden, for example to load data. Both can return a promise, and the manager waits for it.
 
-`init` runs before the view's template is cloned, so use it to fetch data, and fill in the cloned content from `viewChange` or `viewMount`.
+`init` runs before the view's template is cloned, so use it to fetch data, and fill in the cloned content from `orbViewChange` or `orbViewMount`.
 
 ```js
 const view = document.querySelector("#product-pricing");
@@ -280,7 +280,7 @@ view.init = async () => {
 view.destroy = () => {
   suggestedPrice = undefined;
 };
-manager.addEventListener("viewChange", (event) => {
+manager.addEventListener("orbViewChange", (event) => {
   if (event.detail.to === "product-pricing") {
     manager.querySelector("#pricing-form").price.placeholder = suggestedPrice;
   }

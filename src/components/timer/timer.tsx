@@ -10,7 +10,7 @@ import {
 } from "@stencil/core";
 
 /**
- * A countdown that displays the time remaining and emits `countdownComplete`
+ * A countdown that displays the time remaining and emits `orbCountdownComplete`
  * when it reaches zero.
  */
 @Component({
@@ -26,7 +26,7 @@ export class Timer {
   @Prop() autostart = false;
 
   /** Emitted when the countdown reaches zero. */
-  @Event() countdownComplete: EventEmitter;
+  @Event() orbCountdownComplete: EventEmitter;
 
   @State() remaining = 0;
   private endAt = 0;
@@ -69,7 +69,7 @@ export class Timer {
     if (this.remaining === 0) {
       clearInterval(this.interval);
       this.interval = undefined;
-      this.countdownComplete.emit();
+      this.orbCountdownComplete.emit();
     }
   }
 

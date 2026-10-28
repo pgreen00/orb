@@ -44,14 +44,14 @@ cal.events = [
 // The calendar emits change requests. applyEventChange applies them to your
 // events, including recurrence exceptions, overrides, and series splits.
 let nextId = 0;
-cal.addEventListener("eventCreate", (e) => {
+cal.addEventListener("orbEventCreate", (e) => {
   const event = { ...e.detail.event, id: `new-${++nextId}` };
   cal.events = applyEventChange(cal.events, { ...e.detail, event }, "create");
 });
-cal.addEventListener("eventUpdate", (e) => {
+cal.addEventListener("orbEventUpdate", (e) => {
   cal.events = applyEventChange(cal.events, e.detail, "update");
 });
-cal.addEventListener("eventDelete", (e) => {
+cal.addEventListener("orbEventDelete", (e) => {
   cal.events = applyEventChange(cal.events, e.detail, "delete");
 });
 ```
@@ -135,7 +135,7 @@ Without `calendars`, events use a single implicit calendar and the sidebar shows
 
 ### Reacting to Clicks
 
-`eventClick` fires when an event is clicked, with the occurrence in `event.detail`. The built-in editor opens afterwards. Call `preventDefault()` to handle the click yourself instead.
+`orbEventClick` fires when an event is clicked, with the occurrence in `event.detail`. The built-in editor opens afterwards. Call `preventDefault()` to handle the click yourself instead.
 
 ::: live-code-demo
 
@@ -151,7 +151,7 @@ const output = document.querySelector("#click-output");
 const start = new Date();
 start.setHours(10, 0, 0, 0);
 cal.events = [{ id: "1", title: "Click me", start: start.getTime(), end: start.getTime() + 3600000 }];
-cal.addEventListener("eventClick", (e) => {
+cal.addEventListener("orbEventClick", (e) => {
   e.preventDefault();
   output.textContent = `Clicked: ${e.detail.occurrence.event.title}`;
 });
@@ -165,9 +165,9 @@ When the user creates, edits, drags, resizes, or deletes an event, the calendar 
 
 | Event | Fired when |
 | --- | --- |
-| `eventCreate` | The user saves a new event, after clicking an empty slot or day |
-| `eventUpdate` | The user saves edits, or drags or resizes an event |
-| `eventDelete` | The user deletes an event |
+| `orbEventCreate` | The user saves a new event, after clicking an empty slot or day |
+| `orbEventUpdate` | The user saves edits, or drags or resizes an event |
+| `orbEventDelete` | The user deletes an event |
 
 Each one carries an `OrbCalendarMutation` in `event.detail`:
 
@@ -216,14 +216,14 @@ cal.events = [
 ];
 
 let nextId = 0;
-cal.addEventListener("eventCreate", (e) => {
+cal.addEventListener("orbEventCreate", (e) => {
   const event = { ...e.detail.event, id: `new-${++nextId}` };
   cal.events = applyEventChange(cal.events, { ...e.detail, event }, "create");
 });
-cal.addEventListener("eventUpdate", (e) => {
+cal.addEventListener("orbEventUpdate", (e) => {
   cal.events = applyEventChange(cal.events, e.detail, "update");
 });
-cal.addEventListener("eventDelete", (e) => {
+cal.addEventListener("orbEventDelete", (e) => {
   cal.events = applyEventChange(cal.events, e.detail, "delete");
 });
 
@@ -242,7 +242,7 @@ document.querySelector("#manage-export").addEventListener("click", () => {
 
 ### Read-Only
 
-Set `editable="false"` to turn off creating, editing, dragging, and resizing. `eventClick` still fires. To lock individual events instead, set `readonly: true` on them.
+Set `editable="false"` to turn off creating, editing, dragging, and resizing. `orbEventClick` still fires. To lock individual events instead, set `readonly: true` on them.
 
 ::: live-code-demo
 
@@ -330,10 +330,10 @@ start.setHours(9, 0, 0, 0);
 cal.events = [
   { id: "standup", title: "Standup", start: start.getTime(), end: start.getTime() + 1800000, recurrence: "FREQ=DAILY" },
 ];
-cal.addEventListener("eventUpdate", (e) => {
+cal.addEventListener("orbEventUpdate", (e) => {
   cal.events = applyEventChange(cal.events, e.detail, "update");
 });
-cal.addEventListener("eventDelete", (e) => {
+cal.addEventListener("orbEventDelete", (e) => {
   cal.events = applyEventChange(cal.events, e.detail, "delete");
 });
 ```
@@ -342,9 +342,9 @@ cal.addEventListener("eventDelete", (e) => {
 
 ## Views and Navigation
 
-The calendar has `month` (the default), `week`, and `day` views, switched from its header. `view` is reflected, and `viewChange` fires when the user switches.
+The calendar has `month` (the default), `week`, and `day` views, switched from its header. `view` is reflected, and `orbViewChange` fires when the user switches.
 
-`date` is the anchor the view renders around, in epoch milliseconds, and defaults to now. `dateChange` fires when the user navigates with the header arrows, Today, or the sidebar mini month. You can also call these methods:
+`date` is the anchor the view renders around, in epoch milliseconds, and defaults to now. `orbDateChange` fires when the user navigates with the header arrows, Today, or the sidebar mini month. You can also call these methods:
 
 - `goToToday()`
 - `next()` and `prev()`, which move by a day, week, or month depending on the view
@@ -400,10 +400,10 @@ This example starts the week on Monday and shows 7am to 7pm.
 
 ### Lazy Loading
 
-You don't need to hold every event in memory. `rangeChange` fires on load and whenever the visible range changes, with `{ start, end }` in epoch milliseconds, so you can fetch just that window.
+You don't need to hold every event in memory. `orbRangeChange` fires on load and whenever the visible range changes, with `{ start, end }` in epoch milliseconds, so you can fetch just that window.
 
 ```js
-cal.addEventListener("rangeChange", async (e) => {
+cal.addEventListener("orbRangeChange", async (e) => {
   cal.events = await fetchEvents(e.detail.start, e.detail.end);
 });
 ```

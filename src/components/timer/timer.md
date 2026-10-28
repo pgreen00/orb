@@ -53,7 +53,7 @@ document.querySelector("#timer-restart-button").addEventListener("click", () => 
 
 ### Events
 
-The timer emits `countdownComplete` when the countdown reaches zero.
+The timer emits `orbCountdownComplete` when the countdown reaches zero.
 
 ::: live-code-demo
 
@@ -65,7 +65,7 @@ The timer emits `countdownComplete` when the countdown reaches zero.
 ```javascript
 const timer = document.querySelector("#event-timer");
 const status = document.querySelector("#event-status");
-timer.addEventListener("countdownComplete", () => {
+timer.addEventListener("orbCountdownComplete", () => {
   status.textContent = "Time's up!";
 });
 ```

@@ -148,7 +148,7 @@ Set `max-items` to collapse long trails. When there are more crumbs than `max-it
 
 ### Handling Expansion Yourself
 
-The ellipsis emits `expandClick` with the hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu instead.
+The ellipsis emits `orbExpandClick` with the hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu instead.
 
 ::: live-code-demo
 
@@ -171,7 +171,7 @@ The ellipsis emits `expandClick` with the hidden `<orb-breadcrumb>` elements. Ca
 const crumbs = document.querySelector("#expand-crumbs");
 const prevent = document.querySelector("#expand-prevent");
 const output = document.querySelector("#expand-output");
-crumbs.addEventListener("expandClick", (event) => {
+crumbs.addEventListener("orbExpandClick", (event) => {
   output.textContent = `Hidden: ${event.detail.map((crumb) => crumb.textContent).join(", ")}`;
   if (prevent.checked) event.preventDefault();
 });

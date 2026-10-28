@@ -123,7 +123,7 @@ export class Tabs extends ReadyController {
   /**
    * Removes the tab button and panel for `panel`. If it was the active tab,
    * the next tab becomes active, or the previous one when it was last. Doesn't
-   * emit `tabClose`.
+   * emit `orbTabClose`.
    */
   @Method()
   async closeTab(panel: string) {

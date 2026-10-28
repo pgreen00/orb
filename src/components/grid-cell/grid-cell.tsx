@@ -45,7 +45,7 @@ export class GridCell extends ReadyController {
 
   /**
    * Marks a header cell as sortable. Renders the affordance and reports
-   * `aria-sort`; the grid emits `sortIntent` when it is activated.
+   * `aria-sort`; the grid emits `orbSortIntent` when it is activated.
    */
   @Prop({ reflect: true }) sortable = false;
 

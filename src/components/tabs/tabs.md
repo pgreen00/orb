@@ -32,15 +32,15 @@ Only the active tab is in the Tab order. Tab into the tab bar, then use these ke
 | Left / Right | Previous / next tab, for `top` and `bottom` placements. Flipped in right-to-left pages. |
 | Up / Down | Previous / next tab, for `start` and `end` placements |
 | Home / End | First / last tab |
-| Delete | Closes the tab when `closable` is set. Emits `tabClose` like the close button. |
+| Delete | Closes the tab when `closable` is set. Emits `orbTabClose` like the close button. |
 
 Arrow keys wrap from the last tab to the first and back. When a focused tab closes, focus moves to the tab that becomes active.
 
 ### Closing Tabs
 
-Add `closable` to show a close button on each tab. Clicking it emits a cancelable `tabClose` event from the tab button, with `{ panel }` in `event.detail`. If no listener calls `preventDefault()`, the tab button and its panel are removed. When the active tab closes, the next tab becomes active, or the previous one if it was last.
+Add `closable` to show a close button on each tab. Clicking it emits a cancelable `orbTabClose` event from the tab button, with `{ panel }` in `event.detail`. If no listener calls `preventDefault()`, the tab button and its panel are removed. When the active tab closes, the next tab becomes active, or the previous one if it was last.
 
-Call `closeTab(panel)` on `orb-tabs` to close a tab from code. It doesn't emit `tabClose`.
+Call `closeTab(panel)` on `orb-tabs` to close a tab from code. It doesn't emit `orbTabClose`.
 
 ::: live-code-demo
 
@@ -65,7 +65,7 @@ const tabs = document.querySelector("#close-tabs");
 const guard = document.querySelector("#close-guard");
 const log = document.querySelector("#close-log");
 
-tabs.addEventListener("tabClose", (event) => {
+tabs.addEventListener("orbTabClose", (event) => {
   if (guard.checked && event.detail.panel === "close2") {
     event.preventDefault();
     log.textContent = "Blocked closing Unsaved.";

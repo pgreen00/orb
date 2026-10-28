@@ -64,17 +64,17 @@ export class Overlay extends ReadyController {
   @Prop() trigger?: string;
 
   /** Emits whenever the overlay has opened. Does not emit any data */
-  @Event() present: EventEmitter;
+  @Event() orbPresent: EventEmitter;
 
   /** Emits whenever the overlay has finished closing. Emits the role and optional data object passed to the hide() method. */
-  @Event() dismiss: EventEmitter<OverlayData>;
+  @Event() orbDismiss: EventEmitter<OverlayData>;
 
   /** Emits whenever the overlay is about to close. Emits the role and optional data object passed to the hide() method.
    * If the event is canceled, the overlay will not close.
    */
   @Event({
     cancelable: true
-  }) hideRequest: EventEmitter<OverlayData>;
+  }) orbHideRequest: EventEmitter<OverlayData>;
 
   @Method()
   async show() {
@@ -83,7 +83,7 @@ export class Overlay extends ReadyController {
 
   @Method()
   async hide(role?: string, data?: any) {
-    const ev = this.hideRequest.emit({ role, data });
+    const ev = this.orbHideRequest.emit({ role, data });
     if (!ev.defaultPrevented) {
       this.role = role;
       this.data = data;
@@ -144,13 +144,13 @@ export class Overlay extends ReadyController {
       this.cloneTemplate()
       this.dialogEl.showModal();
       await this.animateDialog(open).finished;
-      this.present.emit();
+      this.orbPresent.emit();
     } else if (!open && this.dialogEl.open) {
       await this.animateDialog(open).finished;
       this.dialogEl.close();
       this.destroyTemplate();
       await this.destroy?.();
-      this.dismiss.emit({ role: this.role, data: this.data });
+      this.orbDismiss.emit({ role: this.role, data: this.data });
       this.role = undefined;
       this.data = undefined;
     }

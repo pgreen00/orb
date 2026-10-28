@@ -45,7 +45,7 @@ export class Toggle extends ReadyController {
   /**
    * Emits the new value whenever toggle is clicked
    */
-  @Event({ bubbles: false }) checkedChange: EventEmitter<boolean>;
+  @Event({ bubbles: false }) orbCheckedChange: EventEmitter<boolean>;
 
   componentWillLoad() {
     this.internals.role = "switch";
@@ -71,7 +71,7 @@ export class Toggle extends ReadyController {
   @Listen("click")
   onClick() {
     this.checked = !this.checked;
-    this.checkedChange.emit(this.checked);
+    this.orbCheckedChange.emit(this.checked);
   }
 
   @Listen("keydown")
@@ -80,7 +80,7 @@ export class Toggle extends ReadyController {
       ev.preventDefault();
       ev.stopPropagation();
       this.checked = !this.checked;
-      this.checkedChange.emit(this.checked);
+      this.orbCheckedChange.emit(this.checked);
     }
   }
 

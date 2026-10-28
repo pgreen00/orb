@@ -58,7 +58,7 @@ export class TabButton {
    * Emitted when the close button is clicked, or Delete is pressed on the tab. Call `preventDefault()` to keep
    * the tab open. Otherwise the tab button and its panel are removed.
    */
-  @Event({ cancelable: true }) tabClose: EventEmitter<TabCloseDetail>;
+  @Event({ cancelable: true }) orbTabClose: EventEmitter<TabCloseDetail>;
 
   private onCloseClick = (e: MouseEvent) => {
     // Keeps orb-tabs from treating the click as selecting this tab.
@@ -75,7 +75,7 @@ export class TabButton {
   };
 
   private requestClose() {
-    const event = this.tabClose.emit({ panel: this.panel });
+    const event = this.orbTabClose.emit({ panel: this.panel });
     if (event.defaultPrevented) return;
 
     const tabs = this.el.closest("orb-tabs");

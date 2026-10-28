@@ -20,7 +20,7 @@ export class Tree {
   @Prop({ mutable: true }) value?: string | string[];
   @Prop() selection: "single" | "multiple" | "leaf" = "leaf";
   @Prop() indentation = false;
-  @Event() valueChange: EventEmitter<string | string[]>;
+  @Event() orbValueChange: EventEmitter<string | string[]>;
 
   private get branches() {
     return Array.from(this.element.querySelectorAll("orb-ti"));
@@ -51,7 +51,7 @@ export class Tree {
 
   @Watch("value")
   valueChanged() {
-    this.valueChange.emit(this.value);
+    this.orbValueChange.emit(this.value);
   }
 
   @Listen("click")

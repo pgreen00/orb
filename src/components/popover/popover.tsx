@@ -131,22 +131,22 @@ export class Popover extends ReadyController {
   /**
    * Emits before the popover starts opening
    */
-  @Event({ bubbles: false }) presentStart: EventEmitter;
+  @Event({ bubbles: false }) orbPresentStart: EventEmitter;
 
   /**
    * Emits when the popover is opened
    */
-  @Event({ bubbles: false }) presentEnd: EventEmitter;
+  @Event({ bubbles: false }) orbPresentEnd: EventEmitter;
 
   /**
    * Emits before the popover starts dismissing
    */
-  @Event({ bubbles: false }) dismissStart: EventEmitter;
+  @Event({ bubbles: false }) orbDismissStart: EventEmitter;
 
   /**
    * Emits when the popover is closed
    */
-  @Event({ bubbles: false }) dismissEnd: EventEmitter;
+  @Event({ bubbles: false }) orbDismissEnd: EventEmitter;
 
   componentWillRender() {
     if (this.triggerElement && this.matchWidth) {
@@ -171,7 +171,7 @@ export class Popover extends ReadyController {
   @Watch("open")
   async handleOpenChange(open: boolean) {
     if (open) {
-      this.presentStart.emit();
+      this.orbPresentStart.emit();
       await this.init?.();
       await this.setPosition();
       this.cleanup = autoUpdate(this.referenceEl, this.containerEl, () => this.setPosition());
@@ -180,9 +180,9 @@ export class Popover extends ReadyController {
         { opacity: [0, 1] },
         { duration: 150, easing: "ease-in-out" },
       ).finished;
-      this.presentEnd.emit();
+      this.orbPresentEnd.emit();
     } else {
-      this.dismissStart.emit();
+      this.orbDismissStart.emit();
       await this.containerEl.animate(
         { opacity: [1, 0] },
         { duration: 150, easing: "ease-in-out" },
@@ -190,7 +190,7 @@ export class Popover extends ReadyController {
       this.containerEl.hidePopover();
       this.cleanup?.();
       await this.destroy?.();
-      this.dismissEnd.emit({
+      this.orbDismissEnd.emit({
         role: this.role,
         data: this.data,
       });

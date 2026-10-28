@@ -15,7 +15,7 @@ Pagination splits a long list of content into pages and lets the user move betwe
 
 :::
 
-Pagination is a navigation control, not a form control. It tracks the current page and emits events, but it doesn't submit a value with a form. Keep `page` in sync with your data by updating it when `pageChange` fires.
+Pagination is a navigation control, not a form control. It tracks the current page and emits events, but it doesn't submit a value with a form. Keep `page` in sync with your data by updating it when `orbPageChange` fires.
 
 Use the `label` attribute to give the control an accessible name. This matters most when more than one pagination appears on the same page.
 
@@ -248,7 +248,7 @@ select.addEventListener("change", () => {
 
 ### Responding to Page Changes
 
-When the user changes the page, `pageChange` fires with `{ page, pageSize }` in `event.detail`. Use it to load the matching data. The component already updates `page` itself, so there's no need to set it again.
+When the user changes the page, `orbPageChange` fires with `{ page, pageSize }` in `event.detail`. Use it to load the matching data. The component already updates `page` itself, so there's no need to set it again.
 
 ::: live-code-demo
 
@@ -262,7 +262,7 @@ await customElements.whenDefined("orb-pagination");
 const pagination = document.querySelector("#change-pagination");
 const output = document.querySelector("#change-output");
 
-pagination.addEventListener("pageChange", (event) => {
+pagination.addEventListener("orbPageChange", (event) => {
   const { page, pageSize } = event.detail;
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, 237);
@@ -278,7 +278,7 @@ pagination.addEventListener("pageChange", (event) => {
 
 ### Setting the Page Programmatically
 
-Set the `page` property to change the page without user interaction. Setting `page` directly doesn't emit `pageChange`. The counter below shows how many events fired, so you can check that.
+Set the `page` property to change the page without user interaction. Setting `page` directly doesn't emit `orbPageChange`. The counter below shows how many events fired, so you can check that.
 
 ::: live-code-demo
 
@@ -298,7 +298,7 @@ const pagination = document.querySelector("#set-pagination");
 const counter = document.querySelector("#set-counter");
 let events = 0;
 
-pagination.addEventListener("pageChange", () => {
+pagination.addEventListener("orbPageChange", () => {
   events += 1;
   counter.textContent = `pageChange events fired: ${events}`;
 });
@@ -318,7 +318,7 @@ document.querySelectorAll(".jump").forEach((button) => {
 
 ### Preventing a Page Change
 
-Call `preventDefault()` on `beforePageChange` to cancel a change, for example to guard against unsaved changes. The page stays where it is and focus stays on the control that was activated.
+Call `preventDefault()` on `orbBeforePageChange` to cancel a change, for example to guard against unsaved changes. The page stays where it is and focus stays on the control that was activated.
 
 ::: live-code-demo
 
@@ -337,14 +337,14 @@ const pagination = document.querySelector("#guard-pagination");
 const toggle = document.querySelector("#guard-toggle");
 const status = document.querySelector("#guard-status");
 
-pagination.addEventListener("beforePageChange", (event) => {
+pagination.addEventListener("orbBeforePageChange", (event) => {
   if (toggle.checked) {
     event.preventDefault();
     status.textContent = `Blocked the change to page ${event.detail.page}`;
   }
 });
 
-pagination.addEventListener("pageChange", (event) => {
+pagination.addEventListener("orbPageChange", (event) => {
   status.textContent = `On page ${event.detail.page}`;
 });
 ```
@@ -372,7 +372,7 @@ Set `href-template` to render page items as links. Use `{page}` as the placehold
 - Inspect the markup. Page items are `<a>` elements with `href="#page-N"`. Previous and next are links too.
 - On page `3`, the previous link should point to `#page-2` and the next link to `#page-4`.
 - On page `1`, the previous control has no `href` and has `aria-disabled="true"`.
-- Clicking a link changes the URL hash. It doesn't call `pageChange`, because the browser handles navigation. You can still cancel the navigation from `beforePageChange`.
+- Clicking a link changes the URL hash. It doesn't call `orbPageChange`, because the browser handles navigation. You can still cancel the navigation from `orbBeforePageChange`.
 
 In JavaScript, `hrefTemplate` can also be a function that receives the page number and returns the URL. Use a function when the URL doesn't follow a simple substitution.
 

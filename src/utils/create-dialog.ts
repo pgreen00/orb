@@ -106,7 +106,7 @@ export const createDialog = (_options: CreateDialogOptions) => {
       input.setAttribute("name", control.name);
       input.value = control.value;
       input.debounce = control.debounce;
-      input.addEventListener("valueChange", control.valueChangeHandler);
+      input.addEventListener("orbValueChange", control.valueChangeHandler);
       controls.append(input);
     });
   }
@@ -135,7 +135,7 @@ export const createDialog = (_options: CreateDialogOptions) => {
   closeButton.addEventListener("click", () => dialog.hide(), { once: true });
   const form = dialog.querySelector("orb-form");
   form.addEventListener("submit", () => dialog.hide(), { once: true });
-  dialog.addEventListener("dismiss", () => dialog.remove(), { once: true });
+  dialog.addEventListener("orbDismiss", () => dialog.remove(), { once: true });
   return [dialog, form] as const;
   */
 };

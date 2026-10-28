@@ -110,19 +110,19 @@ export class Wizard {
    * Emitted before the active step changes. Call `preventDefault()` to stop
    * the change, for example to guard against unsaved data.
    */
-  @Event({ cancelable: true }) beforeStepChange: EventEmitter<WizardStepChangeDetail>;
+  @Event({ cancelable: true }) orbBeforeStepChange: EventEmitter<WizardStepChangeDetail>;
 
   /**
    * Emitted after the active step changes through `next()`, `previous()`,
    * `goTo()`, a click, or a `data-wizard` button. Setting `active` on an item
    * directly doesn't emit it.
    */
-  @Event() stepChange: EventEmitter<WizardStepChangeDetail>;
+  @Event() orbStepChange: EventEmitter<WizardStepChangeDetail>;
 
   /**
    * Emitted when every step that isn't disabled becomes completed
    */
-  @Event() finish: EventEmitter<void>;
+  @Event() orbFinish: EventEmitter<void>;
 
   private allCompleted = false;
   private loaded = false;
@@ -213,7 +213,7 @@ export class Wizard {
 
   /**
    * Goes to a step, given its index or element. Emits a cancelable
-   * `beforeStepChange`, then `stepChange`, and announces the new step to
+   * `orbBeforeStepChange`, then `orbStepChange`, and announces the new step to
    * screen readers. Does nothing if the step doesn't exist, is disabled, or is
    * locked.
    */
@@ -291,11 +291,11 @@ export class Wizard {
       step: target,
       previousStep,
     };
-    if (this.beforeStepChange.emit(detail).defaultPrevented) return;
+    if (this.orbBeforeStepChange.emit(detail).defaultPrevented) return;
 
     items.forEach((item) => (item.active = item === target));
     this.sync();
-    this.stepChange.emit(detail);
+    this.orbStepChange.emit(detail);
     const label = labelOf(target);
     announce(`Step ${index + 1} of ${items.length}${label ? `: ${label}` : ""}`);
   }
@@ -348,7 +348,7 @@ export class Wizard {
     setState("completed", allCompleted);
     setState("loading", items.some((item) => item.loading));
 
-    if (allCompleted && !this.allCompleted && this.loaded) this.finish.emit();
+    if (allCompleted && !this.allCompleted && this.loaded) this.orbFinish.emit();
     this.allCompleted = allCompleted;
   }
 

@@ -49,9 +49,9 @@ export class ShaderCanvas {
   @State() unsupported: boolean = false;
 
   /** Fires once the GPU device is ready and the first frame has rendered. */
-  @Event() ready: EventEmitter<void>;
+  @Event() orbReady: EventEmitter<void>;
   /** Fires when the shader fails to compile/validate or WebGPU is unavailable. */
-  @Event() shaderError: EventEmitter<ShaderErrorDetail>;
+  @Event() orbShaderError: EventEmitter<ShaderErrorDetail>;
 
   private canvas!: HTMLCanvasElement;
   // WebGPU handles are untyped here (project has no @webgpu/types); treat them as opaque.
@@ -283,7 +283,7 @@ fn je_vs_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec
     this.renderFrame();
     if (!this.paused) this.start();
 
-    this.ready.emit();
+    this.orbReady.emit();
   }
 
   private renderFrame() {
@@ -458,7 +458,7 @@ fn je_vs_main(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec
     this.unsupported = !!opts.unsupported;
     this.error = opts.line != null ? `Line ${opts.line}: ${message}` : message;
     this.stop();
-    this.shaderError.emit({
+    this.orbShaderError.emit({
       message,
       line: opts.line,
       unsupported: !!opts.unsupported,

@@ -118,7 +118,7 @@ export class Datepicker {
    * Emitted when the user changes the value. Detail is the new value in epoch
    * milliseconds.
    */
-  @Event() valueChange: EventEmitter<number | undefined>;
+  @Event() orbValueChange: EventEmitter<number | undefined>;
 
   componentWillLoad() {
     this.showValueMonth();
@@ -187,7 +187,7 @@ export class Datepicker {
       seconds: opts.second,
     });
     this.value = newValue.getTime();
-    this.valueChange.emit(this.value);
+    this.orbValueChange.emit(this.value);
   }
 
   private isDisabled(day: Date) {
@@ -486,9 +486,9 @@ export class Datepicker {
         <orb-popover
           arrow
           ref={(el) => (this.popoverEl = el)}
-          onPresentStart={() => (this.timeOpen = true)}
-          onPresentEnd={this.onTimePresentEnd}
-          onDismissStart={this.onTimeDismissStart}
+          onOrbPresentStart={() => (this.timeOpen = true)}
+          onOrbPresentEnd={this.onTimePresentEnd}
+          onOrbDismissStart={this.onTimeDismissStart}
         >
           <button
             slot="trigger"

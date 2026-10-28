@@ -28,8 +28,8 @@ export class Alert {
   @Prop({ reflect: true }) color?: Color;
   @Prop() duration = 0;
   @Prop({ mutable: true, reflect: true }) open = false;
-  @Event() present: EventEmitter;
-  @Event() dismiss: EventEmitter<OverlayData>;
+  @Event() orbPresent: EventEmitter;
+  @Event() orbDismiss: EventEmitter<OverlayData>;
 
   @Watch("open")
   onOpenChange(open: boolean) {
@@ -44,7 +44,7 @@ export class Alert {
       );
       animation.onfinish = () => {
         this.paused = false;
-        this.present.emit();
+        this.orbPresent.emit();
       };
     } else {
       const animation = this.el.animate(
@@ -57,7 +57,7 @@ export class Alert {
       );
       animation.onfinish = () => {
         this.paused = true;
-        this.dismiss.emit({
+        this.orbDismiss.emit({
           role: this.role ?? "manualDismiss",
           data: this.data,
         });
@@ -82,7 +82,7 @@ export class Alert {
   @Method()
   didDismiss() {
     return new Promise<OverlayData>((resolve) => {
-      this.el.addEventListener("dismiss", (e) => resolve(e.detail), {
+      this.el.addEventListener("orbDismiss", (e) => resolve(e.detail), {
         once: true,
       });
     });

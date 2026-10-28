@@ -58,7 +58,7 @@ export class ViewManager {
 
   /**
    * The `id` of the view to show. Defaults to the first view. Setting it
-   * switches views without an animation and emits `viewMount`.
+   * switches views without an animation and emits `orbViewMount`.
    */
   @Prop({ mutable: true }) value?: string;
 
@@ -71,13 +71,13 @@ export class ViewManager {
   /**
    * Emitted after `navigate()` or a `data-view-link` button changes the view
    */
-  @Event({ bubbles: false }) viewChange: EventEmitter<ViewChangeDetail>;
+  @Event({ bubbles: false }) orbViewChange: EventEmitter<ViewChangeDetail>;
 
   /**
    * Emitted when a view is shown without navigating: on load, or when `value`
    * is set
    */
-  @Event({ bubbles: false }) viewMount: EventEmitter<string>;
+  @Event({ bubbles: false }) orbViewMount: EventEmitter<string>;
 
   async componentDidLoad() {
     await customElements.whenDefined("orb-view");
@@ -127,7 +127,7 @@ export class ViewManager {
     this.setValue(id);
     this.navigating = false;
     if (hadFocus) this.focusView(next);
-    this.viewChange.emit({ from: current.id, to: id });
+    this.orbViewChange.emit({ from: current.id, to: id });
   }
 
   /**
@@ -192,7 +192,7 @@ export class ViewManager {
     if (this.crumbs[this.crumbs.length - 1] !== id) this.crumbs = [id];
     if (next.dataset.viewActive === undefined) await this.activate(next);
     this.setValue(id);
-    this.viewMount.emit(id);
+    this.orbViewMount.emit(id);
   }
 
   private async activate(view: HTMLOrbViewElement) {

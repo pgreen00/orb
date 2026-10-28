@@ -132,12 +132,12 @@ export class Pagination {
   /**
    * Emitted when the page is about to change. Call `preventDefault()` to cancel.
    */
-  @Event({ cancelable: true }) beforePageChange: EventEmitter<PageChangeDetail>;
+  @Event({ cancelable: true }) orbBeforePageChange: EventEmitter<PageChangeDetail>;
 
   /**
    * Emitted after the page changes
    */
-  @Event() pageChange: EventEmitter<PageChangeDetail>;
+  @Event() orbPageChange: EventEmitter<PageChangeDetail>;
 
   componentWillLoad() {
     this.syncDisabledState();
@@ -253,7 +253,7 @@ export class Pagination {
 
   /** Returns `false` when a listener canceled the change. */
   private emitBeforePageChange(page: number) {
-    return !this.beforePageChange.emit({ page, pageSize: this.pageSize })
+    return !this.orbBeforePageChange.emit({ page, pageSize: this.pageSize })
       .defaultPrevented;
   }
 
@@ -270,7 +270,7 @@ export class Pagination {
 
     this.focusAfterRender = part;
     this.page = page;
-    this.pageChange.emit({ page, pageSize: this.pageSize });
+    this.orbPageChange.emit({ page, pageSize: this.pageSize });
   }
 
   /** In link mode the browser navigates, so a canceled event stops the navigation. */

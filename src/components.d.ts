@@ -136,7 +136,7 @@ export namespace Components {
      * all-day and recurring (RRULE) events with per-occurrence editing, drag and
      * resize, and ICS export. Times are in the browser's local time zone.
      * The host owns the `events` array. The calendar emits change requests
-     * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+     * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
      * `applyEventChange` helper and assign the result back to `events`.
      */
     interface OrbCalendar {
@@ -502,7 +502,7 @@ export namespace Components {
          */
         "rowSpan"?: number;
         /**
-          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `sortIntent` when it is activated.
+          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `orbSortIntent` when it is activated.
           * @default false
          */
         "sortable": boolean;
@@ -584,7 +584,7 @@ export namespace Components {
          */
         "rowCount"?: number;
         /**
-          * Keys of the currently selected rows. Controlled: the grid requests changes through `selectIntent` but never writes this itself.
+          * Keys of the currently selected rows. Controlled: the grid requests changes through `orbSelectIntent` but never writes this itself.
           * @default []
          */
         "selected": string[];
@@ -1180,7 +1180,7 @@ export namespace Components {
          */
         "closable": boolean;
         /**
-          * Removes the tab button and panel for `panel`. If it was the active tab, the next tab becomes active, or the previous one when it was last. Doesn't emit `tabClose`.
+          * Removes the tab button and panel for `panel`. If it was the active tab, the next tab becomes active, or the previous one when it was last. Doesn't emit `orbTabClose`.
          */
         "closeTab": (panel: string) => Promise<void>;
         /**
@@ -1253,7 +1253,7 @@ export namespace Components {
         "value"?: string;
     }
     /**
-     * A countdown that displays the time remaining and emits `countdownComplete`
+     * A countdown that displays the time remaining and emits `orbCountdownComplete`
      * when it reaches zero.
      */
     interface OrbTimer {
@@ -1427,7 +1427,7 @@ export namespace Components {
          */
         "navigate": (id: string, options?: ViewNavigateOptions) => Promise<void>;
         /**
-          * The `id` of the view to show. Defaults to the first view. Setting it switches views without an animation and emits `viewMount`.
+          * The `id` of the view to show. Defaults to the first view. Setting it switches views without an animation and emits `orbViewMount`.
          */
         "value"?: string;
     }
@@ -1444,7 +1444,7 @@ export namespace Components {
          */
         "clickable": boolean;
         /**
-          * Goes to a step, given its index or element. Emits a cancelable `beforeStepChange`, then `stepChange`, and announces the new step to screen readers. Does nothing if the step doesn't exist, is disabled, or is locked.
+          * Goes to a step, given its index or element. Emits a cancelable `orbBeforeStepChange`, then `orbStepChange`, and announces the new step to screen readers. Does nothing if the step doesn't exist, is disabled, or is locked.
          */
         "goTo": (step: number | HTMLOrbWizardItemElement) => Promise<void>;
         /**
@@ -1606,8 +1606,8 @@ declare global {
         new (): HTMLOrbAccordionElement;
     };
     interface HTMLOrbAlertElementEventMap {
-        "present": any;
-        "dismiss": OverlayData;
+        "orbPresent": any;
+        "orbDismiss": OverlayData;
     }
     interface HTMLOrbAlertElement extends Components.OrbAlert, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbAlertElementEventMap>(type: K, listener: (this: HTMLOrbAlertElement, ev: OrbAlertCustomEvent<HTMLOrbAlertElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1635,7 +1635,7 @@ declare global {
         new (): HTMLOrbBreadcrumbElement;
     };
     interface HTMLOrbBreadcrumbsElementEventMap {
-        "expandClick": HTMLOrbBreadcrumbElement[];
+        "orbExpandClick": HTMLOrbBreadcrumbElement[];
     }
     /**
      * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
@@ -1671,20 +1671,20 @@ declare global {
         new (): HTMLOrbButtonGroupElement;
     };
     interface HTMLOrbCalendarElementEventMap {
-        "viewChange": OrbCalendarView;
-        "dateChange": number;
-        "rangeChange": OrbCalendarRange;
-        "eventClick": OrbCalendarEventClickDetail;
-        "eventCreate": OrbCalendarMutation;
-        "eventUpdate": OrbCalendarMutation;
-        "eventDelete": OrbCalendarMutation;
+        "orbViewChange": OrbCalendarView;
+        "orbDateChange": number;
+        "orbRangeChange": OrbCalendarRange;
+        "orbEventClick": OrbCalendarEventClickDetail;
+        "orbEventCreate": OrbCalendarMutation;
+        "orbEventUpdate": OrbCalendarMutation;
+        "orbEventDelete": OrbCalendarMutation;
     }
     /**
      * A full calendar with day, week, and month views, multiple named calendars,
      * all-day and recurring (RRULE) events with per-occurrence editing, drag and
      * resize, and ICS export. Times are in the browser's local time zone.
      * The host owns the `events` array. The calendar emits change requests
-     * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+     * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
      * `applyEventChange` helper and assign the result back to `events`.
      */
     interface HTMLOrbCalendarElement extends Components.OrbCalendar, HTMLStencilElement {
@@ -1720,7 +1720,7 @@ declare global {
         new (): HTMLOrbChannelElement;
     };
     interface HTMLOrbCheckboxElementEventMap {
-        "checkedChange": "true" | "false" | "mixed";
+        "orbCheckedChange": "true" | "false" | "mixed";
     }
     interface HTMLOrbCheckboxElement extends Components.OrbCheckbox, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbCheckboxElementEventMap>(type: K, listener: (this: HTMLOrbCheckboxElement, ev: OrbCheckboxCustomEvent<HTMLOrbCheckboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1776,7 +1776,7 @@ declare global {
         new (): HTMLOrbCopyButtonElement;
     };
     interface HTMLOrbDatepickerElementEventMap {
-        "valueChange": number | undefined;
+        "orbValueChange": number | undefined;
     }
     /**
      * An inline date and time picker. It renders a month calendar and/or time
@@ -1807,8 +1807,8 @@ declare global {
         new (): HTMLOrbDawElement;
     };
     interface HTMLOrbDetailsElementEventMap {
-        "expand": any;
-        "collapse": any;
+        "orbExpand": any;
+        "orbCollapse": any;
     }
     interface HTMLOrbDetailsElement extends Components.OrbDetails, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbDetailsElementEventMap>(type: K, listener: (this: HTMLOrbDetailsElement, ev: OrbDetailsCustomEvent<HTMLOrbDetailsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1843,8 +1843,8 @@ declare global {
         new (): HTMLOrbEqElement;
     };
     interface HTMLOrbFileInputElementEventMap {
-        "input": void;
-        "change": void;
+        "orbInput": void;
+        "orbChange": void;
     }
     interface HTMLOrbFileInputElement extends Components.OrbFileInput, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbFileInputElementEventMap>(type: K, listener: (this: HTMLOrbFileInputElement, ev: OrbFileInputCustomEvent<HTMLOrbFileInputElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1887,11 +1887,11 @@ declare global {
         new (): HTMLOrbGrElement;
     };
     interface HTMLOrbGridElementEventMap {
-        "sortIntent": SortIntent;
-        "selectIntent": SelectIntent;
-        "activate": ActivateIntent;
-        "expand": ExpandIntent;
-        "resizeIntent": ResizeIntent;
+        "orbSortIntent": SortIntent;
+        "orbSelectIntent": SelectIntent;
+        "orbActivate": ActivateIntent;
+        "orbExpand": ExpandIntent;
+        "orbResizeIntent": ResizeIntent;
     }
     /**
      * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
@@ -1953,7 +1953,7 @@ declare global {
         new (): HTMLOrbMaskInputElement;
     };
     interface HTMLOrbMenuElementEventMap {
-        "action": { checked: boolean; value?: string };
+        "orbAction": { checked: boolean; value?: string };
     }
     interface HTMLOrbMenuElement extends Components.OrbMenu, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbMenuElementEventMap>(type: K, listener: (this: HTMLOrbMenuElement, ev: OrbMenuCustomEvent<HTMLOrbMenuElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2006,9 +2006,9 @@ declare global {
         new (): HTMLOrbOutputElement;
     };
     interface HTMLOrbOverlayElementEventMap {
-        "present": any;
-        "dismiss": OverlayData1;
-        "hideRequest": OverlayData1;
+        "orbPresent": any;
+        "orbDismiss": OverlayData1;
+        "orbHideRequest": OverlayData1;
     }
     interface HTMLOrbOverlayElement extends Components.OrbOverlay, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbOverlayElementEventMap>(type: K, listener: (this: HTMLOrbOverlayElement, ev: OrbOverlayCustomEvent<HTMLOrbOverlayElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2025,8 +2025,8 @@ declare global {
         new (): HTMLOrbOverlayElement;
     };
     interface HTMLOrbPaginationElementEventMap {
-        "beforePageChange": PageChangeDetail;
-        "pageChange": PageChangeDetail;
+        "orbBeforePageChange": PageChangeDetail;
+        "orbPageChange": PageChangeDetail;
     }
     /**
      * Splits a long list into pages and lets the user move between them. Renders
@@ -2068,10 +2068,10 @@ declare global {
         new (): HTMLOrbPlaceholderElement;
     };
     interface HTMLOrbPopoverElementEventMap {
-        "presentStart": any;
-        "presentEnd": any;
-        "dismissStart": any;
-        "dismissEnd": any;
+        "orbPresentStart": any;
+        "orbPresentEnd": any;
+        "orbDismissStart": any;
+        "orbDismissEnd": any;
     }
     interface HTMLOrbPopoverElement extends Components.OrbPopover, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbPopoverElementEventMap>(type: K, listener: (this: HTMLOrbPopoverElement, ev: OrbPopoverCustomEvent<HTMLOrbPopoverElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2094,7 +2094,7 @@ declare global {
         new (): HTMLOrbRadioElement;
     };
     interface HTMLOrbRadioGroupElementEventMap {
-        "valueChange": any;
+        "orbValueChange": any;
     }
     interface HTMLOrbRadioGroupElement extends Components.OrbRadioGroup, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbRadioGroupElementEventMap>(type: K, listener: (this: HTMLOrbRadioGroupElement, ev: OrbRadioGroupCustomEvent<HTMLOrbRadioGroupElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2127,9 +2127,9 @@ declare global {
         new (): HTMLOrbRelativeTimeElement;
     };
     interface HTMLOrbRichTextElementEventMap {
-        "editorChange": EditorChangeEvent;
-        "editorFocus": FocusEvent;
-        "editorBlur": FocusEvent;
+        "orbEditorChange": EditorChangeEvent;
+        "orbEditorFocus": FocusEvent;
+        "orbEditorBlur": FocusEvent;
     }
     interface HTMLOrbRichTextElement extends Components.OrbRichText, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbRichTextElementEventMap>(type: K, listener: (this: HTMLOrbRichTextElement, ev: OrbRichTextCustomEvent<HTMLOrbRichTextElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2146,8 +2146,8 @@ declare global {
         new (): HTMLOrbRichTextElement;
     };
     interface HTMLOrbShaderCanvasElementEventMap {
-        "ready": void;
-        "shaderError": ShaderErrorDetail;
+        "orbReady": void;
+        "orbShaderError": ShaderErrorDetail;
     }
     /**
      * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
@@ -2195,7 +2195,7 @@ declare global {
         new (): HTMLOrbSynthElement;
     };
     interface HTMLOrbTabButtonElementEventMap {
-        "tabClose": TabCloseDetail;
+        "orbTabClose": TabCloseDetail;
     }
     /**
      * The host is a plain wrapper. The element with `role="tab"` is inside the
@@ -2256,10 +2256,10 @@ declare global {
         new (): HTMLOrbTiElement;
     };
     interface HTMLOrbTimerElementEventMap {
-        "countdownComplete": any;
+        "orbCountdownComplete": any;
     }
     /**
-     * A countdown that displays the time remaining and emits `countdownComplete`
+     * A countdown that displays the time remaining and emits `orbCountdownComplete`
      * when it reaches zero.
      */
     interface HTMLOrbTimerElement extends Components.OrbTimer, HTMLStencilElement {
@@ -2283,7 +2283,7 @@ declare global {
         new (): HTMLOrbTocElement;
     };
     interface HTMLOrbToggleElementEventMap {
-        "checkedChange": boolean;
+        "orbCheckedChange": boolean;
     }
     interface HTMLOrbToggleElement extends Components.OrbToggle, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbToggleElementEventMap>(type: K, listener: (this: HTMLOrbToggleElement, ev: OrbToggleCustomEvent<HTMLOrbToggleElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2312,7 +2312,7 @@ declare global {
         new (): HTMLOrbTooltipElement;
     };
     interface HTMLOrbTreeElementEventMap {
-        "valueChange": string | string[];
+        "orbValueChange": string | string[];
     }
     interface HTMLOrbTreeElement extends Components.OrbTree, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbTreeElementEventMap>(type: K, listener: (this: HTMLOrbTreeElement, ev: OrbTreeCustomEvent<HTMLOrbTreeElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2341,8 +2341,8 @@ declare global {
         new (): HTMLOrbViewElement;
     };
     interface HTMLOrbViewManagerElementEventMap {
-        "viewChange": ViewChangeDetail;
-        "viewMount": string;
+        "orbViewChange": ViewChangeDetail;
+        "orbViewMount": string;
     }
     /**
      * Manages a set of `orb-view` children, showing one at a time. Use it for
@@ -2368,9 +2368,9 @@ declare global {
         new (): HTMLOrbViewManagerElement;
     };
     interface HTMLOrbWizardElementEventMap {
-        "beforeStepChange": WizardStepChangeDetail;
-        "stepChange": WizardStepChangeDetail;
-        "finish": void;
+        "orbBeforeStepChange": WizardStepChangeDetail;
+        "orbStepChange": WizardStepChangeDetail;
+        "orbFinish": void;
     }
     /**
      * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
@@ -2495,8 +2495,8 @@ declare namespace LocalJSX {
           * @default 0
          */
         "duration"?: number;
-        "onDismiss"?: (event: OrbAlertCustomEvent<OverlayData>) => void;
-        "onPresent"?: (event: OrbAlertCustomEvent<any>) => void;
+        "onOrbDismiss"?: (event: OrbAlertCustomEvent<OverlayData>) => void;
+        "onOrbPresent"?: (event: OrbAlertCustomEvent<any>) => void;
         /**
           * @default false
          */
@@ -2538,7 +2538,7 @@ declare namespace LocalJSX {
         /**
           * Emitted when the collapsed-crumbs button is activated. The detail is the hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu.
          */
-        "onExpandClick"?: (event: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbElement[]>) => void;
+        "onOrbExpandClick"?: (event: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbElement[]>) => void;
     }
     interface OrbButton {
         /**
@@ -2590,7 +2590,7 @@ declare namespace LocalJSX {
      * all-day and recurring (RRULE) events with per-occurrence editing, drag and
      * resize, and ICS export. Times are in the browser's local time zone.
      * The host owns the `events` array. The calendar emits change requests
-     * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+     * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
      * `applyEventChange` helper and assign the result back to `events`.
      */
     interface OrbCalendar {
@@ -2627,31 +2627,31 @@ declare namespace LocalJSX {
         /**
           * Emitted when the user changes the anchor date
          */
-        "onDateChange"?: (event: OrbCalendarCustomEvent<number>) => void;
+        "onOrbDateChange"?: (event: OrbCalendarCustomEvent<number>) => void;
         /**
           * Emitted when an event is clicked. Call `preventDefault()` to skip the built-in editor.
          */
-        "onEventClick"?: (event: OrbCalendarCustomEvent<OrbCalendarEventClickDetail>) => void;
+        "onOrbEventClick"?: (event: OrbCalendarCustomEvent<OrbCalendarEventClickDetail>) => void;
         /**
           * Emitted when the user saves a new event
          */
-        "onEventCreate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        "onOrbEventCreate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
         /**
           * Emitted when the user deletes an event
          */
-        "onEventDelete"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        "onOrbEventDelete"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
         /**
           * Emitted when the user edits, drags, or resizes an event
          */
-        "onEventUpdate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        "onOrbEventUpdate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
         /**
           * Emitted on load and whenever the visible range changes. Useful for lazy loading events.
          */
-        "onRangeChange"?: (event: OrbCalendarCustomEvent<OrbCalendarRange>) => void;
+        "onOrbRangeChange"?: (event: OrbCalendarCustomEvent<OrbCalendarRange>) => void;
         /**
           * Emitted when the user changes the view
          */
-        "onViewChange"?: (event: OrbCalendarCustomEvent<OrbCalendarView>) => void;
+        "onOrbViewChange"?: (event: OrbCalendarCustomEvent<OrbCalendarView>) => void;
         /**
           * Hour scrolled into view in day and week views
           * @default 8
@@ -2737,7 +2737,7 @@ declare namespace LocalJSX {
         /**
           * Emits the current value whenever it's state changes
          */
-        "onCheckedChange"?: (event: OrbCheckboxCustomEvent<"true" | "false" | "mixed">) => void;
+        "onOrbCheckedChange"?: (event: OrbCheckboxCustomEvent<"true" | "false" | "mixed">) => void;
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
@@ -2839,7 +2839,7 @@ declare namespace LocalJSX {
         /**
           * Emitted when the user changes the value. Detail is the new value in epoch milliseconds.
          */
-        "onValueChange"?: (event: OrbDatepickerCustomEvent<number | undefined>) => void;
+        "onOrbValueChange"?: (event: OrbDatepickerCustomEvent<number | undefined>) => void;
         /**
           * Which controls to show: a calendar (`date`), a calendar and time (`datetime`), or just time (`time`)
           * @default "datetime"
@@ -2861,8 +2861,8 @@ declare namespace LocalJSX {
           * @default false
          */
         "iconToggle"?: boolean;
-        "onCollapse"?: (event: OrbDetailsCustomEvent<any>) => void;
-        "onExpand"?: (event: OrbDetailsCustomEvent<any>) => void;
+        "onOrbCollapse"?: (event: OrbDetailsCustomEvent<any>) => void;
+        "onOrbExpand"?: (event: OrbDetailsCustomEvent<any>) => void;
         /**
           * @default false
          */
@@ -2926,11 +2926,11 @@ declare namespace LocalJSX {
         /**
           * Emitted when files are added or removed
          */
-        "onChange"?: (event: OrbFileInputCustomEvent<void>) => void;
+        "onOrbChange"?: (event: OrbFileInputCustomEvent<void>) => void;
         /**
           * Emitted when files are added or removed
          */
-        "onInput"?: (event: OrbFileInputCustomEvent<void>) => void;
+        "onOrbInput"?: (event: OrbFileInputCustomEvent<void>) => void;
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
@@ -2986,7 +2986,7 @@ declare namespace LocalJSX {
          */
         "rowSpan"?: number;
         /**
-          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `sortIntent` when it is activated.
+          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `orbSortIntent` when it is activated.
           * @default false
          */
         "sortable"?: boolean;
@@ -3066,29 +3066,29 @@ declare namespace LocalJSX {
         /**
           * A row or cell was activated by double click or Enter. Cancelable: preventing it stops focus moving into a cell that holds its own focusable content.
          */
-        "onActivate"?: (event: OrbGridCustomEvent<ActivateIntent>) => void;
+        "onOrbActivate"?: (event: OrbGridCustomEvent<ActivateIntent>) => void;
         /**
           * Requests a row be expanded or collapsed
          */
-        "onExpand"?: (event: OrbGridCustomEvent<ExpandIntent>) => void;
+        "onOrbExpand"?: (event: OrbGridCustomEvent<ExpandIntent>) => void;
         /**
           * Requests a new column width
          */
-        "onResizeIntent"?: (event: OrbGridCustomEvent<ResizeIntent>) => void;
+        "onOrbResizeIntent"?: (event: OrbGridCustomEvent<ResizeIntent>) => void;
         /**
           * Requests a new selection. Nothing changes until `selected` is updated.
          */
-        "onSelectIntent"?: (event: OrbGridCustomEvent<SelectIntent>) => void;
+        "onOrbSelectIntent"?: (event: OrbGridCustomEvent<SelectIntent>) => void;
         /**
           * Requests a new sort. Nothing changes until `sort` is updated.
          */
-        "onSortIntent"?: (event: OrbGridCustomEvent<SortIntent>) => void;
+        "onOrbSortIntent"?: (event: OrbGridCustomEvent<SortIntent>) => void;
         /**
           * Total rows across every page, for `aria-rowcount`. Use -1 when unknown.
          */
         "rowCount"?: number;
         /**
-          * Keys of the currently selected rows. Controlled: the grid requests changes through `selectIntent` but never writes this itself.
+          * Keys of the currently selected rows. Controlled: the grid requests changes through `orbSelectIntent` but never writes this itself.
           * @default []
          */
         "selected"?: string[];
@@ -3171,7 +3171,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "bar"?: boolean;
-        "onAction"?: (event: OrbMenuCustomEvent<{ checked: boolean; value?: string }>) => void;
+        "onOrbAction"?: (event: OrbMenuCustomEvent<{ checked: boolean; value?: string }>) => void;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -3221,15 +3221,15 @@ declare namespace LocalJSX {
         /**
           * Emits whenever the overlay has finished closing. Emits the role and optional data object passed to the hide() method.
          */
-        "onDismiss"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
+        "onOrbDismiss"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
         /**
           * Emits whenever the overlay is about to close. Emits the role and optional data object passed to the hide() method. If the event is canceled, the overlay will not close.
          */
-        "onHideRequest"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
+        "onOrbHideRequest"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
         /**
           * Emits whenever the overlay has opened. Does not emit any data
          */
-        "onPresent"?: (event: OrbOverlayCustomEvent<any>) => void;
+        "onOrbPresent"?: (event: OrbOverlayCustomEvent<any>) => void;
         /**
           * Opens and closes modal
           * @default false
@@ -3296,11 +3296,11 @@ declare namespace LocalJSX {
         /**
           * Emitted when the page is about to change. Call `preventDefault()` to cancel.
          */
-        "onBeforePageChange"?: (event: OrbPaginationCustomEvent<PageChangeDetail>) => void;
+        "onOrbBeforePageChange"?: (event: OrbPaginationCustomEvent<PageChangeDetail>) => void;
         /**
           * Emitted after the page changes
          */
-        "onPageChange"?: (event: OrbPaginationCustomEvent<PageChangeDetail>) => void;
+        "onOrbPageChange"?: (event: OrbPaginationCustomEvent<PageChangeDetail>) => void;
         /**
           * The current page, starting at 1
           * @default 1
@@ -3438,19 +3438,19 @@ declare namespace LocalJSX {
         /**
           * Emits when the popover is closed
          */
-        "onDismissEnd"?: (event: OrbPopoverCustomEvent<any>) => void;
+        "onOrbDismissEnd"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits before the popover starts dismissing
          */
-        "onDismissStart"?: (event: OrbPopoverCustomEvent<any>) => void;
+        "onOrbDismissStart"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits when the popover is opened
          */
-        "onPresentEnd"?: (event: OrbPopoverCustomEvent<any>) => void;
+        "onOrbPresentEnd"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Emits before the popover starts opening
          */
-        "onPresentStart"?: (event: OrbPopoverCustomEvent<any>) => void;
+        "onOrbPresentStart"?: (event: OrbPopoverCustomEvent<any>) => void;
         /**
           * Where the popover should be placed
          */
@@ -3510,7 +3510,7 @@ declare namespace LocalJSX {
         /**
           * Emits the selected value whenever it changes
          */
-        "onValueChange"?: (event: OrbRadioGroupCustomEvent<any>) => void;
+        "onOrbValueChange"?: (event: OrbRadioGroupCustomEvent<any>) => void;
         /**
           * Value the form will reset to. Defaults to initial value if not specified
          */
@@ -3564,9 +3564,9 @@ declare namespace LocalJSX {
           * @default "200px"
          */
         "minHeight"?: string;
-        "onEditorBlur"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
-        "onEditorChange"?: (event: OrbRichTextCustomEvent<EditorChangeEvent>) => void;
-        "onEditorFocus"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
+        "onOrbEditorBlur"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
+        "onOrbEditorChange"?: (event: OrbRichTextCustomEvent<EditorChangeEvent>) => void;
+        "onOrbEditorFocus"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
         /**
           * @default "Start typing..."
          */
@@ -3609,11 +3609,11 @@ declare namespace LocalJSX {
         /**
           * Fires once the GPU device is ready and the first frame has rendered.
          */
-        "onReady"?: (event: OrbShaderCanvasCustomEvent<void>) => void;
+        "onOrbReady"?: (event: OrbShaderCanvasCustomEvent<void>) => void;
         /**
           * Fires when the shader fails to compile/validate or WebGPU is unavailable.
          */
-        "onShaderError"?: (event: OrbShaderCanvasCustomEvent<ShaderErrorDetail>) => void;
+        "onOrbShaderError"?: (event: OrbShaderCanvasCustomEvent<ShaderErrorDetail>) => void;
         /**
           * Freezes time and stops the render loop while keeping the last frame on screen.
           * @default false
@@ -3697,7 +3697,7 @@ declare namespace LocalJSX {
         /**
           * Emitted when the close button is clicked, or Delete is pressed on the tab. Call `preventDefault()` to keep the tab open. Otherwise the tab button and its panel are removed.
          */
-        "onTabClose"?: (event: OrbTabButtonCustomEvent<TabCloseDetail>) => void;
+        "onOrbTabClose"?: (event: OrbTabButtonCustomEvent<TabCloseDetail>) => void;
         "panel"?: string;
     }
     /**
@@ -3796,7 +3796,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
-     * A countdown that displays the time remaining and emits `countdownComplete`
+     * A countdown that displays the time remaining and emits `orbCountdownComplete`
      * when it reaches zero.
      */
     interface OrbTimer {
@@ -3813,7 +3813,7 @@ declare namespace LocalJSX {
         /**
           * Emitted when the countdown reaches zero.
          */
-        "onCountdownComplete"?: (event: OrbTimerCustomEvent<any>) => void;
+        "onOrbCountdownComplete"?: (event: OrbTimerCustomEvent<any>) => void;
     }
     interface OrbToc {
     }
@@ -3847,7 +3847,7 @@ declare namespace LocalJSX {
         /**
           * Emits the new value whenever toggle is clicked
          */
-        "onCheckedChange"?: (event: OrbToggleCustomEvent<boolean>) => void;
+        "onOrbCheckedChange"?: (event: OrbToggleCustomEvent<boolean>) => void;
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
@@ -3897,7 +3897,7 @@ declare namespace LocalJSX {
           * @default false
          */
         "indentation"?: boolean;
-        "onValueChange"?: (event: OrbTreeCustomEvent<string | string[]>) => void;
+        "onOrbValueChange"?: (event: OrbTreeCustomEvent<string | string[]>) => void;
         /**
           * @default "leaf"
          */
@@ -3977,13 +3977,13 @@ declare namespace LocalJSX {
         /**
           * Emitted after `navigate()` or a `data-view-link` button changes the view
          */
-        "onViewChange"?: (event: OrbViewManagerCustomEvent<ViewChangeDetail>) => void;
+        "onOrbViewChange"?: (event: OrbViewManagerCustomEvent<ViewChangeDetail>) => void;
         /**
           * Emitted when a view is shown without navigating: on load, or when `value` is set
          */
-        "onViewMount"?: (event: OrbViewManagerCustomEvent<string>) => void;
+        "onOrbViewMount"?: (event: OrbViewManagerCustomEvent<string>) => void;
         /**
-          * The `id` of the view to show. Defaults to the first view. Setting it switches views without an animation and emits `viewMount`.
+          * The `id` of the view to show. Defaults to the first view. Setting it switches views without an animation and emits `orbViewMount`.
          */
         "value"?: string;
     }
@@ -4011,15 +4011,15 @@ declare namespace LocalJSX {
         /**
           * Emitted before the active step changes. Call `preventDefault()` to stop the change, for example to guard against unsaved data.
          */
-        "onBeforeStepChange"?: (event: OrbWizardCustomEvent<WizardStepChangeDetail>) => void;
+        "onOrbBeforeStepChange"?: (event: OrbWizardCustomEvent<WizardStepChangeDetail>) => void;
         /**
           * Emitted when every step that isn't disabled becomes completed
          */
-        "onFinish"?: (event: OrbWizardCustomEvent<void>) => void;
+        "onOrbFinish"?: (event: OrbWizardCustomEvent<void>) => void;
         /**
           * Emitted after the active step changes through `next()`, `previous()`, `goTo()`, a click, or a `data-wizard` button. Setting `active` on an item directly doesn't emit it.
          */
-        "onStepChange"?: (event: OrbWizardCustomEvent<WizardStepChangeDetail>) => void;
+        "onOrbStepChange"?: (event: OrbWizardCustomEvent<WizardStepChangeDetail>) => void;
         /**
           * Layout direction. `auto` lays steps out in a row and stacks them when there's less than about 6em of width per step.
           * @default "horizontal"
@@ -4530,7 +4530,7 @@ declare module "@stencil/core" {
              * all-day and recurring (RRULE) events with per-occurrence editing, drag and
              * resize, and ICS export. Times are in the browser's local time zone.
              * The host owns the `events` array. The calendar emits change requests
-             * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+             * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
              * `applyEventChange` helper and assign the result back to `events`.
              */
             "orb-calendar": LocalJSX.IntrinsicElements["orb-calendar"] & JSXBase.HTMLAttributes<HTMLOrbCalendarElement>;
@@ -4661,7 +4661,7 @@ declare module "@stencil/core" {
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
             "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;
             /**
-             * A countdown that displays the time remaining and emits `countdownComplete`
+             * A countdown that displays the time remaining and emits `orbCountdownComplete`
              * when it reaches zero.
              */
             "orb-timer": LocalJSX.IntrinsicElements["orb-timer"] & JSXBase.HTMLAttributes<HTMLOrbTimerElement>;

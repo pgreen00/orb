@@ -62,7 +62,7 @@ export class Checkbox extends ReadyController {
   /**
    * Emits the current value whenever it's state changes
    */
-  @Event({ bubbles: false }) checkedChange: EventEmitter<
+  @Event({ bubbles: false }) orbCheckedChange: EventEmitter<
     "true" | "false" | "mixed"
   >;
 
@@ -126,7 +126,7 @@ export class Checkbox extends ReadyController {
     } else {
       this.checked = "false";
     }
-    this.checkedChange.emit(this.checked);
+    this.orbCheckedChange.emit(this.checked);
   }
 
   render() {

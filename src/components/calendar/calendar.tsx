@@ -40,7 +40,7 @@ const HOUR = 60 * 60 * 1000;
  * resize, and ICS export. Times are in the browser's local time zone.
  *
  * The host owns the `events` array. The calendar emits change requests
- * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+ * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
  * `applyEventChange` helper and assign the result back to `events`.
  *
  * @part header - The top toolbar
@@ -95,26 +95,26 @@ export class Calendar {
   @Prop() showSidebar = true;
 
   /** Emitted when the user changes the view */
-  @Event({ bubbles: false }) viewChange: EventEmitter<OrbCalendarView>;
+  @Event({ bubbles: false }) orbViewChange: EventEmitter<OrbCalendarView>;
 
   /** Emitted when the user changes the anchor date */
-  @Event({ bubbles: false }) dateChange: EventEmitter<number>;
+  @Event({ bubbles: false }) orbDateChange: EventEmitter<number>;
 
   /** Emitted on load and whenever the visible range changes. Useful for lazy loading events. */
-  @Event({ bubbles: false }) rangeChange: EventEmitter<OrbCalendarRange>;
+  @Event({ bubbles: false }) orbRangeChange: EventEmitter<OrbCalendarRange>;
 
   /** Emitted when an event is clicked. Call `preventDefault()` to skip the built-in editor. */
   @Event({ bubbles: false, cancelable: true })
-  eventClick: EventEmitter<OrbCalendarEventClickDetail>;
+  orbEventClick: EventEmitter<OrbCalendarEventClickDetail>;
 
   /** Emitted when the user saves a new event */
-  @Event({ bubbles: false }) eventCreate: EventEmitter<OrbCalendarMutation>;
+  @Event({ bubbles: false }) orbEventCreate: EventEmitter<OrbCalendarMutation>;
 
   /** Emitted when the user edits, drags, or resizes an event */
-  @Event({ bubbles: false }) eventUpdate: EventEmitter<OrbCalendarMutation>;
+  @Event({ bubbles: false }) orbEventUpdate: EventEmitter<OrbCalendarMutation>;
 
   /** Emitted when the user deletes an event */
-  @Event({ bubbles: false }) eventDelete: EventEmitter<OrbCalendarMutation>;
+  @Event({ bubbles: false }) orbEventDelete: EventEmitter<OrbCalendarMutation>;
 
   /** Re-render tick for the now-line */
   @State() now = Date.now();
@@ -187,7 +187,7 @@ export class Calendar {
       range.end !== this.lastRange.end
     ) {
       this.lastRange = range;
-      this.rangeChange.emit(range);
+      this.orbRangeChange.emit(range);
     }
   }
 
@@ -332,12 +332,12 @@ export class Calendar {
   private setView = (view: OrbCalendarView) => {
     if (view === this.view) return;
     this.view = view;
-    this.viewChange.emit(view);
+    this.orbViewChange.emit(view);
   };
 
   private setDate = (date: number) => {
     this.date = date;
-    this.dateChange.emit(date);
+    this.orbDateChange.emit(date);
   };
 
   private isHidden = (cal: OrbCalendarSource) =>
@@ -396,7 +396,7 @@ export class Calendar {
 
   private onEventClick = (occ: OrbCalendarOccurrence, ev: MouseEvent) => {
     if (Date.now() - this.lastInteractEnd < 300) return;
-    const emitted = this.eventClick.emit({ occurrence: occ, nativeEvent: ev });
+    const emitted = this.orbEventClick.emit({ occurrence: occ, nativeEvent: ev });
     if (emitted.defaultPrevented || !this.editable || occ.event.readonly) return;
     this.editorEvent = { ...occ.event, start: occ.start, end: occ.end };
     this.editorMode = "edit";
@@ -449,13 +449,13 @@ export class Calendar {
     if (occ?.isRecurring) {
       const scope = await this.promptScope("edit");
       if (!scope) return false;
-      this.eventUpdate.emit({
+      this.orbEventUpdate.emit({
         event: working,
         scope,
         occurrenceStart: occ.occurrenceStart,
       });
     } else {
-      this.eventUpdate.emit({ event: working, scope: "single" });
+      this.orbEventUpdate.emit({ event: working, scope: "single" });
     }
     return true;
   }
@@ -464,7 +464,7 @@ export class Calendar {
     const working = this.editorEvent;
     if (!working) return;
     if (this.editorMode === "create") {
-      this.eventCreate.emit({ event: working, scope: "single" });
+      this.orbEventCreate.emit({ event: working, scope: "single" });
     } else if (!(await this.commitUpdate(this.editorOccurrence, working))) {
       return;
     }
@@ -478,13 +478,13 @@ export class Calendar {
     if (occ?.isRecurring) {
       const scope = await this.promptScope("delete");
       if (!scope) return;
-      this.eventDelete.emit({
+      this.orbEventDelete.emit({
         event: working,
         scope,
         occurrenceStart: occ.occurrenceStart,
       });
     } else {
-      this.eventDelete.emit({ event: working, scope: "single" });
+      this.orbEventDelete.emit({ event: working, scope: "single" });
     }
     this.closeEditor();
   };
@@ -540,7 +540,7 @@ export class Calendar {
   private renderEditor() {
     const editing = this.editorMode === "edit";
     return (
-      <orb-overlay open={this.editorOpen} onDismiss={this.onEditorDismiss}>
+      <orb-overlay open={this.editorOpen} onOrbDismiss={this.onEditorDismiss}>
         {this.editorEvent && (
           <orb-view label={editing ? "Edit Event" : "New Event"}>
             <EventEditor
@@ -574,7 +574,7 @@ export class Calendar {
       <orb-overlay
         size="sm"
         open={this.scopeOpen}
-        onDismiss={(e: Event) => {
+        onOrbDismiss={(e: Event) => {
           if (e.target === e.currentTarget) this.resolveScope(null);
         }}
       >
@@ -626,7 +626,7 @@ export class Calendar {
                 aria-label="View"
                 buttons
                 value={this.view}
-                onValueChange={(e: CustomEvent<OrbCalendarView>) => this.setView(e.detail)}
+                onOrbValueChange={(e: CustomEvent<OrbCalendarView>) => this.setView(e.detail)}
               >
                 <orb-radio value="day">Day</orb-radio>
                 <orb-radio value="week">Week</orb-radio>

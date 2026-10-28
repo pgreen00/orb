@@ -21,7 +21,7 @@ export function Sidebar(props: SidebarProps) {
             <orb-checkbox
               class="calendar-item"
               checked={props.isHidden(cal) ? "false" : "true"}
-              onCheckedChange={(e: CustomEvent<string>) =>
+              onOrbCheckedChange={(e: CustomEvent<string>) =>
                 props.onToggleCalendar(cal.id, e.detail !== "true")
               }
             >
@@ -36,7 +36,7 @@ export function Sidebar(props: SidebarProps) {
         part="mini-month"
         type="date"
         value={props.date}
-        onValueChange={(e: CustomEvent<number | undefined>) => {
+        onOrbValueChange={(e: CustomEvent<number | undefined>) => {
           if (e.detail != null) props.onDateChange(e.detail);
         }}
       />

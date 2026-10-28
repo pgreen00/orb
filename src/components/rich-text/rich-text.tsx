@@ -46,9 +46,9 @@ export class RichText {
   @State() characterCount: number = 0;
   @State() selectedLink: string = "";
 
-  @Event() editorChange: EventEmitter<EditorChangeEvent>;
-  @Event() editorFocus: EventEmitter<FocusEvent>;
-  @Event() editorBlur: EventEmitter<FocusEvent>;
+  @Event() orbEditorChange: EventEmitter<EditorChangeEvent>;
+  @Event() orbEditorFocus: EventEmitter<FocusEvent>;
+  @Event() orbEditorBlur: EventEmitter<FocusEvent>;
 
   private editorRef: HTMLDivElement;
   private fileInputRef: HTMLInputElement;
@@ -261,7 +261,7 @@ export class RichText {
     const text = this.editorRef.innerText || "";
     const isEmpty = !text.trim();
 
-    this.editorChange.emit({
+    this.orbEditorChange.emit({
       html,
       text,
       isEmpty,
@@ -270,12 +270,12 @@ export class RichText {
 
   private handleFocus = (event: FocusEvent) => {
     this.isFocused = true;
-    this.editorFocus.emit(event);
+    this.orbEditorFocus.emit(event);
   };
 
   private handleBlur = (event: FocusEvent) => {
     this.isFocused = false;
-    this.editorBlur.emit(event);
+    this.orbEditorBlur.emit(event);
   };
 
   private isCommandActive(command: string): boolean {

@@ -68,17 +68,17 @@ function render() {
   grid.state = rows.length ? "ready" : "empty";
 }
 
-grid.addEventListener("sortIntent", ({ detail }) => {
+grid.addEventListener("orbSortIntent", ({ detail }) => {
   state.sort = detail.sort.map((s) => `${s.field}:${s.direction}`).join(",");
   render();
 });
 
-grid.addEventListener("selectIntent", ({ detail }) => {
+grid.addEventListener("orbSelectIntent", ({ detail }) => {
   state.selected = detail.keys;
   render();
 });
 
-grid.addEventListener("activate", ({ detail }) => {
+grid.addEventListener("orbActivate", ({ detail }) => {
   console.log("activated row", detail.key);
 });
 
@@ -93,15 +93,15 @@ render();
 Every event is `bubbles: false` and fires on `orb-grid`, so one listener on the
 grid survives the consumer replacing all of its rows.
 
-| Event          | Detail                                           | Meaning                                 |
-| -------------- | ------------------------------------------------ | --------------------------------------- |
-| `sortIntent`   | `{ field, direction, additive, sort }`           | A sortable header was activated         |
-| `selectIntent` | `{ keys, added, removed, reason }`               | The selection should change             |
-| `activate`     | `{ key, field, row, cell, originalEvent }`       | Double click or Enter on a body row     |
-| `expand`       | `{ key, expanded }`                              | A row should expand or collapse         |
-| `resizeIntent` | `{ field, width, previous }`                     | A column was dragged to a new width     |
+| Event             | Detail                                     | Meaning                             |
+| ----------------- | ------------------------------------------ | ----------------------------------- |
+| `orbSortIntent`   | `{ field, direction, additive, sort }`     | A sortable header was activated     |
+| `orbSelectIntent` | `{ keys, added, removed, reason }`         | The selection should change         |
+| `orbActivate`     | `{ key, field, row, cell, originalEvent }` | Double click or Enter on a body row |
+| `orbExpand`       | `{ key, expanded }`                        | A row should expand or collapse     |
+| `orbResizeIntent` | `{ field, width, previous }`               | A column was dragged to a new width |
 
-`activate` is the only cancelable one. Its default is to move focus into whatever
+`orbActivate` is the only cancelable one. Its default is to move focus into whatever
 focusable content the cell holds; call `preventDefault()` to keep focus on the
 cell and handle the activation yourself.
 

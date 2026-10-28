@@ -580,7 +580,7 @@ permalink: "/demos/birds/"
     }
   }
   setTheme(localStorage.getItem('orb__theme'))
-  document.querySelector('#theme-menu').addEventListener('action', ev => setTheme(ev.detail.value))
+  document.querySelector('#theme-menu').addEventListener('orbAction', ev => setTheme(ev.detail.value))
 
   // Sighting times are relative to when the page is viewed.
   document.querySelectorAll('.sighting-time').forEach((el) => {

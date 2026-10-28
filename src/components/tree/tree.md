@@ -28,7 +28,7 @@ sidebar_label: 'Tree'
 const tree = document.querySelector('#selection-tree')
 const radioGroup = document.querySelector('#selection-radio-group')
 
-radioGroup.addEventListener('valueChange', (e) => {
+radioGroup.addEventListener('orbValueChange', (e) => {
   tree.selection = e.detail
   tree.value = e.detail === 'multiple' ? [] : ''
 })

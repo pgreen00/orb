@@ -328,7 +328,7 @@ Give the wizard an `id` and add `data-wizard` to any button on the page: `next <
 
 ### Reacting to Changes
 
-`stepChange` fires after the active step changes through `next()`, `previous()`, `goTo()`, a click, or a `data-wizard` button. `event.detail` has `index`, `previousIndex`, `step`, and `previousStep`. Setting `active` on an item yourself changes the step without emitting it.
+`orbStepChange` fires after the active step changes through `next()`, `previous()`, `goTo()`, a click, or a `data-wizard` button. `event.detail` has `index`, `previousIndex`, `step`, and `previousStep`. Setting `active` on an item yourself changes the step without emitting it.
 
 The wizard never sets `completed`. This demo marks the step it leaves complete when moving forward, and clears it when going back.
 
@@ -352,13 +352,13 @@ The wizard never sets `completed`. This demo marks the step it leaves complete w
 const wizard = document.querySelector("#events-wizard");
 const output = document.querySelector("#events-output");
 
-wizard.addEventListener("stepChange", (event) => {
+wizard.addEventListener("orbStepChange", (event) => {
   const { index, previousIndex, step, previousStep } = event.detail;
   if (previousStep && index > previousIndex) previousStep.completed = true;
   else step.completed = false;
   output.textContent = `Active step: ${index} (was ${previousIndex})`;
 });
-wizard.addEventListener("finish", () => {
+wizard.addEventListener("orbFinish", () => {
   output.textContent = "finish: every step is complete";
 });
 document.querySelector("#events-finish").addEventListener("click", () => {
@@ -370,11 +370,11 @@ document.querySelector("#events-finish").addEventListener("click", () => {
 
 **Manual test:**
 - Continue marks the step you leave as complete. Back clears the step you return to.
-- On "Payment", press "Complete Payment". `finish` fires once every step is complete.
+- On "Payment", press "Complete Payment". `orbFinish` fires once every step is complete.
 
 ### Pairing with Content
 
-Keep each step's content in your own elements and show the matching one from a `stepChange` listener.
+Keep each step's content in your own elements and show the matching one from a `orbStepChange` listener.
 
 ::: live-code-demo
 
@@ -398,7 +398,7 @@ Keep each step's content in your own elements and show the matching one from a `
 ```javascript
 const wizard = document.querySelector("#content-wizard");
 const panels = wizard.parentElement.querySelectorAll("[data-step]");
-wizard.addEventListener("stepChange", (event) => {
+wizard.addEventListener("orbStepChange", (event) => {
   panels.forEach((panel) => (panel.hidden = Number(panel.dataset.step) !== event.detail.index));
 });
 ```
@@ -407,7 +407,7 @@ wizard.addEventListener("stepChange", (event) => {
 
 ### Preventing a Step Change
 
-`beforeStepChange` fires before the step changes and is cancelable. Call `preventDefault()` to stop the change, for example to guard against unsaved data.
+`orbBeforeStepChange` fires before the step changes and is cancelable. Call `preventDefault()` to stop the change, for example to guard against unsaved data.
 
 ::: live-code-demo
 
@@ -428,7 +428,7 @@ wizard.addEventListener("stepChange", (event) => {
 const wizard = document.querySelector("#guard-wizard");
 const unsaved = document.querySelector("#guard-unsaved");
 const output = document.querySelector("#guard-output");
-wizard.addEventListener("beforeStepChange", (event) => {
+wizard.addEventListener("orbBeforeStepChange", (event) => {
   if (unsaved.checked) {
     event.preventDefault();
     output.textContent = "Blocked by unsaved changes";
@@ -436,7 +436,7 @@ wizard.addEventListener("beforeStepChange", (event) => {
     output.textContent = "";
   }
 });
-wizard.addEventListener("stepChange", (event) => {
+wizard.addEventListener("orbStepChange", (event) => {
   if (event.detail.previousStep) event.detail.previousStep.completed = true;
 });
 ```
@@ -447,7 +447,7 @@ wizard.addEventListener("stepChange", (event) => {
 
 ### Setting the Active Step Directly
 
-Set `active` on an item to make it the current step. The other steps become inactive automatically. This doesn't emit `stepChange` or make an announcement.
+Set `active` on an item to make it the current step. The other steps become inactive automatically. This doesn't emit `orbStepChange` or make an announcement.
 
 ::: live-code-demo
 

@@ -32,7 +32,7 @@ Set `type` to `date` for just the calendar, `time` for just the time picker, or 
 
 ### Value and Changes
 
-`value` is epoch milliseconds. The picker opens on the month of the value. When the user picks a day or time, `valueChange` fires with the new value.
+`value` is epoch milliseconds. The picker opens on the month of the value. When the user picks a day or time, `orbValueChange` fires with the new value.
 
 ::: live-code-demo
 
@@ -51,7 +51,7 @@ const show = (value) => {
 
 picker.value = new Date(2025, 11, 25, 9, 30).getTime();
 show(picker.value);
-picker.addEventListener("valueChange", (event) => show(event.detail));
+picker.addEventListener("orbValueChange", (event) => show(event.detail));
 ```
 
 :::
@@ -119,7 +119,7 @@ Put the picker in an `orb-popover` to build a field-style control.
 
 ```javascript
 const trigger = document.querySelector("#field-trigger");
-document.querySelector("#field-picker").addEventListener("valueChange", (event) => {
+document.querySelector("#field-picker").addEventListener("orbValueChange", (event) => {
   trigger.textContent = new Date(event.detail).toLocaleDateString();
 });
 ```

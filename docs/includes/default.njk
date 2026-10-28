@@ -129,7 +129,7 @@
   }
   setTheme(localStorage.getItem('orb__theme'))
   const themeMenu = document.querySelector('#theme-menu')
-  themeMenu.addEventListener('action', ev => {
+  themeMenu.addEventListener('orbAction', ev => {
     setTheme(ev.detail.value)
   })
 </script>

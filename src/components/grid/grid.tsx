@@ -121,7 +121,7 @@ export class Grid {
 
   /**
    * Keys of the currently selected rows. Controlled: the grid requests changes
-   * through `selectIntent` but never writes this itself.
+   * through `orbSelectIntent` but never writes this itself.
    */
   @Prop() selected: string[] = [];
 
@@ -150,29 +150,29 @@ export class Grid {
   /**
    * Requests a new sort. Nothing changes until `sort` is updated.
    */
-  @Event({ bubbles: false }) sortIntent: EventEmitter<SortIntent>;
+  @Event({ bubbles: false }) orbSortIntent: EventEmitter<SortIntent>;
 
   /**
    * Requests a new selection. Nothing changes until `selected` is updated.
    */
-  @Event({ bubbles: false }) selectIntent: EventEmitter<SelectIntent>;
+  @Event({ bubbles: false }) orbSelectIntent: EventEmitter<SelectIntent>;
 
   /**
    * A row or cell was activated by double click or Enter. Cancelable: preventing
    * it stops focus moving into a cell that holds its own focusable content.
    */
   @Event({ bubbles: false, cancelable: true })
-  activate: EventEmitter<ActivateIntent>;
+  orbActivate: EventEmitter<ActivateIntent>;
 
   /**
    * Requests a row be expanded or collapsed
    */
-  @Event({ bubbles: false }) expand: EventEmitter<ExpandIntent>;
+  @Event({ bubbles: false }) orbExpand: EventEmitter<ExpandIntent>;
 
   /**
    * Requests a new column width
    */
-  @Event({ bubbles: false }) resizeIntent: EventEmitter<ResizeIntent>;
+  @Event({ bubbles: false }) orbResizeIntent: EventEmitter<ResizeIntent>;
 
   /** Cell that currently holds the single grid tab stop */
   private active?: HTMLOrbGcElement;
@@ -522,7 +522,7 @@ export class Grid {
     const cell = this.cellFrom(event.target);
     const row = cell?.parentElement as HTMLOrbGrElement | undefined;
     if (!cell || !row || row.section !== "body") return;
-    this.activate.emit({
+    this.orbActivate.emit({
       key: row.rowKey,
       field: this.fieldOf(cell),
       row,
@@ -638,7 +638,7 @@ export class Grid {
 
     if (row.section !== "body") return;
 
-    const proceed = this.activate.emit({
+    const proceed = this.orbActivate.emit({
       key: row.rowKey,
       field: this.fieldOf(cell),
       row,
@@ -703,7 +703,7 @@ export class Grid {
     const rest = multi ? current.filter((s) => s.field !== field) : [];
     const sort = direction ? [...rest, { field, direction }] : rest;
 
-    this.sortIntent.emit({ field, direction, additive: multi, sort });
+    this.orbSortIntent.emit({ field, direction, additive: multi, sort });
   }
 
   private emitSelect(
@@ -719,7 +719,7 @@ export class Grid {
 
     if (this.selection === "single") {
       if (has) return;
-      this.selectIntent.emit({
+      this.orbSelectIntent.emit({
         keys: [key],
         added: [key],
         removed: current,
@@ -732,7 +732,7 @@ export class Grid {
     // should not wipe the rest of the selection
     const additive = event.ctrlKey || event.metaKey || reason === "keyboard";
     if (!additive) {
-      this.selectIntent.emit({
+      this.orbSelectIntent.emit({
         keys: has ? [] : [key],
         added: has ? [] : [key],
         removed: has ? current : current.filter((k) => k !== key),
@@ -741,7 +741,7 @@ export class Grid {
       return;
     }
 
-    this.selectIntent.emit({
+    this.orbSelectIntent.emit({
       keys: has ? current.filter((k) => k !== key) : [...current, key],
       added: has ? [] : [key],
       removed: has ? [key] : [],

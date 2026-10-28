@@ -64,7 +64,7 @@ export class RadioGroup {
   /**
    * Emits the selected value whenever it changes
    */
-  @Event({ bubbles: false }) valueChange: EventEmitter<any>;
+  @Event({ bubbles: false }) orbValueChange: EventEmitter<any>;
 
   componentWillLoad() {
     this.internals.role = "radiogroup";
@@ -143,7 +143,7 @@ export class RadioGroup {
   handleNewValue({ target }: Event) {
     if (this.isRadio(target)) {
       this.value = target.value || target.textContent;
-      this.valueChange.emit(this.value);
+      this.orbValueChange.emit(this.value);
     }
   }
 
@@ -158,7 +158,7 @@ export class RadioGroup {
         const radio = radios[(index + 1) % radios.length];
         radio.focus();
         this.value = (radio.value || radio.textContent);
-        this.valueChange.emit(this.value);
+        this.orbValueChange.emit(this.value);
       } else if (key === "ArrowUp" || key === "ArrowLeft") {
         ev.preventDefault();
         const radios = this.getRadios();
@@ -166,10 +166,10 @@ export class RadioGroup {
         const radio = radios[(index - 1 + radios.length) % radios.length];
         radio.focus();
         this.value = (radio.value || radio.textContent);
-        this.valueChange.emit(this.value);
+        this.orbValueChange.emit(this.value);
       } else if (ev.key === " ") {
         this.value = (target.value || target.textContent);
-        this.valueChange.emit(this.value);
+        this.orbValueChange.emit(this.value);
       }
     }
   }

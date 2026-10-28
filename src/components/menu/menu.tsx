@@ -14,7 +14,7 @@ import {
 })
 export class Menu {
   @Prop() bar = false;
-  @Event() action: EventEmitter<{ checked: boolean; value?: string }>;
+  @Event() orbAction: EventEmitter<{ checked: boolean; value?: string }>;
 
   @Listen("click")
   onClick(ev: Event) {
@@ -22,7 +22,7 @@ export class Menu {
       ev.target instanceof HTMLElement && ev.target.closest("orb-mi");
     if (menuItem) {
       ev.stopPropagation();
-      this.action.emit({
+      this.orbAction.emit({
         checked: menuItem.checked,
         value: menuItem.value,
       });

@@ -13,7 +13,7 @@ import { OrbDetailsCustomEvent } from "../../components";
 export class Accordion {
   @Element() el: HTMLOrbAccordionElement;
 
-  @Listen("expand")
+  @Listen("orbExpand")
   onExpand({ target }: OrbDetailsCustomEvent<void>) {
     this.el
       .querySelectorAll("orb-details")

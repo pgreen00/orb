@@ -148,12 +148,12 @@ export class FileInput extends ReadyController {
   /**
    * Emitted when files are added or removed
    */
-  @Event() input: EventEmitter<void>;
+  @Event() orbInput: EventEmitter<void>;
 
   /**
    * Emitted when files are added or removed
    */
-  @Event() change: EventEmitter<void>;
+  @Event() orbChange: EventEmitter<void>;
 
   componentWillLoad() {
     this.sync();
@@ -267,8 +267,8 @@ export class FileInput extends ReadyController {
   }
 
   private emitChange() {
-    this.input.emit();
-    this.change.emit();
+    this.orbInput.emit();
+    this.orbChange.emit();
   }
 
   private addFiles(incoming: File[]) {

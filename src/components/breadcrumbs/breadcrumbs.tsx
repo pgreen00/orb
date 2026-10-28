@@ -66,7 +66,7 @@ export class Breadcrumbs {
    * hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them
    * collapsed, for example to show them in your own menu.
    */
-  @Event({ cancelable: true }) expandClick: EventEmitter<HTMLOrbBreadcrumbElement[]>;
+  @Event({ cancelable: true }) orbExpandClick: EventEmitter<HTMLOrbBreadcrumbElement[]>;
 
   @State() trail: TrailItem[] = [];
   @State() collapsed = true;
@@ -156,7 +156,7 @@ export class Breadcrumbs {
   };
 
   private expand(e: MouseEvent, crumbs: CrumbData[]) {
-    const event = this.expandClick.emit(crumbs.map((c) => c.el));
+    const event = this.orbExpandClick.emit(crumbs.map((c) => c.el));
     if (event.defaultPrevented) return;
     // Only move focus when the button had it, so a mouse click in a browser
     // that doesn't focus buttons doesn't pull focus into the trail.

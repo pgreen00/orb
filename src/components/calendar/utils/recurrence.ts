@@ -160,7 +160,7 @@ function withUntil(rule: string, untilEpoch: number): string {
 }
 
 /**
- * Applies a mutation from `eventCreate`, `eventUpdate`, or `eventDelete` to an
+ * Applies a mutation from `orbEventCreate`, `orbEventUpdate`, or `orbEventDelete` to an
  * events array, using iCalendar semantics for recurring events: exceptions,
  * overrides, and series splits. Returns a new array and never mutates the
  * input.

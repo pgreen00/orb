@@ -163,7 +163,7 @@ Put `orb-mi` items in the `actions` slot to show them in a menu at the end of th
 
 ```javascript
 const view = document.querySelector("#actions-view");
-view.addEventListener("action", (event) => {
+view.addEventListener("orbAction", (event) => {
   document.querySelector("#actions-output").textContent = `Chose ${event.detail.value}`;
 });
 ```

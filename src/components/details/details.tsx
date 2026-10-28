@@ -20,15 +20,15 @@ export class Details {
   @Prop({ mutable: true }) open = false;
   @Prop() iconToggle = false;
   @Prop() iconSide: "left" | "right" = "right";
-  @Event() expand: EventEmitter;
-  @Event() collapse: EventEmitter;
+  @Event() orbExpand: EventEmitter;
+  @Event() orbCollapse: EventEmitter;
 
   @Watch("open")
   watchOpen() {
     if (this.open) {
-      this.expand.emit();
+      this.orbExpand.emit();
     } else {
-      this.collapse.emit();
+      this.orbCollapse.emit();
     }
   }
 
