@@ -205,7 +205,7 @@ export class View {
           </slot>
           <div class="end" slot="end">
             <slot name="header-end" />
-            <orb-popover class={{ hide: !this.hasActions }} hideOnContentClick>
+            <orb-popover class={{ hide: !this.hasActions }}>
               <orb-button
                 slot="trigger"
                 class="icon-only"
@@ -214,7 +214,7 @@ export class View {
               >
                 <EllipsisIcon aria-hidden="true" />
               </orb-button>
-              <orb-menu>
+              <orb-menu label="More actions">
                 <slot
                   name="actions"
                   onSlotchange={(e) => (this.hasActions = this.hasContent(e))}

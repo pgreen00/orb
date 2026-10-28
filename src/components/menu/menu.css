@@ -1,4 +1,18 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   box-sizing: border-box;
+  min-width: 10rem;
+}
+
+:host([bar]) {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--orb-spacing-3xs);
+  min-width: 0;
+}
+
+::slotted(orb-divider) {
+  margin-block: var(--orb-spacing-3xs);
 }

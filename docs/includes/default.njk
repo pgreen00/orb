@@ -56,19 +56,19 @@
         <iconify-icon height="2.5rem" width="2.5rem" icon="akar-icons:github-fill"></iconify-icon>
       </a>
       <orb-popover slot="end" placement="bottom-end" show-on="hover">
-        <orb-button class="icon-only" slot="trigger" size="lg">
+        <orb-button class="icon-only" slot="trigger" size="lg" aria-label="Theme">
           <iconify-icon height="1.5rem" width="1.5rem" icon="mdi:moon-and-stars"></iconify-icon>
         </orb-button>
-        <orb-menu id="theme-menu">
-          <orb-mi value="system">
+        <orb-menu id="theme-menu" label="Theme">
+          <orb-mi type="radio" value="system">
             <iconify-icon slot="icon" icon="mdi:moon-and-stars"></iconify-icon>
             System
           </orb-mi>
-          <orb-mi value="light">
+          <orb-mi type="radio" value="light">
             <iconify-icon slot="icon" icon="material-symbols:light-mode"></iconify-icon>
             Light
           </orb-mi>
-          <orb-mi value="dark">
+          <orb-mi type="radio" value="dark">
             <iconify-icon slot="icon" icon="material-symbols:dark-mode"></iconify-icon>
             Dark
           </orb-mi>
@@ -129,7 +129,7 @@
   }
   setTheme(localStorage.getItem('orb__theme'))
   const themeMenu = document.querySelector('#theme-menu')
-  themeMenu.addEventListener('orbAction', ev => {
+  themeMenu.addEventListener('orbSelect', ev => {
     setTheme(ev.detail.value)
   })
 </script>

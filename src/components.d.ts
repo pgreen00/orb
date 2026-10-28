@@ -10,6 +10,7 @@ import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
 import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
+import { MenuSelectDetail } from "./components/menu/menu";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { PageChangeDetail } from "./components/pagination/pagination";
 import { Placement } from "@floating-ui/dom";
@@ -23,6 +24,7 @@ export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
 export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
+export { MenuSelectDetail } from "./components/menu/menu";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { PageChangeDetail } from "./components/pagination/pagination";
 export { Placement } from "@floating-ui/dom";
@@ -662,11 +664,28 @@ export namespace Components {
     }
     interface OrbMaskInput {
     }
+    /**
+     * A list of actions or options, made of `orb-mi` items. Put it in an
+     * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
+     * menubar.
+     * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
+     * with the item in its `trigger` slot. Choosing an item closes every menu in
+     * the chain, and opening a submenu keeps the parent open.
+     */
     interface OrbMenu {
         /**
+          * Lays the items out in a row and uses menubar keyboard behavior. Each item usually opens a menu through an `orb-popover`.
           * @default false
          */
         "bar": boolean;
+        /**
+          * Focuses the first or last item.
+         */
+        "focusItem": (which: "first" | "last") => Promise<void>;
+        /**
+          * Accessible name for the menu
+         */
+        "label"?: string;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -679,12 +698,36 @@ export namespace Components {
     | "2xs"
     | "3xl";
     }
+    /**
+     * An item in an `orb-menu`. Its content is the label. Choosing it emits
+     * `orbSelect` from the menu.
+     * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
+     * that contains a nested `orb-menu`.
+     */
     interface OrbMi {
         /**
+          * Whether a checkbox or radio item is checked
           * @default false
          */
         "checked": boolean;
+        /**
+          * Keeps the item focusable but stops it from being chosen
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * `checkbox` items toggle when chosen and keep the menu open. Choosing a `radio` item checks it and unchecks the other radio items with the same parent.
+          * @default "normal"
+         */
+        "type": "normal" | "checkbox" | "radio";
+        /**
+          * Identifies the item in `orbSelect`
+         */
         "value"?: string;
+        /**
+          * `danger` colors the item for destructive actions, such as Delete
+         */
+        "variant"?: "danger";
     }
     interface OrbMidi {
     }
@@ -890,7 +933,7 @@ export namespace Components {
          */
         "hideOnBackdropClick": boolean;
         /**
-          * Popover will automatically dismiss itself when something is clicked in the popover when enabled
+          * Popover will automatically dismiss itself when something is clicked in the popover when enabled. Ignored when `showOn` is `hover`.
           * @default false
          */
         "hideOnContentClick": boolean;
@@ -914,6 +957,10 @@ export namespace Components {
          */
         "offsetY": number;
         /**
+          * Opens the popover and focuses the first or last item of its menu. Without `focus`, an item is only focused when using the keyboard.
+         */
+        "openMenu": (focus?: "first" | "last") => Promise<void>;
+        /**
           * Where the popover should be placed
          */
         "placement"?: Placement;
@@ -922,9 +969,12 @@ export namespace Components {
           * @default new Promise((res) => (this.#resolve = res))
          */
         "ready": Promise<unknown>;
+        /**
+          * Opens the popover. Without a trigger, it opens at `event`'s pointer position. Calling it again while open moves the popover to the new position, such as for a second right-click on a context menu.
+         */
         "show": (event: MouseEvent) => Promise<void>;
         /**
-          * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile.
+          * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile. Clicking the   trigger or the content doesn't dismiss it. It closes when the pointer   leaves, or on a click outside.
           * @default "click"
          */
         "showOn": "click" | "context-menu" | "hover";
@@ -1953,8 +2003,16 @@ declare global {
         new (): HTMLOrbMaskInputElement;
     };
     interface HTMLOrbMenuElementEventMap {
-        "orbAction": { checked: boolean; value?: string };
+        "orbSelect": MenuSelectDetail;
     }
+    /**
+     * A list of actions or options, made of `orb-mi` items. Put it in an
+     * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
+     * menubar.
+     * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
+     * with the item in its `trigger` slot. Choosing an item closes every menu in
+     * the chain, and opening a submenu keeps the parent open.
+     */
     interface HTMLOrbMenuElement extends Components.OrbMenu, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbMenuElementEventMap>(type: K, listener: (this: HTMLOrbMenuElement, ev: OrbMenuCustomEvent<HTMLOrbMenuElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1975,6 +2033,12 @@ declare global {
         prototype: HTMLOrbMeshElement;
         new (): HTMLOrbMeshElement;
     };
+    /**
+     * An item in an `orb-menu`. Its content is the label. Choosing it emits
+     * `orbSelect` from the menu.
+     * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
+     * that contains a nested `orb-menu`.
+     */
     interface HTMLOrbMiElement extends Components.OrbMi, HTMLStencilElement {
     }
     var HTMLOrbMiElement: {
@@ -3166,12 +3230,28 @@ declare namespace LocalJSX {
     }
     interface OrbMaskInput {
     }
+    /**
+     * A list of actions or options, made of `orb-mi` items. Put it in an
+     * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
+     * menubar.
+     * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
+     * with the item in its `trigger` slot. Choosing an item closes every menu in
+     * the chain, and opening a submenu keeps the parent open.
+     */
     interface OrbMenu {
         /**
+          * Lays the items out in a row and uses menubar keyboard behavior. Each item usually opens a menu through an `orb-popover`.
           * @default false
          */
         "bar"?: boolean;
-        "onOrbAction"?: (event: OrbMenuCustomEvent<{ checked: boolean; value?: string }>) => void;
+        /**
+          * Accessible name for the menu
+         */
+        "label"?: string;
+        /**
+          * Emitted when an item is chosen. Checkbox and radio items have already toggled. Call `preventDefault()` to keep the menu open.
+         */
+        "onOrbSelect"?: (event: OrbMenuCustomEvent<MenuSelectDetail>) => void;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -3184,12 +3264,36 @@ declare namespace LocalJSX {
     | "2xs"
     | "3xl";
     }
+    /**
+     * An item in an `orb-menu`. Its content is the label. Choosing it emits
+     * `orbSelect` from the menu.
+     * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
+     * that contains a nested `orb-menu`.
+     */
     interface OrbMi {
         /**
+          * Whether a checkbox or radio item is checked
           * @default false
          */
         "checked"?: boolean;
+        /**
+          * Keeps the item focusable but stops it from being chosen
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * `checkbox` items toggle when chosen and keep the menu open. Choosing a `radio` item checks it and unchecks the other radio items with the same parent.
+          * @default "normal"
+         */
+        "type"?: "normal" | "checkbox" | "radio";
+        /**
+          * Identifies the item in `orbSelect`
+         */
         "value"?: string;
+        /**
+          * `danger` colors the item for destructive actions, such as Delete
+         */
+        "variant"?: "danger";
     }
     interface OrbMidi {
     }
@@ -3412,7 +3516,7 @@ declare namespace LocalJSX {
          */
         "hideOnBackdropClick"?: boolean;
         /**
-          * Popover will automatically dismiss itself when something is clicked in the popover when enabled
+          * Popover will automatically dismiss itself when something is clicked in the popover when enabled. Ignored when `showOn` is `hover`.
           * @default false
          */
         "hideOnContentClick"?: boolean;
@@ -3461,7 +3565,7 @@ declare namespace LocalJSX {
          */
         "ready"?: Promise<unknown>;
         /**
-          * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile.
+          * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile. Clicking the   trigger or the content doesn't dismiss it. It closes when the pointer   leaves, or on a click outside.
           * @default "click"
          */
         "showOn"?: "click" | "context-menu" | "hover";
@@ -4204,6 +4308,7 @@ declare namespace LocalJSX {
     }
     interface OrbMenuAttributes {
         "bar": boolean;
+        "label": string;
     }
     interface OrbMeshAttributes {
         "space": | "3xs"
@@ -4217,8 +4322,11 @@ declare namespace LocalJSX {
     | "3xl";
     }
     interface OrbMiAttributes {
-        "checked": boolean;
         "value": string;
+        "type": "normal" | "checkbox" | "radio";
+        "checked": boolean;
+        "disabled": boolean;
+        "variant": "danger";
     }
     interface OrbNoteAttributes {
         "invalid": boolean;
@@ -4599,8 +4707,22 @@ declare module "@stencil/core" {
              */
             "orb-markdown": LocalJSX.IntrinsicElements["orb-markdown"] & JSXBase.HTMLAttributes<HTMLOrbMarkdownElement>;
             "orb-mask-input": LocalJSX.IntrinsicElements["orb-mask-input"] & JSXBase.HTMLAttributes<HTMLOrbMaskInputElement>;
+            /**
+             * A list of actions or options, made of `orb-mi` items. Put it in an
+             * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
+             * menubar.
+             * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
+             * with the item in its `trigger` slot. Choosing an item closes every menu in
+             * the chain, and opening a submenu keeps the parent open.
+             */
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
             "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
+            /**
+             * An item in an `orb-menu`. Its content is the label. Choosing it emits
+             * `orbSelect` from the menu.
+             * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
+             * that contains a nested `orb-menu`.
+             */
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;

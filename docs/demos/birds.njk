@@ -218,16 +218,16 @@ permalink: "/demos/birds/"
         <orb-button class="icon-only" fill="clear" slot="trigger" aria-label="Theme">
           <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:moon-and-stars" aria-hidden="true"></iconify-icon>
         </orb-button>
-        <orb-menu id="theme-menu">
-          <orb-mi value="system">
+        <orb-menu id="theme-menu" label="Theme">
+          <orb-mi type="radio" value="system">
             <iconify-icon slot="icon" icon="mdi:moon-and-stars"></iconify-icon>
             System
           </orb-mi>
-          <orb-mi value="light">
+          <orb-mi type="radio" value="light">
             <iconify-icon slot="icon" icon="material-symbols:light-mode"></iconify-icon>
             Light
           </orb-mi>
-          <orb-mi value="dark">
+          <orb-mi type="radio" value="dark">
             <iconify-icon slot="icon" icon="material-symbols:dark-mode"></iconify-icon>
             Dark
           </orb-mi>
@@ -580,7 +580,7 @@ permalink: "/demos/birds/"
     }
   }
   setTheme(localStorage.getItem('orb__theme'))
-  document.querySelector('#theme-menu').addEventListener('orbAction', ev => setTheme(ev.detail.value))
+  document.querySelector('#theme-menu').addEventListener('orbSelect', ev => setTheme(ev.detail.value))
 
   // Sighting times are relative to when the page is viewed.
   document.querySelectorAll('.sighting-time').forEach((el) => {
