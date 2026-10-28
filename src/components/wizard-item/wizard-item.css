@@ -1,82 +1,395 @@
+/**
+ * @prop --pulse-color: Color of the `attention="pulse"` ring
+ */
+
 :host {
-  --before-background: var(--orb-neutral-300);
-  --before-color: var(--orb-neutral-800);
-  --after-background: var(--orb-neutral-400);
+  /* Marker colors for each state, set per variant below. Completed steps use
+     darker, solid shades than the tinted active step. */
+  --tint: light-dark(var(--orb-primary-100), var(--orb-primary-200));
+  --on-tint: light-dark(var(--orb-primary-700), var(--orb-primary-900));
+  --accent: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --fill: var(--fill-primary);
+  --on-fill: var(--orb-neutral-25);
+  /* neutral-650 is the lightest shade with 3:1 contrast on the light background. */
+  --upcoming-border: light-dark(var(--orb-neutral-650), var(--orb-neutral-600));
+  --upcoming-color: light-dark(var(--orb-neutral-750), var(--orb-neutral-300));
+
   display: flex;
-  flex-direction: column;
-  gap: 0.25em;
+  flex: 2 1 0;
+  min-width: 0;
   box-sizing: border-box;
-  flex: 2;
-  flex-shrink: 0;
 }
 
 :host(:first-of-type),
 :host(:last-of-type) {
-  flex: 1;
+  flex: 1 1 0;
 }
 
-:host([active]),
-:host([completed]) {
-  --before-background: var(--orb-primary-200);
-  --before-color: var(--orb-primary-800);
+:host([variant="success"]) {
+  --tint: light-dark(var(--orb-success-100), var(--orb-success-200));
+  --on-tint: light-dark(var(--orb-success-850), var(--orb-success-900));
+  --accent: light-dark(var(--orb-success-650), var(--orb-success-400));
+  --fill: var(--fill-success);
+  --on-fill: light-dark(var(--orb-neutral-25), var(--orb-neutral-925));
+  --upcoming-border: var(--accent);
 }
 
-[part=icon-container] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+:host([variant="warning"]) {
+  --tint: light-dark(var(--orb-warning-100), var(--orb-warning-200));
+  --on-tint: light-dark(var(--orb-warning-850), var(--orb-warning-900));
+  --accent: light-dark(var(--orb-warning-700), var(--orb-warning-400));
+  --fill: var(--fill-warning);
+  --on-fill: light-dark(var(--orb-neutral-25), var(--orb-neutral-925));
+  --upcoming-border: var(--accent);
+}
+
+:host([variant="danger"]),
+:host([error]) {
+  --tint: light-dark(var(--orb-danger-100), var(--orb-danger-200));
+  --on-tint: light-dark(var(--orb-danger-700), var(--orb-danger-900));
+  --accent: light-dark(var(--orb-danger-500), var(--orb-danger-250));
+  --fill: var(--fill-danger);
+  --on-fill: light-dark(var(--orb-neutral-25), var(--orb-neutral-925));
+  --upcoming-border: var(--accent);
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  border-radius: var(--orb-radius-circle);
-  width: 2.25em;
-  height: 2.25em;
-  background-color: var(--before-background);
-  color: var(--before-color);
-  transition:
-    color var(--orb-transition-fast) ease-in-out,
-    background-color var(--orb-transition-fast) ease-in-out;
 }
 
-svg {
-  width: 1.25em;
-  height: 1.25em;
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
 }
+
+button.step {
+  cursor: pointer;
+  border-radius: var(--orb-radius-md);
+  outline-offset: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.step:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+}
+
+button.step:disabled {
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  button.step:not(:disabled):hover .label {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* Horizontal layout: [connector] marker [connector], labels underneath. */
 
 .indicators {
   display: flex;
   align-items: center;
-  box-sizing: border-box;
+  width: 100%;
 }
 
-:host(:not(:last-of-type)) .indicators::after,
-:host(:not(:first-of-type)) .indicators::before{
-  display: block;
-  content: "";
-  height: 1px;
+.connector {
   flex: 1;
-  box-sizing: border-box;
-  background-color: var(--after-background);
+  min-width: 0;
+  height: var(--connector-width, 2px);
+  background-color: var(--connector-color);
+  transition: background-color var(--orb-transition-fast) ease-in-out;
 }
 
-[part=labels] {
+/* The half before the marker matches the previous step's color. */
+:host([data-previous-completed]) .connector.before {
+  --previous-fill: var(--fill-primary);
+  background-color: var(--connector-color-active, var(--previous-fill));
+}
+
+:host([data-previous-variant="success"]) .connector.before {
+  --previous-fill: var(--fill-success);
+}
+
+:host([data-previous-variant="warning"]) .connector.before {
+  --previous-fill: var(--fill-warning);
+}
+
+:host([data-previous-variant="danger"]) .connector.before {
+  --previous-fill: var(--fill-danger);
+}
+
+:host([completed]) .connector.after {
+  background-color: var(--connector-color-active, var(--fill));
+}
+
+:host(:first-of-type) .connector.before,
+:host(:last-of-type) .connector.after {
+  display: none;
+}
+
+.marker {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--marker-size, 2em);
+  height: var(--marker-size, 2em);
+  margin-inline: var(--connector-gap, 0.35em);
+  border: 2px solid var(--upcoming-border);
+  border-radius: var(--orb-radius-circle);
+  background-color: transparent;
+  color: var(--upcoming-color);
+  font-size: 0.875em;
+  font-weight: var(--orb-font-semi-bold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition:
+    color var(--orb-transition-fast) ease-in-out,
+    background-color var(--orb-transition-fast) ease-in-out,
+    border-color var(--orb-transition-fast) ease-in-out;
+}
+
+:host(:first-of-type) .marker {
+  margin-inline-start: 0;
+}
+
+:host(:last-of-type) .marker {
+  margin-inline-end: 0;
+}
+
+:host([active]) .marker {
+  border-color: var(--accent);
+  background-color: var(--tint);
+  color: var(--on-tint);
+}
+
+:host([completed]) .marker,
+:host([error]) .marker {
+  border-color: var(--fill);
+  background-color: var(--fill);
+  color: var(--on-fill);
+}
+
+/* An active completed step keeps the solid fill and adds a ring to show it's current. */
+:host([active][completed]) .marker,
+:host([active][error]) .marker {
+  box-shadow: 0 0 0 2px var(--orb-background-color, Canvas), 0 0 0 4px var(--accent);
+}
+
+.marker svg,
+::slotted([slot="icon"]) {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.marker orb-loading {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+:host([disabled]),
+:host([data-locked]) {
+  opacity: 0.55;
+}
+
+.labels {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
-  font-weight: var(--orb-font-semi-bold);
-  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-200));
+  min-width: 0;
+  max-width: 100%;
+  padding-inline: calc(var(--gap, 1rem) / 4);
+  overflow-wrap: anywhere;
 }
 
-:host(:first-of-type) [part=labels] {
+:host(:first-of-type) .step,
+:host(:first-of-type) .labels {
   align-items: flex-start;
+  text-align: start;
 }
 
-:host(:last-of-type) [part=labels] {
+:host(:last-of-type) .step,
+:host(:last-of-type) .labels {
   align-items: flex-end;
+  text-align: end;
 }
 
-::slotted([slot=note]) {
+:host(:first-of-type) .labels {
+  padding-inline-start: 0;
+}
+
+:host(:last-of-type) .labels {
+  padding-inline-end: 0;
+}
+
+.label {
+  color: var(--upcoming-color);
+  font-weight: var(--orb-font-semi-bold);
+}
+
+:host([active]) .label,
+:host([completed]) .label {
+  color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
+}
+
+.note {
+  display: contents;
+}
+
+::slotted([slot="note"]) {
   display: block;
-  box-sizing: border-box;
-  font-weight: var(--orb-font-light);
   color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  font-size: 0.875em;
+}
+
+.error {
+  color: light-dark(var(--orb-danger-600), var(--orb-danger-250));
+  font-size: 0.875em;
+  font-weight: var(--orb-font-semi-bold);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Stacked layout: marker and connectors in a column, labels beside them. */
+
+:host([data-stacked]) {
+  flex: none;
+}
+
+:host([data-stacked]) .step,
+:host([data-stacked]:first-of-type) .step,
+:host([data-stacked]:last-of-type) .step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  column-gap: var(--orb-spacing-sm);
+  text-align: start;
+}
+
+:host([data-stacked]) .indicators {
+  flex-direction: column;
+  width: auto;
+}
+
+:host([data-stacked]) .connector {
+  width: var(--connector-width, 2px);
+  height: auto;
+  min-height: 0;
+}
+
+:host([data-stacked]) .connector.before {
+  flex: 0 0 calc(var(--gap, 1rem) / 2);
+}
+
+:host([data-stacked]) .connector.after {
+  flex: 1 1 calc(var(--gap, 1rem) / 2);
+}
+
+:host([data-stacked]) .marker {
+  margin-inline: 0;
+  margin-block: var(--connector-gap, 0.35em);
+}
+
+:host([data-stacked]:first-of-type) .marker {
+  margin-block-start: 0;
+}
+
+:host([data-stacked]:last-of-type) .marker {
+  margin-block-end: 0;
+}
+
+:host([data-stacked]) .labels,
+:host([data-stacked]:first-of-type) .labels,
+:host([data-stacked]:last-of-type) .labels {
+  align-items: flex-start;
+  padding-inline: 0;
+  padding-block: calc(var(--gap, 1rem) / 2 + var(--connector-gap, 0.35em))
+    calc(var(--gap, 1rem) / 2);
+  text-align: start;
+}
+
+:host([data-stacked]:first-of-type) .labels {
+  padding-block-start: 0;
+}
+
+:host([data-stacked]:last-of-type) .labels {
+  padding-block-end: 0;
+}
+
+/* Centers the label on the marker; notes and errors flow underneath. */
+:host([data-stacked]) .label {
+  display: flex;
+  align-items: center;
+  min-height: calc(var(--marker-size, 2em) * 0.875);
+}
+
+/* Attention */
+
+:host([attention="pulse"]) .marker {
+  animation: pulse 1.5s ease-out infinite;
+}
+
+:host([attention="bounce"]) .marker {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--pulse-color, var(--accent));
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 0.6em transparent;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -0.25em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marker {
+    animation: none !important;
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :host([active]) .marker,
+  :host([completed]) .marker {
+    border-color: Highlight;
+  }
+
+  :host([completed]) .marker {
+    background-color: Highlight;
+    color: HighlightText;
+  }
 }

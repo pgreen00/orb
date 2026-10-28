@@ -16,6 +16,7 @@ import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
+import { WizardStepChangeDetail } from "./components/wizard/wizard";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
@@ -27,6 +28,7 @@ export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { TabCloseDetail } from "./components/tab-button/tab-button";
+export { WizardStepChangeDetail } from "./components/wizard/wizard";
 export namespace Components {
     /**
      * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
@@ -1365,22 +1367,83 @@ export namespace Components {
     }
     interface OrbViewManager {
     }
+    /**
+     * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
+     * step, and the one with the `active` attribute is the current step. The
+     * wizard only shows progress: render each step's content yourself, and mark
+     * steps `completed` from your own code.
+     */
     interface OrbWizard {
+        /**
+          * Renders each step as a button, so clicking it, or focusing it and pressing Enter or Space, goes straight to it. Disabled and locked steps can't be activated.
+          * @default false
+         */
+        "clickable": boolean;
+        /**
+          * Goes to a step, given its index or element. Emits a cancelable `beforeStepChange`, then `stepChange`, and announces the new step to screen readers. Does nothing if the step doesn't exist, is disabled, or is locked.
+         */
+        "goTo": (step: number | HTMLOrbWizardItemElement) => Promise<void>;
+        /**
+          * Accessible name for the wizard. Set it when a page has more than one.
+         */
+        "label"?: string;
+        /**
+          * Requires steps to be completed in order. Every step after the first incomplete one is locked and can't be reached until the steps before it are `completed`.
+          * @default false
+         */
+        "linear": boolean;
+        /**
+          * Goes to the step after the active one, skipping disabled steps. Does nothing if that step is locked.
+         */
+        "next": () => Promise<void>;
+        /**
+          * Layout direction. `auto` lays steps out in a row and stacks them when there's less than about 6em of width per step.
+          * @default "horizontal"
+         */
+        "orientation": "horizontal" | "vertical" | "auto";
+        /**
+          * Goes to the step before the active one, skipping disabled steps.
+         */
+        "previous": () => Promise<void>;
     }
+    /**
+     * One step in an `<orb-wizard>`. Set `active` on the current step and
+     * `completed` on finished ones.
+     */
     interface OrbWizardItem {
         /**
+          * The current step. Setting it on one step makes the others inactive.
           * @default false
          */
         "active": boolean;
         /**
+          * Animates the marker to draw attention to the step. Disabled when the user prefers reduced motion.
+         */
+        "attention"?: "pulse" | "bounce";
+        /**
+          * Marks the step as finished. The wizard never sets this itself.
           * @default false
          */
         "completed": boolean;
         /**
+          * Keeps the step visible but unreachable
           * @default false
          */
         "disabled": boolean;
+        /**
+          * Marks the step as failed and shows this message under the label
+         */
         "error"?: string;
+        /**
+          * Shows a spinner in the marker and sets `aria-busy`
+          * @default false
+         */
+        "loading": boolean;
+        /**
+          * Colors the marker. Color alone doesn't carry meaning, so explain the reason in the label, note, or `error`.
+          * @default "primary"
+         */
+        "variant": "primary" | "success" | "warning" | "danger";
     }
 }
 export interface OrbAlertCustomEvent<T> extends CustomEvent<T> {
@@ -2210,9 +2273,16 @@ declare global {
         new (): HTMLOrbViewManagerElement;
     };
     interface HTMLOrbWizardElementEventMap {
-        "stepChange": number;
+        "beforeStepChange": WizardStepChangeDetail;
+        "stepChange": WizardStepChangeDetail;
         "finish": void;
     }
+    /**
+     * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
+     * step, and the one with the `active` attribute is the current step. The
+     * wizard only shows progress: render each step's content yourself, and mark
+     * steps `completed` from your own code.
+     */
     interface HTMLOrbWizardElement extends Components.OrbWizard, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbWizardElementEventMap>(type: K, listener: (this: HTMLOrbWizardElement, ev: OrbWizardCustomEvent<HTMLOrbWizardElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2227,6 +2297,10 @@ declare global {
         prototype: HTMLOrbWizardElement;
         new (): HTMLOrbWizardElement;
     };
+    /**
+     * One step in an `<orb-wizard>`. Set `active` on the current step and
+     * `completed` on finished ones.
+     */
     interface HTMLOrbWizardItemElement extends Components.OrbWizardItem, HTMLStencilElement {
     }
     var HTMLOrbWizardItemElement: {
@@ -3752,24 +3826,83 @@ declare namespace LocalJSX {
     }
     interface OrbViewManager {
     }
+    /**
+     * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
+     * step, and the one with the `active` attribute is the current step. The
+     * wizard only shows progress: render each step's content yourself, and mark
+     * steps `completed` from your own code.
+     */
     interface OrbWizard {
+        /**
+          * Renders each step as a button, so clicking it, or focusing it and pressing Enter or Space, goes straight to it. Disabled and locked steps can't be activated.
+          * @default false
+         */
+        "clickable"?: boolean;
+        /**
+          * Accessible name for the wizard. Set it when a page has more than one.
+         */
+        "label"?: string;
+        /**
+          * Requires steps to be completed in order. Every step after the first incomplete one is locked and can't be reached until the steps before it are `completed`.
+          * @default false
+         */
+        "linear"?: boolean;
+        /**
+          * Emitted before the active step changes. Call `preventDefault()` to stop the change, for example to guard against unsaved data.
+         */
+        "onBeforeStepChange"?: (event: OrbWizardCustomEvent<WizardStepChangeDetail>) => void;
+        /**
+          * Emitted when every step that isn't disabled becomes completed
+         */
         "onFinish"?: (event: OrbWizardCustomEvent<void>) => void;
-        "onStepChange"?: (event: OrbWizardCustomEvent<number>) => void;
+        /**
+          * Emitted after the active step changes through `next()`, `previous()`, `goTo()`, a click, or a `data-wizard` button. Setting `active` on an item directly doesn't emit it.
+         */
+        "onStepChange"?: (event: OrbWizardCustomEvent<WizardStepChangeDetail>) => void;
+        /**
+          * Layout direction. `auto` lays steps out in a row and stacks them when there's less than about 6em of width per step.
+          * @default "horizontal"
+         */
+        "orientation"?: "horizontal" | "vertical" | "auto";
     }
+    /**
+     * One step in an `<orb-wizard>`. Set `active` on the current step and
+     * `completed` on finished ones.
+     */
     interface OrbWizardItem {
         /**
+          * The current step. Setting it on one step makes the others inactive.
           * @default false
          */
         "active"?: boolean;
         /**
+          * Animates the marker to draw attention to the step. Disabled when the user prefers reduced motion.
+         */
+        "attention"?: "pulse" | "bounce";
+        /**
+          * Marks the step as finished. The wizard never sets this itself.
           * @default false
          */
         "completed"?: boolean;
         /**
+          * Keeps the step visible but unreachable
           * @default false
          */
         "disabled"?: boolean;
+        /**
+          * Marks the step as failed and shows this message under the label
+         */
         "error"?: string;
+        /**
+          * Shows a spinner in the marker and sets `aria-busy`
+          * @default false
+         */
+        "loading"?: boolean;
+        /**
+          * Colors the marker. Color alone doesn't carry meaning, so explain the reason in the label, note, or `error`.
+          * @default "primary"
+         */
+        "variant"?: "primary" | "success" | "warning" | "danger";
     }
 
     interface OrbAlertAttributes {
@@ -4109,11 +4242,20 @@ declare namespace LocalJSX {
         "header": "none" | "minimal" | "prominent";
         "headingLevel": "1" | "2" | "3" | "4" | "5" | "6";
     }
+    interface OrbWizardAttributes {
+        "label": string;
+        "clickable": boolean;
+        "linear": boolean;
+        "orientation": "horizontal" | "vertical" | "auto";
+    }
     interface OrbWizardItemAttributes {
         "active": boolean;
         "completed": boolean;
         "disabled": boolean;
+        "loading": boolean;
         "error": string;
+        "variant": "primary" | "success" | "warning" | "danger";
+        "attention": "pulse" | "bounce";
     }
 
     interface IntrinsicElements {
@@ -4186,7 +4328,7 @@ declare namespace LocalJSX {
         "orb-tree": Omit<OrbTree, keyof OrbTreeAttributes> & { [K in keyof OrbTree & keyof OrbTreeAttributes]?: OrbTree[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `attr:${K}`]?: OrbTreeAttributes[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `prop:${K}`]?: OrbTree[K] };
         "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
         "orb-view-manager": OrbViewManager;
-        "orb-wizard": OrbWizard;
+        "orb-wizard": Omit<OrbWizard, keyof OrbWizardAttributes> & { [K in keyof OrbWizard & keyof OrbWizardAttributes]?: OrbWizard[K] } & { [K in keyof OrbWizard & keyof OrbWizardAttributes as `attr:${K}`]?: OrbWizardAttributes[K] } & { [K in keyof OrbWizard & keyof OrbWizardAttributes as `prop:${K}`]?: OrbWizard[K] };
         "orb-wizard-item": Omit<OrbWizardItem, keyof OrbWizardItemAttributes> & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes]?: OrbWizardItem[K] } & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes as `attr:${K}`]?: OrbWizardItemAttributes[K] } & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes as `prop:${K}`]?: OrbWizardItem[K] };
     }
 }
@@ -4363,7 +4505,17 @@ declare module "@stencil/core" {
             "orb-tree": LocalJSX.IntrinsicElements["orb-tree"] & JSXBase.HTMLAttributes<HTMLOrbTreeElement>;
             "orb-view": LocalJSX.IntrinsicElements["orb-view"] & JSXBase.HTMLAttributes<HTMLOrbViewElement>;
             "orb-view-manager": LocalJSX.IntrinsicElements["orb-view-manager"] & JSXBase.HTMLAttributes<HTMLOrbViewManagerElement>;
+            /**
+             * Shows progress through a sequence of steps. Each `<orb-wizard-item>` is a
+             * step, and the one with the `active` attribute is the current step. The
+             * wizard only shows progress: render each step's content yourself, and mark
+             * steps `completed` from your own code.
+             */
             "orb-wizard": LocalJSX.IntrinsicElements["orb-wizard"] & JSXBase.HTMLAttributes<HTMLOrbWizardElement>;
+            /**
+             * One step in an `<orb-wizard>`. Set `active` on the current step and
+             * `completed` on finished ones.
+             */
             "orb-wizard-item": LocalJSX.IntrinsicElements["orb-wizard-item"] & JSXBase.HTMLAttributes<HTMLOrbWizardItemElement>;
         }
     }

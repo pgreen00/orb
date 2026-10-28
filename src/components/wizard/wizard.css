@@ -1,7 +1,33 @@
+/**
+ * @prop --gap: Space between steps
+ * @prop --marker-size: Size of each step's marker
+ * @prop --connector-width: Thickness of the connector lines
+ * @prop --connector-gap: Space between a marker and its connector lines
+ * @prop --connector-color: Connector color after a step that isn't completed
+ * @prop --connector-color-active: Connector color after a completed step. Defaults to the completed marker's fill.
+ */
+
 :host {
+  --gap: var(--orb-spacing-md);
+  --marker-size: 2em;
+  --connector-width: 2px;
+  --connector-gap: 0.35em;
+  --connector-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
+  /* Completed marker fills per variant. Shared here so a connector can match
+     the step before it. */
+  --fill-primary: light-dark(var(--orb-primary-650), var(--orb-primary-450));
+  --fill-success: light-dark(var(--orb-success-750), var(--orb-success-500));
+  --fill-warning: light-dark(var(--orb-warning-750), var(--orb-warning-500));
+  --fill-danger: light-dark(var(--orb-danger-550), var(--orb-danger-300));
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   box-sizing: border-box;
   width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+:host(:state(stacked)) {
+  flex-direction: column;
+  align-items: stretch;
 }
