@@ -1,0 +1,82 @@
+:host {
+  --before-background: var(--orb-neutral-300);
+  --before-color: var(--orb-neutral-800);
+  --after-background: var(--orb-neutral-400);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  box-sizing: border-box;
+  flex: 2;
+  flex-shrink: 0;
+}
+
+:host(:first-of-type),
+:host(:last-of-type) {
+  flex: 1;
+}
+
+:host([active]),
+:host([completed]) {
+  --before-background: var(--orb-primary-200);
+  --before-color: var(--orb-primary-800);
+}
+
+[part=icon-container] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: var(--orb-radius-circle);
+  width: 2.25em;
+  height: 2.25em;
+  background-color: var(--before-background);
+  color: var(--before-color);
+  transition:
+    color var(--orb-transition-fast) ease-in-out,
+    background-color var(--orb-transition-fast) ease-in-out;
+}
+
+svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.indicators {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+:host(:not(:last-of-type)) .indicators::after,
+:host(:not(:first-of-type)) .indicators::before{
+  display: block;
+  content: "";
+  height: 1px;
+  flex: 1;
+  box-sizing: border-box;
+  background-color: var(--after-background);
+}
+
+[part=labels] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  font-weight: var(--orb-font-semi-bold);
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-200));
+}
+
+:host(:first-of-type) [part=labels] {
+  align-items: flex-start;
+}
+
+:host(:last-of-type) [part=labels] {
+  align-items: flex-end;
+}
+
+::slotted([slot=note]) {
+  display: block;
+  box-sizing: border-box;
+  font-weight: var(--orb-font-light);
+  color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+}

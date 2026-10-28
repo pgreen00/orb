@@ -1,13 +1,133 @@
-:host {
-  display: flex;
-  align-items: center;
+/**
+ * @prop --crumb-color: Color of crumbs before the current page
+ * @prop --crumb-hover-color: Color of a link on hover
+ * @prop --current-color: Color of the current page
+ * @prop --separator-color: Color of the slashes between crumbs
+ */
 
-  color: light-dark(var(--orb-neutral-600), var(--orb-neutral-400));
-  font-weight: var(--orb-font-semi-bold);
+:host {
+  /* neutral-700 is the lightest shade that meets 4.5:1 on the light background. */
+  --crumb-color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  --crumb-hover-color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
+  --current-color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
+  --separator-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-650));
+  display: block;
+  min-width: 0;
+  color: var(--crumb-color);
   font-size: var(--orb-font-sm);
-  line-height: var(--orb-spacing-lg);
+  line-height: 1.5;
 }
 
-.last {
-  color: light-dark(var(--orb-primary-700), var(--orb-primary-200));
+ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Links and buttons share one text-like look. */
+.crumb,
+.collapse {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--orb-radius-sm, 4px);
+  background: none;
+  color: inherit;
+  font: inherit;
+  outline-offset: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Links and link-less buttons look the same, since both navigate. A faint
+ * underline marks them as interactive without relying on color. Crumbs are
+ * inline blocks so a crumb wider than its container truncates.
+ */
+.crumb {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition:
+    color var(--orb-transition-x-fast) ease-in-out,
+    text-decoration-color var(--orb-transition-x-fast) ease-in-out;
+}
+
+@media (hover: hover) {
+  .crumb:not(.last):hover {
+    color: var(--crumb-hover-color);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* The current page is still clickable but doesn't advertise it. */
+.crumb.last {
+  color: var(--current-color);
+  font-weight: var(--orb-font-semi-bold);
+  text-decoration: none;
+  cursor: default;
+}
+
+.collapse {
+  justify-content: center;
+  padding: 0 var(--orb-spacing-2xs);
+  cursor: pointer;
+  transition:
+    color var(--orb-transition-x-fast) ease-in-out,
+    background-color var(--orb-transition-x-fast) ease-in-out;
+
+  svg {
+    width: 1.25em;
+    height: 1.25em;
+  }
+}
+
+@media (hover: hover) {
+  .collapse:hover {
+    background-color: light-dark(var(--orb-neutral-100), var(--orb-neutral-850));
+    color: var(--crumb-hover-color);
+  }
+}
+
+.crumb:focus-visible,
+.collapse:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+}
+
+.separator {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  color: var(--separator-color);
+}
+
+@media (forced-colors: active) {
+  .crumb.last {
+    color: CanvasText;
+  }
+
+  .separator {
+    color: GrayText;
+  }
 }

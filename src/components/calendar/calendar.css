@@ -1,3 +1,617 @@
+/**
+ * @prop --orb-calendar-bg: Surface background color
+ * @prop --orb-calendar-grid-line: Color of grid lines and borders
+ * @prop --orb-calendar-today-color: Today's date highlight and the now-line
+ * @prop --orb-calendar-muted: Muted text, such as weekday labels and times
+ * @prop --orb-calendar-hour-height: Height of one hour in day and week views
+ * @prop --orb-calendar-sidebar-width: Width of the sidebar
+ * @prop --orb-calendar-lane-h: Height of an all-day or multi-day bar
+ * @prop --orb-calendar-date-h: Height of the date number row in month cells
+ * @prop --orb-calendar-gutter: Width of the time labels in day and week views
+ * @prop --orb-calendar-event-radius: Corner radius of event pills and blocks
+ */
+
 :host {
+  --orb-calendar-bg: light-dark(var(--orb-neutral-50), var(--orb-neutral-900));
+  --orb-calendar-grid-line: light-dark(var(--orb-neutral-200), var(--orb-neutral-750));
+  --orb-calendar-today-color: var(--orb-danger-500);
+  --orb-calendar-muted: light-dark(var(--orb-neutral-600), var(--orb-neutral-400));
+  --orb-calendar-hour-height: 3rem;
+  --orb-calendar-sidebar-width: 16rem;
+  --orb-calendar-lane-h: 1.25rem;
+  --orb-calendar-date-h: 1.5rem;
+  --orb-calendar-gutter: 3.5rem;
+  --orb-calendar-event-radius: var(--orb-radius-sm, 4px);
+  /* Fills its parent's height and scrolls internally, with a fallback when the parent has no height. */
   display: block;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 24rem;
+  overflow: hidden;
+  color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
+  font-family: inherit;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.calendar-layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--orb-calendar-bg);
+}
+
+/* Sidebar */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: var(--orb-spacing-lg);
+  width: var(--orb-calendar-sidebar-width);
+  min-height: 0;
+  padding: var(--orb-spacing-md);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--orb-calendar-grid-line);
+}
+
+.sidebar-heading {
+  color: var(--orb-calendar-muted);
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-semi-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.calendar-item {
+  font-size: var(--orb-font-sm);
+}
+
+.calendar-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-inline-end: var(--orb-spacing-2xs);
+  border-radius: 50%;
+}
+
+.mini-month {
+  margin-top: auto;
+}
+
+/* Main area */
+
+.calendar-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--orb-spacing-sm) var(--orb-spacing-md);
+  padding: var(--orb-spacing-md);
+  border-bottom: 1px solid var(--orb-calendar-grid-line);
+}
+
+.title {
+  flex: 1 1 9rem;
+  min-width: 9rem;
+  overflow: hidden;
+  font-size: var(--orb-font-xl);
+  font-weight: var(--orb-font-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.view-switcher,
+.nav {
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+}
+
+/* Month grid */
+
+.month-grid {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.month-weeks {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.weekday-row {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(7, 1fr);
+  padding-right: var(--orb-calendar-sb, 0px);
+  border-bottom: 1px solid var(--orb-calendar-grid-line);
+}
+
+.weekday {
+  padding: var(--orb-spacing-2xs) var(--orb-spacing-xs);
+  color: var(--orb-calendar-muted);
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-semi-bold);
+  text-align: right;
+}
+
+/* Rows grow to fill the height but never shrink below 5rem. The weeks scroll when they don't fit. */
+.week-row {
+  position: relative;
+  flex: 1 0 5rem;
+  border-bottom: 1px solid var(--orb-calendar-grid-line);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.day-cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 100%;
+}
+
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-2xs);
+  min-width: 0;
+  padding: var(--orb-spacing-2xs);
+  border-right: 1px solid var(--orb-calendar-grid-line);
+  cursor: pointer;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &.out-of-month {
+    background: light-dark(var(--orb-neutral-100), var(--orb-neutral-850));
+  }
+
+  &.out-of-month .day-number {
+    color: var(--orb-calendar-muted);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: light-dark(var(--orb-neutral-100), var(--orb-neutral-850));
+    }
+  }
+}
+
+.day-number {
+  display: flex;
+  align-items: center;
+  align-self: flex-end;
+  justify-content: center;
+  width: 1.5rem;
+  height: var(--orb-calendar-date-h);
+  border-radius: 50%;
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-semi-bold);
+
+  &.today {
+    background: var(--orb-calendar-today-color);
+    color: white;
+  }
+}
+
+/* Timed pills sit below the all-day bars. */
+.timed-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  margin-top: calc(var(--lanes, 0) * var(--orb-calendar-lane-h));
+}
+
+.event-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  min-width: 0;
+  padding: 1px var(--orb-spacing-2xs);
+  border: none;
+  border-radius: var(--orb-calendar-event-radius);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--orb-font-xs);
+  text-align: left;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: light-dark(var(--orb-neutral-150), var(--orb-neutral-800));
+    }
+  }
+
+  .pill-dot {
+    flex-shrink: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+  }
+
+  .pill-time {
+    flex-shrink: 0;
+    color: var(--orb-calendar-muted);
+  }
+
+  .pill-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.more-link {
+  padding: 1px var(--orb-spacing-2xs);
+  border: none;
+  background: transparent;
+  color: var(--orb-calendar-muted);
+  font-family: inherit;
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-semi-bold);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* All-day and multi-day bars */
+
+.bars-overlay {
+  position: absolute;
+  top: var(--orb-calendar-date-h);
+  right: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/* Horizontal insets come from the inline left/width, since margins would shift an absolute element. */
+.event-bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  height: calc(var(--orb-calendar-lane-h) - 2px);
+  padding: 0 var(--orb-spacing-xs);
+  overflow: hidden;
+  border: none;
+  border-radius: var(--orb-calendar-event-radius);
+  background: var(--bar-color);
+  color: white;
+  font-family: inherit;
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-semi-bold);
+  cursor: pointer;
+  pointer-events: auto;
+
+  &.continues-left {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  &.continues-right {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .bar-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Time grid (week and day views) */
+
+.time-grid {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tg-header {
+  display: flex;
+  flex-shrink: 0;
+  padding-right: var(--orb-calendar-sb, 0px);
+  border-bottom: 1px solid var(--orb-calendar-grid-line);
+}
+
+.tg-corner {
+  flex-shrink: 0;
+  width: var(--orb-calendar-gutter);
+}
+
+.tg-day-head {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--orb-spacing-2xs) 0;
+  border-left: 1px solid var(--orb-calendar-grid-line);
+
+  .tg-day-name {
+    color: var(--orb-calendar-muted);
+    font-size: var(--orb-font-xs);
+    text-transform: uppercase;
+  }
+
+  .tg-day-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    font-size: var(--orb-font-lg);
+    font-weight: var(--orb-font-semi-bold);
+
+    &.today {
+      background: var(--orb-calendar-today-color);
+      color: white;
+    }
+  }
+}
+
+.tg-allday {
+  display: flex;
+  flex-shrink: 0;
+  min-height: var(--orb-calendar-lane-h);
+  max-height: 8rem;
+  padding-right: var(--orb-calendar-sb, 0px);
+  overflow-y: auto;
+  border-bottom: 1px solid var(--orb-calendar-grid-line);
+}
+
+.tg-allday-label {
+  flex-shrink: 0;
+  width: var(--orb-calendar-gutter);
+  padding: var(--orb-spacing-2xs) var(--orb-spacing-2xs) 0 0;
+  color: var(--orb-calendar-muted);
+  font-size: var(--orb-font-xs);
+  text-align: right;
+}
+
+.tg-allday-track {
+  position: relative;
+  flex: 1;
+  height: calc(var(--lanes, 0) * var(--orb-calendar-lane-h) + var(--orb-spacing-2xs));
+  min-height: var(--orb-calendar-lane-h);
+}
+
+.tg-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Sets the full scroll height so columns and their hour lines span the whole day. */
+.tg-body-inner {
+  display: flex;
+  height: calc(var(--hours, 24) * var(--orb-calendar-hour-height));
+}
+
+.tg-gutter {
+  flex-shrink: 0;
+  width: var(--orb-calendar-gutter);
+}
+
+.tg-hour-label {
+  height: var(--orb-calendar-hour-height);
+  padding-right: var(--orb-spacing-2xs);
+  color: var(--orb-calendar-muted);
+  font-size: var(--orb-font-xs);
+  text-align: right;
+  transform: translateY(-0.5em);
+}
+
+.tg-columns {
+  position: relative;
+  display: flex;
+  flex: 1;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--orb-calendar-grid-line) 0,
+    var(--orb-calendar-grid-line) 1px,
+    transparent 1px,
+    transparent var(--orb-calendar-hour-height)
+  );
+}
+
+.tg-col {
+  position: relative;
+  flex: 1;
+  border-left: 1px solid var(--orb-calendar-grid-line);
+  cursor: pointer;
+
+  &:first-child {
+    border-left: none;
+  }
+}
+
+/* Time and title sit on one line and only wrap when there isn't room, so short events don't clip. */
+.tg-event {
+  position: absolute;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  column-gap: var(--orb-spacing-2xs);
+  min-height: 1rem;
+  padding: 2px var(--orb-spacing-2xs);
+  overflow: hidden;
+  border: none;
+  border-left: 3px solid var(--bar-color);
+  border-radius: var(--orb-calendar-event-radius);
+  background: color-mix(in srgb, var(--bar-color) 22%, transparent);
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--orb-font-xs);
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  touch-action: none;
+
+  .tg-event-time {
+    flex-shrink: 0;
+    color: var(--orb-calendar-muted);
+    white-space: nowrap;
+  }
+
+  .tg-event-title {
+    min-width: 0;
+    font-weight: var(--orb-font-semi-bold);
+    overflow-wrap: anywhere;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      filter: brightness(1.05);
+    }
+
+    &:hover .tg-resize-handle {
+      opacity: 1;
+    }
+  }
+}
+
+.tg-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 6px;
+  cursor: ns-resize;
+  opacity: 0;
+  touch-action: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    width: 1.5rem;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--bar-color);
+    opacity: 0.6;
+    transform: translateX(-50%);
+  }
+}
+
+.tg-now {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 0;
+  border-top: 2px solid var(--orb-calendar-today-color);
+  pointer-events: none;
+
+  .tg-now-dot {
+    position: absolute;
+    top: -5px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--orb-calendar-today-color);
+  }
+}
+
+/* Focus rings for the native buttons */
+:is(.event-pill, .more-link, .event-bar, .tg-event, .weekday-pill):focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 1px;
+}
+
+/* Editor */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-sm);
+  width: 100%;
+}
+
+.editor-dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--orb-spacing-sm);
+}
+
+.editor-custom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-xs);
+  padding: var(--orb-spacing-sm);
+  border-radius: var(--orb-radius-md);
+  background: light-dark(var(--orb-neutral-100), var(--orb-neutral-850));
+}
+
+.editor-weekdays {
+  display: flex;
+  gap: var(--orb-spacing-2xs);
+}
+
+.weekday-pill {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--orb-calendar-grid-line);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--orb-font-xs);
+  cursor: pointer;
+
+  &.active {
+    border-color: transparent;
+    background: var(--orb-primary-500);
+    color: var(--orb-neutral-75);
+  }
+}
+
+.editor-recurring-note {
+  margin: 0;
+  color: var(--orb-calendar-muted);
+  font-size: var(--orb-font-xs);
+  font-style: italic;
+}
+
+.scope-message {
+  margin: 0;
+}
+
+.scope-buttons {
+  flex-wrap: wrap;
 }

@@ -1,73 +1,7 @@
 :host {
   display: flex;
-  align-items: center;
-  counter-reset: wizard;
+  align-items: flex-start;
+  justify-content: space-between;
   box-sizing: border-box;
-  gap: var(--orb-spacing-sm);
-}
-
-.step {
-  --before-background: var(--orb-neutral-300);
-  --before-color: var(--orb-neutral-800);
-  --after-background: var(--orb-neutral-400);
-  display: flex;
-  align-items: center;
-  gap: var(--orb-spacing-sm);
-  box-sizing: border-box;
-  counter-increment: wizard;
-
-  &.active,
-  &.completed {
-    --before-background: var(--orb-primary-200);
-    --before-color: var(--orb-primary-800);
-  }
-
-  &.completed::before {
-    font-family: "Material Symbols Rounded";
-    content: "check";
-    font-variation-settings:
-      "FILL" 0,
-      "wght" 200,
-      "GRAD" 200,
-      "opsz" 24;
-    font-size: var(--orb-font-xl);
-  }
-
-  &::before {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    font-size: var(--orb-font-lg);
-    content: counter(wizard);
-    border-radius: var(--orb-radius-circle);
-    width: var(--orb-spacing-3xl);
-    height: var(--orb-spacing-3xl);
-    background-color: var(--before-background);
-    color: var(--before-color);
-    transition:
-      color 250ms ease-in-out,
-      background-color 250ms ease-in-out;
-  }
-
-  &:not(:last-of-type)::after {
-    display: block;
-    content: "";
-    height: 1px;
-    width: 5rem;
-    box-sizing: border-box;
-    background-color: var(--after-background);
-  }
-}
-
-.label {
-  display: block;
-  font-weight: var(--orb-font-semi-bold);
-  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-200));
-}
-
-.optional {
-  display: block;
-  font-weight: var(--orb-font-light);
-  color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  width: 100%;
 }

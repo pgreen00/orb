@@ -7,6 +7,7 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
+import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
 import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
@@ -17,6 +18,7 @@ import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
+export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
 export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
@@ -50,18 +52,38 @@ export namespace Components {
         "open": boolean;
         "show": () => Promise<void>;
     }
+    /**
+     * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
+     * crumb into a link (with `href`) or a button (without), so the crumb's content,
+     * including icons, renders inside it.
+     */
     interface OrbBreadcrumb {
+        /**
+          * Makes the crumb a link. Reflected, so setting the property updates the attribute that `orb-breadcrumbs` watches.
+         */
         "href"?: string;
     }
+    /**
+     * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
+     * `href` render as links, and crumbs without one render as buttons for apps
+     * that navigate with click handlers. Each crumb's content is slotted into its
+     * link or button, so icons and other markup render as written, and clicks
+     * reach the `<orb-breadcrumb>`.
+     */
     interface OrbBreadcrumbs {
         /**
+          * Crumbs kept visible after the collapsed ones. At least 1, so the current page is always shown.
           * @default 1
          */
         "itemsAfterCollapse": number;
         /**
+          * Crumbs kept visible before the collapsed ones
           * @default 1
          */
         "itemsBeforeCollapse": number;
+        /**
+          * Collapses the middle crumbs when there are more than this many
+         */
         "maxItems"?: number;
     }
     interface OrbButton {
@@ -105,7 +127,89 @@ export namespace Components {
     }
     interface OrbButtonGroup {
     }
+    /**
+     * A full calendar with day, week, and month views, multiple named calendars,
+     * all-day and recurring (RRULE) events with per-occurrence editing, drag and
+     * resize, and ICS export. Times are in the browser's local time zone.
+     * The host owns the `events` array. The calendar emits change requests
+     * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+     * `applyEventChange` helper and assign the result back to `events`.
+     */
     interface OrbCalendar {
+        /**
+          * Named calendars and their colors. Without any, there's one implicit calendar.
+          * @default []
+         */
+        "calendars": OrbCalendarSource[];
+        /**
+          * The anchor date (epoch ms) that decides which range is shown
+          * @default Date.now()
+         */
+        "date": number;
+        /**
+          * Last hour shown in day and week views
+          * @default 24
+         */
+        "dayEndHour": number;
+        /**
+          * First hour shown in day and week views
+          * @default 0
+         */
+        "dayStartHour": number;
+        /**
+          * Builds the ICS file and starts a browser download
+         */
+        "downloadICS": (opts?: { calendarIds?: string[]; filename?: string; }) => Promise<void>;
+        /**
+          * Allows creating, dragging, resizing, editing, and deleting events
+          * @default true
+         */
+        "editable": boolean;
+        /**
+          * The events to display. Owned by the host. The calendar never mutates it.
+          * @default []
+         */
+        "events": OrbCalendarEvent[];
+        /**
+          * Builds a VCALENDAR string of all events, or only those in `calendarIds`
+         */
+        "exportICS": (opts?: { calendarIds?: string[]; }) => Promise<string>;
+        /**
+          * Goes to the given date (epoch ms)
+         */
+        "goToDate": (date: number) => Promise<void>;
+        /**
+          * Goes to today
+         */
+        "goToToday": () => Promise<void>;
+        /**
+          * Moves forward one day, week, or month, depending on the view
+         */
+        "next": () => Promise<void>;
+        /**
+          * Moves back one day, week, or month, depending on the view
+         */
+        "prev": () => Promise<void>;
+        /**
+          * Hour scrolled into view in day and week views
+          * @default 8
+         */
+        "scrollToHour": number;
+        /**
+          * Shows the sidebar with the calendar list and mini month
+          * @default true
+         */
+        "showSidebar": boolean;
+        /**
+          * The active view
+          * @default "month"
+         */
+        "view": OrbCalendarView;
+        /**
+          * First day of the week, from 0 (Sunday) to 6
+          * @default 0
+         */
+        "weekStartsOn": OrbWeekStart;
     }
     /**
      * A container for related content. The `layout` prop picks the structure, and
@@ -355,6 +459,8 @@ export namespace Components {
          */
         "size": "xs" | "sm" | "md" | "lg";
     }
+    interface OrbFloatingButton {
+    }
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
      * row header when `header` is set.
@@ -550,6 +656,8 @@ export namespace Components {
          */
         "typographer": boolean;
     }
+    interface OrbMaskInput {
+    }
     interface OrbMenu {
         /**
           * @default false
@@ -582,6 +690,8 @@ export namespace Components {
           * @default false
          */
         "invalid": boolean;
+    }
+    interface OrbOtpInput {
     }
     interface OrbOutput {
     }
@@ -1256,15 +1366,21 @@ export namespace Components {
     interface OrbViewManager {
     }
     interface OrbWizard {
-        "canSkip": () => Promise<boolean>;
-        "next": () => Promise<void>;
-        "previous": () => Promise<void>;
-        "reset": () => Promise<void>;
-        "skip": () => Promise<void>;
+    }
+    interface OrbWizardItem {
         /**
-          * @default []
+          * @default false
          */
-        "steps": { label: string; optional?: boolean }[];
+        "active": boolean;
+        /**
+          * @default false
+         */
+        "completed": boolean;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        "error"?: string;
     }
 }
 export interface OrbAlertCustomEvent<T> extends CustomEvent<T> {
@@ -1274,6 +1390,10 @@ export interface OrbAlertCustomEvent<T> extends CustomEvent<T> {
 export interface OrbBreadcrumbsCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbBreadcrumbsElement;
+}
+export interface OrbCalendarCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbCalendarElement;
 }
 export interface OrbCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1372,6 +1492,11 @@ declare global {
         prototype: HTMLOrbAlertElement;
         new (): HTMLOrbAlertElement;
     };
+    /**
+     * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
+     * crumb into a link (with `href`) or a button (without), so the crumb's content,
+     * including icons, renders inside it.
+     */
     interface HTMLOrbBreadcrumbElement extends Components.OrbBreadcrumb, HTMLStencilElement {
     }
     var HTMLOrbBreadcrumbElement: {
@@ -1379,8 +1504,15 @@ declare global {
         new (): HTMLOrbBreadcrumbElement;
     };
     interface HTMLOrbBreadcrumbsElementEventMap {
-        "expandClick": any;
+        "expandClick": HTMLOrbBreadcrumbElement[];
     }
+    /**
+     * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
+     * `href` render as links, and crumbs without one render as buttons for apps
+     * that navigate with click handlers. Each crumb's content is slotted into its
+     * link or button, so icons and other markup render as written, and clicks
+     * reach the `<orb-breadcrumb>`.
+     */
     interface HTMLOrbBreadcrumbsElement extends Components.OrbBreadcrumbs, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLOrbBreadcrumbsElement, ev: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1407,7 +1539,32 @@ declare global {
         prototype: HTMLOrbButtonGroupElement;
         new (): HTMLOrbButtonGroupElement;
     };
+    interface HTMLOrbCalendarElementEventMap {
+        "viewChange": OrbCalendarView;
+        "dateChange": number;
+        "rangeChange": OrbCalendarRange;
+        "eventClick": OrbCalendarEventClickDetail;
+        "eventCreate": OrbCalendarMutation;
+        "eventUpdate": OrbCalendarMutation;
+        "eventDelete": OrbCalendarMutation;
+    }
+    /**
+     * A full calendar with day, week, and month views, multiple named calendars,
+     * all-day and recurring (RRULE) events with per-occurrence editing, drag and
+     * resize, and ICS export. Times are in the browser's local time zone.
+     * The host owns the `events` array. The calendar emits change requests
+     * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+     * `applyEventChange` helper and assign the result back to `events`.
+     */
     interface HTMLOrbCalendarElement extends Components.OrbCalendar, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbCalendarElementEventMap>(type: K, listener: (this: HTMLOrbCalendarElement, ev: OrbCalendarCustomEvent<HTMLOrbCalendarElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbCalendarElementEventMap>(type: K, listener: (this: HTMLOrbCalendarElement, ev: OrbCalendarCustomEvent<HTMLOrbCalendarElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbCalendarElement: {
         prototype: HTMLOrbCalendarElement;
@@ -1572,6 +1729,12 @@ declare global {
         prototype: HTMLOrbFileInputElement;
         new (): HTMLOrbFileInputElement;
     };
+    interface HTMLOrbFloatingButtonElement extends Components.OrbFloatingButton, HTMLStencilElement {
+    }
+    var HTMLOrbFloatingButtonElement: {
+        prototype: HTMLOrbFloatingButtonElement;
+        new (): HTMLOrbFloatingButtonElement;
+    };
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
      * row header when `header` is set.
@@ -1652,6 +1815,12 @@ declare global {
         prototype: HTMLOrbMarkdownElement;
         new (): HTMLOrbMarkdownElement;
     };
+    interface HTMLOrbMaskInputElement extends Components.OrbMaskInput, HTMLStencilElement {
+    }
+    var HTMLOrbMaskInputElement: {
+        prototype: HTMLOrbMaskInputElement;
+        new (): HTMLOrbMaskInputElement;
+    };
     interface HTMLOrbMenuElementEventMap {
         "action": { checked: boolean; value?: string };
     }
@@ -1693,6 +1862,12 @@ declare global {
         prototype: HTMLOrbNoteElement;
         new (): HTMLOrbNoteElement;
     };
+    interface HTMLOrbOtpInputElement extends Components.OrbOtpInput, HTMLStencilElement {
+    }
+    var HTMLOrbOtpInputElement: {
+        prototype: HTMLOrbOtpInputElement;
+        new (): HTMLOrbOtpInputElement;
+    };
     interface HTMLOrbOutputElement extends Components.OrbOutput, HTMLStencilElement {
     }
     var HTMLOrbOutputElement: {
@@ -1702,6 +1877,7 @@ declare global {
     interface HTMLOrbOverlayElementEventMap {
         "present": any;
         "dismiss": OverlayData1;
+        "hideRequest": OverlayData1;
     }
     interface HTMLOrbOverlayElement extends Components.OrbOverlay, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbOverlayElementEventMap>(type: K, listener: (this: HTMLOrbOverlayElement, ev: OrbOverlayCustomEvent<HTMLOrbOverlayElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2051,6 +2227,12 @@ declare global {
         prototype: HTMLOrbWizardElement;
         new (): HTMLOrbWizardElement;
     };
+    interface HTMLOrbWizardItemElement extends Components.OrbWizardItem, HTMLStencilElement {
+    }
+    var HTMLOrbWizardItemElement: {
+        prototype: HTMLOrbWizardItemElement;
+        new (): HTMLOrbWizardItemElement;
+    };
     interface HTMLElementTagNameMap {
         "orb-accordion": HTMLOrbAccordionElement;
         "orb-alert": HTMLOrbAlertElement;
@@ -2074,6 +2256,7 @@ declare global {
         "orb-divider": HTMLOrbDividerElement;
         "orb-eq": HTMLOrbEqElement;
         "orb-file-input": HTMLOrbFileInputElement;
+        "orb-floating-button": HTMLOrbFloatingButtonElement;
         "orb-gc": HTMLOrbGcElement;
         "orb-gr": HTMLOrbGrElement;
         "orb-grid": HTMLOrbGridElement;
@@ -2082,11 +2265,13 @@ declare global {
         "orb-layout-swap": HTMLOrbLayoutSwapElement;
         "orb-loading": HTMLOrbLoadingElement;
         "orb-markdown": HTMLOrbMarkdownElement;
+        "orb-mask-input": HTMLOrbMaskInputElement;
         "orb-menu": HTMLOrbMenuElement;
         "orb-mesh": HTMLOrbMeshElement;
         "orb-mi": HTMLOrbMiElement;
         "orb-midi": HTMLOrbMidiElement;
         "orb-note": HTMLOrbNoteElement;
+        "orb-otp-input": HTMLOrbOtpInputElement;
         "orb-output": HTMLOrbOutputElement;
         "orb-overlay": HTMLOrbOverlayElement;
         "orb-pagination": HTMLOrbPaginationElement;
@@ -2119,6 +2304,7 @@ declare global {
         "orb-view": HTMLOrbViewElement;
         "orb-view-manager": HTMLOrbViewManagerElement;
         "orb-wizard": HTMLOrbWizardElement;
+        "orb-wizard-item": HTMLOrbWizardItemElement;
     }
 }
 declare namespace LocalJSX {
@@ -2147,20 +2333,43 @@ declare namespace LocalJSX {
          */
         "open"?: boolean;
     }
+    /**
+     * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
+     * crumb into a link (with `href`) or a button (without), so the crumb's content,
+     * including icons, renders inside it.
+     */
     interface OrbBreadcrumb {
+        /**
+          * Makes the crumb a link. Reflected, so setting the property updates the attribute that `orb-breadcrumbs` watches.
+         */
         "href"?: string;
     }
+    /**
+     * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
+     * `href` render as links, and crumbs without one render as buttons for apps
+     * that navigate with click handlers. Each crumb's content is slotted into its
+     * link or button, so icons and other markup render as written, and clicks
+     * reach the `<orb-breadcrumb>`.
+     */
     interface OrbBreadcrumbs {
         /**
+          * Crumbs kept visible after the collapsed ones. At least 1, so the current page is always shown.
           * @default 1
          */
         "itemsAfterCollapse"?: number;
         /**
+          * Crumbs kept visible before the collapsed ones
           * @default 1
          */
         "itemsBeforeCollapse"?: number;
+        /**
+          * Collapses the middle crumbs when there are more than this many
+         */
         "maxItems"?: number;
-        "onExpandClick"?: (event: OrbBreadcrumbsCustomEvent<any>) => void;
+        /**
+          * Emitted when the collapsed-crumbs button is activated. The detail is the hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu.
+         */
+        "onExpandClick"?: (event: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbElement[]>) => void;
     }
     interface OrbButton {
         /**
@@ -2207,7 +2416,93 @@ declare namespace LocalJSX {
     }
     interface OrbButtonGroup {
     }
+    /**
+     * A full calendar with day, week, and month views, multiple named calendars,
+     * all-day and recurring (RRULE) events with per-occurrence editing, drag and
+     * resize, and ICS export. Times are in the browser's local time zone.
+     * The host owns the `events` array. The calendar emits change requests
+     * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+     * `applyEventChange` helper and assign the result back to `events`.
+     */
     interface OrbCalendar {
+        /**
+          * Named calendars and their colors. Without any, there's one implicit calendar.
+          * @default []
+         */
+        "calendars"?: OrbCalendarSource[];
+        /**
+          * The anchor date (epoch ms) that decides which range is shown
+          * @default Date.now()
+         */
+        "date"?: number;
+        /**
+          * Last hour shown in day and week views
+          * @default 24
+         */
+        "dayEndHour"?: number;
+        /**
+          * First hour shown in day and week views
+          * @default 0
+         */
+        "dayStartHour"?: number;
+        /**
+          * Allows creating, dragging, resizing, editing, and deleting events
+          * @default true
+         */
+        "editable"?: boolean;
+        /**
+          * The events to display. Owned by the host. The calendar never mutates it.
+          * @default []
+         */
+        "events"?: OrbCalendarEvent[];
+        /**
+          * Emitted when the user changes the anchor date
+         */
+        "onDateChange"?: (event: OrbCalendarCustomEvent<number>) => void;
+        /**
+          * Emitted when an event is clicked. Call `preventDefault()` to skip the built-in editor.
+         */
+        "onEventClick"?: (event: OrbCalendarCustomEvent<OrbCalendarEventClickDetail>) => void;
+        /**
+          * Emitted when the user saves a new event
+         */
+        "onEventCreate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        /**
+          * Emitted when the user deletes an event
+         */
+        "onEventDelete"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        /**
+          * Emitted when the user edits, drags, or resizes an event
+         */
+        "onEventUpdate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        /**
+          * Emitted on load and whenever the visible range changes. Useful for lazy loading events.
+         */
+        "onRangeChange"?: (event: OrbCalendarCustomEvent<OrbCalendarRange>) => void;
+        /**
+          * Emitted when the user changes the view
+         */
+        "onViewChange"?: (event: OrbCalendarCustomEvent<OrbCalendarView>) => void;
+        /**
+          * Hour scrolled into view in day and week views
+          * @default 8
+         */
+        "scrollToHour"?: number;
+        /**
+          * Shows the sidebar with the calendar list and mini month
+          * @default true
+         */
+        "showSidebar"?: boolean;
+        /**
+          * The active view
+          * @default "month"
+         */
+        "view"?: OrbCalendarView;
+        /**
+          * First day of the week, from 0 (Sunday) to 6
+          * @default 0
+         */
+        "weekStartsOn"?: OrbWeekStart;
     }
     /**
      * A container for related content. The `layout` prop picks the structure, and
@@ -2483,6 +2778,8 @@ declare namespace LocalJSX {
          */
         "size"?: "xs" | "sm" | "md" | "lg";
     }
+    interface OrbFloatingButton {
+    }
     /**
      * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
      * row header when `header` is set.
@@ -2698,6 +2995,8 @@ declare namespace LocalJSX {
          */
         "typographer"?: boolean;
     }
+    interface OrbMaskInput {
+    }
     interface OrbMenu {
         /**
           * @default false
@@ -2732,6 +3031,8 @@ declare namespace LocalJSX {
          */
         "invalid"?: boolean;
     }
+    interface OrbOtpInput {
+    }
     interface OrbOutput {
     }
     interface OrbOverlay {
@@ -2752,6 +3053,10 @@ declare namespace LocalJSX {
           * Emits whenever the overlay has finished closing. Emits the role and optional data object passed to the hide() method.
          */
         "onDismiss"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
+        /**
+          * Emits whenever the overlay is about to close. Emits the role and optional data object passed to the hide() method. If the event is canceled, the overlay will not close.
+         */
+        "onHideRequest"?: (event: OrbOverlayCustomEvent<OverlayData1>) => void;
         /**
           * Emits whenever the overlay has opened. Does not emit any data
          */
@@ -3450,10 +3755,21 @@ declare namespace LocalJSX {
     interface OrbWizard {
         "onFinish"?: (event: OrbWizardCustomEvent<void>) => void;
         "onStepChange"?: (event: OrbWizardCustomEvent<number>) => void;
+    }
+    interface OrbWizardItem {
         /**
-          * @default []
+          * @default false
          */
-        "steps"?: { label: string; optional?: boolean }[];
+        "active"?: boolean;
+        /**
+          * @default false
+         */
+        "completed"?: boolean;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        "error"?: string;
     }
 
     interface OrbAlertAttributes {
@@ -3479,6 +3795,16 @@ declare namespace LocalJSX {
         "fill": "solid" | "outline" | "clear";
         "size": "md" | "lg" | "sm" | "xs";
         "color": Color;
+    }
+    interface OrbCalendarAttributes {
+        "view": OrbCalendarView;
+        "date": number;
+        "weekStartsOn": OrbWeekStart;
+        "editable": boolean;
+        "dayStartHour": number;
+        "dayEndHour": number;
+        "scrollToHour": number;
+        "showSidebar": boolean;
     }
     interface OrbCardAttributes {
         "layout": CardLayout;
@@ -3783,6 +4109,12 @@ declare namespace LocalJSX {
         "header": "none" | "minimal" | "prominent";
         "headingLevel": "1" | "2" | "3" | "4" | "5" | "6";
     }
+    interface OrbWizardItemAttributes {
+        "active": boolean;
+        "completed": boolean;
+        "disabled": boolean;
+        "error": string;
+    }
 
     interface IntrinsicElements {
         "orb-accordion": OrbAccordion;
@@ -3791,7 +4123,7 @@ declare namespace LocalJSX {
         "orb-breadcrumbs": Omit<OrbBreadcrumbs, keyof OrbBreadcrumbsAttributes> & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes]?: OrbBreadcrumbs[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `attr:${K}`]?: OrbBreadcrumbsAttributes[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `prop:${K}`]?: OrbBreadcrumbs[K] };
         "orb-button": Omit<OrbButton, keyof OrbButtonAttributes> & { [K in keyof OrbButton & keyof OrbButtonAttributes]?: OrbButton[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `attr:${K}`]?: OrbButtonAttributes[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `prop:${K}`]?: OrbButton[K] };
         "orb-button-group": OrbButtonGroup;
-        "orb-calendar": OrbCalendar;
+        "orb-calendar": Omit<OrbCalendar, keyof OrbCalendarAttributes> & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes]?: OrbCalendar[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `attr:${K}`]?: OrbCalendarAttributes[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `prop:${K}`]?: OrbCalendar[K] };
         "orb-card": Omit<OrbCard, keyof OrbCardAttributes> & { [K in keyof OrbCard & keyof OrbCardAttributes]?: OrbCard[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `attr:${K}`]?: OrbCardAttributes[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `prop:${K}`]?: OrbCard[K] };
         "orb-channel": OrbChannel;
         "orb-checkbox": Omit<OrbCheckbox, keyof OrbCheckboxAttributes> & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes]?: OrbCheckbox[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `attr:${K}`]?: OrbCheckboxAttributes[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `prop:${K}`]?: OrbCheckbox[K] };
@@ -3807,6 +4139,7 @@ declare namespace LocalJSX {
         "orb-divider": Omit<OrbDivider, keyof OrbDividerAttributes> & { [K in keyof OrbDivider & keyof OrbDividerAttributes]?: OrbDivider[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `attr:${K}`]?: OrbDividerAttributes[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `prop:${K}`]?: OrbDivider[K] };
         "orb-eq": OrbEq;
         "orb-file-input": Omit<OrbFileInput, keyof OrbFileInputAttributes> & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes]?: OrbFileInput[K] } & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes as `attr:${K}`]?: OrbFileInputAttributes[K] } & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes as `prop:${K}`]?: OrbFileInput[K] };
+        "orb-floating-button": OrbFloatingButton;
         "orb-gc": Omit<OrbGc, keyof OrbGcAttributes> & { [K in keyof OrbGc & keyof OrbGcAttributes]?: OrbGc[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `attr:${K}`]?: OrbGcAttributes[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `prop:${K}`]?: OrbGc[K] };
         "orb-gr": Omit<OrbGr, keyof OrbGrAttributes> & { [K in keyof OrbGr & keyof OrbGrAttributes]?: OrbGr[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `attr:${K}`]?: OrbGrAttributes[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `prop:${K}`]?: OrbGr[K] };
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
@@ -3815,11 +4148,13 @@ declare namespace LocalJSX {
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
         "orb-loading": OrbLoading;
         "orb-markdown": Omit<OrbMarkdown, keyof OrbMarkdownAttributes> & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes]?: OrbMarkdown[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `attr:${K}`]?: OrbMarkdownAttributes[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `prop:${K}`]?: OrbMarkdown[K] };
+        "orb-mask-input": OrbMaskInput;
         "orb-menu": Omit<OrbMenu, keyof OrbMenuAttributes> & { [K in keyof OrbMenu & keyof OrbMenuAttributes]?: OrbMenu[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `attr:${K}`]?: OrbMenuAttributes[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `prop:${K}`]?: OrbMenu[K] };
         "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
         "orb-mi": Omit<OrbMi, keyof OrbMiAttributes> & { [K in keyof OrbMi & keyof OrbMiAttributes]?: OrbMi[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `attr:${K}`]?: OrbMiAttributes[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `prop:${K}`]?: OrbMi[K] };
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
+        "orb-otp-input": OrbOtpInput;
         "orb-output": OrbOutput;
         "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
         "orb-pagination": Omit<OrbPagination, keyof OrbPaginationAttributes> & { [K in keyof OrbPagination & keyof OrbPaginationAttributes]?: OrbPagination[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `attr:${K}`]?: OrbPaginationAttributes[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `prop:${K}`]?: OrbPagination[K] };
@@ -3852,6 +4187,7 @@ declare namespace LocalJSX {
         "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
         "orb-view-manager": OrbViewManager;
         "orb-wizard": OrbWizard;
+        "orb-wizard-item": Omit<OrbWizardItem, keyof OrbWizardItemAttributes> & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes]?: OrbWizardItem[K] } & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes as `attr:${K}`]?: OrbWizardItemAttributes[K] } & { [K in keyof OrbWizardItem & keyof OrbWizardItemAttributes as `prop:${K}`]?: OrbWizardItem[K] };
     }
 }
 export { LocalJSX as JSX };
@@ -3864,10 +4200,30 @@ declare module "@stencil/core" {
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
+            /**
+             * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
+             * crumb into a link (with `href`) or a button (without), so the crumb's content,
+             * including icons, renders inside it.
+             */
             "orb-breadcrumb": LocalJSX.IntrinsicElements["orb-breadcrumb"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbElement>;
+            /**
+             * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
+             * `href` render as links, and crumbs without one render as buttons for apps
+             * that navigate with click handlers. Each crumb's content is slotted into its
+             * link or button, so icons and other markup render as written, and clicks
+             * reach the `<orb-breadcrumb>`.
+             */
             "orb-breadcrumbs": LocalJSX.IntrinsicElements["orb-breadcrumbs"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbsElement>;
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
+            /**
+             * A full calendar with day, week, and month views, multiple named calendars,
+             * all-day and recurring (RRULE) events with per-occurrence editing, drag and
+             * resize, and ICS export. Times are in the browser's local time zone.
+             * The host owns the `events` array. The calendar emits change requests
+             * (`eventCreate`, `eventUpdate`, `eventDelete`). Apply them with the exported
+             * `applyEventChange` helper and assign the result back to `events`.
+             */
             "orb-calendar": LocalJSX.IntrinsicElements["orb-calendar"] & JSXBase.HTMLAttributes<HTMLOrbCalendarElement>;
             /**
              * A container for related content. The `layout` prop picks the structure, and
@@ -3907,6 +4263,7 @@ declare module "@stencil/core" {
             "orb-divider": LocalJSX.IntrinsicElements["orb-divider"] & JSXBase.HTMLAttributes<HTMLOrbDividerElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
             "orb-file-input": LocalJSX.IntrinsicElements["orb-file-input"] & JSXBase.HTMLAttributes<HTMLOrbFileInputElement>;
+            "orb-floating-button": LocalJSX.IntrinsicElements["orb-floating-button"] & JSXBase.HTMLAttributes<HTMLOrbFloatingButtonElement>;
             /**
              * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
              * row header when `header` is set.
@@ -3932,11 +4289,13 @@ declare module "@stencil/core" {
              * DOM, so the output picks up the page's native element styles.
              */
             "orb-markdown": LocalJSX.IntrinsicElements["orb-markdown"] & JSXBase.HTMLAttributes<HTMLOrbMarkdownElement>;
+            "orb-mask-input": LocalJSX.IntrinsicElements["orb-mask-input"] & JSXBase.HTMLAttributes<HTMLOrbMaskInputElement>;
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
             "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
+            "orb-otp-input": LocalJSX.IntrinsicElements["orb-otp-input"] & JSXBase.HTMLAttributes<HTMLOrbOtpInputElement>;
             "orb-output": LocalJSX.IntrinsicElements["orb-output"] & JSXBase.HTMLAttributes<HTMLOrbOutputElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
             /**
@@ -4005,6 +4364,7 @@ declare module "@stencil/core" {
             "orb-view": LocalJSX.IntrinsicElements["orb-view"] & JSXBase.HTMLAttributes<HTMLOrbViewElement>;
             "orb-view-manager": LocalJSX.IntrinsicElements["orb-view-manager"] & JSXBase.HTMLAttributes<HTMLOrbViewManagerElement>;
             "orb-wizard": LocalJSX.IntrinsicElements["orb-wizard"] & JSXBase.HTMLAttributes<HTMLOrbWizardElement>;
+            "orb-wizard-item": LocalJSX.IntrinsicElements["orb-wizard-item"] & JSXBase.HTMLAttributes<HTMLOrbWizardItemElement>;
         }
     }
 }

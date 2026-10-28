@@ -1,3 +1,4 @@
+/* Lays the crumb's content out directly inside the link or button it's slotted into. */
 :host {
-  display: none;
+  display: contents;
 }

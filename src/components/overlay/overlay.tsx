@@ -69,6 +69,13 @@ export class Overlay extends ReadyController {
   /** Emits whenever the overlay has finished closing. Emits the role and optional data object passed to the hide() method. */
   @Event() dismiss: EventEmitter<OverlayData>;
 
+  /** Emits whenever the overlay is about to close. Emits the role and optional data object passed to the hide() method.
+   * If the event is canceled, the overlay will not close.
+   */
+  @Event({
+    cancelable: true
+  }) hideRequest: EventEmitter<OverlayData>;
+
   @Method()
   async show() {
     this.open = true;
@@ -76,9 +83,12 @@ export class Overlay extends ReadyController {
 
   @Method()
   async hide(role?: string, data?: any) {
-    this.role = role;
-    this.data = data;
-    this.open = false;
+    const ev = this.hideRequest.emit({ role, data });
+    if (!ev.defaultPrevented) {
+      this.role = role;
+      this.data = data;
+      this.open = false;
+    }
   }
 
   @Watch("side", { immediate: true })
@@ -157,8 +167,16 @@ export class Overlay extends ReadyController {
   @Listen("click", { target: "document" })
   onClick(event: MouseEvent) {
     const path = event.composedPath();
-    if (path.includes(this.triggerEl)) {
+    if (!this.open && path.includes(this.triggerEl)) {
       this.open = true;
+    } else if (this.open) {
+      const closeButton = path.find(el => el instanceof HTMLElement && el.dataset.overlay?.includes('hide')) as HTMLElement
+      if (closeButton) {
+        event.stopPropagation();
+        const role = closeButton.dataset.overlay.match(/(?:^|\s)role--(\S+)/)?.[1]
+        const data = closeButton.dataset.overlay.match(/(?:^|\s)data--(\S+)/)?.[1]
+        this.hide(role, data)
+      }
     }
   }
 
