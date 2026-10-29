@@ -36,7 +36,6 @@ export { WizardStepChangeDetail } from "./components/wizard/wizard";
 export namespace Components {
     /**
      * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
-     * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
     }
@@ -384,10 +383,6 @@ export namespace Components {
         /**
           * @default false
          */
-        "iconToggle": boolean;
-        /**
-          * @default false
-         */
         "open": boolean;
         "summary"?: string;
     }
@@ -614,8 +609,6 @@ export namespace Components {
           * @default false
          */
         "striped": boolean;
-    }
-    interface OrbKnob {
     }
     interface OrbLabel {
         "for"?: string;
@@ -1025,7 +1018,66 @@ export namespace Components {
          */
         "value"?: any;
     }
+    /**
+     * A slider for picking a number in a range. It wraps a native range input, so
+     * the keyboard, screen readers, and dragging work the way they do on the
+     * platform. The value shows in a tooltip while it's being changed.
+     */
     interface OrbRange {
+        /**
+          * Colors the track with the accent color, from the start up to the thumb, to show how far along the range the value is. `split` colors from the center instead, so the accent runs between the center and the thumb on either side.
+         */
+        "accent"?: string;
+        /**
+          * Makes the range vertical and larger, with a wide thumb and a short notch, for mixer-style controls. The lowest value is at the bottom.
+          * @default false
+         */
+        "boosted": boolean;
+        /**
+          * Disables the control
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * Shows the range as a rotary knob. Drag up to increase and down to decrease. Combine with `boosted` for a larger knob.
+          * @default false
+         */
+        "knob": boolean;
+        /**
+          * Label that shows above the control
+         */
+        "label"?: string;
+        /**
+          * Largest value
+          * @default 100
+         */
+        "max": number;
+        /**
+          * Smallest value
+          * @default 0
+         */
+        "min": number;
+        /**
+          * Additional info that shows below the control
+         */
+        "note"?: string;
+        /**
+          * Value the form will reset to. Defaults to the initial value.
+         */
+        "originalValue"?: number;
+        /**
+          * Distance between values. Decimals in the step set how many digits the tooltip shows, so a step of `0.1` shows `-10.0`.
+          * @default 1
+         */
+        "step": number;
+        /**
+          * Unit shown after the value in the tooltip and to screen readers, such as `dB`
+         */
+        "unit"?: string;
+        /**
+          * The current value. Defaults to `min`.
+         */
+        "value"?: number;
     }
     /**
      * Displays a date as a localized phrase relative to now, such as "3 hours ago"
@@ -1612,6 +1664,10 @@ export interface OrbRadioGroupCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbRadioGroupElement;
 }
+export interface OrbRangeCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbRangeElement;
+}
 export interface OrbRichTextCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbRichTextElement;
@@ -1647,7 +1703,6 @@ export interface OrbWizardCustomEvent<T> extends CustomEvent<T> {
 declare global {
     /**
      * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
-     * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface HTMLOrbAccordionElement extends Components.OrbAccordion, HTMLStencilElement {
     }
@@ -1962,12 +2017,6 @@ declare global {
         prototype: HTMLOrbGridElement;
         new (): HTMLOrbGridElement;
     };
-    interface HTMLOrbKnobElement extends Components.OrbKnob, HTMLStencilElement {
-    }
-    var HTMLOrbKnobElement: {
-        prototype: HTMLOrbKnobElement;
-        new (): HTMLOrbKnobElement;
-    };
     interface HTMLOrbLabelElement extends Components.OrbLabel, HTMLStencilElement {
     }
     var HTMLOrbLabelElement: {
@@ -2174,7 +2223,23 @@ declare global {
         prototype: HTMLOrbRadioGroupElement;
         new (): HTMLOrbRadioGroupElement;
     };
+    interface HTMLOrbRangeElementEventMap {
+        "orbValueChange": number;
+    }
+    /**
+     * A slider for picking a number in a range. It wraps a native range input, so
+     * the keyboard, screen readers, and dragging work the way they do on the
+     * platform. The value shows in a tooltip while it's being changed.
+     */
     interface HTMLOrbRangeElement extends Components.OrbRange, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbRangeElementEventMap>(type: K, listener: (this: HTMLOrbRangeElement, ev: OrbRangeCustomEvent<HTMLOrbRangeElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbRangeElementEventMap>(type: K, listener: (this: HTMLOrbRangeElement, ev: OrbRangeCustomEvent<HTMLOrbRangeElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbRangeElement: {
         prototype: HTMLOrbRangeElement;
@@ -2493,7 +2558,6 @@ declare global {
         "orb-gc": HTMLOrbGcElement;
         "orb-gr": HTMLOrbGrElement;
         "orb-grid": HTMLOrbGridElement;
-        "orb-knob": HTMLOrbKnobElement;
         "orb-label": HTMLOrbLabelElement;
         "orb-layout-swap": HTMLOrbLayoutSwapElement;
         "orb-loading": HTMLOrbLoadingElement;
@@ -2545,7 +2609,6 @@ declare namespace LocalJSX {
 
     /**
      * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
-     * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
      */
     interface OrbAccordion {
     }
@@ -2921,10 +2984,6 @@ declare namespace LocalJSX {
           * @default "right"
          */
         "iconSide"?: "left" | "right";
-        /**
-          * @default false
-         */
-        "iconToggle"?: boolean;
         "onOrbCollapse"?: (event: OrbDetailsCustomEvent<any>) => void;
         "onOrbExpand"?: (event: OrbDetailsCustomEvent<any>) => void;
         /**
@@ -3180,8 +3239,6 @@ declare namespace LocalJSX {
           * @default false
          */
         "striped"?: boolean;
-    }
-    interface OrbKnob {
     }
     interface OrbLabel {
         "for"?: string;
@@ -3628,7 +3685,78 @@ declare namespace LocalJSX {
          */
         "value"?: any;
     }
+    /**
+     * A slider for picking a number in a range. It wraps a native range input, so
+     * the keyboard, screen readers, and dragging work the way they do on the
+     * platform. The value shows in a tooltip while it's being changed.
+     */
     interface OrbRange {
+        /**
+          * Colors the track with the accent color, from the start up to the thumb, to show how far along the range the value is. `split` colors from the center instead, so the accent runs between the center and the thumb on either side.
+         */
+        "accent"?: string;
+        /**
+          * Makes the range vertical and larger, with a wide thumb and a short notch, for mixer-style controls. The lowest value is at the bottom.
+          * @default false
+         */
+        "boosted"?: boolean;
+        /**
+          * Disables the control
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        /**
+          * Shows the range as a rotary knob. Drag up to increase and down to decrease. Combine with `boosted` for a larger knob.
+          * @default false
+         */
+        "knob"?: boolean;
+        /**
+          * Label that shows above the control
+         */
+        "label"?: string;
+        /**
+          * Largest value
+          * @default 100
+         */
+        "max"?: number;
+        /**
+          * Smallest value
+          * @default 0
+         */
+        "min"?: number;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
+        /**
+          * Additional info that shows below the control
+         */
+        "note"?: string;
+        /**
+          * Emits the new value as it changes, including while dragging
+         */
+        "onOrbValueChange"?: (event: OrbRangeCustomEvent<number>) => void;
+        /**
+          * Value the form will reset to. Defaults to the initial value.
+         */
+        "originalValue"?: number;
+        /**
+          * Distance between values. Decimals in the step set how many digits the tooltip shows, so a step of `0.1` shows `-10.0`.
+          * @default 1
+         */
+        "step"?: number;
+        /**
+          * Unit shown after the value in the tooltip and to screen readers, such as `dB`
+         */
+        "unit"?: string;
+        /**
+          * The current value. Defaults to `min`.
+         */
+        "value"?: number;
     }
     /**
      * Displays a date as a localized phrase relative to now, such as "3 hours ago"
@@ -3811,14 +3939,6 @@ declare namespace LocalJSX {
      * re-created the next time it's selected.
      */
     interface OrbTabPanel {
-        /**
-          * If `true`, the user cannot interact with the element.
-         */
-        "disabled"?: boolean;
-        /**
-          * The `id` of a `<form>` element to associate this element with.
-         */
-        "form"?: string;
         "name"?: string;
         /**
           * Milliseconds the panel stays inactive before its template content is removed. Overrides `offload-delay` on `orb-tabs`. Only applies to content inside a `<template>`.
@@ -4243,7 +4363,6 @@ declare namespace LocalJSX {
     interface OrbDetailsAttributes {
         "summary": string;
         "open": boolean;
-        "iconToggle": boolean;
         "iconSide": "left" | "right";
     }
     interface OrbDividerAttributes {
@@ -4395,6 +4514,20 @@ declare namespace LocalJSX {
         "value": string;
         "buttons": boolean;
         "mode": "row" | "column";
+    }
+    interface OrbRangeAttributes {
+        "label": string;
+        "note": string;
+        "min": number;
+        "max": number;
+        "step": number;
+        "unit": string;
+        "accent": string;
+        "boosted": boolean;
+        "knob": boolean;
+        "value": number;
+        "originalValue": number;
+        "disabled": boolean;
     }
     interface OrbRelativeTimeAttributes {
         "date": Date | string;
@@ -4560,7 +4693,6 @@ declare namespace LocalJSX {
         "orb-gc": Omit<OrbGc, keyof OrbGcAttributes> & { [K in keyof OrbGc & keyof OrbGcAttributes]?: OrbGc[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `attr:${K}`]?: OrbGcAttributes[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `prop:${K}`]?: OrbGc[K] };
         "orb-gr": Omit<OrbGr, keyof OrbGrAttributes> & { [K in keyof OrbGr & keyof OrbGrAttributes]?: OrbGr[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `attr:${K}`]?: OrbGrAttributes[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `prop:${K}`]?: OrbGr[K] };
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
-        "orb-knob": OrbKnob;
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
         "orb-loading": OrbLoading;
@@ -4581,7 +4713,7 @@ declare namespace LocalJSX {
         "orb-popover": Omit<OrbPopover, keyof OrbPopoverAttributes> & { [K in keyof OrbPopover & keyof OrbPopoverAttributes]?: OrbPopover[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `attr:${K}`]?: OrbPopoverAttributes[K] } & { [K in keyof OrbPopover & keyof OrbPopoverAttributes as `prop:${K}`]?: OrbPopover[K] };
         "orb-radio": Omit<OrbRadio, keyof OrbRadioAttributes> & { [K in keyof OrbRadio & keyof OrbRadioAttributes]?: OrbRadio[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `attr:${K}`]?: OrbRadioAttributes[K] } & { [K in keyof OrbRadio & keyof OrbRadioAttributes as `prop:${K}`]?: OrbRadio[K] };
         "orb-radio-group": Omit<OrbRadioGroup, keyof OrbRadioGroupAttributes> & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes]?: OrbRadioGroup[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `attr:${K}`]?: OrbRadioGroupAttributes[K] } & { [K in keyof OrbRadioGroup & keyof OrbRadioGroupAttributes as `prop:${K}`]?: OrbRadioGroup[K] };
-        "orb-range": OrbRange;
+        "orb-range": Omit<OrbRange, keyof OrbRangeAttributes> & { [K in keyof OrbRange & keyof OrbRangeAttributes]?: OrbRange[K] } & { [K in keyof OrbRange & keyof OrbRangeAttributes as `attr:${K}`]?: OrbRangeAttributes[K] } & { [K in keyof OrbRange & keyof OrbRangeAttributes as `prop:${K}`]?: OrbRange[K] };
         "orb-relative-time": Omit<OrbRelativeTime, keyof OrbRelativeTimeAttributes> & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes]?: OrbRelativeTime[K] } & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes as `attr:${K}`]?: OrbRelativeTimeAttributes[K] } & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes as `prop:${K}`]?: OrbRelativeTime[K] };
         "orb-rich-text": Omit<OrbRichText, keyof OrbRichTextAttributes> & { [K in keyof OrbRichText & keyof OrbRichTextAttributes]?: OrbRichText[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `attr:${K}`]?: OrbRichTextAttributes[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `prop:${K}`]?: OrbRichText[K] };
         "orb-shader-canvas": Omit<OrbShaderCanvas, keyof OrbShaderCanvasAttributes> & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes]?: OrbShaderCanvas[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `attr:${K}`]?: OrbShaderCanvasAttributes[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `prop:${K}`]?: OrbShaderCanvas[K] };
@@ -4613,7 +4745,6 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             /**
              * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
-             * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
@@ -4697,7 +4828,6 @@ declare module "@stencil/core" {
              * asked for. Reflecting that back is done by updating props.
              */
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
-            "orb-knob": LocalJSX.IntrinsicElements["orb-knob"] & JSXBase.HTMLAttributes<HTMLOrbKnobElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
             "orb-layout-swap": LocalJSX.IntrinsicElements["orb-layout-swap"] & JSXBase.HTMLAttributes<HTMLOrbLayoutSwapElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
@@ -4743,6 +4873,11 @@ declare module "@stencil/core" {
             "orb-popover": LocalJSX.IntrinsicElements["orb-popover"] & JSXBase.HTMLAttributes<HTMLOrbPopoverElement>;
             "orb-radio": LocalJSX.IntrinsicElements["orb-radio"] & JSXBase.HTMLAttributes<HTMLOrbRadioElement>;
             "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
+            /**
+             * A slider for picking a number in a range. It wraps a native range input, so
+             * the keyboard, screen readers, and dragging work the way they do on the
+             * platform. The value shows in a tooltip while it's being changed.
+             */
             "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
             /**
              * Displays a date as a localized phrase relative to now, such as "3 hours ago"

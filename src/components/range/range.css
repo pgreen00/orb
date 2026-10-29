@@ -1,3 +1,362 @@
 :host {
   display: block;
+  --track-height: 1.25rem;
+  /* Along the track, and across it. */
+  --thumb-width: var(--orb-spacing-md);
+  --thumb-height: var(--orb-spacing-md);
+  --thumb-radius: 50%;
+  --thumb-background: var(--thumb-color);
+  --slider-height: max(var(--track-height), var(--thumb-height));
+  /* Track and thumb each meet 3:1 against the page and each other, in both themes. */
+  --track-color: light-dark(var(--orb-neutral-650), var(--orb-neutral-700));
+  --fill-color: var(--track-color);
+  --thumb-color: light-dark(var(--orb-neutral-50), var(--orb-neutral-250));
+  --focus-color: var(--orb-primary-300);
+  --tooltip-background: light-dark(var(--orb-neutral-950), var(--orb-neutral-800));
+  --arrow-size: 0.375rem;
+  /* Where the thumb's center sits along the track, as a gradient stop. */
+  --fill-direction: to right;
+  --fill-stop: calc(var(--thumb-width) / 2 + var(--fraction) * (100% - var(--thumb-width)));
+  /* The accented span of the track, from the start to the thumb by default. */
+  --fill-start: 0%;
+  --fill-end: var(--fill-stop);
+  --track-gradient: linear-gradient(
+    var(--fill-direction),
+    var(--track-color) var(--fill-start),
+    var(--fill-color) var(--fill-start),
+    var(--fill-color) var(--fill-end),
+    var(--track-color) var(--fill-end)
+  );
+}
+
+:host(:dir(rtl)) {
+  --fill-direction: to left;
+}
+
+:host([data-accent]) {
+  --fill-color: var(--orb-primary-500);
+}
+
+/* Split: the accent runs from the center to the thumb, on whichever side it's on. */
+:host([data-accent="split"]) {
+  --fill-start: min(50%, var(--fill-stop));
+  --fill-end: max(50%, var(--fill-stop));
+}
+
+:host([boosted]) {
+  --length: 12rem;
+  --track-height: 0.75rem;
+  --thumb-width: 1.5rem;
+  --thumb-height: 3rem;
+  --thumb-radius: var(--orb-radius-pill);
+  /* Darker than the page in light mode, so the thumb stands out from the background. */
+  --thumb-color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
+  --notch-color: light-dark(var(--orb-neutral-50), var(--orb-neutral-800));
+  --thumb-background:
+    linear-gradient(var(--notch-color), var(--notch-color)) center / 2px 35% no-repeat,
+    var(--thumb-color);
+  /* The input is rotated, so its own left is the bottom of the range. */
+  --fill-direction: to right;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--orb-spacing-sm);
+  text-align: center;
+}
+
+.control {
+  position: relative;
+}
+
+input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--slider-height);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+input:focus {
+  outline: none;
+}
+
+:host([boosted]) .control {
+  width: var(--slider-height);
+  height: var(--length);
+}
+
+:host([boosted]) input {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--length);
+  /* Rotated, so the value runs from the bottom up no matter the page direction. */
+  direction: ltr;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+input::-webkit-slider-runnable-track {
+  height: var(--track-height);
+  border-radius: var(--orb-radius-pill);
+  background: var(--track-gradient);
+}
+
+input::-moz-range-track {
+  height: var(--track-height);
+  border-radius: var(--orb-radius-pill);
+  background: var(--track-gradient);
+}
+
+/* Firefox's progress bar can't start from the center, so the track draws the accent. */
+input::-moz-range-progress {
+  height: var(--track-height);
+  border-radius: var(--orb-radius-pill);
+  background: transparent;
+}
+
+input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--thumb-width);
+  height: var(--thumb-height);
+  /* WebKit positions the thumb inside the track, so this offset is from the track's top. */
+  margin-top: calc((var(--track-height) - var(--thumb-height)) / 2);
+  border: none;
+  border-radius: var(--thumb-radius);
+  background: var(--thumb-background);
+  box-shadow: var(--orb-shadow-sm);
+}
+
+input::-moz-range-thumb {
+  width: var(--thumb-width);
+  height: var(--thumb-height);
+  border: none;
+  border-radius: var(--thumb-radius);
+  background: var(--thumb-background);
+  box-shadow: var(--orb-shadow-sm);
+}
+
+input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+input:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* In the top layer, so it isn't clipped by overflow in the page. JavaScript
+   sets the input's box, and the CSS centers the tooltip on the thumb. */
+.tooltip {
+  inset: auto;
+  margin: 0;
+  margin-top: calc(var(--arrow-size) + var(--orb-spacing-3xs));
+  top: calc(var(--range-top) + var(--range-height));
+  left: calc(
+    var(--range-left) + var(--fraction) * (var(--range-width) - var(--thumb-width)) +
+      var(--thumb-width) / 2
+  );
+  translate: -50% 0;
+  padding: var(--orb-spacing-2xs) var(--orb-spacing-sm);
+  border: 1px solid transparent;
+  border-radius: var(--orb-radius-md);
+  overflow: visible;
+  background: var(--tooltip-background);
+  color: var(--orb-neutral-50);
+  box-shadow: var(--orb-shadow-sm);
+  font-family: inherit;
+  font-size: var(--orb-font-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity var(--orb-transition-fast) ease-in-out;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  translate: -50% 0;
+  border: var(--arrow-size) solid transparent;
+  border-top: none;
+  border-bottom-color: var(--tooltip-background);
+}
+
+:host(:dir(rtl)) .tooltip {
+  left: calc(
+    var(--range-left) + var(--range-width) - var(--thumb-width) / 2 -
+      var(--fraction) * (var(--range-width) - var(--thumb-width))
+  );
+}
+
+/* Boosted: the tooltip sits to the right of the thumb, with the arrow pointing left. */
+:host([boosted]:not([knob])) .tooltip {
+  margin: 0;
+  top: calc(
+    var(--range-top) + var(--range-height) - var(--thumb-width) / 2 -
+      var(--fraction) * (var(--range-height) - var(--thumb-width))
+  );
+  left: calc(var(--range-left) + var(--range-width) + var(--orb-spacing-xs));
+  translate: 0 -50%;
+}
+
+:host([boosted]:not([knob])) .tooltip::before {
+  bottom: auto;
+  left: auto;
+  top: 50%;
+  right: 100%;
+  translate: 0 -50%;
+  border: var(--arrow-size) solid transparent;
+  border-left: none;
+  border-right-color: var(--tooltip-background);
+}
+
+/* Knob: a rotary control. The native input stays focusable for the keyboard
+   and screen readers, so it's hidden here and the knob draws the focus ring.
+   These rules come after the boosted ones, so they win where both apply. */
+:host([knob]) {
+  --knob-size: 2.5rem;
+  --knob-body: light-dark(var(--orb-neutral-800), var(--orb-neutral-650));
+  --knob-pointer: var(--orb-neutral-50);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  text-align: center;
+}
+
+:host([knob][boosted]) {
+  --knob-size: 6rem;
+}
+
+:host([knob]) .control {
+  width: var(--knob-size);
+  height: var(--knob-size);
+  flex-shrink: 0;
+}
+
+:host([knob]) input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  transform: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.knob {
+  position: relative;
+  box-sizing: border-box;
+  width: var(--knob-size);
+  height: var(--knob-size);
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.knob:active {
+  cursor: grabbing;
+}
+
+:host([knob][disabled]) .knob {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.knob svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.knob circle {
+  fill: none;
+  stroke-width: 7;
+}
+
+.knob .track {
+  stroke: var(--track-color);
+}
+
+.knob .fill {
+  stroke: var(--fill-color);
+}
+
+.knob .body {
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  background: var(--knob-body);
+  box-shadow: var(--orb-shadow-sm);
+  /* The pointer starts at the bottom left (minimum) and sweeps clockwise to the bottom right. */
+  transform: rotate(calc(-135deg + var(--fraction) * 270deg));
+}
+
+.knob .pointer {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  width: calc(var(--knob-size) * 0.05);
+  height: 28%;
+  translate: -50% 0;
+  border-radius: var(--orb-radius-pill);
+  background: var(--knob-pointer);
+}
+
+:host([knob]) .tooltip,
+:host([knob]:dir(rtl)) .tooltip {
+  left: calc(var(--range-left) + var(--range-width) / 2);
+}
+
+input:focus ~ .knob:not(.pointer-focus) {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+@starting-style {
+  .tooltip:popover-open {
+    opacity: 0;
+  }
+}
+
+:host([disabled]) {
+  opacity: 0.6;
+}
+
+:host([disabled]) input {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .tooltip {
+    border-color: CanvasText;
+  }
+
+  .knob .body {
+    background: ButtonFace;
+    border: 1px solid ButtonText;
+  }
+
+  .knob .pointer {
+    background: ButtonText;
+  }
 }

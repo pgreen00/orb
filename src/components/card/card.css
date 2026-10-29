@@ -16,7 +16,7 @@
   --inner-radius: calc(var(--radius) - 1px);
   --padding: var(--orb-spacing-sm);
   --gap: var(--orb-spacing-xs);
-  --background: light-dark(var(--orb-neutral-50), var(--orb-neutral-900));
+  --background: light-dark(var(--orb-neutral-125), var(--orb-neutral-875));
   --border-color: light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
   --muted-color: color-mix(in srgb, currentColor 65%, transparent);
   --accent: light-dark(var(--orb-primary-500), var(--orb-primary-300));

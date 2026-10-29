@@ -3,7 +3,6 @@ import { OrbDetailsCustomEvent } from "../../components";
 
 /**
  * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
- * The implementation follows the [aria implementation of an accordion](https://www.w3.org/WAI/ARIA/apg/patterns/accordion/).
  */
 @Component({
   tag: "orb-accordion",

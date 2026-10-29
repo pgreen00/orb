@@ -52,8 +52,6 @@
   --orb-divider-color: light-dark(var(--orb-neutral-400), var(--orb-neutral-800));
   --orb-text-color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
   --orb-background-color: light-dark(var(--orb-neutral-75), var(--orb-neutral-925));
-  --orb-background-color-g: light-dark(var(--orb-neutral-75), color-mix(in srgb, var(--orb-primary-750) 10%, var(--orb-neutral-950) 90%));
-  --orb-main-content-color-g: light-dark(var(--orb-neutral-75), color-mix(in srgb, var(--orb-primary-150) 10%, var(--orb-neutral-950) 90%));
 }
 
 orb-menu:has([checked]:not([checked=false])) orb-mi {

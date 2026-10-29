@@ -5,7 +5,6 @@
 }
 
 button {
-  width: 100%;
   margin: 0;
   padding: 0;
   border: 0;
@@ -14,30 +13,38 @@ button {
   color: inherit;
   cursor: pointer;
   display: block;
-}
-
-summary {
   font-size: var(--orb-font-md);
 }
 
+:host([icon-side=left]) button {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-md);
+}
+
+:host([icon-side=right]) button {
+  width: 100%;
+}
+
 svg {
-  transition: rotate 250ms ease-in-out;
+  transition: rotate var(--orb-transition-fast) ease-in-out;
   &.open {
     rotate: 90deg;
   }
 }
 
+orb-toolbar::part(main-container) {
+  flex: 1;
+  flex-shrink: 0;
+}
+
 [part="content-container"] {
+  display: none;
   box-sizing: border-box;
-  display: grid;
-  grid-template-rows: 0fr;
-  padding: 0;
-  opacity: 0;
-  transition: all 250ms ease-out;
+  grid-template-rows: 1fr;
+  padding: var(--content-open-padding);
   &.open {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    padding: var(--content-open-padding);
+    display: grid;
   }
 }
 

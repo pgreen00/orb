@@ -19,7 +19,6 @@ const TEMPLATE_ROOT_CLASS = "orb--tab-panel-template-root";
   tag: "orb-tab-panel",
   styleUrl: "tab-panel.css",
   shadow: true,
-  formAssociated: true,
 })
 export class TabPanel {
   @AttachInternals({
