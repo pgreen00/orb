@@ -1313,11 +1313,12 @@ export namespace Components {
     interface OrbTagInput {
     }
     /**
-     * its a textbox
+     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
+     * validation messages. A `textarea` grows with its content.
      */
     interface OrbTextbox {
         /**
-          * Optional debounce of the form controls input event
+          * Milliseconds to wait after the user stops typing before emitting `orbValueChange`. With 0, it emits on every change. The native `input` event is never delayed.
           * @default 0
          */
         "debounce": number;
@@ -1679,6 +1680,10 @@ export interface OrbShaderCanvasCustomEvent<T> extends CustomEvent<T> {
 export interface OrbTabButtonCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbTabButtonElement;
+}
+export interface OrbTextboxCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbTextboxElement;
 }
 export interface OrbTimerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -2369,10 +2374,22 @@ declare global {
         prototype: HTMLOrbTagInputElement;
         new (): HTMLOrbTagInputElement;
     };
+    interface HTMLOrbTextboxElementEventMap {
+        "orbValueChange": string;
+    }
     /**
-     * its a textbox
+     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
+     * validation messages. A `textarea` grows with its content.
      */
     interface HTMLOrbTextboxElement extends Components.OrbTextbox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbTextboxElement: {
         prototype: HTMLOrbTextboxElement;
@@ -3979,11 +3996,12 @@ declare namespace LocalJSX {
     interface OrbTagInput {
     }
     /**
-     * its a textbox
+     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
+     * validation messages. A `textarea` grows with its content.
      */
     interface OrbTextbox {
         /**
-          * Optional debounce of the form controls input event
+          * Milliseconds to wait after the user stops typing before emitting `orbValueChange`. With 0, it emits on every change. The native `input` event is never delayed.
           * @default 0
          */
         "debounce"?: number;
@@ -3995,6 +4013,10 @@ declare namespace LocalJSX {
           * Informational message directly below the control
          */
         "note"?: string;
+        /**
+          * Emits the control's value when the user changes it, after `debounce` milliseconds without another change
+         */
+        "onOrbValueChange"?: (event: OrbTextboxCustomEvent<string>) => void;
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
@@ -4913,7 +4935,8 @@ declare module "@stencil/core" {
             "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
             "orb-tag-input": LocalJSX.IntrinsicElements["orb-tag-input"] & JSXBase.HTMLAttributes<HTMLOrbTagInputElement>;
             /**
-             * its a textbox
+             * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
+             * validation messages. A `textarea` grows with its content.
              */
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
             "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;

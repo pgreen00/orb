@@ -22,3 +22,16 @@
 @each $name, $value in font.$size {
   .orb-font-#{$name} { font-size: var(--orb-font-#{$name}); }
 }
+
+// Hides content visually but keeps it available to screen readers.
+.orb-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

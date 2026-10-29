@@ -252,7 +252,8 @@ textarea {
   display: block;
   width: 100%;
   resize: none;
-  overflow: hidden;
+  /* Grows with field-sizing, and scrolls once it reaches a max-height. */
+  overflow-y: auto;
   border: none;
   outline: none;
   background: transparent;

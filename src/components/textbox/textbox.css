@@ -1,8 +1,13 @@
+/**
+ * @prop --textarea-max-height: How tall a textarea grows before it scrolls
+ */
+
 :host {
   display: flex;
   flex-direction: column;
   gap: 0.2em;
   font-size: var(--orb-font-md);
+  --textarea-max-height: 15em;
 }
 
 [part=after-container] {
@@ -15,12 +20,14 @@ div[part="container"] {
   position: relative;
   box-sizing: border-box;
   display: flex;
-  gap: 1em;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75em;
   background-color: transparent;
   color: inherit;
   padding-inline: 1em;
   flex: 1;
+  min-width: 0;
   cursor: text;
   min-height: 3em;
   font-weight: var(--orb-font-semi-bold);
@@ -33,6 +40,51 @@ div[part="container"] {
   &.error {
     border-color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
   }
+  /* Textareas and utility rows get room around the content, like a composer. */
+  &.multiline,
+  &.stacked {
+    padding-block: 0.75em;
+  }
+  &.stacked {
+    padding-inline: 0.75em;
+  }
+}
+
+.control {
+  display: flex;
+  gap: 1em;
+  align-items: center;
+  min-width: 0;
+}
+
+.multiline .control {
+  align-items: flex-start;
+}
+
+.stacked .control {
+  padding-inline: 0.25em;
+}
+
+/* Utility rows: start content on the left, end content pushed to the right. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+  cursor: default;
+}
+
+.row.hidden {
+  display: none;
+}
+
+.row-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+  margin-inline-start: auto;
 }
 
 ::slotted(input),
@@ -40,4 +92,8 @@ div[part="container"] {
 ::slotted(textarea) {
   font-size: 1em;
   flex: 1;
+}
+
+::slotted(textarea) {
+  max-height: var(--textarea-max-height);
 }
