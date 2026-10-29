@@ -1,97 +1,93 @@
+/**
+ * @prop --editor-border-color: Border around the editor and between its sections
+ * @prop --editor-focus-color: Border and focus ring color while the editor has focus, and link color
+ * @prop --editor-bg: Background of the writing area
+ * @prop --editor-toolbar-bg: Background of the toolbar and footer
+ * @prop --editor-text-color: Text color
+ * @prop --editor-muted-color: Placeholder and blockquote text color
+ * @prop --editor-footer-color: Word count text color
+ * @prop --editor-button-active: Background of a pressed toolbar button, such as Bold while bold text is selected
+ * @prop --editor-border-radius: Corner radius of the editor
+ */
+
 :host {
   display: block;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-  --editor-border-color: #d1d5db;
-  --editor-focus-color: #3b82f6;
-  --editor-bg: #ffffff;
-  --editor-toolbar-bg: #f9fafb;
-  --editor-text-color: #111827;
-  --editor-placeholder-color: #9ca3af;
-  --editor-button-hover: #f3f4f6;
-  --editor-button-active: #e5e7eb;
-  --editor-border-radius: 8px;
-  --editor-transition: all 0.2s ease;
-}
+  font-family: inherit;
+  --editor-border-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-700));
+  --editor-focus-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --editor-bg: transparent;
+  --editor-toolbar-bg: light-dark(var(--orb-neutral-100), var(--orb-neutral-875));
+  --editor-text-color: var(--orb-text-color);
+  --editor-muted-color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  /* neutral-700 is just under 4.5:1 on the toolbar background, so the footer is a shade darker. */
+  --editor-footer-color: light-dark(var(--orb-neutral-800), var(--orb-neutral-400));
 
-.editor-container {
+  --editor-button-active: light-dark(
+    var(--orb-primary-100),
+    color-mix(in srgb, var(--orb-primary-500) 30%, transparent)
+  );
+  --editor-border-radius: var(--orb-radius-md);
   border: 2px solid var(--editor-border-color);
   border-radius: var(--editor-border-radius);
   background: var(--editor-bg);
+  color: var(--editor-text-color);
   overflow: hidden;
-  transition: var(--editor-transition);
+  transition: border-color var(--orb-transition-fast) ease-in-out;
 }
 
-.editor-container.editor-focused {
+:host(:focus-within) {
   border-color: var(--editor-focus-color);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.editor-container.editor-disabled {
+:host(.editor-disabled) {
   opacity: 0.5;
   pointer-events: none;
 }
 
-.editor-container.editor-readonly {
-  background-color: var(--editor-toolbar-bg);
+:host(.editor-readonly) {
+  --editor-bg: var(--editor-toolbar-bg);
 }
 
 .editor-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  padding: 8px;
+  gap: var(--orb-spacing-xs);
+  padding: var(--orb-spacing-xs);
   background: var(--editor-toolbar-bg);
-  border-bottom: 1px solid var(--editor-border-color);
-  gap: 4px;
+  border-bottom: 1px solid var(--orb-divider-color);
 }
 
-.toolbar-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--editor-text-color);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: var(--editor-transition);
-  font-size: 16px;
-  font-weight: 600;
+/* Groups use the same corners as a standalone button. */
+.editor-toolbar orb-button-group {
+  --button-group-radius: var(--orb-radius-md);
 }
 
-.toolbar-btn:hover:not(:disabled) {
-  background: var(--editor-button-hover);
+/* Square icon buttons. */
+.editor-toolbar orb-button {
+  --padding-inline: 0;
+  width: var(--height);
 }
 
-.toolbar-btn:active:not(:disabled),
-.toolbar-btn.active {
-  background: var(--editor-button-active);
+.editor-toolbar orb-button svg {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
-.toolbar-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.editor-toolbar orb-button.pressed {
+  --background: var(--editor-button-active);
+  --hover-background: var(--editor-button-active);
+  --color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
 }
 
-.toolbar-btn:focus-visible {
-  outline: 2px solid var(--editor-focus-color);
-  outline-offset: 2px;
+orb-tooltip kbd {
+  margin-inline-start: var(--orb-spacing-xs);
+  font-family: inherit;
+  opacity: 0.8;
 }
 
-.toolbar-icon {
-  display: inline-block;
-  font-style: normal;
-  line-height: 1;
-}
-
-.toolbar-divider {
-  width: 1px;
-  height: 24px;
-  background: var(--editor-border-color);
-  margin: 0 4px;
+orb-tooltip kbd::after {
+  content: attr(data-shortcut) / "";
 }
 
 .editor-content-wrapper {
@@ -100,31 +96,33 @@
 }
 
 .editor-content {
-  padding: 16px;
+  padding: var(--orb-spacing-md);
   color: var(--editor-text-color);
-  font-size: 16px;
+  font-size: var(--orb-font-md);
   line-height: 1.6;
   overflow-y: auto;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--editor-border-color) transparent;
 }
 
-.editor-content:empty:before {
+.editor-content:empty::before {
   content: attr(data-placeholder);
-  color: var(--editor-placeholder-color);
-  pointer-events: none;
   position: absolute;
+  color: var(--editor-muted-color);
+  pointer-events: none;
 }
 
 .editor-content h1 {
   font-size: 2em;
-  font-weight: bold;
+  font-weight: var(--orb-font-bold);
   margin: 0.67em 0;
 }
 
 .editor-content h2 {
   font-size: 1.5em;
-  font-weight: bold;
+  font-weight: var(--orb-font-bold);
   margin: 0.83em 0;
 }
 
@@ -143,7 +141,7 @@
 .editor-content ul,
 .editor-content ol {
   margin: 1em 0;
-  padding-left: 2em;
+  padding-inline-start: 2em;
 }
 
 .editor-content li {
@@ -156,78 +154,49 @@
 }
 
 .editor-content img {
+  display: block;
   max-width: 100%;
   height: auto;
-  display: block;
   margin: 1em 0;
-  border-radius: 4px;
+  border-radius: var(--orb-radius-md);
 }
 
 .editor-content blockquote {
-  border-left: 4px solid var(--editor-border-color);
-  padding-left: 1em;
   margin: 1em 0;
-  color: #6b7280;
+  padding-inline-start: 1em;
+  border-inline-start: 4px solid var(--orb-divider-color);
+  color: var(--editor-muted-color);
 }
 
 .editor-footer {
   display: flex;
   justify-content: flex-end;
-  padding: 8px 16px;
+  padding: var(--orb-spacing-xs) var(--orb-spacing-md);
   background: var(--editor-toolbar-bg);
-  border-top: 1px solid var(--editor-border-color);
-  font-size: 12px;
-  color: #6b7280;
+  border-top: 1px solid var(--orb-divider-color);
+  color: var(--editor-footer-color);
+  font-size: var(--orb-font-xs);
 }
 
 .word-count {
   user-select: none;
 }
 
-/* Scrollbar styling */
-.editor-content::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.editor-content::-webkit-scrollbar-track {
-  background: var(--editor-toolbar-bg);
-  border-radius: 4px;
-}
-
-.editor-content::-webkit-scrollbar-thumb {
-  background: var(--editor-border-color);
-  border-radius: 4px;
-}
-
-.editor-content::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :host {
-    --editor-border-color: #374151;
-    --editor-focus-color: #60a5fa;
-    --editor-bg: #1f2937;
-    --editor-toolbar-bg: #111827;
-    --editor-text-color: #f3f4f6;
-    --editor-placeholder-color: #6b7280;
-    --editor-button-hover: #374151;
-    --editor-button-active: #4b5563;
+@media (forced-colors: active) {
+  .editor-toolbar orb-button.pressed {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
   }
 }
 
-/* Print styles */
 @media print {
   .editor-toolbar,
   .editor-footer {
     display: none;
   }
 
-  .editor-container {
+  :host {
     border: none;
-    box-shadow: none;
   }
 
   .editor-content {

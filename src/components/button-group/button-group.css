@@ -1,6 +1,6 @@
 :host {
   display: inline-flex;
-  container: orb-button-group / inline-size;
+  container-name: orb-button-group;
   --mode: button-group;
   --button-group-radius: var(--orb-radius-pill);
 }

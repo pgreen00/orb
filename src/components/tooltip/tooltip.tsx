@@ -3,6 +3,8 @@ import {
   computePosition,
   offset,
   autoPlacement,
+  flip,
+  Placement,
   size,
 } from "@floating-ui/dom";
 import { Component, Host, Prop, State, Watch, Element, AttachInternals } from "@stencil/core";
@@ -12,7 +14,13 @@ import {
   debounceTime,
   map,
   merge,
-  debounce,
+  distinctUntilChanged,
+  switchMap,
+  timer,
+  startWith,
+  combineLatest,
+  filter,
+  takeWhile
 } from "rxjs";
 
 @Component({
@@ -35,11 +43,28 @@ export class Tooltip {
   /** The target element of the tooltip */
   @Prop() for!: string;
 
+  /**
+   * - **description**: The tooltip describes the trigger, which keeps its own
+   *   name. Use it for extra information, such as "Saves a copy to your drive".
+   * - **label**: The tooltip names the trigger. Use it for icon-only buttons,
+   *   so the name isn't announced twice. It replaces the trigger's `aria-label`.
+   */
+  @Prop() type: "description" | "label" = "description";
+
+  /**
+   * Where the tooltip should be placed. It flips to the opposite side when
+   * there isn't room. Without it, the side with the most room is used.
+   */
+  @Prop() placement?: Placement;
+
   /** Horizontal offset used when auto positioning the popover content */
   @Prop() offsetX = 0;
 
   /** Vertical offset used when auto positioning the popover content */
   @Prop() offsetY = 10;
+
+  /** Time in milliseconds to wait before showing the tooltip */
+  @Prop() timeout = 50;
 
   componentWillLoad() {
     this.internals.role = "tooltip";
@@ -52,29 +77,43 @@ export class Tooltip {
       console.warn("Tooltip trigger not found: ", this.for)
       return;
     }
-    const mouseMoveDebounce = fromEvent(window, "mousemove").pipe(
-      debounceTime(50),
+    this.setAria(triggerEl)
+
+    const hover$ = merge(
+      fromEvent(triggerEl, 'mouseenter').pipe(map(() => true)),
+      fromEvent(triggerEl, 'mouseleave').pipe(map(() => false)),
+    ).pipe(startWith(false));
+
+    const focus$ = merge(
+      fromEvent(triggerEl, 'focusin').pipe(map(() => true)),
+      fromEvent(triggerEl, 'focusout').pipe(map(() => false)),
+    ).pipe(startWith(false));
+
+    const escape$ = fromEvent<KeyboardEvent>(document, 'keydown').pipe(
+      filter(e => e.key === 'Escape'),
     );
-    this.sub = merge(
-      fromEvent(triggerEl, "mouseenter").pipe(
-        map(() => "enter" as const),
+
+    this.sub = combineLatest([hover$, focus$]).pipe(
+      debounceTime(10),
+      map(([overTrigger, focused]) =>
+        focused && triggerEl.matches(':focus-visible, :has(:focus-visible)') ? 'keyboard'
+        : overTrigger ? 'pointer'
+        : 'idle'
       ),
-      fromEvent(triggerEl, "mouseleave").pipe(
-        map(() => "leave" as const),
+      distinctUntilChanged(),
+      switchMap(mode =>
+        mode === 'idle'
+          ? timer(100).pipe(map(() => false))
+          : merge(
+              timer(mode === 'keyboard' ? 0 : this.timeout).pipe(map(() => true)),
+              escape$.pipe(map(() => false)),
+            ).pipe(takeWhile(open => open, true))
       ),
-    )
-      .pipe(debounce(() => mouseMoveDebounce))
-      .subscribe((res) => (this.open = res == "enter"));
+    ).subscribe(open => (this.open = open));
   }
 
   disconnectedCallback() {
     this.sub?.unsubscribe();
-  }
-
-  @Watch('for', { immediate: true })
-  onForChange() {
-    const el = this.findExternalTrigger()
-    if (el) el.ariaDescribedByElements = [...(el.ariaDescribedByElements ?? []), this.el]
   }
 
   @Watch("open")
@@ -97,15 +136,21 @@ export class Tooltip {
     }
   }
 
+  private setAria(el: Element) {
+    if (this.type === "label") el.ariaLabelledByElements = [...(el.ariaLabelledByElements ?? []), this.el]
+    else el.ariaDescribedByElements = [...(el.ariaDescribedByElements ?? []), this.el]
+  }
+
   private async setPosition() {
     const { x, y } = await computePosition(this.referenceEl, this.el, {
+      placement: this.placement,
       strategy: "fixed",
       middleware: [
         offset({
           mainAxis: this.offsetY,
           crossAxis: this.offsetX,
         }),
-        autoPlacement(),
+        this.placement ? flip() : autoPlacement(),
         size({
           apply: ({ availableHeight, availableWidth }) => {
             this.el.style.setProperty(

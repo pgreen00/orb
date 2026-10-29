@@ -1443,6 +1443,20 @@ export namespace Components {
           * @default 10
          */
         "offsetY": number;
+        /**
+          * Where the tooltip should be placed. It flips to the opposite side when there isn't room. Without it, the side with the most room is used.
+         */
+        "placement"?: Placement;
+        /**
+          * Time in milliseconds to wait before showing the tooltip
+          * @default 50
+         */
+        "timeout": number;
+        /**
+          * - **description**: The tooltip describes the trigger, which keeps its own   name. Use it for extra information, such as "Saves a copy to your drive". - **label**: The tooltip names the trigger. Use it for icon-only buttons,   so the name isn't announced twice. It replaces the trigger's `aria-label`.
+          * @default "description"
+         */
+        "type": "description" | "label";
     }
     interface OrbTree {
         /**
@@ -4137,6 +4151,20 @@ declare namespace LocalJSX {
           * @default 10
          */
         "offsetY"?: number;
+        /**
+          * Where the tooltip should be placed. It flips to the opposite side when there isn't room. Without it, the side with the most room is used.
+         */
+        "placement"?: Placement;
+        /**
+          * Time in milliseconds to wait before showing the tooltip
+          * @default 50
+         */
+        "timeout"?: number;
+        /**
+          * - **description**: The tooltip describes the trigger, which keeps its own   name. Use it for extra information, such as "Saves a copy to your drive". - **label**: The tooltip names the trigger. Use it for icon-only buttons,   so the name isn't announced twice. It replaces the trigger's `aria-label`.
+          * @default "description"
+         */
+        "type"?: "description" | "label";
     }
     interface OrbTree {
         /**
@@ -4652,8 +4680,11 @@ declare namespace LocalJSX {
     }
     interface OrbTooltipAttributes {
         "for": string;
+        "type": "description" | "label";
+        "placement": Placement;
         "offsetX": number;
         "offsetY": number;
+        "timeout": number;
     }
     interface OrbTreeAttributes {
         "value": string | string[];
