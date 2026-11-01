@@ -1,6 +1,6 @@
 /**
  * @prop --crumb-color: Color of crumbs before the current page
- * @prop --crumb-hover-color: Color of a link on hover
+ * @prop --crumb-hover-color: Color of a crumb on hover
  * @prop --current-color: Color of the current page
  * @prop --separator-color: Color of the slashes between crumbs
  */
@@ -36,37 +36,42 @@ li {
   max-width: 100%;
 }
 
-/* Links and buttons share one text-like look. */
-.crumb,
-.collapse {
-  display: inline-flex;
-  align-items: center;
+li.current {
+  color: var(--current-color);
+  font-weight: var(--orb-font-semi-bold);
+}
+
+/*
+ * The crumbs are page elements, so the page's own styles for links outrank
+ * these. `!important` is only used where Orb's link styles would otherwise
+ * win: crumbs need to be inline blocks so long ones truncate, and to show an
+ * underline. Colors are inherited from the list item, so they're set there.
+ * Use the custom properties above to change them.
+ */
+::slotted(*) {
+  display: inline-block !important;
   min-width: 0;
   max-width: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
   border: none;
   border-radius: var(--orb-radius-sm, 4px);
   background: none;
-  color: inherit;
+  color: inherit !important;
   font: inherit;
-  outline-offset: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
 
-/*
- * Links and link-less buttons look the same, since both navigate. A faint
- * underline marks them as interactive without relying on color. Crumbs are
- * inline blocks so a crumb wider than its container truncates.
- */
-.crumb {
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* Links and buttons look the same, since both navigate. A faint underline
+   marks them as interactive without relying on color. */
+::slotted(a),
+::slotted(button) {
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-decoration: underline !important;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent) !important;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   transition:
@@ -75,24 +80,37 @@ li {
 }
 
 @media (hover: hover) {
-  .crumb:not(.last):hover {
-    color: var(--crumb-hover-color);
-    text-decoration-color: currentColor;
+  ::slotted(a:not([aria-current="page"]):hover),
+  ::slotted(button:not([aria-current="page"]):hover) {
+    color: var(--crumb-hover-color) !important;
+    text-decoration-color: currentColor !important;
   }
 }
 
 /* The current page is still clickable but doesn't advertise it. */
-.crumb.last {
-  color: var(--current-color);
-  font-weight: var(--orb-font-semi-bold);
-  text-decoration: none;
-  cursor: default;
+::slotted([aria-current="page"]) {
+  text-decoration: none !important;
+  cursor: default !important;
+}
+
+::slotted(:focus-visible) {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
 }
 
 .collapse {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  margin: 0;
   padding: 0 var(--orb-spacing-2xs);
+  border: none;
+  border-radius: var(--orb-radius-sm, 4px);
+  background: none;
+  color: inherit;
+  font: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     color var(--orb-transition-x-fast) ease-in-out,
     background-color var(--orb-transition-x-fast) ease-in-out;
@@ -110,9 +128,9 @@ li {
   }
 }
 
-.crumb:focus-visible,
 .collapse:focus-visible {
   outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
 }
 
 .separator {
@@ -123,7 +141,7 @@ li {
 }
 
 @media (forced-colors: active) {
-  .crumb.last {
+  li.current {
     color: CanvasText;
   }
 

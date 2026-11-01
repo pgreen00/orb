@@ -173,7 +173,7 @@ export class Textbox extends ReadyController {
     const children = Array.from(this.hostEl.children)
     // The control is a direct child without a slot, so an input in a utility
     // slot, such as a filter field, isn't mistaken for it.
-    const controls = children.filter(el => !el.slot && el.matches('input, select, textarea, orb-output'))
+    const controls = children.filter(el => !el.slot && el.matches('input, select, textarea'))
     this.formControl = controls[0] as typeof this.formControl;
     this.hasPasswordInput = this.formControl?.matches('input[type=password]') ?? false;
     this.hasSearchinput = this.formControl?.matches('input[type=search]') ?? false;

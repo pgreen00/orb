@@ -74,8 +74,6 @@ export class Datepicker {
   /** The month being shown, independent of the selected value. */
   @State() currentDate = new Date();
 
-  /** Whether the time popover is open, for the trigger's `aria-expanded`. */
-  @State() timeOpen = false;
 
   /** The day the user last moved to with the keyboard or clicked. */
   @State() focusedDate?: Date;
@@ -323,7 +321,6 @@ export class Datepicker {
 
   /** Returns focus to the trigger so it isn't lost when the columns hide. */
   private onTimeDismissStart = () => {
-    this.timeOpen = false;
     this.focusedTime = {};
     const active = this.el.shadowRoot.activeElement;
     if (active?.closest(".timepicker-content")) this.triggerEl?.focus();
@@ -483,25 +480,24 @@ export class Datepicker {
     return (
       <div part="timepicker" class="timepicker">
         <span>Time</span>
+        {/* The popover sets aria-expanded and aria-haspopup on this button. */}
+        <button
+          id="time-trigger"
+          type="button"
+          part="time-trigger"
+          class="time-trigger"
+          ref={(el) => (this.triggerEl = el)}
+          aria-label={`Time: ${label === "-" ? "not set" : label}`}
+          tabIndex={0}
+        >
+          <orb-pill>{label}</orb-pill>
+        </button>
         <orb-popover
-          arrow
+          for="time-trigger"
           ref={(el) => (this.popoverEl = el)}
-          onOrbPresentStart={() => (this.timeOpen = true)}
           onOrbPresentEnd={this.onTimePresentEnd}
           onOrbDismissStart={this.onTimeDismissStart}
         >
-          <button
-            slot="trigger"
-            type="button"
-            part="time-trigger"
-            class="time-trigger"
-            ref={(el) => (this.triggerEl = el)}
-            aria-label={`Time: ${label === "-" ? "not set" : label}`}
-            aria-expanded={this.timeOpen ? "true" : "false"}
-            tabIndex={0}
-          >
-            <orb-pill>{label}</orb-pill>
-          </button>
           <div class="timepicker-content">
             {this.renderTimeColumn(
               "hour",

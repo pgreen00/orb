@@ -214,25 +214,23 @@ permalink: "/demos/birds/"
       <orb-button class="icon-only" fill="clear" slot="end" aria-label="Search">
         <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:magnify" aria-hidden="true"></iconify-icon>
       </orb-button>
-      <orb-popover slot="end" placement="bottom-end" show-on="hover">
-        <orb-button class="icon-only" fill="clear" slot="trigger" aria-label="Theme">
-          <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:moon-and-stars" aria-hidden="true"></iconify-icon>
-        </orb-button>
-        <orb-menu id="theme-menu" label="Theme">
-          <orb-mi type="radio" value="system">
-            <iconify-icon slot="icon" icon="mdi:moon-and-stars"></iconify-icon>
-            System
-          </orb-mi>
-          <orb-mi type="radio" value="light">
-            <iconify-icon slot="icon" icon="material-symbols:light-mode"></iconify-icon>
-            Light
-          </orb-mi>
-          <orb-mi type="radio" value="dark">
-            <iconify-icon slot="icon" icon="material-symbols:dark-mode"></iconify-icon>
-            Dark
-          </orb-mi>
-        </orb-menu>
-      </orb-popover>
+      <orb-button id="theme-button" class="icon-only" fill="clear" slot="end" aria-label="Theme">
+        <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:moon-and-stars" aria-hidden="true"></iconify-icon>
+      </orb-button>
+      <orb-menu id="theme-menu" for="theme-button" placement="bottom-end" slot="end">
+        <orb-mi type="radio" value="system">
+          <iconify-icon slot="icon" icon="mdi:moon-and-stars"></iconify-icon>
+          System
+        </orb-mi>
+        <orb-mi type="radio" value="light">
+          <iconify-icon slot="icon" icon="material-symbols:light-mode"></iconify-icon>
+          Light
+        </orb-mi>
+        <orb-mi type="radio" value="dark">
+          <iconify-icon slot="icon" icon="material-symbols:dark-mode"></iconify-icon>
+          Dark
+        </orb-mi>
+      </orb-menu>
       <orb-button slot="end" size="sm">Join the club</orb-button>
     </orb-toolbar>
   </header>
@@ -263,11 +261,11 @@ permalink: "/demos/birds/"
   <main>
     <orb-view label="Birds of the Pacific Northwest" header="prominent" scrollable="false" fade>
       <div slot="details">
-        <orb-breadcrumbs>
-          <orb-breadcrumb href="/demos/birds/">Home</orb-breadcrumb>
-          <orb-breadcrumb href="#featured">Field guide</orb-breadcrumb>
-          <orb-breadcrumb>Pacific Northwest</orb-breadcrumb>
-        </orb-breadcrumbs>
+        <orb-crumbs>
+          <a href="/demos/birds/">Home</a>
+          <a href="#featured">Field guide</a>
+          <span>Pacific Northwest</span>
+        </orb-crumbs>
         <p class="lede" style="margin-block: var(--orb-spacing-md);">
           From rain-soaked old-growth to windswept tideflats, more than 400 species pass through Washington and Oregon each year. This guide covers the birds you're most likely to meet, and a few worth getting up early for.
         </p>

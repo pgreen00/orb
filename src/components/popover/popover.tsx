@@ -3,7 +3,6 @@ import {
   Host,
   Element,
   EventEmitter,
-  Listen,
   Prop,
   Event,
   Watch,
@@ -21,34 +20,29 @@ import {
   shift,
   size,
 } from "@floating-ui/dom";
-import { debounceTime, fromEvent, Subscription } from "rxjs";
-import { ReadyController } from "../../utils/ready-controller";
-import { composedContains, deepActiveElement } from "../../utils/composed";
-import { usingKeyboard } from "../../utils/input-modality";
+import { map, merge, takeWhile, filter, tap, scan, distinctUntilChanged, switchMap, combineLatest, timer, startWith, fromEvent, Subscription } from "rxjs";
 
 @Component({
   tag: "orb-popover",
   styleUrl: "popover.css",
   shadow: true,
 })
-export class Popover extends ReadyController {
+export class Popover {
   @Element() el!: HTMLOrbPopoverElement;
 
   private contentEl!: HTMLElement;
 
-  private containerEl!: HTMLElement;
-
   private arrowEl?: HTMLElement;
 
-  private get triggerElement() {
-    if (this.trigger) {
-      return this.findExternalTrigger();
-    } else {
-      return this.el.querySelector(":scope > [slot=trigger]");
+  private triggerEl?: HTMLElement
+
+  private anchorPoint?: DOMRect
+
+  private get referenceEl() {
+    return this.triggerEl ?? {
+      getBoundingClientRect: () => this.anchorPoint ?? new DOMRect(0, 0)
     }
   }
-
-  private mouseEvent?: MouseEvent;
 
   private role?: string;
 
@@ -56,33 +50,7 @@ export class Popover extends ReadyController {
 
   private cleanup?: () => void;
 
-  private get referenceEl() {
-    const { triggerElement, mouseEvent } = this;
-    if (triggerElement) {
-      return triggerElement;
-    } else if (mouseEvent) {
-      const { clientX, clientY } = mouseEvent;
-      return {
-        getBoundingClientRect: () => new DOMRect(clientX, clientY),
-      };
-    } else {
-      console.warn("No reference element found", this.el);
-      return null;
-    }
-  }
-
-  private mouseSub?: Subscription;
-
-  /** Which menu item to focus when a menu is opened from the keyboard. */
-  private menuFocus?: "first" | "last";
-
-  /** Whether focus was inside the popover when it started closing. */
-  private restoreFocus = false;
-
-  /** The menu this popover shows, if its content is an `orb-menu`. */
-  private get menu() {
-    return this.el.querySelector<HTMLOrbMenuElement>(":scope > orb-menu");
-  }
+  private sub?: Subscription;
 
   @State() open = false;
 
@@ -90,15 +58,6 @@ export class Popover extends ReadyController {
    * Where the popover should be placed
    */
   @Prop() placement?: Placement;
-
-  /** Backdrop will dismiss the popover on click when enabled */
-  @Prop() hideOnBackdropClick = true;
-
-  /**
-   * Popover will automatically dismiss itself when something is
-   * clicked in the popover when enabled. Ignored when `showOn` is `hover`.
-   */
-  @Prop() hideOnContentClick = false;
 
   /** Horizontal offset used when auto positioning the popover content */
   @Prop() offsetX = 0;
@@ -114,11 +73,6 @@ export class Popover extends ReadyController {
    *   leaves, or on a click outside.
    */
   @Prop() showOn: "click" | "context-menu" | "hover" = "click";
-
-  /**
-   * If the popover should match the width of the trigger element
-   */
-  @Prop() matchWidth = false;
 
   /**
    * Renders an arrow pointing to the trigger
@@ -141,7 +95,7 @@ export class Popover extends ReadyController {
   @Prop() arrowPadding = 6;
 
   /** Id of the element that will trigger the popover to open */
-  @Prop() trigger?: string;
+  @Prop() for?: string;
 
   /**
    * Emits before the popover starts opening
@@ -163,77 +117,62 @@ export class Popover extends ReadyController {
    */
   @Event({ bubbles: false }) orbDismissEnd: EventEmitter;
 
-  componentDidLoad() {
-    this.syncTriggerAria();
-  }
-
-  /**
-   * Tells assistive technology the trigger opens a popup and whether it's
-   * open. Menus get `aria-haspopup="menu"`.
-   */
-  private syncTriggerAria() {
-    const trigger = this.triggerElement;
-    if (!trigger) return;
-    if (this.menu) trigger.ariaHasPopup = "menu";
-    trigger.ariaExpanded = this.open ? "true" : "false";
-  }
-
-  componentWillRender() {
-    if (this.triggerElement && this.matchWidth) {
-      this.el.style.setProperty(
-        "--content-width",
-        `${this.triggerElement.clientWidth}px`,
-      );
-    }
+  componentWillLoad() {
+    this.el.popover = 'manual'
   }
 
   connectedCallback() {
-    this.mouseSub = fromEvent(window, "mousemove")
-      .pipe(debounceTime(50))
-      .subscribe(this.onMouseMove);
+    this.triggerEl = this.findExternalTrigger() as HTMLElement
+    if (!this.triggerEl) {
+      console.warn("Popover trigger not found: ", this.for)
+      return;
+    }
+    this.triggerEl.ariaHasPopup ??= 'dialog'
+    this.triggerEl.ariaExpanded = 'false'
+
+    switch (this.showOn) {
+      case 'click':
+        this.sub = this.clickFlow(this.triggerEl).subscribe(open => this.setOpen(this.triggerEl, open));
+        break;
+      case 'context-menu':
+        this.sub = this.contextMenuFlow(this.triggerEl).subscribe(({ open, point }) => {
+          if (open) this.anchorPoint = point;
+          this.setOpen(this.triggerEl, open);
+        });
+        break;
+      case 'hover':
+        this.sub = this.hoverFlow(this.triggerEl).subscribe(open => this.setOpen(this.triggerEl, open));
+        break;
+      default:
+        console.warn(`Popover: unknown showOn value "${this.showOn}"`);
+    }
   }
 
   disconnectedCallback() {
-    this.mouseSub?.unsubscribe();
-    this.cleanup?.();
+    this.sub?.unsubscribe();
   }
 
   @Watch("open")
   async handleOpenChange(open: boolean) {
-    this.syncTriggerAria();
     if (open) {
       this.orbPresentStart.emit();
       await this.init?.();
       await this.setPosition();
       this.startPositioning();
-      this.containerEl.showPopover();
-      // Menus opened from the keyboard focus an item. Mouse users keep focus
-      // where it is, since moving the pointer would make it look stale.
-      if (this.menu && (this.menuFocus || (this.showOn !== "hover" && usingKeyboard()))) {
-        this.menu.focusItem(this.menuFocus ?? "first");
-      }
-      this.menuFocus = undefined;
-      await this.containerEl.animate(
+      this.el.showPopover();
+      await this.el.animate(
         { opacity: [0, 1] },
         { duration: 150, easing: "ease-in-out" },
       ).finished;
       this.orbPresentEnd.emit();
     } else {
-      this.restoreFocus = usingKeyboard() && this.containsFocus();
-      // Closes submenus along with their parent menu.
-      this.el.querySelectorAll<HTMLOrbPopoverElement>("orb-popover").forEach((popover) => popover.hide());
       this.orbDismissStart.emit();
-      await this.containerEl.animate(
+      await this.el.animate(
         { opacity: [1, 0] },
         { duration: 150, easing: "ease-in-out" },
       ).finished;
-      this.containerEl.hidePopover();
+      this.el.hidePopover();
       this.cleanup?.();
-      // Returns focus to the trigger, unless focus already moved somewhere
-      // else, such as the next element after a Tab.
-      if (this.restoreFocus && (this.containsFocus() || deepActiveElement() === document.body)) {
-        (this.triggerElement as HTMLElement | null)?.focus();
-      }
       await this.destroy?.();
       this.orbDismissEnd.emit({
         role: this.role,
@@ -244,113 +183,19 @@ export class Popover extends ReadyController {
     }
   }
 
-  @Listen("click", { capture: true, target: "window" })
-  handleWindowClick(ev: MouseEvent) {
-    const trigger = this.triggerElement
-    const path = ev.composedPath();
-    // Hover popovers are driven by the pointer, so clicks inside don't close
-    // them. Otherwise a tap on mobile would open and immediately close one.
-    const hover = this.showOn === "hover";
-    const clickedBackdrop = this.hideOnBackdropClick && !path.includes(this.containerEl) && !path.includes(trigger);
-    const clickedContainer = !hover && this.hideOnContentClick && path.includes(this.containerEl);
-    const clickedTrigger = path.includes(trigger);
-    if (this.open && (clickedBackdrop || clickedContainer || (clickedTrigger && !hover))) {
-      this.open = false;
-    } else if (!this.open && clickedTrigger && this.showOn == "click") {
-      this.open = true;
-    }
-  }
-
-  @Listen("contextmenu", { capture: true, target: "window" })
-  handleWindowContextMenu(ev: MouseEvent) {
-    if (this.showOn == "context-menu" && ev.composedPath().includes(this.triggerElement)) {
-      // Also while open, so the browser's menu doesn't cover this one.
-      ev.preventDefault();
-      this.open = true;
-    }
-  }
-
   /**
    * Opens the popover. Without a trigger, it opens at `event`'s pointer
    * position. Calling it again while open moves the popover to the new
    * position, such as for a second right-click on a context menu.
    */
   @Method()
-  async show(event: MouseEvent) {
-    this.mouseEvent = event;
+  async show({ clientX, clientY, }: MouseEvent) {
+    this.anchorPoint = new DOMRect(clientX, clientY)
     if (!this.open) {
       this.open = true;
       return;
     }
     this.startPositioning();
-    // Like a fresh open, a menu reopened from the keyboard focuses its first item.
-    if (this.menu && usingKeyboard()) this.menu.focusItem("first");
-  }
-
-  /**
-   * Keeps the popover positioned against the current reference, replacing
-   * any earlier positioning. `autoUpdate` positions it right away.
-   */
-  private startPositioning() {
-    this.cleanup?.();
-    this.cleanup = autoUpdate(this.referenceEl, this.containerEl, () => this.setPosition());
-  }
-
-  /**
-   * Opens the popover and focuses the first or last item of its menu.
-   * Without `focus`, an item is only focused when using the keyboard.
-   * @internal
-   */
-  @Method()
-  async openMenu(focus?: "first" | "last") {
-    if (this.open) {
-      if (focus) this.menu?.focusItem(focus);
-      return;
-    }
-    this.menuFocus = focus;
-    this.open = true;
-  }
-
-  private containsFocus() {
-    return composedContains(this.el, deepActiveElement());
-  }
-
-  /** Escape closes the innermost open popover. */
-  private onContainerKeyDown = (ev: KeyboardEvent) => {
-    if (ev.key === "Escape" && this.open) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      this.open = false;
-    }
-  };
-
-  /**
-   * Escape closes the popover when focus is outside it, such as after
-   * opening it with the mouse. Escape inside is handled by the container, so
-   * only the innermost popover closes. Preventing the default stops a
-   * surrounding dialog from closing too.
-   */
-  @Listen("keydown", { target: "window" })
-  onWindowKeyDown(ev: KeyboardEvent) {
-    if (ev.key !== "Escape" || !this.open || ev.defaultPrevented) return;
-    ev.preventDefault();
-    this.open = false;
-  }
-
-  /**
-   * Up and Down on a button that opens a menu open it and focus the first or
-   * last item, which also moves into a menu opened with the mouse. Menu
-   * items that open submenus are handled by `orb-menu`.
-   */
-  @Listen("keydown")
-  onTriggerKeyDown(ev: KeyboardEvent) {
-    const trigger = this.triggerElement;
-    if (!this.menu || !trigger || trigger.tagName === "ORB-MI") return;
-    if (!ev.composedPath().includes(trigger)) return;
-    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
-      ev.preventDefault();
-      this.openMenu(ev.key === "ArrowDown" ? "first" : "last");
-    }
   }
 
   @Method()
@@ -360,13 +205,120 @@ export class Popover extends ReadyController {
     this.open = false;
   }
 
+  private setOpen(triggerEl: Element, open: boolean) {
+    this.open = open;
+    triggerEl.ariaExpanded = `${open}`;
+  }
+
+  private isInside(e: Event, el: Element) {
+    return e.composedPath().includes(el);
+  }
+
+  private escape$() {
+    return fromEvent<KeyboardEvent>(document, 'keydown').pipe(
+      filter(e => e.key === 'Escape'),
+    );
+  }
+
+  private clickFlow(triggerEl: HTMLElement) {
+    const toggle$ = fromEvent(triggerEl, 'click').pipe(
+      map(() => 'toggle' as const),
+    );
+
+    const outside$ = fromEvent<PointerEvent>(document, 'pointerdown').pipe(
+      filter(e => !this.isInside(e, triggerEl) && !this.isInside(e, this.el)),
+      map(() => 'close' as const),
+    );
+
+    const escape$ = this.escape$().pipe(
+      filter(() => this.open),
+      tap(() => triggerEl.focus()), // return focus to the trigger
+      map(() => 'close' as const),
+    );
+
+    return merge(toggle$, outside$, escape$).pipe(
+      scan((open, action) => (action === 'toggle' ? !open : false), false),
+      distinctUntilChanged(),
+    );
+  }
+
+  private contextMenuFlow(triggerEl: HTMLElement) {
+    const open$ = fromEvent<MouseEvent>(triggerEl, 'contextmenu').pipe(
+      tap(e => e.preventDefault()),
+      map(e => {
+        // Keyboard-invoked (Menu key / Shift+F10) reports 0,0 → fall back to the trigger
+        const fromKeyboard = e.clientX === 0 && e.clientY === 0;
+        const rect = triggerEl.getBoundingClientRect();
+        const point = fromKeyboard
+          ? new DOMRect(rect.left, rect.bottom)
+          : new DOMRect(e.clientX, e.clientY);
+        return { open: true, point };
+      }),
+    );
+
+    const close$ = merge(
+      // Any press outside the popover, except the right-click that's about to reopen it
+      fromEvent<PointerEvent>(document, 'pointerdown').pipe(
+        filter(e => !this.isInside(e, this.el) && !(e.button === 2 && this.isInside(e, triggerEl))),
+      ),
+      // Native context menu requested somewhere else
+      fromEvent<MouseEvent>(document, 'contextmenu').pipe(
+        filter(e => !this.isInside(e, triggerEl)),
+      ),
+      // Scrolling anywhere but inside the popover
+      fromEvent(document, 'scroll', { capture: true }).pipe(
+        filter(e => !this.isInside(e, this.el)),
+      ),
+      fromEvent(window, 'resize'),
+      fromEvent(window, 'blur'),
+      this.escape$(),
+    ).pipe(
+      filter(() => this.open),
+      map(() => ({ open: false, point: new DOMRect })),
+    );
+
+    return merge(open$, close$);
+  }
+
+  private hoverFlow(triggerEl: HTMLElement) {
+    const hovering = (el: Element) =>
+      merge(
+        fromEvent(el, 'mouseenter').pipe(map(() => true)),
+        fromEvent(el, 'mouseleave').pipe(map(() => false)),
+      ).pipe(startWith(false));
+
+    const escape$ = this.escape$();
+
+    return combineLatest([hovering(triggerEl), hovering(this.el)]).pipe(
+      map(([overTrigger, overPopover]) => overTrigger || overPopover),
+      distinctUntilChanged(),
+      switchMap(inZone =>
+        inZone
+          ? merge(
+              // If the popover is already open, the false→true flip cancels the pending close
+              // and the stream never emits false, so it stays open with no flicker
+              timer(this.open ? 0 : 100).pipe(map(() => true)),
+              escape$.pipe(map(() => false)),
+            ).pipe(takeWhile(open => open, true))
+          // Grace period so the pointer can cross the gap between trigger and popover
+          : timer(300).pipe(map(() => false)),
+      ),
+      distinctUntilChanged(),
+    );
+  }
+
+  private startPositioning() {
+    this.cleanup?.();
+    this.cleanup = autoUpdate(this.referenceEl, this.el, () => this.setPosition());
+  }
+
   private async setPosition() {
     const {
       x,
       y,
       middlewareData,
       placement,
-    } = await computePosition(this.referenceEl, this.containerEl, {
+    } = await computePosition(this.referenceEl, this.el, {
       placement: this.placement,
       strategy: "fixed",
       middleware: [
@@ -405,20 +357,8 @@ export class Popover extends ReadyController {
         this.arrowEl.style.top = `${middlewareData.arrow.y}px`;
       }
     }
-    this.containerEl.style.left = `${x}px`;
-    this.containerEl.style.top = `${y}px`;
-  };
-
-  private onMouseMove = ({ target }: MouseEvent) => {
-    const node = target as Node;
-    const { showOn, triggerElement, el } = this;
-    if (showOn === "hover") {
-      if (el.contains(node) || triggerElement?.contains(node)) {
-        this.open = true;
-      } else {
-        this.open = false;
-      }
-    }
+    this.el.style.left = `${x}px`;
+    this.el.style.top = `${y}px`;
   };
 
   private findExternalTrigger() {
@@ -428,9 +368,9 @@ export class Popover extends ReadyController {
       root instanceof HTMLDocument ||
       root instanceof DocumentFragment
     )
-      return root.getElementById(this.trigger);
+      return root.getElementById(this.for);
     else if (root instanceof HTMLElement) {
-      return root.querySelector(`#${this.trigger}`);
+      return root.querySelector(`#${this.for}`);
     } else {
       return null;
     }
@@ -439,20 +379,12 @@ export class Popover extends ReadyController {
   render() {
     return (
       <Host>
-        <slot name="trigger" />
-        <div
-          part="content-container"
-          ref={(el) => (this.containerEl = el)}
-          popover="manual"
-          onKeyDown={this.onContainerKeyDown}
-        >
-          <div ref={(el) => (this.contentEl = el)} part="content">
-            <slot />
-          </div>
-          {this.arrow && (
-            <div ref={(el) => (this.arrowEl = el)} part="arrow"></div>
-          )}
+        <div ref={(el) => (this.contentEl = el)} part="content">
+          <slot />
         </div>
+        {this.arrow && (
+          <div ref={(el) => (this.arrowEl = el)} part="arrow"/>
+        )}
       </Host>
     );
   }

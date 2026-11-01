@@ -180,18 +180,19 @@ export class View {
     return (
       <header part="header" class={this.header} ref={(el) => (this.headerEl = el)}>
         {this.crumbs.length > 1 && (
-          <orb-breadcrumbs part="breadcrumbs" class="crumbs" maxItems={3}>
+          <orb-crumbs part="breadcrumbs" class="crumbs" maxItems={3}>
             {this.crumbs.map((crumb) => (
-              <orb-breadcrumb
+              <button
+                type="button"
                 key={crumb.id}
                 data-view-link={crumb.id}
                 data-view-dir="backwards"
                 data-view-crumbs
               >
                 {crumb.label}
-              </orb-breadcrumb>
+              </button>
             ))}
-          </orb-breadcrumbs>
+          </orb-crumbs>
         )}
         <orb-toolbar>
           <slot name="header-start" />
@@ -205,22 +206,20 @@ export class View {
           </slot>
           <div class="end" slot="end">
             <slot name="header-end" />
-            <orb-popover class={{ hide: !this.hasActions }}>
-              <orb-button
-                slot="trigger"
-                class="icon-only"
-                fill="clear"
-                aria-label="More actions"
-              >
-                <EllipsisIcon aria-hidden="true" />
-              </orb-button>
-              <orb-menu label="More actions">
-                <slot
-                  name="actions"
-                  onSlotchange={(e) => (this.hasActions = this.hasContent(e))}
-                />
-              </orb-menu>
-            </orb-popover>
+            <orb-button
+              id="actions-trigger"
+              class={{ "icon-only": true, hide: !this.hasActions }}
+              fill="clear"
+              aria-label="More actions"
+            >
+              <EllipsisIcon aria-hidden="true" />
+            </orb-button>
+            <orb-menu for="actions-trigger" placement="bottom-end">
+              <slot
+                name="actions"
+                onSlotchange={(e) => (this.hasActions = this.hasContent(e))}
+              />
+            </orb-menu>
             {this.closable && (
               <orb-button
                 class="icon-only"

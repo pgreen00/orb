@@ -1,4 +1,13 @@
+/**
+ * @prop --background: Background of a menu that opens from a trigger
+ * @prop --color: Text color
+ * @prop --border: Border of a menu that opens from a trigger
+ */
+
 :host {
+  --background: light-dark(var(--orb-neutral-50), var(--orb-neutral-875));
+  --color: var(--orb-text-color);
+  --border: 1px solid light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -6,13 +15,46 @@
   min-width: 10rem;
 }
 
-:host([bar]) {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--orb-spacing-3xs);
-  min-width: 0;
+/* A menu with a trigger is a popover in the top layer. The browser's own
+   popover styles are replaced, since the menu positions itself. */
+:host([popover]) {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  max-width: calc(100vw - 8px);
+  padding: var(--orb-spacing-2xs);
+  overflow: auto;
+  border: var(--border);
+  border-radius: var(--orb-radius-md);
+  background: var(--background);
+  color: var(--color);
+  box-shadow: var(--orb-shadow-lg);
+  font-family: inherit;
+  transition: opacity var(--orb-transition-fast) ease-out;
+}
+
+:host([popover]:not(:popover-open)) {
+  display: none;
+}
+
+@starting-style {
+  :host([popover]:popover-open) {
+    opacity: 0;
+  }
 }
 
 ::slotted(orb-divider) {
   margin-block: var(--orb-spacing-3xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host([popover]) {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :host([popover]) {
+    border: 1px solid CanvasText;
+  }
 }

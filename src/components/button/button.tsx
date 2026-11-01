@@ -8,6 +8,7 @@ import {
   AttachInternals,
 } from "@stencil/core";
 import { Color } from "../../utils/color";
+import { ReadyController } from "../../utils/ready-controller";
 
 @Component({
   tag: "orb-button",
@@ -15,7 +16,7 @@ import { Color } from "../../utils/color";
   shadow: true,
   formAssociated: true,
 })
-export class Button {
+export class Button extends ReadyController {
   @AttachInternals() internals: ElementInternals;
   @Element() el: HTMLOrbButtonElement;
   private get formEl() {
@@ -51,6 +52,9 @@ export class Button {
   /** Predefined colors */
   @Prop({ reflect: true }) color?: Color;
 
+  /** Will be used as the value if it has a name and is nested in a form */
+  @Prop() value?: string | File | FormData;
+
   componentWillLoad() {
     this.internals.role = "button";
   }
@@ -71,6 +75,12 @@ export class Button {
     }
   }
 
+  @Watch('value', { immediate: true })
+  async onValueChange() {
+    await this.ready
+    this.internals.setFormValue(this.value ?? null);
+  }
+
   @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
     if (
@@ -83,12 +93,17 @@ export class Button {
     }
   }
 
+  @Watch("disabled", { immediate: true })
+  @Watch("pending")
+  async onDisabledChange() {
+    await this.ready
+    this.internals.ariaDisabled = this.disabled ? "true" : "false";
+    this.el.tabIndex = this.disabled || this.pending ? -1 : 0;
+  }
+
   render() {
     return (
-      <Host
-        aria-disabled={`${this.disabled || this.pending}`}
-        tabindex={this.disabled || this.pending ? "-1" : "0"}
-      >
+      <Host>
         {this.pending ? <orb-loading /> : <slot />}
         <slot name="badge" />
       </Host>

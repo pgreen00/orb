@@ -10,10 +10,11 @@ import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
 import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
+import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
+import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { PageChangeDetail } from "./components/pagination/pagination";
-import { Placement } from "@floating-ui/dom";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
@@ -24,10 +25,11 @@ export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
 export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
+export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
+export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { PageChangeDetail } from "./components/pagination/pagination";
-export { Placement } from "@floating-ui/dom";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { TabCloseDetail } from "./components/tab-button/tab-button";
@@ -56,40 +58,6 @@ export namespace Components {
          */
         "open": boolean;
         "show": () => Promise<void>;
-    }
-    /**
-     * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
-     * crumb into a link (with `href`) or a button (without), so the crumb's content,
-     * including icons, renders inside it.
-     */
-    interface OrbBreadcrumb {
-        /**
-          * Makes the crumb a link. Reflected, so setting the property updates the attribute that `orb-breadcrumbs` watches.
-         */
-        "href"?: string;
-    }
-    /**
-     * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
-     * `href` render as links, and crumbs without one render as buttons for apps
-     * that navigate with click handlers. Each crumb's content is slotted into its
-     * link or button, so icons and other markup render as written, and clicks
-     * reach the `<orb-breadcrumb>`.
-     */
-    interface OrbBreadcrumbs {
-        /**
-          * Crumbs kept visible after the collapsed ones. At least 1, so the current page is always shown.
-          * @default 1
-         */
-        "itemsAfterCollapse": number;
-        /**
-          * Crumbs kept visible before the collapsed ones
-          * @default 1
-         */
-        "itemsBeforeCollapse": number;
-        /**
-          * Collapses the middle crumbs when there are more than this many
-         */
-        "maxItems"?: number;
     }
     interface OrbButton {
         /**
@@ -121,6 +89,11 @@ export namespace Components {
          */
         "pending": boolean;
         /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
+        /**
           * Button size
           * @default "md"
          */
@@ -129,6 +102,10 @@ export namespace Components {
           * Can set to submit or reset to participate in forms
          */
         "type"?: "submit" | "reset";
+        /**
+          * Will be used as the value if it has a name and is nested in a form
+         */
+        "value"?: string | File | FormData;
     }
     interface OrbButtonGroup {
     }
@@ -336,6 +313,30 @@ export namespace Components {
           * The text to copy. Falls back to the element's text content when omitted, which is how it behaves when wrapped around the content it copies.
          */
         "value"?: string;
+    }
+    /**
+     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
+     * link or a `<button>` for apps that navigate with click handlers. The crumbs
+     * stay in the page: the trail assigns each one to a slot in a list and adds
+     * the separators between them, so your own elements, attributes, and listeners
+     * work as written. The last crumb is the current page and gets
+     * `aria-current="page"`.
+     */
+    interface OrbCrumbs {
+        /**
+          * Crumbs kept visible after the collapsed ones. At least 1, so the current page is always shown.
+          * @default 1
+         */
+        "itemsAfterCollapse": number;
+        /**
+          * Crumbs kept visible before the collapsed ones
+          * @default 1
+         */
+        "itemsBeforeCollapse": number;
+        /**
+          * Collapses the middle crumbs when there are more than this many
+         */
+        "maxItems"?: number;
     }
     /**
      * An inline date and time picker. It renders a month calendar and/or time
@@ -658,27 +659,65 @@ export namespace Components {
     interface OrbMaskInput {
     }
     /**
-     * A list of actions or options, made of `orb-mi` items. Put it in an
-     * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
-     * menubar.
-     * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
-     * with the item in its `trigger` slot. Choosing an item closes every menu in
-     * the chain, and opening a submenu keeps the parent open.
+     * A list of actions or options, made of `orb-mi` items.
+     * Set `for` to the id of a button and the menu opens from it, as a dropdown.
+     * With `show-on="context-menu"`, it opens where the element is right-clicked
+     * instead. Without `for`, the menu shows inline.
+     * For a submenu, give an item an id and point a nested `orb-menu` at it with
+     * `for`. Choosing an item closes every menu in the chain, and opening a
+     * submenu keeps its parent open. For a menubar, use `orb-menubar`.
      */
     interface OrbMenu {
-        /**
-          * Lays the items out in a row and uses menubar keyboard behavior. Each item usually opens a menu through an `orb-popover`.
-          * @default false
-         */
-        "bar": boolean;
         /**
           * Focuses the first or last item.
          */
         "focusItem": (which: "first" | "last") => Promise<void>;
         /**
-          * Accessible name for the menu
+          * Id of the element that opens the menu, in the same document or shadow root. Without it, the menu shows inline.
+         */
+        "for"?: string;
+        /**
+          * Closes the menu and its submenus.
+         */
+        "hide": () => Promise<void>;
+        /**
+          * Accessible name for the menu. Defaults to the trigger's name.
          */
         "label"?: string;
+        /**
+          * Opens the menu and focuses the first or last item. Without `focus`, focus stays where it is.
+         */
+        "openFrom": (focus?: "first" | "last") => Promise<void>;
+        /**
+          * Where the menu opens. Defaults to below the trigger, or beside the item for a submenu. It flips to the other side when there isn't room.
+         */
+        "placement"?: Placement;
+        /**
+          * Opens the menu. Pass the event from a right-click to open it at the pointer. Calling it again while open moves it to the new spot.
+         */
+        "show": (event?: MouseEvent) => Promise<void>;
+        /**
+          * - **click**: Opens when the trigger is clicked, or pressed with Enter,   Space, or Down. - **context-menu**: Opens where the trigger is right-clicked, or with the   context menu key or Shift+F10.
+          * @default "click"
+         */
+        "showOn": "click" | "context-menu";
+    }
+    /**
+     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
+     * app. Give an item an id and point an `orb-menu` at it with `for` to open a
+     * menu from it. Items without a menu are chosen directly.
+     * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
+     * listener on the menubar.
+     */
+    interface OrbMenubar {
+        /**
+          * Accessible name for the menubar
+         */
+        "label"?: string;
+        /**
+          * Moves from the item that opened a menu to its neighbor, opening the neighbor's menu. Used by Left and Right in an open menu.
+         */
+        "moveFrom": (item: HTMLElement, step: 1 | -1) => Promise<void>;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -692,10 +731,10 @@ export namespace Components {
     | "3xl";
     }
     /**
-     * An item in an `orb-menu`. Its content is the label. Choosing it emits
-     * `orbSelect` from the menu.
-     * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
-     * that contains a nested `orb-menu`.
+     * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
+     * Choosing it emits `orbSelect` from the menu.
+     * To open a submenu, give the item an id and point a nested `orb-menu` at it
+     * with `for`.
      */
     interface OrbMi {
         /**
@@ -732,8 +771,6 @@ export namespace Components {
         "invalid": boolean;
     }
     interface OrbOtpInput {
-    }
-    interface OrbOutput {
     }
     interface OrbOverlay {
         /**
@@ -919,26 +956,15 @@ export namespace Components {
           * Execute a callback after the popover has dismissed
          */
         "destroy"?: () => Promise<void> | void;
+        /**
+          * Id of the element that will trigger the popover to open
+         */
+        "for"?: string;
         "hide": (role?: string, data?: any) => Promise<void>;
-        /**
-          * Backdrop will dismiss the popover on click when enabled
-          * @default true
-         */
-        "hideOnBackdropClick": boolean;
-        /**
-          * Popover will automatically dismiss itself when something is clicked in the popover when enabled. Ignored when `showOn` is `hover`.
-          * @default false
-         */
-        "hideOnContentClick": boolean;
         /**
           * Execute a callback before the popover starts presenting
          */
         "init"?: () => Promise<void> | void;
-        /**
-          * If the popover should match the width of the trigger element
-          * @default false
-         */
-        "matchWidth": boolean;
         /**
           * Horizontal offset used when auto positioning the popover content
           * @default 0
@@ -950,31 +976,18 @@ export namespace Components {
          */
         "offsetY": number;
         /**
-          * Opens the popover and focuses the first or last item of its menu. Without `focus`, an item is only focused when using the keyboard.
-         */
-        "openMenu": (focus?: "first" | "last") => Promise<void>;
-        /**
           * Where the popover should be placed
          */
         "placement"?: Placement;
         /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready": Promise<unknown>;
-        /**
           * Opens the popover. Without a trigger, it opens at `event`'s pointer position. Calling it again while open moves the popover to the new position, such as for a second right-click on a context menu.
          */
-        "show": (event: MouseEvent) => Promise<void>;
+        "show": ({ clientX, clientY, }: MouseEvent) => Promise<void>;
         /**
           * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile. Clicking the   trigger or the content doesn't dismiss it. It closes when the pointer   leaves, or on a click outside.
           * @default "click"
          */
         "showOn": "click" | "context-menu" | "hover";
-        /**
-          * Id of the element that will trigger the popover to open
-         */
-        "trigger"?: string;
     }
     interface OrbRadio {
         /**
@@ -1631,10 +1644,6 @@ export interface OrbAlertCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbAlertElement;
 }
-export interface OrbBreadcrumbsCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLOrbBreadcrumbsElement;
-}
 export interface OrbCalendarCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCalendarElement;
@@ -1642,6 +1651,10 @@ export interface OrbCalendarCustomEvent<T> extends CustomEvent<T> {
 export interface OrbCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCheckboxElement;
+}
+export interface OrbCrumbsCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbCrumbsElement;
 }
 export interface OrbDatepickerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1662,6 +1675,10 @@ export interface OrbGridCustomEvent<T> extends CustomEvent<T> {
 export interface OrbMenuCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbMenuElement;
+}
+export interface OrbMenubarCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbMenubarElement;
 }
 export interface OrbOverlayCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -1746,41 +1763,6 @@ declare global {
     var HTMLOrbAlertElement: {
         prototype: HTMLOrbAlertElement;
         new (): HTMLOrbAlertElement;
-    };
-    /**
-     * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
-     * crumb into a link (with `href`) or a button (without), so the crumb's content,
-     * including icons, renders inside it.
-     */
-    interface HTMLOrbBreadcrumbElement extends Components.OrbBreadcrumb, HTMLStencilElement {
-    }
-    var HTMLOrbBreadcrumbElement: {
-        prototype: HTMLOrbBreadcrumbElement;
-        new (): HTMLOrbBreadcrumbElement;
-    };
-    interface HTMLOrbBreadcrumbsElementEventMap {
-        "orbExpandClick": HTMLOrbBreadcrumbElement[];
-    }
-    /**
-     * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
-     * `href` render as links, and crumbs without one render as buttons for apps
-     * that navigate with click handlers. Each crumb's content is slotted into its
-     * link or button, so icons and other markup render as written, and clicks
-     * reach the `<orb-breadcrumb>`.
-     */
-    interface HTMLOrbBreadcrumbsElement extends Components.OrbBreadcrumbs, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLOrbBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLOrbBreadcrumbsElement, ev: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLOrbBreadcrumbsElementEventMap>(type: K, listener: (this: HTMLOrbBreadcrumbsElement, ev: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLOrbBreadcrumbsElement: {
-        prototype: HTMLOrbBreadcrumbsElement;
-        new (): HTMLOrbBreadcrumbsElement;
     };
     interface HTMLOrbButtonElement extends Components.OrbButton, HTMLStencilElement {
     }
@@ -1898,6 +1880,31 @@ declare global {
     var HTMLOrbCopyButtonElement: {
         prototype: HTMLOrbCopyButtonElement;
         new (): HTMLOrbCopyButtonElement;
+    };
+    interface HTMLOrbCrumbsElementEventMap {
+        "orbExpandClick": HTMLElement[];
+    }
+    /**
+     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
+     * link or a `<button>` for apps that navigate with click handlers. The crumbs
+     * stay in the page: the trail assigns each one to a slot in a list and adds
+     * the separators between them, so your own elements, attributes, and listeners
+     * work as written. The last crumb is the current page and gets
+     * `aria-current="page"`.
+     */
+    interface HTMLOrbCrumbsElement extends Components.OrbCrumbs, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbCrumbsElementEventMap>(type: K, listener: (this: HTMLOrbCrumbsElement, ev: OrbCrumbsCustomEvent<HTMLOrbCrumbsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbCrumbsElementEventMap>(type: K, listener: (this: HTMLOrbCrumbsElement, ev: OrbCrumbsCustomEvent<HTMLOrbCrumbsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbCrumbsElement: {
+        prototype: HTMLOrbCrumbsElement;
+        new (): HTMLOrbCrumbsElement;
     };
     interface HTMLOrbDatepickerElementEventMap {
         "orbValueChange": number | undefined;
@@ -2074,12 +2081,13 @@ declare global {
         "orbSelect": MenuSelectDetail;
     }
     /**
-     * A list of actions or options, made of `orb-mi` items. Put it in an
-     * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
-     * menubar.
-     * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
-     * with the item in its `trigger` slot. Choosing an item closes every menu in
-     * the chain, and opening a submenu keeps the parent open.
+     * A list of actions or options, made of `orb-mi` items.
+     * Set `for` to the id of a button and the menu opens from it, as a dropdown.
+     * With `show-on="context-menu"`, it opens where the element is right-clicked
+     * instead. Without `for`, the menu shows inline.
+     * For a submenu, give an item an id and point a nested `orb-menu` at it with
+     * `for`. Choosing an item closes every menu in the chain, and opening a
+     * submenu keeps its parent open. For a menubar, use `orb-menubar`.
      */
     interface HTMLOrbMenuElement extends Components.OrbMenu, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbMenuElementEventMap>(type: K, listener: (this: HTMLOrbMenuElement, ev: OrbMenuCustomEvent<HTMLOrbMenuElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2095,6 +2103,30 @@ declare global {
         prototype: HTMLOrbMenuElement;
         new (): HTMLOrbMenuElement;
     };
+    interface HTMLOrbMenubarElementEventMap {
+        "orbSelect": MenuSelectDetail1;
+    }
+    /**
+     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
+     * app. Give an item an id and point an `orb-menu` at it with `for` to open a
+     * menu from it. Items without a menu are chosen directly.
+     * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
+     * listener on the menubar.
+     */
+    interface HTMLOrbMenubarElement extends Components.OrbMenubar, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbMenubarElementEventMap>(type: K, listener: (this: HTMLOrbMenubarElement, ev: OrbMenubarCustomEvent<HTMLOrbMenubarElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbMenubarElementEventMap>(type: K, listener: (this: HTMLOrbMenubarElement, ev: OrbMenubarCustomEvent<HTMLOrbMenubarElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbMenubarElement: {
+        prototype: HTMLOrbMenubarElement;
+        new (): HTMLOrbMenubarElement;
+    };
     interface HTMLOrbMeshElement extends Components.OrbMesh, HTMLStencilElement {
     }
     var HTMLOrbMeshElement: {
@@ -2102,10 +2134,10 @@ declare global {
         new (): HTMLOrbMeshElement;
     };
     /**
-     * An item in an `orb-menu`. Its content is the label. Choosing it emits
-     * `orbSelect` from the menu.
-     * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
-     * that contains a nested `orb-menu`.
+     * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
+     * Choosing it emits `orbSelect` from the menu.
+     * To open a submenu, give the item an id and point a nested `orb-menu` at it
+     * with `for`.
      */
     interface HTMLOrbMiElement extends Components.OrbMi, HTMLStencilElement {
     }
@@ -2130,12 +2162,6 @@ declare global {
     var HTMLOrbOtpInputElement: {
         prototype: HTMLOrbOtpInputElement;
         new (): HTMLOrbOtpInputElement;
-    };
-    interface HTMLOrbOutputElement extends Components.OrbOutput, HTMLStencilElement {
-    }
-    var HTMLOrbOutputElement: {
-        prototype: HTMLOrbOutputElement;
-        new (): HTMLOrbOutputElement;
     };
     interface HTMLOrbOverlayElementEventMap {
         "orbPresent": any;
@@ -2565,8 +2591,6 @@ declare global {
     interface HTMLElementTagNameMap {
         "orb-accordion": HTMLOrbAccordionElement;
         "orb-alert": HTMLOrbAlertElement;
-        "orb-breadcrumb": HTMLOrbBreadcrumbElement;
-        "orb-breadcrumbs": HTMLOrbBreadcrumbsElement;
         "orb-button": HTMLOrbButtonElement;
         "orb-button-group": HTMLOrbButtonGroupElement;
         "orb-calendar": HTMLOrbCalendarElement;
@@ -2578,6 +2602,7 @@ declare global {
         "orb-comp": HTMLOrbCompElement;
         "orb-control": HTMLOrbControlElement;
         "orb-copy-button": HTMLOrbCopyButtonElement;
+        "orb-crumbs": HTMLOrbCrumbsElement;
         "orb-datepicker": HTMLOrbDatepickerElement;
         "orb-daw": HTMLOrbDawElement;
         "orb-details": HTMLOrbDetailsElement;
@@ -2595,12 +2620,12 @@ declare global {
         "orb-markdown": HTMLOrbMarkdownElement;
         "orb-mask-input": HTMLOrbMaskInputElement;
         "orb-menu": HTMLOrbMenuElement;
+        "orb-menubar": HTMLOrbMenubarElement;
         "orb-mesh": HTMLOrbMeshElement;
         "orb-mi": HTMLOrbMiElement;
         "orb-midi": HTMLOrbMidiElement;
         "orb-note": HTMLOrbNoteElement;
         "orb-otp-input": HTMLOrbOtpInputElement;
-        "orb-output": HTMLOrbOutputElement;
         "orb-overlay": HTMLOrbOverlayElement;
         "orb-pagination": HTMLOrbPaginationElement;
         "orb-pill": HTMLOrbPillElement;
@@ -2660,44 +2685,6 @@ declare namespace LocalJSX {
          */
         "open"?: boolean;
     }
-    /**
-     * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
-     * crumb into a link (with `href`) or a button (without), so the crumb's content,
-     * including icons, renders inside it.
-     */
-    interface OrbBreadcrumb {
-        /**
-          * Makes the crumb a link. Reflected, so setting the property updates the attribute that `orb-breadcrumbs` watches.
-         */
-        "href"?: string;
-    }
-    /**
-     * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
-     * `href` render as links, and crumbs without one render as buttons for apps
-     * that navigate with click handlers. Each crumb's content is slotted into its
-     * link or button, so icons and other markup render as written, and clicks
-     * reach the `<orb-breadcrumb>`.
-     */
-    interface OrbBreadcrumbs {
-        /**
-          * Crumbs kept visible after the collapsed ones. At least 1, so the current page is always shown.
-          * @default 1
-         */
-        "itemsAfterCollapse"?: number;
-        /**
-          * Crumbs kept visible before the collapsed ones
-          * @default 1
-         */
-        "itemsBeforeCollapse"?: number;
-        /**
-          * Collapses the middle crumbs when there are more than this many
-         */
-        "maxItems"?: number;
-        /**
-          * Emitted when the collapsed-crumbs button is activated. The detail is the hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu.
-         */
-        "onOrbExpandClick"?: (event: OrbBreadcrumbsCustomEvent<HTMLOrbBreadcrumbElement[]>) => void;
-    }
     interface OrbButton {
         /**
           * Predefined colors
@@ -2732,6 +2719,11 @@ declare namespace LocalJSX {
          */
         "pending"?: boolean;
         /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
+        /**
           * Button size
           * @default "md"
          */
@@ -2740,6 +2732,10 @@ declare namespace LocalJSX {
           * Can set to submit or reset to participate in forms
          */
         "type"?: "submit" | "reset";
+        /**
+          * Will be used as the value if it has a name and is nested in a form
+         */
+        "value"?: string | File | FormData;
     }
     interface OrbButtonGroup {
     }
@@ -2967,6 +2963,34 @@ declare namespace LocalJSX {
           * The text to copy. Falls back to the element's text content when omitted, which is how it behaves when wrapped around the content it copies.
          */
         "value"?: string;
+    }
+    /**
+     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
+     * link or a `<button>` for apps that navigate with click handlers. The crumbs
+     * stay in the page: the trail assigns each one to a slot in a list and adds
+     * the separators between them, so your own elements, attributes, and listeners
+     * work as written. The last crumb is the current page and gets
+     * `aria-current="page"`.
+     */
+    interface OrbCrumbs {
+        /**
+          * Crumbs kept visible after the collapsed ones. At least 1, so the current page is always shown.
+          * @default 1
+         */
+        "itemsAfterCollapse"?: number;
+        /**
+          * Crumbs kept visible before the collapsed ones
+          * @default 1
+         */
+        "itemsBeforeCollapse"?: number;
+        /**
+          * Collapses the middle crumbs when there are more than this many
+         */
+        "maxItems"?: number;
+        /**
+          * Emitted when the collapsed-crumbs button is activated. The detail is the hidden crumb elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu.
+         */
+        "onOrbExpandClick"?: (event: OrbCrumbsCustomEvent<HTMLElement[]>) => void;
     }
     /**
      * An inline date and time picker. It renders a month calendar and/or time
@@ -3319,27 +3343,53 @@ declare namespace LocalJSX {
     interface OrbMaskInput {
     }
     /**
-     * A list of actions or options, made of `orb-mi` items. Put it in an
-     * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
-     * menubar.
-     * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
-     * with the item in its `trigger` slot. Choosing an item closes every menu in
-     * the chain, and opening a submenu keeps the parent open.
+     * A list of actions or options, made of `orb-mi` items.
+     * Set `for` to the id of a button and the menu opens from it, as a dropdown.
+     * With `show-on="context-menu"`, it opens where the element is right-clicked
+     * instead. Without `for`, the menu shows inline.
+     * For a submenu, give an item an id and point a nested `orb-menu` at it with
+     * `for`. Choosing an item closes every menu in the chain, and opening a
+     * submenu keeps its parent open. For a menubar, use `orb-menubar`.
      */
     interface OrbMenu {
         /**
-          * Lays the items out in a row and uses menubar keyboard behavior. Each item usually opens a menu through an `orb-popover`.
-          * @default false
+          * Id of the element that opens the menu, in the same document or shadow root. Without it, the menu shows inline.
          */
-        "bar"?: boolean;
+        "for"?: string;
         /**
-          * Accessible name for the menu
+          * Accessible name for the menu. Defaults to the trigger's name.
          */
         "label"?: string;
         /**
-          * Emitted when an item is chosen. Checkbox and radio items have already toggled. Call `preventDefault()` to keep the menu open.
+          * Emitted when an item is chosen, from this menu or a submenu. Checkbox and radio items have already toggled. Call `preventDefault()` to keep the menu open.
          */
         "onOrbSelect"?: (event: OrbMenuCustomEvent<MenuSelectDetail>) => void;
+        /**
+          * Where the menu opens. Defaults to below the trigger, or beside the item for a submenu. It flips to the other side when there isn't room.
+         */
+        "placement"?: Placement;
+        /**
+          * - **click**: Opens when the trigger is clicked, or pressed with Enter,   Space, or Down. - **context-menu**: Opens where the trigger is right-clicked, or with the   context menu key or Shift+F10.
+          * @default "click"
+         */
+        "showOn"?: "click" | "context-menu";
+    }
+    /**
+     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
+     * app. Give an item an id and point an `orb-menu` at it with `for` to open a
+     * menu from it. Items without a menu are chosen directly.
+     * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
+     * listener on the menubar.
+     */
+    interface OrbMenubar {
+        /**
+          * Accessible name for the menubar
+         */
+        "label"?: string;
+        /**
+          * Emitted when an item without a menu is chosen. Items in the menus emit `orbSelect` from their `orb-menu`, which bubbles up through the menubar when the menu is inside it.
+         */
+        "onOrbSelect"?: (event: OrbMenubarCustomEvent<MenuSelectDetail1>) => void;
     }
     interface OrbMesh {
         "space"?: | "3xs"
@@ -3353,10 +3403,10 @@ declare namespace LocalJSX {
     | "3xl";
     }
     /**
-     * An item in an `orb-menu`. Its content is the label. Choosing it emits
-     * `orbSelect` from the menu.
-     * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
-     * that contains a nested `orb-menu`.
+     * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
+     * Choosing it emits `orbSelect` from the menu.
+     * To open a submenu, give the item an id and point a nested `orb-menu` at it
+     * with `for`.
      */
     interface OrbMi {
         /**
@@ -3393,8 +3443,6 @@ declare namespace LocalJSX {
         "invalid"?: boolean;
     }
     interface OrbOtpInput {
-    }
-    interface OrbOutput {
     }
     interface OrbOverlay {
         /**
@@ -3599,24 +3647,13 @@ declare namespace LocalJSX {
          */
         "destroy"?: () => Promise<void> | void;
         /**
-          * Backdrop will dismiss the popover on click when enabled
-          * @default true
+          * Id of the element that will trigger the popover to open
          */
-        "hideOnBackdropClick"?: boolean;
-        /**
-          * Popover will automatically dismiss itself when something is clicked in the popover when enabled. Ignored when `showOn` is `hover`.
-          * @default false
-         */
-        "hideOnContentClick"?: boolean;
+        "for"?: string;
         /**
           * Execute a callback before the popover starts presenting
          */
         "init"?: () => Promise<void> | void;
-        /**
-          * If the popover should match the width of the trigger element
-          * @default false
-         */
-        "matchWidth"?: boolean;
         /**
           * Horizontal offset used when auto positioning the popover content
           * @default 0
@@ -3648,19 +3685,10 @@ declare namespace LocalJSX {
          */
         "placement"?: Placement;
         /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready"?: Promise<unknown>;
-        /**
           * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile. Clicking the   trigger or the content doesn't dismiss it. It closes when the pointer   leaves, or on a click outside.
           * @default "click"
          */
         "showOn"?: "click" | "context-menu" | "hover";
-        /**
-          * Id of the element that will trigger the popover to open
-         */
-        "trigger"?: string;
     }
     interface OrbRadio {
         /**
@@ -4346,14 +4374,6 @@ declare namespace LocalJSX {
         "duration": number;
         "open": boolean;
     }
-    interface OrbBreadcrumbAttributes {
-        "href": string;
-    }
-    interface OrbBreadcrumbsAttributes {
-        "itemsBeforeCollapse": number;
-        "itemsAfterCollapse": number;
-        "maxItems": number;
-    }
     interface OrbButtonAttributes {
         "disabled": boolean;
         "type": "submit" | "reset";
@@ -4363,6 +4383,7 @@ declare namespace LocalJSX {
         "fill": "solid" | "outline" | "clear";
         "size": "md" | "lg" | "sm" | "xs";
         "color": Color;
+        "value": string | File | FormData;
     }
     interface OrbCalendarAttributes {
         "view": OrbCalendarView;
@@ -4402,6 +4423,11 @@ declare namespace LocalJSX {
         "value": string;
         "label": string;
         "size": "md" | "lg" | "sm" | "xs";
+    }
+    interface OrbCrumbsAttributes {
+        "itemsBeforeCollapse": number;
+        "itemsAfterCollapse": number;
+        "maxItems": number;
     }
     interface OrbDatepickerAttributes {
         "type": "date" | "datetime" | "time";
@@ -4476,7 +4502,12 @@ declare namespace LocalJSX {
         "typographer": boolean;
     }
     interface OrbMenuAttributes {
-        "bar": boolean;
+        "for": string;
+        "showOn": "click" | "context-menu";
+        "placement": Placement;
+        "label": string;
+    }
+    interface OrbMenubarAttributes {
         "label": string;
     }
     interface OrbMeshAttributes {
@@ -4542,15 +4573,12 @@ declare namespace LocalJSX {
     }
     interface OrbPopoverAttributes {
         "placement": Placement;
-        "hideOnBackdropClick": boolean;
-        "hideOnContentClick": boolean;
         "offsetX": number;
         "offsetY": number;
         "showOn": "click" | "context-menu" | "hover";
-        "matchWidth": boolean;
         "arrow": boolean;
         "arrowPadding": number;
-        "trigger": string;
+        "for": string;
     }
     interface OrbRadioAttributes {
         "value": string;
@@ -4722,8 +4750,6 @@ declare namespace LocalJSX {
     interface IntrinsicElements {
         "orb-accordion": OrbAccordion;
         "orb-alert": Omit<OrbAlert, keyof OrbAlertAttributes> & { [K in keyof OrbAlert & keyof OrbAlertAttributes]?: OrbAlert[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `attr:${K}`]?: OrbAlertAttributes[K] } & { [K in keyof OrbAlert & keyof OrbAlertAttributes as `prop:${K}`]?: OrbAlert[K] };
-        "orb-breadcrumb": Omit<OrbBreadcrumb, keyof OrbBreadcrumbAttributes> & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes]?: OrbBreadcrumb[K] } & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes as `attr:${K}`]?: OrbBreadcrumbAttributes[K] } & { [K in keyof OrbBreadcrumb & keyof OrbBreadcrumbAttributes as `prop:${K}`]?: OrbBreadcrumb[K] };
-        "orb-breadcrumbs": Omit<OrbBreadcrumbs, keyof OrbBreadcrumbsAttributes> & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes]?: OrbBreadcrumbs[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `attr:${K}`]?: OrbBreadcrumbsAttributes[K] } & { [K in keyof OrbBreadcrumbs & keyof OrbBreadcrumbsAttributes as `prop:${K}`]?: OrbBreadcrumbs[K] };
         "orb-button": Omit<OrbButton, keyof OrbButtonAttributes> & { [K in keyof OrbButton & keyof OrbButtonAttributes]?: OrbButton[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `attr:${K}`]?: OrbButtonAttributes[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `prop:${K}`]?: OrbButton[K] };
         "orb-button-group": OrbButtonGroup;
         "orb-calendar": Omit<OrbCalendar, keyof OrbCalendarAttributes> & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes]?: OrbCalendar[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `attr:${K}`]?: OrbCalendarAttributes[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `prop:${K}`]?: OrbCalendar[K] };
@@ -4735,6 +4761,7 @@ declare namespace LocalJSX {
         "orb-comp": OrbComp;
         "orb-control": OrbControl;
         "orb-copy-button": Omit<OrbCopyButton, keyof OrbCopyButtonAttributes> & { [K in keyof OrbCopyButton & keyof OrbCopyButtonAttributes]?: OrbCopyButton[K] } & { [K in keyof OrbCopyButton & keyof OrbCopyButtonAttributes as `attr:${K}`]?: OrbCopyButtonAttributes[K] } & { [K in keyof OrbCopyButton & keyof OrbCopyButtonAttributes as `prop:${K}`]?: OrbCopyButton[K] };
+        "orb-crumbs": Omit<OrbCrumbs, keyof OrbCrumbsAttributes> & { [K in keyof OrbCrumbs & keyof OrbCrumbsAttributes]?: OrbCrumbs[K] } & { [K in keyof OrbCrumbs & keyof OrbCrumbsAttributes as `attr:${K}`]?: OrbCrumbsAttributes[K] } & { [K in keyof OrbCrumbs & keyof OrbCrumbsAttributes as `prop:${K}`]?: OrbCrumbs[K] };
         "orb-datepicker": Omit<OrbDatepicker, keyof OrbDatepickerAttributes> & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes]?: OrbDatepicker[K] } & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes as `attr:${K}`]?: OrbDatepickerAttributes[K] } & { [K in keyof OrbDatepicker & keyof OrbDatepickerAttributes as `prop:${K}`]?: OrbDatepicker[K] };
         "orb-daw": OrbDaw;
         "orb-details": Omit<OrbDetails, keyof OrbDetailsAttributes> & { [K in keyof OrbDetails & keyof OrbDetailsAttributes]?: OrbDetails[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `attr:${K}`]?: OrbDetailsAttributes[K] } & { [K in keyof OrbDetails & keyof OrbDetailsAttributes as `prop:${K}`]?: OrbDetails[K] };
@@ -4752,12 +4779,12 @@ declare namespace LocalJSX {
         "orb-markdown": Omit<OrbMarkdown, keyof OrbMarkdownAttributes> & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes]?: OrbMarkdown[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `attr:${K}`]?: OrbMarkdownAttributes[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `prop:${K}`]?: OrbMarkdown[K] };
         "orb-mask-input": OrbMaskInput;
         "orb-menu": Omit<OrbMenu, keyof OrbMenuAttributes> & { [K in keyof OrbMenu & keyof OrbMenuAttributes]?: OrbMenu[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `attr:${K}`]?: OrbMenuAttributes[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `prop:${K}`]?: OrbMenu[K] };
+        "orb-menubar": Omit<OrbMenubar, keyof OrbMenubarAttributes> & { [K in keyof OrbMenubar & keyof OrbMenubarAttributes]?: OrbMenubar[K] } & { [K in keyof OrbMenubar & keyof OrbMenubarAttributes as `attr:${K}`]?: OrbMenubarAttributes[K] } & { [K in keyof OrbMenubar & keyof OrbMenubarAttributes as `prop:${K}`]?: OrbMenubar[K] };
         "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
         "orb-mi": Omit<OrbMi, keyof OrbMiAttributes> & { [K in keyof OrbMi & keyof OrbMiAttributes]?: OrbMi[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `attr:${K}`]?: OrbMiAttributes[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `prop:${K}`]?: OrbMi[K] };
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
         "orb-otp-input": OrbOtpInput;
-        "orb-output": OrbOutput;
         "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
         "orb-pagination": Omit<OrbPagination, keyof OrbPaginationAttributes> & { [K in keyof OrbPagination & keyof OrbPaginationAttributes]?: OrbPagination[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `attr:${K}`]?: OrbPaginationAttributes[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `prop:${K}`]?: OrbPagination[K] };
         "orb-pill": Omit<OrbPill, keyof OrbPillAttributes> & { [K in keyof OrbPill & keyof OrbPillAttributes]?: OrbPill[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `attr:${K}`]?: OrbPillAttributes[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `prop:${K}`]?: OrbPill[K] };
@@ -4801,20 +4828,6 @@ declare module "@stencil/core" {
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
-            /**
-             * One level in an `<orb-breadcrumbs>` trail. `orb-breadcrumbs` slots each
-             * crumb into a link (with `href`) or a button (without), so the crumb's content,
-             * including icons, renders inside it.
-             */
-            "orb-breadcrumb": LocalJSX.IntrinsicElements["orb-breadcrumb"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbElement>;
-            /**
-             * A breadcrumb trail built from `<orb-breadcrumb>` children. Crumbs with an
-             * `href` render as links, and crumbs without one render as buttons for apps
-             * that navigate with click handlers. Each crumb's content is slotted into its
-             * link or button, so icons and other markup render as written, and clicks
-             * reach the `<orb-breadcrumb>`.
-             */
-            "orb-breadcrumbs": LocalJSX.IntrinsicElements["orb-breadcrumbs"] & JSXBase.HTMLAttributes<HTMLOrbBreadcrumbsElement>;
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
             /**
@@ -4849,6 +4862,15 @@ declare module "@stencil/core" {
              * confirm. Copies the `value` prop when set, otherwise its own text content.
              */
             "orb-copy-button": LocalJSX.IntrinsicElements["orb-copy-button"] & JSXBase.HTMLAttributes<HTMLOrbCopyButtonElement>;
+            /**
+             * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
+             * link or a `<button>` for apps that navigate with click handlers. The crumbs
+             * stay in the page: the trail assigns each one to a slot in a list and adds
+             * the separators between them, so your own elements, attributes, and listeners
+             * work as written. The last crumb is the current page and gets
+             * `aria-current="page"`.
+             */
+            "orb-crumbs": LocalJSX.IntrinsicElements["orb-crumbs"] & JSXBase.HTMLAttributes<HTMLOrbCrumbsElement>;
             /**
              * An inline date and time picker. It renders a month calendar and/or time
              * columns and reports the selected value as epoch milliseconds. It fills the
@@ -4891,26 +4913,34 @@ declare module "@stencil/core" {
             "orb-markdown": LocalJSX.IntrinsicElements["orb-markdown"] & JSXBase.HTMLAttributes<HTMLOrbMarkdownElement>;
             "orb-mask-input": LocalJSX.IntrinsicElements["orb-mask-input"] & JSXBase.HTMLAttributes<HTMLOrbMaskInputElement>;
             /**
-             * A list of actions or options, made of `orb-mi` items. Put it in an
-             * `orb-popover` for a dropdown or context menu, or set `bar` for a horizontal
-             * menubar.
-             * For a submenu, wrap an item and a nested `orb-menu` in an `orb-popover`,
-             * with the item in its `trigger` slot. Choosing an item closes every menu in
-             * the chain, and opening a submenu keeps the parent open.
+             * A list of actions or options, made of `orb-mi` items.
+             * Set `for` to the id of a button and the menu opens from it, as a dropdown.
+             * With `show-on="context-menu"`, it opens where the element is right-clicked
+             * instead. Without `for`, the menu shows inline.
+             * For a submenu, give an item an id and point a nested `orb-menu` at it with
+             * `for`. Choosing an item closes every menu in the chain, and opening a
+             * submenu keeps its parent open. For a menubar, use `orb-menubar`.
              */
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
+            /**
+             * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
+             * app. Give an item an id and point an `orb-menu` at it with `for` to open a
+             * menu from it. Items without a menu are chosen directly.
+             * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
+             * listener on the menubar.
+             */
+            "orb-menubar": LocalJSX.IntrinsicElements["orb-menubar"] & JSXBase.HTMLAttributes<HTMLOrbMenubarElement>;
             "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
             /**
-             * An item in an `orb-menu`. Its content is the label. Choosing it emits
-             * `orbSelect` from the menu.
-             * To open a submenu, put the item in the `trigger` slot of an `orb-popover`
-             * that contains a nested `orb-menu`.
+             * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
+             * Choosing it emits `orbSelect` from the menu.
+             * To open a submenu, give the item an id and point a nested `orb-menu` at it
+             * with `for`.
              */
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
             "orb-otp-input": LocalJSX.IntrinsicElements["orb-otp-input"] & JSXBase.HTMLAttributes<HTMLOrbOtpInputElement>;
-            "orb-output": LocalJSX.IntrinsicElements["orb-output"] & JSXBase.HTMLAttributes<HTMLOrbOutputElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
             /**
              * Splits a long list into pages and lets the user move between them. Renders

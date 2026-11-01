@@ -1,0 +1,7 @@
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--orb-spacing-3xs);
+  box-sizing: border-box;
+}

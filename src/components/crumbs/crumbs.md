@@ -1,21 +1,21 @@
 ---
-title: 'OrbBreadcrumbs | <orb-breadcrumbs>'
+title: 'OrbCrumbs | <orb-crumbs>'
 sidebar_label: 'Breadcrumbs'
 ---
 
 ## Usage
 
-Breadcrumbs show where the current page sits in a hierarchy. Put an `<orb-breadcrumb>` inside `<orb-breadcrumbs>` for each level, in order from the top. Set `href` on a crumb to make it a link. The last crumb is the current page.
+Breadcrumbs show where the current page sits in a hierarchy. Put a crumb inside `<orb-crumbs>` for each level, in order from the top. Crumbs are your own elements: an `<a>` for a link, or a `<button>` for apps that navigate with click handlers. The trail adds the slashes between them, and the last crumb is the current page.
 
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs>
-  <orb-breadcrumb href="#home">Home</orb-breadcrumb>
-  <orb-breadcrumb href="#products">Products</orb-breadcrumb>
-  <orb-breadcrumb href="#keyboards">Keyboards</orb-breadcrumb>
-  <orb-breadcrumb href="#mechanical">Mechanical keyboard</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs>
+  <a href="#home">Home</a>
+  <a href="#products">Products</a>
+  <a href="#keyboards">Keyboards</a>
+  <a href="#mechanical">Mechanical keyboard</a>
+</orb-crumbs>
 ```
 
 :::
@@ -28,16 +28,16 @@ Breadcrumbs show where the current page sits in a hierarchy. Put an `<orb-breadc
 
 ### Current Page Without a Link
 
-The current page usually doesn't need a link. Leave `href` off the last crumb and it renders as a button styled as the current page.
+The current page usually doesn't need a link. Use a `<span>` for the last crumb and it shows as plain text, styled as the current page.
 
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs>
-  <orb-breadcrumb href="#home">Home</orb-breadcrumb>
-  <orb-breadcrumb href="#settings">Settings</orb-breadcrumb>
-  <orb-breadcrumb>Notifications</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs>
+  <a href="#home">Home</a>
+  <a href="#settings">Settings</a>
+  <span>Notifications</span>
+</orb-crumbs>
 ```
 
 :::
@@ -45,19 +45,20 @@ The current page usually doesn't need a link. Leave `href` off the last crumb an
 **Manual test:**
 - "Notifications" is highlighted as the current page, without an underline or pointer cursor.
 - Inspect it. It should have `aria-current="page"`.
+- Tab through the trail. "Notifications" isn't a Tab stop.
 
 ### Single-Page Apps
 
-Crumbs without an `href` render as buttons, for apps that navigate with click handlers instead of links. Clicks are forwarded to the matching `<orb-breadcrumb>`, so add a `click` listener to the crumb itself, or listen on `<orb-breadcrumbs>` and check `event.target`.
+For apps that navigate with click handlers, use `<button type="button">` crumbs and listen for clicks on them, or on `<orb-crumbs>`.
 
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs id="spa-crumbs">
-  <orb-breadcrumb data-route="/">Home</orb-breadcrumb>
-  <orb-breadcrumb data-route="/projects">Projects</orb-breadcrumb>
-  <orb-breadcrumb data-route="/projects/orb">Orb</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs id="spa-crumbs">
+  <button type="button" data-route="/">Home</button>
+  <button type="button" data-route="/projects">Projects</button>
+  <button type="button" data-route="/projects/orb">Orb</button>
+</orb-crumbs>
 <p id="spa-output" role="status" style="margin-top: 1rem;">Click a crumb.</p>
 ```
 
@@ -65,7 +66,7 @@ Crumbs without an `href` render as buttons, for apps that navigate with click ha
 const crumbs = document.querySelector("#spa-crumbs");
 const output = document.querySelector("#spa-output");
 crumbs.addEventListener("click", (event) => {
-  const crumb = event.target.closest("orb-breadcrumb");
+  const crumb = event.target.closest("button");
   if (crumb) output.textContent = `Navigate to ${crumb.dataset.route}`;
 });
 ```
@@ -74,21 +75,21 @@ crumbs.addEventListener("click", (event) => {
 
 **Manual test:**
 - Click each crumb. The status line shows its route, and each click is reported once.
-- Tab to a crumb and press Enter or Space. It should report the route the same way.
+- Tab to a crumb and press Enter or Space. It reports the route the same way.
 - Crumbs before the current page look like links, with an underline and pointer cursor.
 
 ### Intercepting Links
 
-Client-side routers can keep real links, which still open in a new tab and work without JavaScript, and route clicks themselves. Call `preventDefault()` on the forwarded click to stop the browser from following the link.
+Client-side routers can keep real links, which still open in a new tab and work without JavaScript, and route clicks themselves. Call `preventDefault()` on the click to stop the browser from following the link.
 
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs id="router-crumbs">
-  <orb-breadcrumb href="#home">Home</orb-breadcrumb>
-  <orb-breadcrumb href="#docs">Docs</orb-breadcrumb>
-  <orb-breadcrumb href="#breadcrumbs">Breadcrumbs</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs id="router-crumbs">
+  <a href="#home">Home</a>
+  <a href="#docs">Docs</a>
+  <a href="#breadcrumbs">Breadcrumbs</a>
+</orb-crumbs>
 <p id="router-output" role="status" style="margin-top: 1rem;">Click a crumb. The URL hash shouldn't change.</p>
 ```
 
@@ -96,11 +97,11 @@ Client-side routers can keep real links, which still open in a new tab and work 
 const crumbs = document.querySelector("#router-crumbs");
 const output = document.querySelector("#router-output");
 crumbs.addEventListener("click", (event) => {
-  const crumb = event.target.closest("orb-breadcrumb");
+  const crumb = event.target.closest("a");
   // Let modified clicks through, so Cmd/Ctrl-click still opens a new tab.
   if (!crumb || event.metaKey || event.ctrlKey || event.shiftKey) return;
   event.preventDefault();
-  output.textContent = `Routed to ${crumb.href} without a page load`;
+  output.textContent = `Routed to ${crumb.getAttribute("href")} without a page load`;
 });
 ```
 
@@ -118,48 +119,49 @@ Set `max-items` to collapse long trails. When there are more crumbs than `max-it
 
 ```html
 <orb-stack space="lg">
-  <orb-breadcrumbs max-items="4">
-    <orb-breadcrumb href="#root">Root</orb-breadcrumb>
-    <orb-breadcrumb href="#a">Projects</orb-breadcrumb>
-    <orb-breadcrumb href="#b">Orb</orb-breadcrumb>
-    <orb-breadcrumb href="#c">Source</orb-breadcrumb>
-    <orb-breadcrumb href="#d">Components</orb-breadcrumb>
-    <orb-breadcrumb>breadcrumbs.tsx</orb-breadcrumb>
-  </orb-breadcrumbs>
-  <orb-breadcrumbs max-items="4" items-before-collapse="2" items-after-collapse="2">
-    <orb-breadcrumb href="#root">Root</orb-breadcrumb>
-    <orb-breadcrumb href="#a">Projects</orb-breadcrumb>
-    <orb-breadcrumb href="#b">Orb</orb-breadcrumb>
-    <orb-breadcrumb href="#c">Source</orb-breadcrumb>
-    <orb-breadcrumb href="#d">Components</orb-breadcrumb>
-    <orb-breadcrumb>breadcrumbs.tsx</orb-breadcrumb>
-  </orb-breadcrumbs>
+  <orb-crumbs max-items="4">
+    <a href="#root">Root</a>
+    <a href="#a">Projects</a>
+    <a href="#b">Orb</a>
+    <a href="#c">Source</a>
+    <a href="#d">Components</a>
+    <span>crumbs.tsx</span>
+  </orb-crumbs>
+  <orb-crumbs max-items="4" items-before-collapse="2" items-after-collapse="2">
+    <a href="#root">Root</a>
+    <a href="#a">Projects</a>
+    <a href="#b">Orb</a>
+    <a href="#c">Source</a>
+    <a href="#d">Components</a>
+    <span>crumbs.tsx</span>
+  </orb-crumbs>
 </orb-stack>
 ```
 
 :::
 
 **Manual test:**
-- The first trail shows `Root / … / breadcrumbs.tsx`.
-- The second shows `Root / Projects / … / Components / breadcrumbs.tsx`.
+- The first trail shows `Root / … / crumbs.tsx`.
+- The second shows `Root / Projects / … / Components / crumbs.tsx`.
+- Collapsed crumbs aren't Tab stops.
 - Click an ellipsis. The hidden crumbs appear in its place, in order.
 - Tab to an ellipsis and press Enter. Focus moves to the first revealed crumb.
 - Inspect the first ellipsis button. Its accessible name is "Show 4 more breadcrumbs".
 
 ### Handling Expansion Yourself
 
-The ellipsis emits `orbExpandClick` with the hidden `<orb-breadcrumb>` elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu instead.
+The ellipsis emits `orbExpandClick` with the hidden crumb elements. Call `preventDefault()` to keep them collapsed, for example to show them in your own menu instead.
 
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs id="expand-crumbs" max-items="3">
-  <orb-breadcrumb href="#root">Root</orb-breadcrumb>
-  <orb-breadcrumb href="#a">Projects</orb-breadcrumb>
-  <orb-breadcrumb href="#b">Orb</orb-breadcrumb>
-  <orb-breadcrumb href="#c">Source</orb-breadcrumb>
-  <orb-breadcrumb>breadcrumbs.tsx</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs id="expand-crumbs" max-items="3">
+  <a href="#root">Root</a>
+  <a href="#a">Projects</a>
+  <a href="#b">Orb</a>
+  <a href="#c">Source</a>
+  <span>crumbs.tsx</span>
+</orb-crumbs>
 <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
   <input type="checkbox" id="expand-prevent" checked />
   Keep collapsed
@@ -185,19 +187,19 @@ crumbs.addEventListener("orbExpandClick", (event) => {
 
 ### Icons and Markup
 
-Each crumb's content is slotted into its link or button, so icons and other markup render as written.
+Crumbs render as written, so icons and other markup inside them work.
 
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs>
-  <orb-breadcrumb href="#home">
+<orb-crumbs>
+  <a href="#home">
     <iconify-icon icon="mdi:home" aria-hidden="true" style="vertical-align: -0.125em;"></iconify-icon>
     Home
-  </orb-breadcrumb>
-  <orb-breadcrumb href="#settings">Settings</orb-breadcrumb>
-  <orb-breadcrumb>Profile <em>(editing)</em></orb-breadcrumb>
-</orb-breadcrumbs>
+  </a>
+  <a href="#settings">Settings</a>
+  <span>Profile <em>(editing)</em></span>
+</orb-crumbs>
 ```
 
 :::
@@ -211,11 +213,11 @@ Nothing collapses when the number of crumbs is at or below `max-items`.
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs max-items="4">
-  <orb-breadcrumb href="#home">Home</orb-breadcrumb>
-  <orb-breadcrumb href="#docs">Docs</orb-breadcrumb>
-  <orb-breadcrumb>Getting started</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs max-items="4">
+  <a href="#home">Home</a>
+  <a href="#docs">Docs</a>
+  <span>Getting started</span>
+</orb-crumbs>
 ```
 
 :::
@@ -229,10 +231,10 @@ Breadcrumbs often change as the user navigates. Use these buttons to add and rem
 ::: live-code-demo
 
 ```html
-<orb-breadcrumbs id="dynamic-crumbs">
-  <orb-breadcrumb href="#home">Home</orb-breadcrumb>
-  <orb-breadcrumb href="#library">Library</orb-breadcrumb>
-</orb-breadcrumbs>
+<orb-crumbs id="dynamic-crumbs">
+  <a href="#home">Home</a>
+  <a href="#library">Library</a>
+</orb-crumbs>
 <orb-toolbar space="xs" style="margin-top: 1rem; flex-wrap: wrap;">
   <orb-button size="sm" id="crumb-add">Add crumb</orb-button>
   <orb-button size="sm" fill="outline" id="crumb-remove">Remove last</orb-button>
@@ -247,21 +249,20 @@ const crumbs = document.querySelector("#dynamic-crumbs");
 let count = 0;
 
 document.querySelector("#crumb-add").addEventListener("click", () => {
-  const crumb = document.createElement("orb-breadcrumb");
-  crumb.setAttribute("href", `#level-${++count}`);
+  const crumb = document.createElement("a");
+  crumb.href = `#level-${++count}`;
   crumb.textContent = `Level ${count}`;
   crumbs.append(crumb);
 });
 document.querySelector("#crumb-remove").addEventListener("click", () => {
-  crumbs.querySelector("orb-breadcrumb:last-of-type")?.remove();
+  crumbs.lastElementChild?.remove();
 });
 document.querySelector("#crumb-rename").addEventListener("click", () => {
-  const last = crumbs.querySelector("orb-breadcrumb:last-of-type");
+  const last = crumbs.lastElementChild;
   if (last) last.textContent = `${last.textContent} (renamed)`;
 });
 document.querySelector("#crumb-href").addEventListener("click", () => {
-  // Setting the property works too, since href is reflected to the attribute.
-  const library = crumbs.querySelectorAll("orb-breadcrumb")[1];
+  const library = crumbs.children[1];
   if (library) library.href = "#library-changed";
 });
 document.querySelector("#crumb-max").addEventListener("click", () => {
@@ -275,7 +276,7 @@ document.querySelector("#crumb-max").addEventListener("click", () => {
 - **Add crumb:** a new link appears at the end and becomes the current page.
 - **Remove last:** the previous crumb becomes the current page.
 - **Rename last:** the last crumb's text changes.
-- **Change Library link:** hover "Library". The link should point to `#library-changed`.
+- **Change Library link:** hover "Library". The link points to `#library-changed`.
 - **Set max-items to 3:** with four or more crumbs, the trail collapses.
 - **Starting collapsed again:** expand the collapsed trail, then add or remove a crumb. A different set of crumbs counts as a new trail, so it collapses again. Renaming or relinking a crumb keeps it expanded.
 
@@ -287,18 +288,18 @@ These settings used to produce broken trails.
 
 ```html
 <orb-stack space="lg">
-  <orb-breadcrumbs max-items="2" items-before-collapse="2" items-after-collapse="2">
-    <orb-breadcrumb href="#a">Nothing</orb-breadcrumb>
-    <orb-breadcrumb href="#b">to</orb-breadcrumb>
-    <orb-breadcrumb>collapse</orb-breadcrumb>
-  </orb-breadcrumbs>
-  <orb-breadcrumbs max-items="3" items-after-collapse="0">
-    <orb-breadcrumb href="#a">Root</orb-breadcrumb>
-    <orb-breadcrumb href="#b">Two</orb-breadcrumb>
-    <orb-breadcrumb href="#c">Three</orb-breadcrumb>
-    <orb-breadcrumb href="#d">Four</orb-breadcrumb>
-    <orb-breadcrumb>Current</orb-breadcrumb>
-  </orb-breadcrumbs>
+  <orb-crumbs max-items="2" items-before-collapse="2" items-after-collapse="2">
+    <a href="#a">Nothing</a>
+    <a href="#b">to</a>
+    <span>collapse</span>
+  </orb-crumbs>
+  <orb-crumbs max-items="3" items-after-collapse="0">
+    <a href="#a">Root</a>
+    <a href="#b">Two</a>
+    <a href="#c">Three</a>
+    <a href="#d">Four</a>
+    <span>Current</span>
+  </orb-crumbs>
 </orb-stack>
 ```
 
@@ -316,26 +317,26 @@ Long trails need to fit small screens.
 
 ```html
 <div style="max-width: 16rem; border: 1px dashed; padding: 0.5rem;">
-  <orb-breadcrumbs>
-    <orb-breadcrumb href="#home">Home</orb-breadcrumb>
-    <orb-breadcrumb href="#a">A fairly long section name</orb-breadcrumb>
-    <orb-breadcrumb href="#b">Another long subsection</orb-breadcrumb>
-    <orb-breadcrumb>The current page title</orb-breadcrumb>
-  </orb-breadcrumbs>
+  <orb-crumbs>
+    <a href="#home">Home</a>
+    <a href="#a">A fairly long section name</a>
+    <a href="#b">Another long subsection</a>
+    <span>The current page title</span>
+  </orb-crumbs>
 </div>
 ```
 
 :::
 
-**Manual test:** the trail should stay inside the dashed box, by wrapping or truncating, instead of overflowing it.
+**Manual test:** the trail stays inside the dashed box, by wrapping or truncating, instead of overflowing it.
 
 ## Accessibility
 
 ### Manual test checklist
 
 - [ ] The host is a `navigation` landmark named "Breadcrumbs". Set `aria-label` on the element to rename it when a page has several navigation landmarks.
-- [ ] Screen readers announce the crumbs as a list with the number of items, since they're rendered in an `ol`.
-- [ ] The current page has `aria-current="page"`, whether or not it's a link.
+- [ ] Screen readers announce the crumbs as a list with the number of items, since they're placed in an `ol`.
+- [ ] The last crumb has `aria-current="page"`, whether it's a link, a button, or plain text.
 - [ ] Slash separators aren't announced.
-- [ ] Links, crumb buttons, and the ellipsis button are focusable, and each shows a visible focus ring.
+- [ ] Links, crumb buttons, and the ellipsis button are focusable, and each shows a visible focus ring. Collapsed crumbs aren't focusable.
 - [ ] The ellipsis button is named "Show N more breadcrumbs", and expanding with the keyboard moves focus to the first revealed crumb.

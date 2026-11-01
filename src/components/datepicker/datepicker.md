@@ -111,8 +111,8 @@ Put the picker in an `orb-popover` to build a field-style control.
 ::: live-code-demo
 
 ```html
-<orb-popover id="field-popover">
-  <orb-button slot="trigger" fill="outline" id="field-trigger">Pick a date</orb-button>
+<orb-button fill="outline" id="field-trigger">Pick a date</orb-button>
+<orb-popover for="field-trigger">
   <orb-datepicker id="field-picker" type="date" style="width: 18rem;"></orb-datepicker>
 </orb-popover>
 ```

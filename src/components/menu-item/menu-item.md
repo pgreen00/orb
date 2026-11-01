@@ -5,7 +5,7 @@ sidebar_label: 'Menu Item'
 
 ## Usage
 
-`<orb-mi>` is an item in an [`<orb-menu>`](../menu/). Its content is the label. See the menu docs for checkbox and radio items, submenus, and menubars.
+`<orb-mi>` is an item in an [`<orb-menu>`](../menu/) or an [`<orb-menubar>`](../menubar/). Its content is the label. See the menu docs for checkbox and radio items and submenus.
 
 ::: live-code-demo
 
