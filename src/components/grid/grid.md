@@ -133,7 +133,7 @@ elements are defined, so ordinary selectors reach into rows and cells without
 crossing a shadow boundary. It is organised in two layers:
 
 ```css
-@layer orb.grid.structure, orb.grid.theme;
+@layer orb.components.grid.structure, orb.components.grid.theme;
 ```
 
 `structure` holds the grid formatting, `display: contents` on rows, and the sticky
@@ -164,7 +164,7 @@ orb-gc[align="end"] {
 }
 
 /* 3. drop our visuals wholesale, keep the structure working */
-@layer orb.grid.theme {
+@layer orb.components.grid.theme {
 }
 ```
 

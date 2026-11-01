@@ -10,13 +10,12 @@
  *   theme     - every color, border, space and font. All routed through vars.
  *
  * Nothing lives outside a layer, so unlayered consumer CSS always wins without
- * an !important fight. A consumer can also drop our visuals wholesale with an
- * empty `@layer orb.grid.theme {}` and keep structure intact.
+ * an !important fight.
  */
 
-@layer orb.grid.structure, orb.grid.theme;
+@layer orb.components.grid.structure, orb.components.grid.theme;
 
-@layer orb.grid.structure {
+@layer orb.components.grid.structure {
   orb-grid {
     display: grid;
     grid-template-columns: var(--columns);
@@ -88,7 +87,7 @@
   }
 }
 
-@layer orb.grid.theme {
+@layer orb.components.grid.theme {
   orb-grid {
     --border-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
     --border-color-soft: light-dark(

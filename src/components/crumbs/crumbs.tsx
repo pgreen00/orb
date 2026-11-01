@@ -10,6 +10,11 @@ import {
   Watch,
 } from "@stencil/core";
 import { EllipsisHorizIcon, SlashIcon } from "../../utils/icons";
+import lightStyles from "./crumbs-light.css";
+
+const stylesheet = new CSSStyleSheet();
+stylesheet.replaceSync(lightStyles());
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet];
 
 type TrailItem =
   | { type: "crumb"; el: HTMLElement }
@@ -80,6 +85,12 @@ export class Crumbs {
   }
 
   connectedCallback() {
+    // Document styles don't reach into shadow roots, such as an orb-view's
+    // header, so the crumb styles are adopted there too.
+    const root = this.host.getRootNode();
+    if (root instanceof ShadowRoot && !root.adoptedStyleSheets.includes(stylesheet)) {
+      root.adoptedStyleSheets = [...root.adoptedStyleSheets, stylesheet];
+    }
     this.observer.observe(this.host, { childList: true });
     this.setCrumbs();
   }

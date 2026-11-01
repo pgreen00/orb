@@ -41,62 +41,8 @@ li.current {
   font-weight: var(--orb-font-semi-bold);
 }
 
-/*
- * The crumbs are page elements, so the page's own styles for links outrank
- * these. `!important` is only used where Orb's link styles would otherwise
- * win: crumbs need to be inline blocks so long ones truncate, and to show an
- * underline. Colors are inherited from the list item, so they're set there.
- * Use the custom properties above to change them.
- */
-::slotted(*) {
-  display: inline-block !important;
-  min-width: 0;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border: none;
-  border-radius: var(--orb-radius-sm, 4px);
-  background: none;
-  color: inherit !important;
-  font: inherit;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Links and buttons look the same, since both navigate. A faint underline
-   marks them as interactive without relying on color. */
-::slotted(a),
-::slotted(button) {
-  cursor: pointer;
-  text-decoration: underline !important;
-  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent) !important;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  transition:
-    color var(--orb-transition-x-fast) ease-in-out,
-    text-decoration-color var(--orb-transition-x-fast) ease-in-out;
-}
-
-@media (hover: hover) {
-  ::slotted(a:not([aria-current="page"]):hover),
-  ::slotted(button:not([aria-current="page"]):hover) {
-    color: var(--crumb-hover-color) !important;
-    text-decoration-color: currentColor !important;
-  }
-}
-
-/* The current page is still clickable but doesn't advertise it. */
-::slotted([aria-current="page"]) {
-  text-decoration: none !important;
-  cursor: default !important;
-}
-
-::slotted(:focus-visible) {
-  outline: 2px solid var(--orb-primary-300);
-  outline-offset: 2px;
-}
+/* The crumbs themselves are styled from the light DOM, in crumbs-light.css.
+   They inherit their color from the list item here. */
 
 .collapse {
   display: inline-flex;

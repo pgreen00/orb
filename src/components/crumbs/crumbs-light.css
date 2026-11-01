@@ -1,0 +1,64 @@
+/*
+ * Styles for the crumbs themselves, which are the page's own elements.
+ *
+ * Adopted into the document by crumbs.tsx before the element is defined.
+ * `::slotted()` rules lose to the page's styles for those elements, such as
+ * Orb's own `a` styles, so the crumbs are styled from the light DOM instead.
+ *
+ * Everything is in `orb.components.crumbs`. That layer comes after Orb's native
+ * layer, so it wins over Orb's link styles, and before the utilities layer, so
+ * utility classes on a crumb still apply. Unlayered page CSS always wins over
+ * it without an !important fight. Crumbs inherit color from their list item in the shadow
+ * root, so change colors with the custom properties on `orb-crumbs`.
+ */
+
+@layer orb.components.crumbs {
+  /* Inline blocks, so a crumb wider than its container truncates. */
+  orb-crumbs > * {
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: none;
+    border-radius: var(--orb-radius-sm, 4px);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Links and buttons look the same, since both navigate. A faint underline
+     marks them as interactive without relying on color. */
+  orb-crumbs > :is(a, button) {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition:
+      color var(--orb-transition-x-fast) ease-in-out,
+      text-decoration-color var(--orb-transition-x-fast) ease-in-out;
+  }
+
+  @media (hover: hover) {
+    orb-crumbs > :is(a, button):not([aria-current="page"]):hover {
+      color: var(--crumb-hover-color);
+      text-decoration-color: currentColor;
+    }
+  }
+
+  /* The current page is still clickable but doesn't advertise it. */
+  orb-crumbs > [aria-current="page"] {
+    text-decoration: none;
+    cursor: default;
+  }
+
+  orb-crumbs > :focus-visible {
+    outline: 2px solid var(--orb-primary-300);
+    outline-offset: 2px;
+  }
+}

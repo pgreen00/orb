@@ -31,6 +31,7 @@ export const config: Config = {
       name: "styles",
       async generator(_config, _compilerCtx, buildCtx) {
         const files = [
+          "src/styles/layers.scss:dist/styles/layers.css",
           "src/styles/classes.scss:dist/styles/classes.css",
           "src/styles/variables.scss:dist/styles/variables.css",
           "src/styles/landmarks.scss:dist/styles/landmarks.css",
