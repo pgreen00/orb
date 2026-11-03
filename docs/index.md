@@ -94,8 +94,8 @@
     and ARIA support come for free.
   </p>
   <div class="orb-home-cta">
-    <a class="orb btn accent orb-font-lg" href="#native-controls-stay-native">See it in action</a>
-    <a class="orb btn orb-font-lg" href="https://github.com/pgreen00/orb" target="_blank">View on GitHub</a>
+    <a data-orb="button accent" class="orb-font-lg" href="#native-controls-stay-native">See it in action</a>
+    <a data-orb="button" class="orb-font-lg" href="https://github.com/pgreen00/orb" target="_blank">View on GitHub</a>
   </div>
   <div class="orb-home-badges">
     <span>Popover API</span>

@@ -63,7 +63,7 @@ Use the `label` and `note` slots when the label or note needs HTML. The slotted 
   <orb-label slot="label">Interests <small>(optional)</small></orb-label>
   <orb-checkbox name="design">Design</orb-checkbox>
   <orb-checkbox name="engineering">Engineering</orb-checkbox>
-  <orb-note slot="note">See the <a class="orb underline" href="#">privacy policy</a> for how we use this.</orb-note>
+  <orb-note slot="note">See the <a data-orb="underline" href="#">privacy policy</a> for how we use this.</orb-note>
 </orb-checkbox-group>
 ```
 

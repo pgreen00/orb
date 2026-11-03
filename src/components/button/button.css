@@ -73,13 +73,13 @@
   width: 100%;
 }
 
-:host([aria-disabled="true"]) {
+:host(:disabled) {
   opacity: 0.6;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-:host([aria-disabled="true"][pending]) {
+:host(:disabled[pending]) {
   opacity: 0.8;
   cursor: progress;
   width: var(--pending-width);

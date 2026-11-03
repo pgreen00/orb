@@ -14,7 +14,7 @@ export class Toc {
       <Host role="navigation" aria-label="Table of Contents">
         {links.map((t) => (
           <div>
-            <a class='orb accent' href={t.href}>
+            <a data-orb="accent" href={t.href}>
               {t.textContent}
             </a>
           </div>

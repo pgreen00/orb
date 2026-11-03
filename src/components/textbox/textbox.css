@@ -90,10 +90,39 @@ div[part="container"] {
 ::slotted(input),
 ::slotted(select),
 ::slotted(textarea) {
+  font-family: inherit;
   font-size: 1em;
+  font-weight: var(--orb-font-light);
+  margin: 0;
+  padding: 0;
+  outline: 0;
+  border: 0;
+  box-shadow: none;
+  background-color: transparent;
+  color: inherit;
   flex: 1;
 }
 
 ::slotted(textarea) {
+  display: block;
+  width: 100%;
+  resize: none;
   max-height: var(--textarea-max-height);
+  overflow-y: auto;
+  line-height: 1.5;
+  field-sizing: content;
+}
+
+::slotted(select),
+::slotted(input) {
+  min-width: 0;
+}
+
+::slotted(input) {
+  white-space: nowrap;
+  overflow-y: hidden;
+  overflow-x: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: inherit;
 }

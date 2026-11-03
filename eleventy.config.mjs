@@ -117,7 +117,7 @@ export default async function (eleventyConfig) {
     const table = defaultTableOpen
       ? defaultTableOpen(tokens, idx, options, env, renderer)
       : renderer.renderToken(tokens, idx, options);
-    return `<div class="table-container">${table}`;
+    return `<div class="orb-table">${table}`;
   };
 
   md.renderer.rules.table_close = function (

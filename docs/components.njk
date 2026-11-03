@@ -14,18 +14,18 @@ eleventyComputed:
   <style>
     @scope {
       header {
-        padding: 2rem 4rem;
+        padding: 2rem;
       }
       .article-grid {
         display: flex;
         flex-wrap: wrap-reverse;
         align-items: baseline;
         gap: 2rem;
-        padding-inline: 4rem;
-        padding-bottom: 2rem;
+        padding: 2rem;
+        container: article / inline-size;
       }
       .article-body {
-        max-width: 800px;
+        max-width: 65cqw;
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -33,7 +33,7 @@ eleventyComputed:
         flex: 1 1 0;
       }
       aside {
-        min-width: 200px;
+        min-width: 25cqw;
         position: sticky;
         top: calc(var(--top-height) + 4rem);
         height: fit-content;
@@ -41,6 +41,9 @@ eleventyComputed:
       @media (max-width: 767px) {
         aside {
           display: none;
+        }
+        .article-body {
+          max-width: 100%;
         }
       }
     }

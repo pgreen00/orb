@@ -1323,8 +1323,6 @@ export namespace Components {
          */
         "wrap": boolean;
     }
-    interface OrbTagInput {
-    }
     /**
      * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
      * validation messages. A `textarea` grows with its content.
@@ -2408,12 +2406,6 @@ declare global {
         prototype: HTMLOrbTabsElement;
         new (): HTMLOrbTabsElement;
     };
-    interface HTMLOrbTagInputElement extends Components.OrbTagInput, HTMLStencilElement {
-    }
-    var HTMLOrbTagInputElement: {
-        prototype: HTMLOrbTagInputElement;
-        new (): HTMLOrbTagInputElement;
-    };
     interface HTMLOrbTextboxElementEventMap {
         "orbValueChange": string;
     }
@@ -2645,7 +2637,6 @@ declare global {
         "orb-tab-button": HTMLOrbTabButtonElement;
         "orb-tab-panel": HTMLOrbTabPanelElement;
         "orb-tabs": HTMLOrbTabsElement;
-        "orb-tag-input": HTMLOrbTagInputElement;
         "orb-textbox": HTMLOrbTextboxElement;
         "orb-ti": HTMLOrbTiElement;
         "orb-timer": HTMLOrbTimerElement;
@@ -4035,8 +4026,6 @@ declare namespace LocalJSX {
          */
         "wrap"?: boolean;
     }
-    interface OrbTagInput {
-    }
     /**
      * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
      * validation messages. A `textarea` grows with its content.
@@ -4804,7 +4793,6 @@ declare namespace LocalJSX {
         "orb-tab-button": Omit<OrbTabButton, keyof OrbTabButtonAttributes> & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes]?: OrbTabButton[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `attr:${K}`]?: OrbTabButtonAttributes[K] } & { [K in keyof OrbTabButton & keyof OrbTabButtonAttributes as `prop:${K}`]?: OrbTabButton[K] };
         "orb-tab-panel": Omit<OrbTabPanel, keyof OrbTabPanelAttributes> & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes]?: OrbTabPanel[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `attr:${K}`]?: OrbTabPanelAttributes[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `prop:${K}`]?: OrbTabPanel[K] };
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
-        "orb-tag-input": OrbTagInput;
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
         "orb-ti": Omit<OrbTi, keyof OrbTiAttributes> & { [K in keyof OrbTi & keyof OrbTiAttributes]?: OrbTi[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `attr:${K}`]?: OrbTiAttributes[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `prop:${K}`]?: OrbTi[K] };
         "orb-timer": Omit<OrbTimer, keyof OrbTimerAttributes> & { [K in keyof OrbTimer & keyof OrbTimerAttributes]?: OrbTimer[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `attr:${K}`]?: OrbTimerAttributes[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `prop:${K}`]?: OrbTimer[K] };
@@ -4994,7 +4982,6 @@ declare module "@stencil/core" {
              */
             "orb-tab-panel": LocalJSX.IntrinsicElements["orb-tab-panel"] & JSXBase.HTMLAttributes<HTMLOrbTabPanelElement>;
             "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
-            "orb-tag-input": LocalJSX.IntrinsicElements["orb-tag-input"] & JSXBase.HTMLAttributes<HTMLOrbTagInputElement>;
             /**
              * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
              * validation messages. A `textarea` grows with its content.

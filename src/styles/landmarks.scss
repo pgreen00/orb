@@ -31,7 +31,7 @@ body {
     "side main" 1fr
     "foot foot" auto / auto minmax(0, 1fr);
   --border-color: var(--orb-divider-color);
-  --sidebar-width: clamp(225px, 22vw, 275px);
+  --sidebar-width: clamp(215px, 22vw, 305px);
   --top-height: calc(var(--head-height, 0px) + var(--sub-height, 0px) + var(--banner-height, 0px));
   &:has(>[data-landmark=banner]) {
     --banner-height: 48px;
