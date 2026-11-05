@@ -29,6 +29,33 @@ export default async function (eleventyConfig) {
       multibody: true,
     });
 
+  // A `<!-- row-headers -->` comment marks the table that follows (see
+  // scripts/stencil-markdown.mjs). Its label cells become row headers, which
+  // the `row-headers` native table style tints.
+  md.core.ruler.after("block", "row-headers", (state) => {
+    const tokens = state.tokens;
+    tokens.forEach((token, i) => {
+      if (token.type !== "html_block" || !token.content.startsWith("<!-- row-headers -->")) return;
+      token.content = "";
+      const open = tokens.findIndex((t, j) => j > i && t.type === "table_open");
+      if (open < 0) return;
+      tokens[open].attrSet("data-orb", "row-headers");
+      let close = open;
+      while (tokens[close].type !== "table_close") close++;
+      for (let row = open; row < close; row++) {
+        if (tokens[row].type !== "tr_open") continue;
+        let cell = row + 1;
+        while (cell < close && tokens[cell].type !== "td_open" && tokens[cell].type !== "tr_close") cell++;
+        if (tokens[cell].type !== "td_open") continue;
+        let end = cell + 1;
+        while (tokens[end].type !== "td_close") end++;
+        tokens[cell].tag = "th";
+        tokens[cell].attrSet("scope", "row");
+        tokens[end].tag = "th";
+      }
+    });
+  });
+
   const defaultFence = md.renderer.rules.fence;
 
   md.use(markdownItContainer, "live-code-demo", {

@@ -14,6 +14,9 @@
     name="viewport"
     content="width=device-width, user-scalable=no"
   />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
   <title>{% if title %}{{ title }} | Orb Design System{% else %}Orb Design System{% endif %}</title>
   <style>@view-transition {navigation: auto;}</style>
   <script type="importmap">
@@ -88,8 +91,11 @@
     {% elif section == "css-utilities" %}
       {% set sideLinks = [
         { label: "Design Tokens", href: "/css-utilities/design-tokens/" },
-        { label: "Classes", href: "/css-utilities/classes/" },
-        { label: "Native Elements", href: "/css-utilities/native/" }
+        { label: "Utility Classes", href: "/css-utilities/classes/" },
+        { label: "Landmarks", href: "/css-utilities/landmarks/" },
+        { label: "Links", href: "/css-utilities/links/" },
+        { label: "Tables", href: "/css-utilities/tables/" },
+        { label: "Lists", href: "/css-utilities/lists/" }
       ] %}
     {% else %}
       {% set sideLinks = [] %}
@@ -118,7 +124,7 @@
     </script>
   </nav>
   {% endif %}
-  <main {% if section == 'css-utilities' %}class="orb-padding"{% endif %}>
+  <main>
     {% block content %}
       {{ content | safe }}
     {% endblock %}
@@ -134,6 +140,24 @@
     </orb-view>
   </orb-overlay>
   <script type="module" src="/search.js"></script>
+  <orb-floating-button id="back-to-top" scroll-threshold="400">
+    <orb-button class="icon-only" color="primary" aria-label="Back to top">
+      <iconify-icon height="1.5rem" width="1.5rem" icon="mdi:arrow-up" aria-hidden="true"></iconify-icon>
+    </orb-button>
+  </orb-floating-button>
+  <script type="module">
+    const backToTop = document.querySelector('#back-to-top orb-button')
+    backToTop.addEventListener('click', () => {
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+      // The button hides at the top, so move focus to the page heading
+      const heading = document.querySelector('main h1')
+      if (heading) {
+        heading.tabIndex = -1
+        heading.focus({ preventScroll: true })
+      }
+    })
+  </script>
 </body>
 
 <script type="module">

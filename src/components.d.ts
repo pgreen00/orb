@@ -9,7 +9,7 @@ import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
-import { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
+import { GridActivateDetail, GridReorderDetail } from "./components/grid/grid";
 import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -24,7 +24,7 @@ export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
-export { ActivateIntent, ExpandIntent, ResizeIntent, SelectIntent, SortIntent } from "./components/grid/grid";
+export { GridActivateDetail, GridReorderDetail } from "./components/grid/grid";
 export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -41,22 +41,45 @@ export namespace Components {
      */
     interface OrbAccordion {
     }
+    /**
+     * A short, prominent message, such as a confirmation or an error. It's hidden
+     * until `open` is set, then animates in. Users can dismiss it with a close
+     * button when `closable` is set, and it dismisses itself after `duration`.
+     */
     interface OrbAlert {
         /**
+          * Shows a close button that hides the alert with the `userDismiss` role.
           * @default false
          */
         "closable": boolean;
+        /**
+          * Accent color: `primary`, `success`, `warning`, or `danger`. Other values, or none, use the neutral accent.
+         */
         "color"?: Color;
+        /**
+          * Resolves once the alert has finished closing, with the same `role` and `data` as `orbDismiss`. It resolves on the next dismissal, so call it before hiding.
+          * @returns A promise of the dismissal's `role` and `data`
+         */
         "didDismiss": () => Promise<OverlayData>;
         /**
+          * Milliseconds before the alert dismisses itself with the `autoDismiss` role. Shows a progress bar that counts down, and pauses while the pointer is over the alert. `0` turns this off.
           * @default 0
          */
         "duration": number;
+        /**
+          * Hides the alert. `role` and `data` are passed on to the `orbDismiss` event. Without a role, the event uses `manualDismiss`.
+          * @param role - Why the alert was dismissed, such as `"saved"`
+          * @param data - Any extra data to pass with the dismissal
+         */
         "hide": (role?: string, data?: any) => Promise<void>;
         /**
+          * Shows or hides the alert, with its entrance or exit animation. Setting it to `false` directly dismisses with the `manualDismiss` role. Use `hide()` to pass a different role.
           * @default false
          */
         "open": boolean;
+        /**
+          * Shows the alert. Same as setting `open` to `true`.
+         */
         "show": () => Promise<void>;
     }
     interface OrbButton {
@@ -224,6 +247,27 @@ export namespace Components {
           * Colors the trend slot in the stat layout: green for `up`, red for `down`.
          */
         "trend"?: "up" | "down" | "flat";
+    }
+    /**
+     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
+     * order, and the grid places them in rows.
+     */
+    interface OrbCell {
+        /**
+          * Number of columns the cell covers, like a table cell's `colspan`
+          * @default 1
+         */
+        "colspan": number;
+        /**
+          * Number of rows the cell covers, like a table cell's `rowspan`. It stops at the end of the cell's section.
+          * @default 1
+         */
+        "rowspan": number;
+        /**
+          * Which part of the grid the cell belongs to. Header cells name their columns, and their column spans set the number of columns.
+          * @default "body"
+         */
+        "section": "head" | "body" | "foot";
     }
     interface OrbChannel {
     }
@@ -461,155 +505,79 @@ export namespace Components {
          */
         "size": "xs" | "sm" | "md" | "lg";
     }
+    /**
+     * A button that floats over the page, in a corner or along an edge of the
+     * viewport. It stays in place while the page scrolls. Put an `orb-button` in
+     * it with an `aria-label` for the action. Set `scroll-threshold` to show it
+     * only after the page has scrolled, such as for a back-to-top button. Hidden
+     * buttons can't be focused or read by screen readers.
+     */
     interface OrbFloatingButton {
+        /**
+          * Shows or hides the button, with a short fade and slide. When `scroll-threshold` is set, this follows the scroll position.
+          * @default false
+         */
+        "open": boolean;
+        /**
+          * Where the button sits. The `-start` and `-end` placements follow the text direction. `bottom` and `top` are centered horizontally.
+          * @default "bottom-end"
+         */
+        "placement": | "bottom-end"
+    | "bottom-start"
+    | "bottom"
+    | "top-end"
+    | "top-start"
+    | "top";
+        /**
+          * Opens the button once the window has scrolled down this many pixels, and closes it when the page is scrolled back above that point. Leave unset to control `open` yourself.
+         */
+        "scrollThreshold"?: number;
     }
     /**
-     * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
-     * row header when `header` is set.
-     */
-    interface OrbGc {
-        /**
-          * Text alignment. Numeric columns usually want `end`.
-         */
-        "align"?: "start" | "center" | "end";
-        /**
-          * How many columns the cell covers
-         */
-        "colSpan"?: number;
-        /**
-          * Column identity. Declared on the header cell and inherited by position for the body cells. Sort and filter intents name the column with this.
-         */
-        "field"?: string;
-        /**
-          * Marks a body cell as the row's header, for the identifying column
-          * @default false
-         */
-        "header": boolean;
-        /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready": Promise<unknown>;
-        /**
-          * Lets the user drag this column's trailing edge
-          * @default false
-         */
-        "resizable": boolean;
-        /**
-          * How many rows the cell covers
-         */
-        "rowSpan"?: number;
-        /**
-          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `orbSortIntent` when it is activated.
-          * @default false
-         */
-        "sortable": boolean;
-        /**
-          * Pins the column to one edge while the grid scrolls sideways
-         */
-        "sticky"?: "start" | "end" | "";
-    }
-    /**
-     * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
-     * only carries state and aria.
-     */
-    interface OrbGr {
-        /**
-          * Skipped by keyboard navigation and not selectable
-          * @default false
-         */
-        "disabled": boolean;
-        /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready": Promise<unknown>;
-        /**
-          * Absolute index across every page, for `aria-rowindex`. The grid falls back to the DOM order when this is omitted.
-         */
-        "rowIndex"?: number;
-        /**
-          * Stable identity for the row. Every intent the grid emits refers to rows by this rather than by index, so the consumer can sort and page freely.
-         */
-        "rowKey"?: string;
-        /**
-          * Which part of the grid this row belongs to
-          * @default "body"
-         */
-        "section": "head" | "body" | "foot";
-        /**
-          * Set by the grid. Only rows in a selectable grid expose `aria-selected`, since the attribute implies selectability even when false.
-          * @default false
-         */
-        "selectable": boolean;
-        /**
-          * Whether the row is selected. Set by the grid from its `selected` prop.
-          * @default false
-         */
-        "selected": boolean;
-    }
-    /**
-     * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
-     * pages or selects on its own, it only emits intents describing what the user
-     * asked for. Reflecting that back is done by updating props.
+     * A data grid built from markup. Put `orb-cell` elements directly inside it,
+     * in reading order, and the grid splits them into rows. The number of columns
+     * is set by `columns`, or by the header cells' column spans when it isn't set.
+     * Header cells come first, then body cells, then footer cells, whatever their
+     * order in the markup.
+     * Cells span columns and rows with `colspan` and `rowspan`, the same way table
+     * cells do. A cell is placed in the next free slot of the row, skipping slots
+     * that cells from rows above span into, and wraps to a new row when it
+     * doesn't fit. Row spans stop at the end of their section.
+     * The cells stay in the page: each row is a `role="row"` element in the grid's
+     * shadow root, with a slot that the row's cells are assigned to.
+     * The grid is one Tab stop. The arrow keys move between cells, or between rows
+     * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
+     * out of the Tab order until the user presses Enter on the cell, or clicks
+     * into it. Escape goes back to the cell.
+     * With `reorder`, each body row gets a drag handle. Dragging it moves the
+     * row's cells to the new position in the page, so the grid's markup always
+     * matches what's shown.
      */
     interface OrbGrid {
         /**
-          * Which grid lines to draw
-          * @default "rows"
+          * Number of columns. When it isn't set, it's the sum of the header cells' column spans, which assumes a single header row. Set it when the header has more than one row, or when there's no header.
          */
-        "borders": "none" | "rows" | "cols" | "both";
+        "columns"?: number;
         /**
-          * Total columns, for `aria-colcount`. Inferred from the header when omitted.
-         */
-        "colCount"?: number;
-        /**
-          * Raw `grid-template-columns` value. Inferred from the header cells when omitted.
-         */
-        "columns"?: string;
-        /**
-          * Vertical padding of the cells
-          * @default "default"
-         */
-        "density": "compact" | "default" | "comfortable";
-        /**
-          * Whether the arrow keys walk cells or whole rows
+          * What the arrow keys move between. `cell` moves focus cell by cell. `row` focuses whole rows, and only the up and down arrows move.
           * @default "cell"
          */
         "navigation": "cell" | "row";
         /**
-          * Total rows across every page, for `aria-rowcount`. Use -1 when unknown.
+          * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
+          * @default false
          */
-        "rowCount"?: number;
+        "reorder": boolean;
         /**
-          * Keys of the currently selected rows. Controlled: the grid requests changes through `orbSelectIntent` but never writes this itself.
-          * @default []
+          * Adds a checkbox to the header that selects or clears every body row. Only applies with `selection="multiple"` and a header row.
+          * @default false
          */
-        "selected": string[];
+        "selectAll": boolean;
         /**
-          * How many rows the user may select
+          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row.
           * @default "none"
          */
         "selection": "none" | "single" | "multiple";
-        /**
-          * Current sort, as `field:direction` pairs. `"salary:desc"` or `"dept:asc,salary:desc"` for a multi column sort.
-         */
-        "sort"?: string;
-        /**
-          * How many columns may be sorted at once
-          * @default "none"
-         */
-        "sortMode": "none" | "single" | "multiple";
-        /**
-          * Swaps the body rows for the matching slot
-          * @default "ready"
-         */
-        "state": "ready" | "loading" | "empty" | "error";
-        /**
-          * Alternates the background of body rows
-          * @default false
-         */
-        "striped": boolean;
     }
     interface OrbLabel {
         "for"?: string;
@@ -1667,6 +1635,10 @@ export interface OrbFileInputCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbFileInputElement;
 }
+export interface OrbFloatingButtonCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbFloatingButtonElement;
+}
 export interface OrbGridCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbGridElement;
@@ -1749,6 +1721,11 @@ declare global {
         "orbPresent": any;
         "orbDismiss": OverlayData;
     }
+    /**
+     * A short, prominent message, such as a confirmation or an error. It's hidden
+     * until `open` is set, then animates in. Users can dismiss it with a close
+     * button when `closable` is set, and it dismisses itself after `duration`.
+     */
     interface HTMLOrbAlertElement extends Components.OrbAlert, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbAlertElementEventMap>(type: K, listener: (this: HTMLOrbAlertElement, ev: OrbAlertCustomEvent<HTMLOrbAlertElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -1817,6 +1794,16 @@ declare global {
     var HTMLOrbCardElement: {
         prototype: HTMLOrbCardElement;
         new (): HTMLOrbCardElement;
+    };
+    /**
+     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
+     * order, and the grid places them in rows.
+     */
+    interface HTMLOrbCellElement extends Components.OrbCell, HTMLStencilElement {
+    }
+    var HTMLOrbCellElement: {
+        prototype: HTMLOrbCellElement;
+        new (): HTMLOrbCellElement;
     };
     interface HTMLOrbChannelElement extends Components.OrbChannel, HTMLStencilElement {
     }
@@ -1990,43 +1977,54 @@ declare global {
         prototype: HTMLOrbFileInputElement;
         new (): HTMLOrbFileInputElement;
     };
+    interface HTMLOrbFloatingButtonElementEventMap {
+        "orbOpenChange": boolean;
+    }
+    /**
+     * A button that floats over the page, in a corner or along an edge of the
+     * viewport. It stays in place while the page scrolls. Put an `orb-button` in
+     * it with an `aria-label` for the action. Set `scroll-threshold` to show it
+     * only after the page has scrolled, such as for a back-to-top button. Hidden
+     * buttons can't be focused or read by screen readers.
+     */
     interface HTMLOrbFloatingButtonElement extends Components.OrbFloatingButton, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbFloatingButtonElementEventMap>(type: K, listener: (this: HTMLOrbFloatingButtonElement, ev: OrbFloatingButtonCustomEvent<HTMLOrbFloatingButtonElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbFloatingButtonElementEventMap>(type: K, listener: (this: HTMLOrbFloatingButtonElement, ev: OrbFloatingButtonCustomEvent<HTMLOrbFloatingButtonElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbFloatingButtonElement: {
         prototype: HTMLOrbFloatingButtonElement;
         new (): HTMLOrbFloatingButtonElement;
     };
-    /**
-     * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
-     * row header when `header` is set.
-     */
-    interface HTMLOrbGcElement extends Components.OrbGc, HTMLStencilElement {
-    }
-    var HTMLOrbGcElement: {
-        prototype: HTMLOrbGcElement;
-        new (): HTMLOrbGcElement;
-    };
-    /**
-     * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
-     * only carries state and aria.
-     */
-    interface HTMLOrbGrElement extends Components.OrbGr, HTMLStencilElement {
-    }
-    var HTMLOrbGrElement: {
-        prototype: HTMLOrbGrElement;
-        new (): HTMLOrbGrElement;
-    };
     interface HTMLOrbGridElementEventMap {
-        "orbSortIntent": SortIntent;
-        "orbSelectIntent": SelectIntent;
-        "orbActivate": ActivateIntent;
-        "orbExpand": ExpandIntent;
-        "orbResizeIntent": ResizeIntent;
+        "orbActivate": GridActivateDetail;
+        "orbSelectionChange": HTMLElement[][];
+        "orbReorder": GridReorderDetail;
     }
     /**
-     * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
-     * pages or selects on its own, it only emits intents describing what the user
-     * asked for. Reflecting that back is done by updating props.
+     * A data grid built from markup. Put `orb-cell` elements directly inside it,
+     * in reading order, and the grid splits them into rows. The number of columns
+     * is set by `columns`, or by the header cells' column spans when it isn't set.
+     * Header cells come first, then body cells, then footer cells, whatever their
+     * order in the markup.
+     * Cells span columns and rows with `colspan` and `rowspan`, the same way table
+     * cells do. A cell is placed in the next free slot of the row, skipping slots
+     * that cells from rows above span into, and wraps to a new row when it
+     * doesn't fit. Row spans stop at the end of their section.
+     * The cells stay in the page: each row is a `role="row"` element in the grid's
+     * shadow root, with a slot that the row's cells are assigned to.
+     * The grid is one Tab stop. The arrow keys move between cells, or between rows
+     * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
+     * out of the Tab order until the user presses Enter on the cell, or clicks
+     * into it. Escape goes back to the cell.
+     * With `reorder`, each body row gets a drag handle. Dragging it moves the
+     * row's cells to the new position in the page, so the grid's markup always
+     * matches what's shown.
      */
     interface HTMLOrbGridElement extends Components.OrbGrid, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbGridElementEventMap>(type: K, listener: (this: HTMLOrbGridElement, ev: OrbGridCustomEvent<HTMLOrbGridElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2588,6 +2586,7 @@ declare global {
         "orb-button-group": HTMLOrbButtonGroupElement;
         "orb-calendar": HTMLOrbCalendarElement;
         "orb-card": HTMLOrbCardElement;
+        "orb-cell": HTMLOrbCellElement;
         "orb-channel": HTMLOrbChannelElement;
         "orb-checkbox": HTMLOrbCheckboxElement;
         "orb-checkbox-group": HTMLOrbCheckboxGroupElement;
@@ -2604,8 +2603,6 @@ declare global {
         "orb-eq": HTMLOrbEqElement;
         "orb-file-input": HTMLOrbFileInputElement;
         "orb-floating-button": HTMLOrbFloatingButtonElement;
-        "orb-gc": HTMLOrbGcElement;
-        "orb-gr": HTMLOrbGrElement;
         "orb-grid": HTMLOrbGridElement;
         "orb-label": HTMLOrbLabelElement;
         "orb-layout-swap": HTMLOrbLayoutSwapElement;
@@ -2660,19 +2657,36 @@ declare namespace LocalJSX {
      */
     interface OrbAccordion {
     }
+    /**
+     * A short, prominent message, such as a confirmation or an error. It's hidden
+     * until `open` is set, then animates in. Users can dismiss it with a close
+     * button when `closable` is set, and it dismisses itself after `duration`.
+     */
     interface OrbAlert {
         /**
+          * Shows a close button that hides the alert with the `userDismiss` role.
           * @default false
          */
         "closable"?: boolean;
+        /**
+          * Accent color: `primary`, `success`, `warning`, or `danger`. Other values, or none, use the neutral accent.
+         */
         "color"?: Color;
         /**
+          * Milliseconds before the alert dismisses itself with the `autoDismiss` role. Shows a progress bar that counts down, and pauses while the pointer is over the alert. `0` turns this off.
           * @default 0
          */
         "duration"?: number;
+        /**
+          * Emits when the exit animation finishes. The detail has the `role` (`userDismiss`, `autoDismiss`, `manualDismiss`, or the role passed to `hide()`) and the `data` passed to `hide()`.
+         */
         "onOrbDismiss"?: (event: OrbAlertCustomEvent<OverlayData>) => void;
+        /**
+          * Emits when the entrance animation finishes.
+         */
         "onOrbPresent"?: (event: OrbAlertCustomEvent<any>) => void;
         /**
+          * Shows or hides the alert, with its entrance or exit animation. Setting it to `false` directly dismisses with the `manualDismiss` role. Use `hide()` to pass a different role.
           * @default false
          */
         "open"?: boolean;
@@ -2850,6 +2864,27 @@ declare namespace LocalJSX {
           * Colors the trend slot in the stat layout: green for `up`, red for `down`.
          */
         "trend"?: "up" | "down" | "flat";
+    }
+    /**
+     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
+     * order, and the grid places them in rows.
+     */
+    interface OrbCell {
+        /**
+          * Number of columns the cell covers, like a table cell's `colspan`
+          * @default 1
+         */
+        "colspan"?: number;
+        /**
+          * Number of rows the cell covers, like a table cell's `rowspan`. It stops at the end of the cell's section.
+          * @default 1
+         */
+        "rowspan"?: number;
+        /**
+          * Which part of the grid the cell belongs to. Header cells name their columns, and their column spans set the number of columns.
+          * @default "body"
+         */
+        "section"?: "head" | "body" | "foot";
     }
     interface OrbChannel {
     }
@@ -3117,175 +3152,95 @@ declare namespace LocalJSX {
          */
         "size"?: "xs" | "sm" | "md" | "lg";
     }
+    /**
+     * A button that floats over the page, in a corner or along an edge of the
+     * viewport. It stays in place while the page scrolls. Put an `orb-button` in
+     * it with an `aria-label` for the action. Set `scroll-threshold` to show it
+     * only after the page has scrolled, such as for a back-to-top button. Hidden
+     * buttons can't be focused or read by screen readers.
+     */
     interface OrbFloatingButton {
+        /**
+          * Emits when the button opens or closes. The detail is the new `open` value.
+         */
+        "onOrbOpenChange"?: (event: OrbFloatingButtonCustomEvent<boolean>) => void;
+        /**
+          * Shows or hides the button, with a short fade and slide. When `scroll-threshold` is set, this follows the scroll position.
+          * @default false
+         */
+        "open"?: boolean;
+        /**
+          * Where the button sits. The `-start` and `-end` placements follow the text direction. `bottom` and `top` are centered horizontally.
+          * @default "bottom-end"
+         */
+        "placement"?: | "bottom-end"
+    | "bottom-start"
+    | "bottom"
+    | "top-end"
+    | "top-start"
+    | "top";
+        /**
+          * Opens the button once the window has scrolled down this many pixels, and closes it when the page is scrolled back above that point. Leave unset to control `open` yourself.
+         */
+        "scrollThreshold"?: number;
     }
     /**
-     * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
-     * row header when `header` is set.
-     */
-    interface OrbGc {
-        /**
-          * Text alignment. Numeric columns usually want `end`.
-         */
-        "align"?: "start" | "center" | "end";
-        /**
-          * How many columns the cell covers
-         */
-        "colSpan"?: number;
-        /**
-          * Column identity. Declared on the header cell and inherited by position for the body cells. Sort and filter intents name the column with this.
-         */
-        "field"?: string;
-        /**
-          * Marks a body cell as the row's header, for the identifying column
-          * @default false
-         */
-        "header"?: boolean;
-        /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready"?: Promise<unknown>;
-        /**
-          * Lets the user drag this column's trailing edge
-          * @default false
-         */
-        "resizable"?: boolean;
-        /**
-          * How many rows the cell covers
-         */
-        "rowSpan"?: number;
-        /**
-          * Marks a header cell as sortable. Renders the affordance and reports `aria-sort`; the grid emits `orbSortIntent` when it is activated.
-          * @default false
-         */
-        "sortable"?: boolean;
-        /**
-          * Pins the column to one edge while the grid scrolls sideways
-         */
-        "sticky"?: "start" | "end" | "";
-    }
-    /**
-     * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
-     * only carries state and aria.
-     */
-    interface OrbGr {
-        /**
-          * Skipped by keyboard navigation and not selectable
-          * @default false
-         */
-        "disabled"?: boolean;
-        /**
-          * A promise that resolves when the component has completed it's initial render
-          * @default new Promise((res) => (this.#resolve = res))
-         */
-        "ready"?: Promise<unknown>;
-        /**
-          * Absolute index across every page, for `aria-rowindex`. The grid falls back to the DOM order when this is omitted.
-         */
-        "rowIndex"?: number;
-        /**
-          * Stable identity for the row. Every intent the grid emits refers to rows by this rather than by index, so the consumer can sort and page freely.
-         */
-        "rowKey"?: string;
-        /**
-          * Which part of the grid this row belongs to
-          * @default "body"
-         */
-        "section"?: "head" | "body" | "foot";
-        /**
-          * Set by the grid. Only rows in a selectable grid expose `aria-selected`, since the attribute implies selectability even when false.
-          * @default false
-         */
-        "selectable"?: boolean;
-        /**
-          * Whether the row is selected. Set by the grid from its `selected` prop.
-          * @default false
-         */
-        "selected"?: boolean;
-    }
-    /**
-     * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
-     * pages or selects on its own, it only emits intents describing what the user
-     * asked for. Reflecting that back is done by updating props.
+     * A data grid built from markup. Put `orb-cell` elements directly inside it,
+     * in reading order, and the grid splits them into rows. The number of columns
+     * is set by `columns`, or by the header cells' column spans when it isn't set.
+     * Header cells come first, then body cells, then footer cells, whatever their
+     * order in the markup.
+     * Cells span columns and rows with `colspan` and `rowspan`, the same way table
+     * cells do. A cell is placed in the next free slot of the row, skipping slots
+     * that cells from rows above span into, and wraps to a new row when it
+     * doesn't fit. Row spans stop at the end of their section.
+     * The cells stay in the page: each row is a `role="row"` element in the grid's
+     * shadow root, with a slot that the row's cells are assigned to.
+     * The grid is one Tab stop. The arrow keys move between cells, or between rows
+     * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
+     * out of the Tab order until the user presses Enter on the cell, or clicks
+     * into it. Escape goes back to the cell.
+     * With `reorder`, each body row gets a drag handle. Dragging it moves the
+     * row's cells to the new position in the page, so the grid's markup always
+     * matches what's shown.
      */
     interface OrbGrid {
         /**
-          * Which grid lines to draw
-          * @default "rows"
+          * Number of columns. When it isn't set, it's the sum of the header cells' column spans, which assumes a single header row. Set it when the header has more than one row, or when there's no header.
          */
-        "borders"?: "none" | "rows" | "cols" | "both";
+        "columns"?: number;
         /**
-          * Total columns, for `aria-colcount`. Inferred from the header when omitted.
-         */
-        "colCount"?: number;
-        /**
-          * Raw `grid-template-columns` value. Inferred from the header cells when omitted.
-         */
-        "columns"?: string;
-        /**
-          * Vertical padding of the cells
-          * @default "default"
-         */
-        "density"?: "compact" | "default" | "comfortable";
-        /**
-          * Whether the arrow keys walk cells or whole rows
+          * What the arrow keys move between. `cell` moves focus cell by cell. `row` focuses whole rows, and only the up and down arrows move.
           * @default "cell"
          */
         "navigation"?: "cell" | "row";
         /**
-          * A row or cell was activated by double click or Enter. Cancelable: preventing it stops focus moving into a cell that holds its own focusable content.
+          * Emits when the user presses Enter on a cell, or on a row with `navigation="row"`. Call `preventDefault()` to keep focus where it is. Otherwise focus moves to the first focusable element in the cell or row.
          */
-        "onOrbActivate"?: (event: OrbGridCustomEvent<ActivateIntent>) => void;
+        "onOrbActivate"?: (event: OrbGridCustomEvent<GridActivateDetail>) => void;
         /**
-          * Requests a row be expanded or collapsed
+          * Emits before a row moves, with its old and new index among the body rows. Call `preventDefault()` to keep it in place, for example to reorder your own data and render the grid again.
          */
-        "onOrbExpand"?: (event: OrbGridCustomEvent<ExpandIntent>) => void;
+        "onOrbReorder"?: (event: OrbGridCustomEvent<GridReorderDetail>) => void;
         /**
-          * Requests a new column width
+          * Emits when the selected rows change. The detail is each selected row's cells.
          */
-        "onOrbResizeIntent"?: (event: OrbGridCustomEvent<ResizeIntent>) => void;
+        "onOrbSelectionChange"?: (event: OrbGridCustomEvent<HTMLElement[][]>) => void;
         /**
-          * Requests a new selection. Nothing changes until `selected` is updated.
+          * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
+          * @default false
          */
-        "onOrbSelectIntent"?: (event: OrbGridCustomEvent<SelectIntent>) => void;
+        "reorder"?: boolean;
         /**
-          * Requests a new sort. Nothing changes until `sort` is updated.
+          * Adds a checkbox to the header that selects or clears every body row. Only applies with `selection="multiple"` and a header row.
+          * @default false
          */
-        "onOrbSortIntent"?: (event: OrbGridCustomEvent<SortIntent>) => void;
+        "selectAll"?: boolean;
         /**
-          * Total rows across every page, for `aria-rowcount`. Use -1 when unknown.
-         */
-        "rowCount"?: number;
-        /**
-          * Keys of the currently selected rows. Controlled: the grid requests changes through `orbSelectIntent` but never writes this itself.
-          * @default []
-         */
-        "selected"?: string[];
-        /**
-          * How many rows the user may select
+          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row.
           * @default "none"
          */
         "selection"?: "none" | "single" | "multiple";
-        /**
-          * Current sort, as `field:direction` pairs. `"salary:desc"` or `"dept:asc,salary:desc"` for a multi column sort.
-         */
-        "sort"?: string;
-        /**
-          * How many columns may be sorted at once
-          * @default "none"
-         */
-        "sortMode"?: "none" | "single" | "multiple";
-        /**
-          * Swaps the body rows for the matching slot
-          * @default "ready"
-         */
-        "state"?: "ready" | "loading" | "empty" | "error";
-        /**
-          * Alternates the background of body rows
-          * @default false
-         */
-        "striped"?: boolean;
     }
     interface OrbLabel {
         "for"?: string;
@@ -4392,6 +4347,11 @@ declare namespace LocalJSX {
         "trend": "up" | "down" | "flat";
         "highlighted": boolean;
     }
+    interface OrbCellAttributes {
+        "section": "head" | "body" | "foot";
+        "colspan": number;
+        "rowspan": number;
+    }
     interface OrbCheckboxAttributes {
         "defaultChecked": "true" | "false" | "mixed";
         "value": string;
@@ -4446,36 +4406,22 @@ declare namespace LocalJSX {
         "name": string;
         "size": "xs" | "sm" | "md" | "lg";
     }
-    interface OrbGcAttributes {
-        "field": string;
-        "colSpan": number;
-        "rowSpan": number;
-        "sortable": boolean;
-        "sticky": "start" | "end" | "";
-        "align": "start" | "center" | "end";
-        "resizable": boolean;
-        "header": boolean;
-    }
-    interface OrbGrAttributes {
-        "selected": boolean;
-        "selectable": boolean;
-        "section": "head" | "body" | "foot";
-        "rowKey": string;
-        "disabled": boolean;
-        "rowIndex": number;
+    interface OrbFloatingButtonAttributes {
+        "placement": | "bottom-end"
+    | "bottom-start"
+    | "bottom"
+    | "top-end"
+    | "top-start"
+    | "top";
+        "open": boolean;
+        "scrollThreshold": number;
     }
     interface OrbGridAttributes {
-        "columns": string;
-        "rowCount": number;
-        "colCount": number;
-        "density": "compact" | "default" | "comfortable";
-        "striped": boolean;
-        "borders": "none" | "rows" | "cols" | "both";
-        "selection": "none" | "single" | "multiple";
-        "sort": string;
-        "sortMode": "none" | "single" | "multiple";
-        "state": "ready" | "loading" | "empty" | "error";
+        "columns": number;
         "navigation": "cell" | "row";
+        "selection": "none" | "single" | "multiple";
+        "selectAll": boolean;
+        "reorder": boolean;
     }
     interface OrbLabelAttributes {
         "required": boolean;
@@ -4744,6 +4690,7 @@ declare namespace LocalJSX {
         "orb-button-group": OrbButtonGroup;
         "orb-calendar": Omit<OrbCalendar, keyof OrbCalendarAttributes> & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes]?: OrbCalendar[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `attr:${K}`]?: OrbCalendarAttributes[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `prop:${K}`]?: OrbCalendar[K] };
         "orb-card": Omit<OrbCard, keyof OrbCardAttributes> & { [K in keyof OrbCard & keyof OrbCardAttributes]?: OrbCard[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `attr:${K}`]?: OrbCardAttributes[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `prop:${K}`]?: OrbCard[K] };
+        "orb-cell": Omit<OrbCell, keyof OrbCellAttributes> & { [K in keyof OrbCell & keyof OrbCellAttributes]?: OrbCell[K] } & { [K in keyof OrbCell & keyof OrbCellAttributes as `attr:${K}`]?: OrbCellAttributes[K] } & { [K in keyof OrbCell & keyof OrbCellAttributes as `prop:${K}`]?: OrbCell[K] };
         "orb-channel": OrbChannel;
         "orb-checkbox": Omit<OrbCheckbox, keyof OrbCheckboxAttributes> & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes]?: OrbCheckbox[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `attr:${K}`]?: OrbCheckboxAttributes[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `prop:${K}`]?: OrbCheckbox[K] };
         "orb-checkbox-group": Omit<OrbCheckboxGroup, keyof OrbCheckboxGroupAttributes> & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes]?: OrbCheckboxGroup[K] } & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes as `attr:${K}`]?: OrbCheckboxGroupAttributes[K] } & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes as `prop:${K}`]?: OrbCheckboxGroup[K] };
@@ -4759,9 +4706,7 @@ declare namespace LocalJSX {
         "orb-divider": Omit<OrbDivider, keyof OrbDividerAttributes> & { [K in keyof OrbDivider & keyof OrbDividerAttributes]?: OrbDivider[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `attr:${K}`]?: OrbDividerAttributes[K] } & { [K in keyof OrbDivider & keyof OrbDividerAttributes as `prop:${K}`]?: OrbDivider[K] };
         "orb-eq": OrbEq;
         "orb-file-input": Omit<OrbFileInput, keyof OrbFileInputAttributes> & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes]?: OrbFileInput[K] } & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes as `attr:${K}`]?: OrbFileInputAttributes[K] } & { [K in keyof OrbFileInput & keyof OrbFileInputAttributes as `prop:${K}`]?: OrbFileInput[K] };
-        "orb-floating-button": OrbFloatingButton;
-        "orb-gc": Omit<OrbGc, keyof OrbGcAttributes> & { [K in keyof OrbGc & keyof OrbGcAttributes]?: OrbGc[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `attr:${K}`]?: OrbGcAttributes[K] } & { [K in keyof OrbGc & keyof OrbGcAttributes as `prop:${K}`]?: OrbGc[K] };
-        "orb-gr": Omit<OrbGr, keyof OrbGrAttributes> & { [K in keyof OrbGr & keyof OrbGrAttributes]?: OrbGr[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `attr:${K}`]?: OrbGrAttributes[K] } & { [K in keyof OrbGr & keyof OrbGrAttributes as `prop:${K}`]?: OrbGr[K] };
+        "orb-floating-button": Omit<OrbFloatingButton, keyof OrbFloatingButtonAttributes> & { [K in keyof OrbFloatingButton & keyof OrbFloatingButtonAttributes]?: OrbFloatingButton[K] } & { [K in keyof OrbFloatingButton & keyof OrbFloatingButtonAttributes as `attr:${K}`]?: OrbFloatingButtonAttributes[K] } & { [K in keyof OrbFloatingButton & keyof OrbFloatingButtonAttributes as `prop:${K}`]?: OrbFloatingButton[K] };
         "orb-grid": Omit<OrbGrid, keyof OrbGridAttributes> & { [K in keyof OrbGrid & keyof OrbGridAttributes]?: OrbGrid[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `attr:${K}`]?: OrbGridAttributes[K] } & { [K in keyof OrbGrid & keyof OrbGridAttributes as `prop:${K}`]?: OrbGrid[K] };
         "orb-label": Omit<OrbLabel, keyof OrbLabelAttributes> & { [K in keyof OrbLabel & keyof OrbLabelAttributes]?: OrbLabel[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `attr:${K}`]?: OrbLabelAttributes[K] } & { [K in keyof OrbLabel & keyof OrbLabelAttributes as `prop:${K}`]?: OrbLabel[K] };
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
@@ -4816,6 +4761,11 @@ declare module "@stencil/core" {
              * Accordions are wrappers for [Details](../details). When an inner detail is opened, the others are automatically closed.
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
+            /**
+             * A short, prominent message, such as a confirmation or an error. It's hidden
+             * until `open` is set, then animates in. Users can dismiss it with a close
+             * button when `closable` is set, and it dismisses itself after `duration`.
+             */
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
@@ -4835,6 +4785,11 @@ declare module "@stencil/core" {
              * layout. Sections whose slots are empty aren't shown.
              */
             "orb-card": LocalJSX.IntrinsicElements["orb-card"] & JSXBase.HTMLAttributes<HTMLOrbCardElement>;
+            /**
+             * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
+             * order, and the grid places them in rows.
+             */
+            "orb-cell": LocalJSX.IntrinsicElements["orb-cell"] & JSXBase.HTMLAttributes<HTMLOrbCellElement>;
             "orb-channel": LocalJSX.IntrinsicElements["orb-channel"] & JSXBase.HTMLAttributes<HTMLOrbChannelElement>;
             "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;
             /**
@@ -4875,21 +4830,33 @@ declare module "@stencil/core" {
             "orb-divider": LocalJSX.IntrinsicElements["orb-divider"] & JSXBase.HTMLAttributes<HTMLOrbDividerElement>;
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
             "orb-file-input": LocalJSX.IntrinsicElements["orb-file-input"] & JSXBase.HTMLAttributes<HTMLOrbFileInputElement>;
+            /**
+             * A button that floats over the page, in a corner or along an edge of the
+             * viewport. It stays in place while the page scrolls. Put an `orb-button` in
+             * it with an `aria-label` for the action. Set `scroll-threshold` to show it
+             * only after the page has scrolled, such as for a back-to-top button. Hidden
+             * buttons can't be focused or read by screen readers.
+             */
             "orb-floating-button": LocalJSX.IntrinsicElements["orb-floating-button"] & JSXBase.HTMLAttributes<HTMLOrbFloatingButtonElement>;
             /**
-             * A cell in an `orb-gr`. Becomes a column header when its row is the head, a
-             * row header when `header` is set.
-             */
-            "orb-gc": LocalJSX.IntrinsicElements["orb-gc"] & JSXBase.HTMLAttributes<HTMLOrbGcElement>;
-            /**
-             * A row in an `orb-grid`. Styled from the grid's light DOM stylesheet, so this
-             * only carries state and aria.
-             */
-            "orb-gr": LocalJSX.IntrinsicElements["orb-gr"] & JSXBase.HTMLAttributes<HTMLOrbGrElement>;
-            /**
-             * Markup driven grid. The consumer owns the data: the grid never sorts, filters,
-             * pages or selects on its own, it only emits intents describing what the user
-             * asked for. Reflecting that back is done by updating props.
+             * A data grid built from markup. Put `orb-cell` elements directly inside it,
+             * in reading order, and the grid splits them into rows. The number of columns
+             * is set by `columns`, or by the header cells' column spans when it isn't set.
+             * Header cells come first, then body cells, then footer cells, whatever their
+             * order in the markup.
+             * Cells span columns and rows with `colspan` and `rowspan`, the same way table
+             * cells do. A cell is placed in the next free slot of the row, skipping slots
+             * that cells from rows above span into, and wraps to a new row when it
+             * doesn't fit. Row spans stop at the end of their section.
+             * The cells stay in the page: each row is a `role="row"` element in the grid's
+             * shadow root, with a slot that the row's cells are assigned to.
+             * The grid is one Tab stop. The arrow keys move between cells, or between rows
+             * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
+             * out of the Tab order until the user presses Enter on the cell, or clicks
+             * into it. Escape goes back to the cell.
+             * With `reorder`, each body row gets a drag handle. Dragging it moves the
+             * row's cells to the new position in the page, so the grid's markup always
+             * matches what's shown.
              */
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;

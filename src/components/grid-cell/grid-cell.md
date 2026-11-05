@@ -1,4 +1,4 @@
 ---
-title: 'OrbGc | <orb-gc>'
+title: 'OrbCell | <orb-cell>'
 sidebar_label: 'Grid Cell'
 ---

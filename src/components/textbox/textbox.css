@@ -24,14 +24,13 @@ div[part="container"] {
   justify-content: center;
   gap: 0.75em;
   background-color: transparent;
-  color: inherit;
+  color: var(--orb-text-color);
   padding-inline: 1em;
   flex: 1;
   min-width: 0;
   cursor: text;
   min-height: 3em;
-  font-weight: var(--orb-font-semi-bold);
-  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
+  font-weight: var(--orb-font-regular);
   border-radius: var(--orb-radius-md);
   border: solid 2px light-dark(var(--orb-neutral-500), var(--orb-neutral-700));
   &:focus-within {

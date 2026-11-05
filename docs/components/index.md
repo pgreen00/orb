@@ -32,7 +32,7 @@ templateEngineOverride: njk
 
   <orb-textbox id="component-search" label="Search components">
     <iconify-icon slot="start" icon="mdi:magnify" aria-hidden="true"></iconify-icon>
-    <input type="search" autocomplete="off" enterkeyhint="search" placeholder="Search by name or description">
+    <input autofocus type="search" autocomplete="off" enterkeyhint="search" placeholder="Search by name or description">
   </orb-textbox>
 
   <p id="component-count" role="status"></p>

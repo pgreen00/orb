@@ -1,0 +1,54 @@
+---
+layout: default.njk
+---
+
+<article>
+  <style>
+    @scope {
+      :scope {
+        padding: 2rem;
+        display: grid;
+        gap: 1rem;
+        grid-template:
+          "header aside" auto
+          "article-body aside" 1fr / minmax(0, max-content) max-content;
+        max-width: 1080px;
+      }
+      header {
+        grid-area: header;
+      }
+      .article-body {
+        grid-area: article-body;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      aside {
+        grid-area: aside;
+        position: sticky;
+        top: calc(var(--top-height) + 2rem);
+        max-height: calc(100vh - var(--top-height) - 4rem);
+        overflow-y: auto;
+      }
+      @media (max-width: 767px) {
+        :scope {
+          padding: 1rem;
+          max-width: 100%;
+        }
+        aside {
+          display: none;
+        }
+      }
+    }
+  </style>
+  <header>
+    <h1>{{ title }}</h1>
+    {% if description %}<p>{{ description }}</p>{% endif %}
+  </header>
+  <div class="article-body">
+    {{ content | safe }}
+  </div>
+  <aside>
+    <orb-toc></orb-toc>
+  </aside>
+</article>

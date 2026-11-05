@@ -1,75 +1,27 @@
-/*
- * Shadow styles for the affordances orb-gc renders itself. Everything the
- * consumer sees on the outside of the cell lives in grid.css, adopted into the
- * light DOM, and is reachable with ordinary selectors. Only the sort indicator
- * and resize handle are in here, since the light sheet cannot cross into this
- * shadow root.
- *
- * Both are exposed as parts so they stay restyleable from outside.
- */
-
+/* Matches a native table cell. The border and padding values come from the
+   parent orb-grid. */
 :host {
-  display: block;
-  position: relative;
-}
-
-:host(:not([sortable])) .sort {
-  display: none;
-}
-
-.sort {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--orb-spacing-3xs);
-  vertical-align: middle;
-  margin-left: var(--orb-spacing-2xs);
-  /* held at low opacity so the column reads as sortable before it is sorted */
-  opacity: var(--sort-opacity, 0.35);
-  transition: opacity var(--orb-transition-fast, 150ms) ease,
-    transform var(--orb-transition-fast, 150ms) ease;
+  /* Space between several controls in one cell */
+  gap: var(--orb-spacing-2xs);
+  box-sizing: border-box;
+  padding: var(--grid-cell-padding-y, var(--orb-spacing-xs))
+    var(--grid-cell-padding-x, var(--orb-spacing-sm));
+  border-style: solid;
+  border-color: var(--grid-border-color, var(--orb-divider-color));
+  border-width: 0;
+  border-inline-end-width: var(--grid-border-width, 1px);
+  border-block-end-width: var(--grid-border-width, 1px);
+  text-align: start;
+  /* Set by the grid, from the cell's place and spans */
+  grid-column: var(--_grid-column, auto);
+  grid-row: var(--_grid-row, auto);
 }
 
-:host([data-sort-dir="asc"]) .sort,
-:host([data-sort-dir="desc"]) .sort {
-  --sort-opacity: 1;
-}
-
-:host([data-sort-dir="asc"]) .sort {
-  transform: rotate(180deg);
-}
-
-.sort-index {
-  font-size: var(--orb-font-xs);
-  font-weight: var(--orb-font-regular);
-}
-
-/* rotating the chevron would spin the index with it */
-:host([data-sort-dir="asc"]) .sort-index {
-  transform: rotate(-180deg);
-}
-
-.resize {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: var(--resize-width, 0.5rem);
-  cursor: col-resize;
-  touch-action: none;
-  /* sits over the border so the whole edge is grabbable */
-  transform: translateX(50%);
-}
-
-.resize:hover,
-.resize:active {
-  background-color: var(--resize-color, var(--orb-primary-500));
-  /* only the border width reads as active, not the whole hit area */
-  background-clip: content-box;
-  padding-inline: calc(var(--resize-width, 0.5rem) / 2 - 1px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sort {
-    transition: none;
-  }
+/* Inside the cell, so the ring isn't hidden by the cells around it */
+:host(:focus-visible) {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: -2px;
 }

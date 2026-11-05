@@ -122,15 +122,16 @@ const getDocsField = (prop) =>
   `${prop.deprecation !== undefined ? `<span style="color:red">**[DEPRECATED]**</span> ${prop.deprecation}<br/><br/>` : ""}${prop.docs}`;
 
 // --- Vertical (label / value) tables -----------------------------------------
-// Rendered with markdown-it-multimd-table's `headerless` mode: a table whose
-// first line is the separator row has no <thead>. The label column is bolded
-// manually since headerless tables only emit <td>.
+// Rendered with markdown-it-multimd-table's `headerless` mode, so there's no
+// <thead>. The `<!-- row-headers -->` comment tells eleventy.config.mjs to make
+// the label cells row headers (`th scope="row"`) and mark the table
+// `data-orb="row-headers"`.
 const verticalTable = (rows) => {
-  const content = ["|---|---|"];
+  const content = ["<!-- row-headers -->", "|---|---|"];
   rows
     .filter(([, value]) => value !== undefined && value !== "")
     .forEach(([label, value]) => {
-      content.push(`| **${label}** | ${escapeMarkdownTableColumn(value)} |`);
+      content.push(`| ${label} | ${escapeMarkdownTableColumn(value)} |`);
     });
   return content;
 };

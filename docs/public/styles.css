@@ -1,8 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("/prism.css");
 
 :root {
-  font-family: "Work Sans", sans-serif;
+  font-family: "Instrument Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+  --orb-font-light: 400;
+  --orb-font-regular: 400;
+  --orb-font-semi-bold: 500;
+  --orb-font-bold: 600;
+  --orb-font-heavy: 700;
 }
 
 .banner-title {

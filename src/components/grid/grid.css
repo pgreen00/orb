@@ -1,202 +1,230 @@
-/*
- * Single stylesheet for orb-grid, orb-gr and orb-gc.
- *
- * Adopted into the light DOM by grid.tsx before the elements are defined, so
- * selectors can cross what would otherwise be three shadow boundaries.
- *
- * Two layers, split by how badly an override can break things:
- *   structure - grid formatting, display: contents, sticky offsets, spans.
- *               Override and the grid stops behaving like a grid.
- *   theme     - every color, border, space and font. All routed through vars.
- *
- * Nothing lives outside a layer, so unlayered consumer CSS always wins without
- * an !important fight.
+/**
+ * @prop --grid-background: Background of the grid
+ * @prop --grid-border-color: Color of the lines between cells
+ * @prop --grid-border-width: Width of the lines between cells
+ * @prop --grid-header-background: Background of the header and footer rows
+ * @prop --grid-cell-padding-y: Block padding of each cell
+ * @prop --grid-cell-padding-x: Inline padding of each cell
+ * @prop --grid-selected-background: Background of selected rows
+ * @prop --grid-moving-background: Background of a row being moved
+ * @prop --grid-drop-indicator-color: Color of the line that shows where a dragged row will land
  */
 
-@layer orb.components.grid.structure, orb.components.grid.theme;
+/* The values match the native table styles. */
+:host {
+  --grid-background: var(--orb-background-color);
+  --grid-border-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
+  --grid-border-width: 1px;
+  --grid-header-background: color-mix(
+    in srgb,
+    var(--grid-background),
+    var(--orb-text-color) 7%
+  );
+  --grid-cell-padding-y: var(--orb-spacing-xs);
+  --grid-cell-padding-x: var(--orb-spacing-sm);
+  --grid-selected-background: color-mix(
+    in srgb,
+    var(--grid-background),
+    var(--orb-primary-500) 16%
+  );
+  --grid-moving-background: color-mix(
+    in srgb,
+    var(--grid-background),
+    var(--orb-primary-500) 10%
+  );
+  --grid-drop-indicator-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
 
-@layer orb.components.grid.structure {
-  orb-grid {
-    display: grid;
-    grid-template-columns: var(--columns);
-    overflow: auto;
-    box-sizing: border-box;
-    /* containing block for the sticky cells, and its own compositing layer */
-    transform: translateZ(0);
-  }
+  display: grid;
+  /* Narrow first columns for the drag handles and selection controls */
+  grid-template-columns: var(--_lead-columns,) repeat(var(--_columns, 1), auto);
+  /* For the drop line */
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  /* A grid wider than its container scrolls sideways inside its own box,
+     instead of spilling out. Moving focus scrolls the focused cell into view. */
+  overflow: auto;
+  scrollbar-width: thin;
+  /* Collapsed borders: the grid draws the top and start edges, and each cell
+     draws its own end and bottom edges. */
+  border-style: solid;
+  border-color: var(--grid-border-color);
+  border-width: 0;
+  border-block-start-width: var(--grid-border-width);
+  border-inline-start-width: var(--grid-border-width);
+  background-color: var(--grid-background);
+  color: var(--orb-text-color);
+}
 
-  orb-gr {
-    display: contents;
-  }
+/* Each row spans every column and shares the grid's tracks, so cells line up
+   across rows while the row is still a box of its own. A row covers as many
+   row tracks as its tallest cell spans, and its placement is set inline. */
+[role="row"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+}
 
-  orb-gc {
-    display: block;
-    box-sizing: border-box;
-    /* without this a long unbroken string refuses to shrink into its track */
-    min-width: 0;
-    grid-column: span var(--col-span, 1);
-    grid-row: span var(--row-span, 1);
-    content-visibility: auto;
-    contain-intrinsic-size: auto 3rem;
-  }
+.head,
+.foot {
+  font-weight: var(--orb-font-semi-bold);
+}
 
-  /*
-   * Sticky ladder, spaced to leave room between rungs:
-   *   10 sticky column
-   *   20 header/footer row
-   *   30 header/footer cell that is also a sticky column
-   */
-  orb-gc[sticky] {
-    position: sticky;
-    z-index: 10;
-  }
+/* Backgrounds go on the cells, not the rows. A row with a tall cell overlaps
+   the rows below it, and its background would cover their cells. */
+.head slot::slotted(*),
+.foot slot::slotted(*),
+.head .lead-cell,
+.foot .lead-cell {
+  background-color: var(--grid-header-background);
+}
 
-  /* `sticky` with no value is the start edge */
-  orb-gc[sticky=""],
-  orb-gc[sticky="start"] {
-    left: var(--sticky-start, 0);
-  }
+/* Only single selection tints the row. With multiple, the checkbox shows it. */
+.tint[aria-selected="true"] slot::slotted(*),
+.tint[aria-selected="true"] .lead-cell {
+  background-color: var(--grid-selected-background);
+}
 
-  orb-gc[sticky="end"] {
-    right: var(--sticky-end, 0);
-  }
+/* A row picked up from the keyboard, and a dragged row while the browser takes
+   its picture for the drag image */
+.moving slot::slotted(*),
+.moving .lead-cell,
+.drag-image slot::slotted(*),
+.drag-image .lead-cell {
+  background-color: var(--grid-moving-background);
+}
 
-  orb-gr[section="head"] > orb-gc {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-  }
+/* The row left behind while its picture follows the pointer */
+.dragging {
+  opacity: 0.4;
+}
 
-  orb-gr[section="foot"] > orb-gc {
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
-  }
+/* Matches orb-cell, so the lead columns line up with the others. The column
+   is set inline. */
+.lead-cell {
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* Narrower than other cells, since it only holds a small control */
+  padding: var(--grid-cell-padding-y) var(--orb-spacing-xs);
+  border-style: solid;
+  border-color: var(--grid-border-color);
+  border-width: 0;
+  border-inline-end-width: var(--grid-border-width);
+  border-block-end-width: var(--grid-border-width);
+}
 
-  :is(orb-gr[section="head"], orb-gr[section="foot"]) > orb-gc[sticky] {
-    z-index: 30;
-  }
+/* The radio button for single selection, sized like orb-checkbox's box */
+.radio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--orb-radius-circle);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
 
-  /*
-   * Body rows stay in the DOM while loading or empty so scroll position and the
-   * consumer's own templating survive the round trip. aria-busy carries the
-   * state to assistive tech.
-   */
-  orb-grid:is([state="loading"], [state="empty"]) > orb-gr[section="body"] {
-    display: none;
+.radio svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.radio[aria-checked="true"] {
+  color: light-dark(var(--orb-primary-500), var(--orb-primary-200));
+}
+
+.lead-cell :focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
+}
+
+/* The drag handle */
+.handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--orb-spacing-3xs);
+  border: 0;
+  border-radius: var(--orb-radius-sm);
+  background: none;
+  color: var(--orb-note-color);
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.handle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (hover: hover) {
+  .handle:hover {
+    color: var(--orb-text-color);
   }
 }
 
-@layer orb.components.grid.theme {
-  orb-grid {
-    --border-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-700));
-    --border-color-soft: light-dark(
-      var(--orb-neutral-200),
-      var(--orb-neutral-800)
-    );
-    --text-color: light-dark(var(--orb-neutral-900), var(--orb-neutral-100));
-    --cell-background: light-dark(var(--orb-neutral-25), var(--orb-neutral-950));
-    --head-background: light-dark(
-      var(--orb-neutral-150),
-      var(--orb-neutral-825)
-    );
-    --head-background-hover: light-dark(
-      var(--orb-neutral-200),
-      var(--orb-neutral-800)
-    );
-    --foot-background: light-dark(var(--orb-neutral-50), var(--orb-neutral-875));
-    --row-background-hover: light-dark(
-      var(--orb-neutral-125),
-      var(--orb-neutral-850)
-    );
-    --row-background-stripe: light-dark(
-      var(--orb-neutral-75),
-      var(--orb-neutral-900)
-    );
-    --row-background-selected: light-dark(
-      var(--orb-primary-150),
-      var(--orb-primary-450)
-    );
-    --cell-padding-block: var(--orb-spacing-sm);
-    --cell-padding-inline: var(--orb-spacing-md);
-    --focus-color: var(--orb-primary-500);
+.moving .handle,
+.dragging .handle,
+.handle[aria-pressed="true"] {
+  color: var(--grid-drop-indicator-color);
+  cursor: grabbing;
+}
 
-    border: 1px solid var(--border-color);
-    border-radius: var(--orb-radius-md);
-    font-size: var(--orb-font-sm);
-    color: var(--text-color);
-  }
+/* Where a dragged row will land. Spans every column, and sits on the line
+   between two rows. */
+.drop-indicator {
+  position: absolute;
+  grid-column: 1 / -1;
+  left: 0;
+  right: 0;
+  height: 2px;
+  translate: 0 -1px;
+  background-color: var(--grid-drop-indicator-color);
+  pointer-events: none;
+  z-index: 1;
+}
 
-  /* density only moves the vertical padding; cells already grow to fit content */
-  orb-grid[density="compact"] {
-    --cell-padding-block: var(--orb-spacing-2xs);
-  }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
-  orb-grid[density="comfortable"] {
-    --cell-padding-block: var(--orb-spacing-md);
-  }
+/* Inside the row, so the ring isn't hidden by the rows around it */
+[role="row"]:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: -2px;
+}
 
-  orb-gc {
-    padding: var(--cell-padding-block) var(--cell-padding-inline);
-    background-color: var(--cell-background);
-    text-align: var(--align, start);
-  }
-
-  orb-gr[section="head"] > orb-gc {
-    background-color: var(--head-background);
-    font-weight: var(--orb-font-semi-bold);
-    white-space: nowrap;
-    user-select: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  orb-gr[section="foot"] > orb-gc {
-    background-color: var(--foot-background);
-    font-weight: var(--orb-font-semi-bold);
-    border-top: 1px solid var(--border-color);
-  }
-
-  /* stripe first so hover and selection outrank it */
-  :where(orb-grid[striped])
-    > orb-gr[section="body"]:where(:nth-of-type(odd))
-    > orb-gc {
-    background-color: var(--row-background-stripe);
-  }
-
-  orb-gr[section="body"]:hover > orb-gc {
-    background-color: var(--row-background-hover);
-  }
-
-  orb-gr[section="body"][selected] > orb-gc {
-    background-color: var(--row-background-selected);
-  }
-
-  orb-gr[disabled] > orb-gc {
-    opacity: 0.5;
-  }
-
-  orb-grid:is([borders="rows"], [borders="both"])
-    > orb-gr[section="body"]:not(:last-of-type)
-    > orb-gc {
-    border-bottom: 1px solid var(--border-color-soft);
-  }
-
-  orb-grid:is([borders="cols"], [borders="both"])
-    > orb-gr
-    > orb-gc:not(:last-child) {
-    border-right: 1px solid var(--border-color-soft);
-  }
-
-  orb-gc:focus-visible {
-    outline: 2px solid var(--focus-color);
+@media (forced-colors: active) {
+  /* The tint is removed, so selected rows need another mark */
+  .tint[aria-selected="true"] {
+    outline: 2px solid Highlight;
     outline-offset: -2px;
   }
 
-  orb-gc[sortable] {
-    cursor: pointer;
+  .moving,
+  .dragging {
+    outline: 2px dashed Highlight;
+    outline-offset: -2px;
   }
 
-  orb-gc[sortable]:hover {
-    background-color: var(--head-background-hover);
+  .drop-indicator {
+    background-color: Highlight;
   }
 }

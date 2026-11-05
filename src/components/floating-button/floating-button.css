@@ -1,3 +1,68 @@
+/**
+ * @prop --floating-offset: Distance from the viewport edges
+ * @prop --z-index: Stacking order above the page content
+ */
+
 :host {
+  --floating-offset: var(--orb-spacing-md);
+  --z-index: 100;
+  /* Keeps the button clear of a notch or home indicator, where there is one */
+  --bottom-offset: calc(var(--floating-offset) + env(safe-area-inset-bottom, 0px));
+  --top-offset: calc(var(--floating-offset) + env(safe-area-inset-top, 0px));
+  position: fixed;
+  z-index: var(--z-index);
   display: block;
+  width: max-content;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 0;
+  transition:
+    opacity var(--orb-transition-fast) ease-in-out,
+    translate var(--orb-transition-fast) ease-in-out,
+    visibility 0s linear var(--orb-transition-fast);
+}
+
+:host([placement^="bottom"]) {
+  bottom: var(--bottom-offset);
+  translate: 0 1rem;
+}
+
+:host([placement^="top"]) {
+  top: var(--top-offset);
+  translate: 0 -1rem;
+}
+
+:host([placement$="-end"]) {
+  inset-inline-end: var(--floating-offset);
+}
+
+:host([placement$="-start"]) {
+  inset-inline-start: var(--floating-offset);
+}
+
+:host([placement="bottom"]),
+:host([placement="top"]) {
+  inset-inline: 0;
+  margin-inline: auto;
+}
+
+:host([open]:not([open="false"])) {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition:
+    opacity var(--orb-transition-fast) ease-in-out,
+    translate var(--orb-transition-fast) ease-in-out,
+    visibility 0s;
+}
+
+::slotted(*) {
+  box-shadow: var(--orb-shadow-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  :host([open]:not([open="false"])) {
+    transition: none;
+  }
 }

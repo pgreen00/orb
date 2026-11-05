@@ -1,7 +1,7 @@
 :host {
   display: inline-flex;
   font-weight: var(--orb-font-semi-bold);
-  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
+  color: var(--orb-label-color);
   font-size: var(--orb-font-md);
   gap: var(--orb-spacing-2xs);
   cursor: inherit;

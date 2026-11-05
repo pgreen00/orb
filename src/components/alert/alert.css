@@ -1,3 +1,11 @@
+/**
+ * @prop --accent: Accent color, set by the `color` prop. Colors the progress bar.
+ * @prop --background: Background color
+ * @prop --color: Text color
+ * @prop --box-shadow: Shadow under the alert
+ * @prop --border: Border around the alert
+ */
+
 :host {
   display: none;
   overflow: hidden;

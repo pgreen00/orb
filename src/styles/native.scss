@@ -52,6 +52,10 @@ h6 {
   font-weight: var(--orb-font-bold);
 }
 
+:is(h1, h2, h3, h4, h5, h6) {
+  color: var(--orb-label-color);
+}
+
 p {
   font-size: var(--orb-font-md);
   font-weight: var(--orb-font-regular);
@@ -203,7 +207,7 @@ ol {
 dl {
   font-size: var(--orb-font-md);
   font-weight: var(--orb-font-regular);
-  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
+  color: var(--orb-label-color);
 
   dt {
     font-weight: var(--orb-font-semi-bold);
@@ -294,6 +298,8 @@ a {
   }
   // The card fills the tile, so tiles in a grid row match in height
   &[data-orb~="tile"] {
+    --default-decoration: none;
+    --hover-decoration: none;
     display: flex;
     align-items: stretch;
     orb-card {
@@ -355,6 +361,7 @@ ul:is([data-orb~="nav"], [data-orb~="vertical-nav"]) {
     background-color: transparent;
     color: var(--nav-color);
     font: inherit;
+    font-weight: var(--orb-font-semi-bold);
     --default-decoration: none;
     --hover-decoration: none;
     text-decoration: none;
@@ -716,6 +723,17 @@ table {
     pointer-events: none;
   }
 
+  // Row headers in the body take the header tint, so they read as labels. It's
+  // mixed over the row's own tint, so stripes and states still show through.
+  &[data-orb~="row-headers"] :is(tbody th, th[scope="row"]) {
+    background-color: color-mix(
+      in srgb,
+      var(--_row-background, var(--table-background)),
+      var(--orb-text-color) 7%
+    );
+    font-weight: var(--orb-font-semi-bold);
+  }
+
   // Rows and cells with a state or meaning, which don't need a table setting
   tr[data-orb~="selected"],
   :is(td, th)[data-orb~="selected"] {
@@ -801,4 +819,8 @@ table {
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
+}
+
+:is(input, select, textarea, button) {
+  font: inherit;
 }

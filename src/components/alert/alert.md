@@ -3,7 +3,7 @@ title: 'OrbAlert | <orb-alert>'
 sidebar_label: 'Alert'
 ---
 
-## Usage
+## Examples
 
 ### Closable
 

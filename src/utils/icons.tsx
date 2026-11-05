@@ -348,6 +348,23 @@ export function DoubleChevronRightIcon(props: any) {
   );
 }
 
+export function GripVerticalIcon(props: any) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path
+        fill="currentColor"
+        d="M9 5.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0M7.5 13.5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3M9 18.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0M16.5 7a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3M18 12a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0M16.5 20a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3"
+      />
+    </svg>
+  );
+}
+
 export function RadioEmpty(props: any) {
   return (
     <svg
