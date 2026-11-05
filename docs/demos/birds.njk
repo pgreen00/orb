@@ -104,7 +104,7 @@ permalink: "/demos/birds/"
     body > footer {
       justify-content: space-between;
       font-size: var(--orb-font-sm);
-      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+      color: var(--orb-note-color);
     }
 
     .sidebar-heading {
@@ -113,7 +113,7 @@ permalink: "/demos/birds/"
       font-weight: var(--orb-font-semi-bold);
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+      color: var(--orb-note-color);
     }
 
     .page {
@@ -147,7 +147,7 @@ permalink: "/demos/birds/"
       align-items: center;
       gap: var(--orb-spacing-sm);
       margin-block-end: var(--orb-spacing-md);
-      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+      color: var(--orb-note-color);
     }
 
     .bird-media {
@@ -165,7 +165,7 @@ permalink: "/demos/birds/"
 
     .latin {
       font-style: italic;
-      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+      color: var(--orb-note-color);
     }
 
     .callout {
@@ -381,8 +381,8 @@ permalink: "/demos/birds/"
         <section id="migration">
           <h2>Migration calendar</h2>
           <p>Some birds come north to breed in our long summer days. Others arrive in fall to escape the Arctic winter. Dates shift a week or two each year with the weather.</p>
-          <div class="orb-table">
-            <table>
+          <div data-orb="table-container" tabindex="0" role="region" aria-label="Migration calendar">
+            <table data-orb="rows hover">
               <thead>
                 <tr>
                   <th>Species</th>

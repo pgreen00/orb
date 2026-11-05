@@ -1,12 +1,5 @@
-code[class*="language-"] {
-  display: block;
-  width: 0;
-}
-
 code[class*="language-"],
 pre[class*="language-"] {
-  --old-bg: light-dark(#fafafa, #1d1f21);
-  color: light-dark(#90a4ae, #c5c8c6);
   direction: ltr;
   text-align: left;
   white-space: pre;
@@ -17,6 +10,11 @@ pre[class*="language-"] {
   line-height: 1.5em;
   tab-size: 4;
   hyphens: none;
+  background-color: light-dark(
+    var(--orb-neutral-25),
+    var(--orb-neutral-900)
+  );
+  color: light-dark(#90a4ae, #c5c8c6)
 }
 
 code[class*="language-"]::-moz-selection,
@@ -37,6 +35,7 @@ pre[class*="language-"] ::selection {
 
 /* Code blocks */
 pre[class*="language-"] {
+  display: inline-flex;
   padding: 0;
   margin: 0;
   border-radius: 0.3em;
@@ -44,10 +43,12 @@ pre[class*="language-"] {
 }
 
 /* Inline code */
-:not(pre) > code[class*="language-"] {
-  padding: 0.1em;
-  border-radius: light-dark(0.2em, 0.3em);
-  white-space: light-dark(normal, pre);
+code[class*="language-"] {
+  display: block;
+  border-radius: 0.25em;
+  white-space: pre;
+  padding: 1em;
+  overflow-x: auto;
 }
 
 .language-css > code,

@@ -11,9 +11,9 @@
   padding: var(--padding);
   margin: 0;
 
-  --padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
-  --background: light-dark(var(--orb-neutral-950), var(--orb-neutral-800));
-  --color: var(--orb-neutral-300);
+  --padding: 0 var(--orb-spacing-xs);
+  --background: light-dark(var(--orb-neutral-950), var(--orb-neutral-300));
+  --color: light-dark(var(--orb-neutral-300), var(--orb-neutral-950));
   --border: none;
   --radius: var(--orb-radius-md);
 }

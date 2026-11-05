@@ -3,8 +3,6 @@ title: "OrbAccordion | <orb-accordion>"
 sidebar_label: "Accordion"
 ---
 
-## Usage
-
 ::: live-code-demo
 
 ```html

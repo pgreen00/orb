@@ -1,1 +1,7 @@
-@layer orb.core, orb.landmarks, orb.native, orb.components, orb.utilities;
+@layer orb {
+  @layer core;
+  @layer landmarks;
+  @layer native;
+  @layer components;
+  @layer utilities;
+}

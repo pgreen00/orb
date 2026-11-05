@@ -1395,6 +1395,7 @@ export namespace Components {
         "start": () => Promise<void>;
     }
     interface OrbToc {
+        "update": () => Promise<void>;
     }
     interface OrbToggle {
         /**

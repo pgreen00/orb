@@ -40,14 +40,16 @@
 <body>
   <header>
     <orb-toolbar>
-      <a class="banner-title orb-font-semi-bold" href="/">
+      <a data-orb="quiet" class="banner-title orb-font-semi-bold" href="/">
         <img src="/orb.png" alt="logo" height="42" width="42" />
         <span class="orb-margin-left-xs">Orb Design System</span>
       </a>
       <nav class="section-nav" aria-label="Sections">
-        {% for item in navSections %}
-          <a href="{{ item.href }}"{% if section == item.key %} aria-current="page"{% endif %}>{{ item.label }}</a>
-        {% endfor %}
+        <ul data-orb="nav">
+          {% for item in navSections %}
+            <li><a href="{{ item.href }}"{% if section == item.key %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+          {% endfor %}
+        </ul>
       </nav>
       <orb-button class="icon-only" fill="clear" size="lg" slot="end">
         <iconify-icon height="2rem" width="2rem" icon="mdi:search"></iconify-icon>
@@ -76,37 +78,47 @@
   </header>
   {% if section in ["tutorials", "components", "css-utilities"] %}
   <nav data-landmark="sidebar" aria-label="Section navigation">
-    <orb-tree id="main-nav-tree">
-      {% if section == "tutorials" %}
-        <orb-ti label="Forms" href="/tutorials/forms/"></orb-ti>
-        <orb-ti label="Themes" href="/tutorials/themes/"></orb-ti>
-        <orb-ti label="Data Tables" href="/tutorials/data-tables/"></orb-ti>
-        <orb-ti label="Design Patterns" href="/tutorials/design-patterns/"></orb-ti>
-      {% elif section == "components" %}
+    {% if section == "tutorials" %}
+      {% set sideLinks = [
+        { label: "Forms", href: "/tutorials/forms/" },
+        { label: "Themes", href: "/tutorials/themes/" },
+        { label: "Data Tables", href: "/tutorials/data-tables/" },
+        { label: "Design Patterns", href: "/tutorials/design-patterns/" }
+      ] %}
+    {% elif section == "css-utilities" %}
+      {% set sideLinks = [
+        { label: "Design Tokens", href: "/css-utilities/design-tokens/" },
+        { label: "Classes", href: "/css-utilities/classes/" },
+        { label: "Native Elements", href: "/css-utilities/native/" }
+      ] %}
+    {% else %}
+      {% set sideLinks = [] %}
+    {% endif %}
+    <ul data-orb="vertical-nav">
+      {% if section == "components" %}
         {% for component in collections.componentsNav %}
-          <orb-ti label="{{ component.data.sidebar_label or component.name }}" href="/components/{{ component.name }}/"></orb-ti>
+          {% set href = "/components/" + component.name + "/" %}
+          <li><a href="{{ href }}"{% if page.url == href %} aria-current="page"{% endif %}>{{ component.data.sidebar_label or component.name }}</a></li>
         {% endfor %}
-      {% elif section == "css-utilities" %}
-        <orb-ti label="Design Tokens" href="/css-utilities/design-tokens/"></orb-ti>
-        <orb-ti label="Classes" href="/css-utilities/classes/"></orb-ti>
+      {% else %}
+        {% for item in sideLinks %}
+          <li><a href="{{ item.href }}"{% if page.url == item.href %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
+        {% endfor %}
       {% endif %}
-    </orb-tree>
+    </ul>
     <script type="module">
-      await customElements.whenDefined('orb-tree')
-      await customElements.whenDefined('orb-ti')
-      const tree = document.querySelector('orb-tree#main-nav-tree')
-      const branches = Array.from(tree.querySelectorAll('orb-ti'))
-      const currentPath = window.location.href.replace(window.location.origin, '')
-      const currentBranch = branches.find(b => b.href == currentPath)
-      tree.value = currentBranch?.label
-      requestAnimationFrame(() => currentBranch?.scrollIntoView({
-        block: 'center',
-        container: 'all'
-      }))
+      // Center the current page in the sidebar without scrolling the window
+      const sidebar = document.querySelector('[data-landmark="sidebar"]')
+      const current = sidebar.querySelector('[aria-current]')
+      requestAnimationFrame(() => {
+        if (!current) return
+        const offset = current.getBoundingClientRect().top - sidebar.getBoundingClientRect().top
+        sidebar.scrollTop += offset - (sidebar.clientHeight - current.offsetHeight) / 2
+      })
     </script>
   </nav>
   {% endif %}
-  <main>
+  <main {% if section == 'css-utilities' %}class="orb-padding"{% endif %}>
     {% block content %}
       {{ content | safe }}
     {% endblock %}

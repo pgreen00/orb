@@ -18,7 +18,7 @@
   --editor-bg: transparent;
   --editor-toolbar-bg: light-dark(var(--orb-neutral-100), var(--orb-neutral-875));
   --editor-text-color: var(--orb-text-color);
-  --editor-muted-color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  --editor-muted-color: var(--orb-note-color);
   /* neutral-700 is just under 4.5:1 on the toolbar background, so the footer is a shade darker. */
   --editor-footer-color: light-dark(var(--orb-neutral-800), var(--orb-neutral-400));
 

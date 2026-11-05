@@ -4,7 +4,7 @@
 
 :host {
   --highlight: light-dark(var(--orb-primary-100), color-mix(in srgb, var(--orb-primary-500) 30%, transparent));
-  --muted: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  --muted: var(--orb-note-color);
   display: flex;
   align-items: center;
   gap: var(--orb-spacing-xs);

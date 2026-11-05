@@ -121,7 +121,7 @@ A dense row with a thumbnail or avatar, a title, a subtitle, and an optional tra
     <orb-button slot="end" size="sm" fill="outline">Message</orb-button>
   </orb-card>
   <orb-card layout="compact">
-    <iconify-icon slot="media" icon="mdi:file-pdf-box" width="28" height="28"></iconify-icon>
+    <iconify-icon slot="media" icon="mdi:file-pdf-box" width="100%" height="100%"></iconify-icon>
     quarterly-report-final-v2.pdf
     <span slot="subtitle">2.4 MB · Edited yesterday</span>
   </orb-card>

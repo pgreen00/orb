@@ -7,7 +7,7 @@
 
 :host {
   /* neutral-700 is the lightest shade that meets 4.5:1 on the light background. */
-  --crumb-color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  --crumb-color: var(--orb-note-color);
   --crumb-hover-color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
   --current-color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
   --separator-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-650));

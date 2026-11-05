@@ -22,6 +22,20 @@ function loadComponentDocs() {
   return JSON.parse(fs.readFileSync(DOCS_JSON_PATH, "utf8")).components ?? [];
 }
 
+/**
+ * First sentence of a component's doc comment as plain text, for tiles and
+ * search. Links and inline code are flattened since the result isn't markdown.
+ */
+function summarize(docs = "") {
+  const plain = docs
+    .trim()
+    .split(/\n\s*\n/)[0]
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[`*_]/g, "")
+    .replace(/\s+/g, " ");
+  return plain.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? plain;
+}
+
 export default function () {
   const files = glob.sync("src/components/**/*.md");
   const cmps = loadComponentDocs();
@@ -46,6 +60,9 @@ export default function () {
       data: data,
       sourcePath: filePath,
       label: data.sidebar_label,
+      tag: cmp?.tag,
+      description: summarize(cmp?.docs),
+      wide: data.wide || false,
     };
   });
 }

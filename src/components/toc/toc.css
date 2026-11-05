@@ -1,8 +1,22 @@
-:host {
-  display: block;
-  box-sizing: border-box;
-  height: fit-content;
-  padding-inline: var(--orb-spacing-sm);
-  border-left: solid 1px var(--orb-divider-color);
-  flex-shrink: 0;
+@layer orb.components.toc {
+  orb-toc {
+    display: block;
+    box-sizing: border-box;
+    height: fit-content;
+    padding-left: var(--orb-spacing-sm);
+    border-left: solid 1px var(--orb-divider-color);
+    margin-right: var(--orb-spacing-lg);
+    flex-shrink: 0;
+    color: var(--orb-note-color);
+    font-size: var(--orb-font-sm);
+    > div {
+      padding-inline-start: calc(
+        var(--orb-toc-depth, 0) * var(--orb-toc-indent, var(--orb-spacing-md))
+      );
+    }
+    a:hover,
+    a:focus-within {
+      color: var(--orb-text-color);
+    }
+  }
 }

@@ -1,6 +1,7 @@
 ---
 title: 'OrbCalendar | <orb-calendar>'
 sidebar_label: 'Calendar'
+wide: true
 ---
 
 ## Usage

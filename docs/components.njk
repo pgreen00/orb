@@ -10,40 +10,44 @@ eleventyComputed:
   title: "{{ component.label or component.title }}"
 ---
 
-<article>
+<article{% if component.wide %} class="wide"{% endif %}>
   <style>
     @scope {
-      header {
+      :scope {
         padding: 2rem;
+        display: grid;
+        gap: 1rem;
+        grid-template:
+          "header aside" auto
+          "article-body aside" 1fr / minmax(0, max-content) max-content;
+        max-width: 1080px;
+        &.wide {
+          max-width: 100%;
+        }
       }
-      .article-grid {
-        display: flex;
-        flex-wrap: wrap-reverse;
-        align-items: baseline;
-        gap: 2rem;
-        padding: 2rem;
-        container: article / inline-size;
+      header {
+        grid-area: header;
       }
       .article-body {
-        max-width: 65cqw;
-        min-width: 0;
+        grid-area: article-body;
         display: flex;
         flex-direction: column;
-        gap: 2rem;
-        flex: 1 1 0;
+        gap: 1rem;
       }
       aside {
-        min-width: 25cqw;
+        grid-area: aside;
         position: sticky;
-        top: calc(var(--top-height) + 4rem);
-        height: fit-content;
+        top: calc(var(--top-height) + 2rem);
+        max-height: calc(100vh - var(--top-height) - 4rem);
+        overflow-y: auto;
       }
       @media (max-width: 767px) {
+        :scope {
+          padding: 1rem;
+          max-width: 100%;
+        }
         aside {
           display: none;
-        }
-        .article-body {
-          max-width: 100%;
         }
       }
     }
@@ -52,12 +56,10 @@ eleventyComputed:
     <h1>{{ component.label }}</h1>
     <orb-color light="neutral-750" dark="neutral">{{ component.title }}</orb-color>
   </header>
-  <div class="article-grid">
-    <div class="article-body">
-      {{ component.content | markdown | safe }}
-    </div>
-    <aside>
-      <orb-toc></orb-toc>
-    </aside>
+  <div class="article-body">
+    {{ component.content | markdown | safe }}
   </div>
+  <aside>
+    <orb-toc></orb-toc>
+  </aside>
 </article>

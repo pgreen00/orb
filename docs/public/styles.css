@@ -9,31 +9,9 @@
   font-size: 1.2rem;
 }
 
+/* A flex item of the toolbar; min-width lets the nav list scroll instead of overflow */
 .section-nav {
-  display: flex;
-  align-items: center;
-  gap: var(--orb-spacing-2xs);
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-
-  a {
-    height: 2.5em;
-    padding-inline: var(--orb-spacing-sm);
-    border-radius: var(--orb-radius-md);
-    white-space: nowrap;
-    color: light-dark(var(--orb-neutral-650), var(--orb-neutral-250));
-    transition: background-color var(--orb-transition-x-fast) ease-in-out;
-
-    &:hover {
-      background-color: var(--hover-background);
-    }
-
-    &[aria-current="page"] {
-      color: light-dark(var(--orb-primary-600), var(--orb-primary-300));
-      font-weight: var(--orb-font-semi-bold);
-    }
-  }
 }
 
 a.header-anchor {
@@ -50,25 +28,6 @@ a.header-anchor {
   }
 }
 
-code:not(code[class*="language-"]) {
-  padding: 0.15rem 0.3rem;
-  background-color: light-dark(var(--orb-neutral-200), var(--orb-neutral-950));
-  border-radius: var(--orb-radius-md);
-  line-height: 2.5rem;
-  color: light-dark(var(--orb-neutral-950), var(--orb-neutral-200));
-  font-family: inherit;
-}
-
-main {
-  hr:last-child {
-    display: none;
-  }
-
-  h3:has(a:empty) {
-    display: none;
-  }
-}
-
 :has(a.header-anchor) {
   scroll-margin-top: var(--head-height);
 }
@@ -81,11 +40,14 @@ main {
   & > div {
     padding: var(--orb-spacing-md);
     overflow: auto;
-    &:has(pre:only-child) {
+    &.code-container {
       background-color: light-dark(
         var(--orb-neutral-25),
         var(--orb-neutral-900)
       );
     }
+  }
+  > .code-container :is(pre, code) {
+    padding: 0;
   }
 }

@@ -250,7 +250,7 @@ button.step:disabled {
 
 ::slotted([slot="note"]) {
   display: block;
-  color: light-dark(var(--orb-neutral-700), var(--orb-neutral-400));
+  color: var(--orb-note-color);
   font-size: 0.875em;
 }
 

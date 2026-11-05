@@ -7,7 +7,7 @@ sidebar_label: 'Popover'
 
 Set `for` to the id of the element that opens the popover. The trigger and the popover must be in the same document or shadow root. The popover sets `aria-haspopup` and `aria-expanded` on its trigger.
 
-For a list of actions, use [`<orb-menu>`](../menu/) instead. It handles the keyboard and focus the way menus need.
+For a list of actions, use [orb-menu](../menu/) instead. It handles the keyboard and focus the way menus need.
 
 ::: live-code-demo
 

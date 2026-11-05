@@ -36,11 +36,15 @@ class MarkdownTable {
   }
 }
 
-const escapeMarkdownTableColumn = (text) => {
-  text = text.replace(/\r?\n/g, " ");
-  text = text.replace(/\|/g, "\\|");
-  return text;
-};
+// markdown-it-multimd-table already ignores pipes inside code spans and does
+// not unescape `\|` there (it would render a literal backslash), so only escape
+// pipes outside them.
+const escapeMarkdownTableColumn = (text) =>
+  text
+    .replace(/\r?\n/g, " ")
+    .split(/(``.+?``|`[^`]*`)/)
+    .map((part, i) => (i % 2 ? part : part.replace(/\|/g, "\\|")))
+    .join("");
 
 const createTable = (rows) => {
   const content = [];
@@ -117,6 +121,24 @@ const normalizeColumnWidth = (rows) => {
 const getDocsField = (prop) =>
   `${prop.deprecation !== undefined ? `<span style="color:red">**[DEPRECATED]**</span> ${prop.deprecation}<br/><br/>` : ""}${prop.docs}`;
 
+// --- Vertical (label / value) tables -----------------------------------------
+// Rendered with markdown-it-multimd-table's `headerless` mode: a table whose
+// first line is the separator row has no <thead>. The label column is bolded
+// manually since headerless tables only emit <td>.
+const verticalTable = (rows) => {
+  const content = ["|---|---|"];
+  rows
+    .filter(([, value]) => value !== undefined && value !== "")
+    .forEach(([label, value]) => {
+      content.push(`| **${label}** | ${escapeMarkdownTableColumn(value)} |`);
+    });
+  return content;
+};
+
+// Docs can span paragraphs; a table cell can't, so keep the break as HTML.
+const getCellDocs = (item) =>
+  getDocsField(item).trim().replace(/\r?\n\s*\r?\n/g, "<br/><br/>");
+
 // --- Section generators ------------------------------------------------------
 const propsToMarkdown = (props) => {
   const content = [];
@@ -125,24 +147,23 @@ const propsToMarkdown = (props) => {
   }
   content.push(`## Properties`);
   content.push(``);
-  const table = new MarkdownTable();
-  table.addHeader(["Property", "Attribute", "Description", "Type", "Default"]);
   props.forEach((prop) => {
-    table.addRow([
-      getPropertyField(prop),
-      getAttributeField(prop),
-      getDocsField(prop),
-      getTypeField(prop),
-      getDefaultValueField(prop),
-    ]);
+    content.push(`### ${prop.name}`);
+    content.push(``);
+    content.push(
+      ...verticalTable([
+        ["Description", getCellDocs(prop)],
+        ["Attribute", getAttributeField(prop)],
+        ["Type", getTypeField(prop)],
+        ["Default", getDefaultValueField(prop)],
+        ["Required", prop.required ? "Yes" : undefined],
+      ]),
+    );
+    content.push(``);
   });
-  content.push(...table.toMarkdown());
-  content.push(``);
   content.push(``);
   return content;
 };
-const getPropertyField = (prop) =>
-  `\`${prop.name}\`${prop.required ? " _(required)_" : ""}`;
 const getAttributeField = (prop) => (prop.attr ? `\`${prop.attr}\`` : "--");
 const getTypeField = (prop) =>
   prop.type.includes("`") ? `\`\` ${prop.type} \`\`` : `\`${prop.type}\``;
@@ -181,29 +202,25 @@ const methodsToMarkdown = (methods) => {
   content.push(`## Methods`);
   content.push(``);
   methods.forEach((method) => {
-    content.push(`### \`${method.signature}\``);
+    const parameters = method.parameters.map(
+      ({ name, type, docs }) =>
+        `\`${name}\` (\`${type}\`)${docs ? ` — ${docs}` : ""}`,
+    );
+    // The return type is already in the signature; only list it with docs.
+    const returns = method.returns?.docs
+      ? `\`${method.returns.type}\` — ${method.returns.docs}`
+      : undefined;
+    content.push(`### ${method.name}`);
     content.push(``);
-    content.push(getDocsField(method));
+    content.push(
+      ...verticalTable([
+        ["Description", getCellDocs(method)],
+        ["Signature", `\`${method.signature}\``],
+        ["Parameters", parameters.join("<br/>")],
+        ["Returns", returns],
+      ]),
+    );
     content.push(``);
-    if (method.parameters.length > 0) {
-      const parmsTable = new MarkdownTable();
-      parmsTable.addHeader(["Name", "Type", "Description"]);
-      method.parameters.forEach(({ name, type, docs }) => {
-        parmsTable.addRow(["`" + name + "`", "`" + type + "`", docs]);
-      });
-      content.push(`#### Parameters`);
-      content.push(``);
-      content.push(...parmsTable.toMarkdown());
-      content.push(``);
-    }
-    if (method.returns) {
-      content.push(`#### Returns`);
-      content.push(``);
-      content.push(`Type: \`${method.returns.type}\``);
-      content.push(``);
-      content.push(method.returns.docs);
-      content.push(``);
-    }
   });
   content.push(``);
   return content;

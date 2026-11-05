@@ -16,7 +16,7 @@ export default async function (eleventyConfig) {
       permalink: anchor.permalink.headerLink({
         renderAttrs: () => ({ "data-toc": "" }),
       }),
-      level: [2],
+      level: [2, 3],
     })
     .use(toc, {
       includeLevel: [1, 2],
@@ -79,7 +79,7 @@ export default async function (eleventyConfig) {
                 ${html?.content ?? ""}
               </div>
               <orb-divider spacing="none"></orb-divider>
-              <div>
+              <div class="code-container">
                 ${html?.original ?? ""}
               </div>
             </div>
@@ -92,7 +92,7 @@ export default async function (eleventyConfig) {
               ${js ? `<script type="module">${js.content}</script>` : ""}
             </div>
             <orb-divider spacing="none"></orb-divider>
-            <orb-tabs>
+            <orb-tabs class="code-container">
               ${codeBlocks.map(getPillEl).join("\n")}
               ${codeBlocks.map(getTemplateEl).join("\n")}
             </orb-tabs>
@@ -103,35 +103,6 @@ export default async function (eleventyConfig) {
       }
     },
   });
-
-  const defaultTableOpen = md.renderer.rules.table_open;
-  const defaultTableClose = md.renderer.rules.table_close;
-
-  md.renderer.rules.table_open = function (
-    tokens,
-    idx,
-    options,
-    env,
-    renderer,
-  ) {
-    const table = defaultTableOpen
-      ? defaultTableOpen(tokens, idx, options, env, renderer)
-      : renderer.renderToken(tokens, idx, options);
-    return `<div class="orb-table">${table}`;
-  };
-
-  md.renderer.rules.table_close = function (
-    tokens,
-    idx,
-    options,
-    env,
-    renderer,
-  ) {
-    const table = defaultTableClose
-      ? defaultTableClose(tokens, idx, options, env, renderer)
-      : renderer.renderToken(tokens, idx, options);
-    return `${table}</div>`;
-  };
 
   md.renderer.rules.fence = function (tokens, idx, options, env, renderer) {
     const token = tokens[idx];

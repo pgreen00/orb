@@ -60,6 +60,111 @@ p {
 small {
   font-size: var(--orb-font-sm);
   font-weight: var(--orb-font-light);
+  line-height: 1;
+}
+
+hr {
+  width: 50cqw;
+  color: var(--orb-divider-color);
+}
+
+strong,
+b {
+  font-weight: var(--orb-font-bold);
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+u,
+ins {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+ins {
+  color: light-dark(var(--orb-success-750), var(--orb-success-500));
+}
+
+s,
+del {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+del {
+  color: var(--orb-note-color);
+}
+
+mark {
+  padding-inline: 0.15em;
+  border-radius: var(--orb-radius-sm);
+  background-color: var(--orb-warning-450);
+  color: var(--orb-warning-950);
+  line-height: 1;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+sub,
+sup {
+  position: relative;
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+code {
+  display: inline-flex;
+  padding: 0.15rem 0.3rem;
+  background-color: light-dark(var(--orb-neutral-200), var(--orb-neutral-875));
+  border-radius: var(--orb-radius-lg);
+  line-height: 1.5;
+  color: light-dark(var(--orb-neutral-875), var(--orb-neutral-200));
+  font-family: inherit;
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--orb-divider-color);
+  background-color: light-dark(var(--orb-neutral-150), var(--orb-neutral-900));
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-400));
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+blockquote p + p {
+  margin-top: 0.75rem;
+}
+
+blockquote cite,
+blockquote footer {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-style: normal;
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-400));
+}
+
+blockquote cite::before,
+blockquote footer::before {
+  content: "— ";
 }
 
 ul,
@@ -74,7 +179,7 @@ ol {
   }
 
   li::marker {
-    color: light-dark(var(--orb-neutral-600), var(--orb-neutral-400));
+    color: light-dark(var(--orb-neutral-875), var(--orb-neutral-125));
   }
 
   & ul,
@@ -98,22 +203,37 @@ ol {
 dl {
   font-size: var(--orb-font-md);
   font-weight: var(--orb-font-regular);
+  color: light-dark(var(--orb-neutral-800), var(--orb-neutral-250));
 
   dt {
-    font-weight: var(--orb-font-bold);
+    font-weight: var(--orb-font-semi-bold);
   }
 
   dd {
     margin: 0;
-    padding-inline-start: var(--orb-spacing-lg);
+    padding-block: 0.625em;
+    font-weight: var(--orb-font-light);
   }
 
   dt + dd {
-    margin-block-start: var(--orb-spacing-3xs);
+    margin-block-start: 0.2em;
   }
 
   dd + dt {
     margin-block-start: var(--orb-spacing-sm);
+  }
+
+  &[data-orb~="mesh"] {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(min(var(--min-column-size, 20ch), 100%), 1fr)
+    );
+    gap: var(--orb-spacing-md);
+
+    > div {
+      min-width: 0;
+    }
   }
 }
 
@@ -129,11 +249,19 @@ a {
     var(--orb-neutral-800)
   );
   --border-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
+  --default-decoration: underline 1px color-mix(in srgb, currentcolor 35%, transparent 65%);
+  --hover-decoration: underline 1px currentColor;
   display: inline-flex;
   align-items: center;
-  color: currentColor;
+  color: color-mix(in srgb, currentcolor 85%, transparent 15%);
   font-size: 1em;
-  text-decoration: none;
+  text-decoration: var(--default-decoration);
+  text-underline-offset: 3px;
+  &:hover,
+  &:focus-visible {
+    color: currentColor;
+    text-decoration: var(--hover-decoration);
+  }
   outline-color: var(--orb-primary-300);
   outline-offset: 3px;
   cursor: pointer;
@@ -144,9 +272,8 @@ a {
     --hover-background: var(--orb-primary-550);
     --active-background: var(--orb-primary-600);
   }
-  &[data-orb~="underline"] {
-    text-decoration: underline;
-    text-underline-offset: 2px;
+  &[data-orb~="quiet"] {
+    --default-decoration: none;
   }
   &[data-orb~="button"] {
     color: var(--color);
@@ -165,6 +292,15 @@ a {
       background-color: var(--active-background);
     }
   }
+  // The card fills the tile, so tiles in a grid row match in height
+  &[data-orb~="tile"] {
+    display: flex;
+    align-items: stretch;
+    orb-card {
+      flex: 1;
+      min-width: 0;
+    }
+  }
   &[data-orb~="tile"] orb-card {
     transition: var(--orb-transition-fast) ease-in-out;
     transition-property: scale, border-color;
@@ -173,41 +309,496 @@ a {
       scale: 1.03;
     }
   }
+  // Last, so the `display` set by the variants above doesn't override it
+  &[hidden] {
+    display: none;
+  }
 }
 
-.orb-table {
-  width: 100%;
-  max-width: 100%;
+// Navigation lists
+//
+// `data-orb="nav"` is a row of links, like a site's section bar, and
+// `data-orb="vertical-nav"` is a column, like a sidebar. Each item is an `li`
+// with an `a`, or a `button` for apps that navigate with click handlers. The
+// current page is marked with `aria-current`. Put the list in a `nav` with an
+// `aria-label`.
+
+ul:is([data-orb~="nav"], [data-orb~="vertical-nav"]) {
+  --nav-color: light-dark(var(--orb-neutral-700), var(--orb-neutral-250));
+  --nav-hover-background: light-dark(
+    var(--orb-neutral-100),
+    var(--orb-neutral-850)
+  );
+  --nav-current-color: light-dark(
+    var(--orb-primary-600),
+    var(--orb-primary-200)
+  );
+  --nav-guide-color: light-dark(var(--orb-neutral-400), var(--orb-neutral-700));
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    min-width: 0;
+    margin: 0;
+  }
+
+  :is(a, button) {
+    display: flex;
+    align-items: center;
+    gap: var(--orb-spacing-xs);
+    margin: 0;
+    border: 0;
+    border-radius: var(--orb-radius-md);
+    background-color: transparent;
+    color: var(--nav-color);
+    font: inherit;
+    --default-decoration: none;
+    --hover-decoration: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--orb-transition-x-fast) ease-in-out;
+
+    // Inside, so the focus ring isn't cut off by a scrolling list
+    &:focus-visible {
+      outline: 2px solid var(--orb-primary-300);
+      outline-offset: -2px;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        background-color: var(--nav-hover-background);
+      }
+    }
+
+    &[aria-current]:not([aria-current="false"]) {
+      color: var(--nav-current-color);
+    }
+
+    &[aria-disabled="true"] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+}
+
+ul[data-orb~="nav"] {
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
   overflow-x: auto;
-  overflow-y: hidden;
+  scrollbar-width: none;
+
+  :is(a, button) {
+    height: 2.5em;
+    padding-inline: var(--orb-spacing-sm);
+    white-space: nowrap;
+  }
+}
+
+ul[data-orb~="vertical-nav"] {
+  --nav-current-color: light-dark(
+    var(--orb-primary-600),
+    var(--orb-primary-200)
+  );
+  --nav-current-background: light-dark(
+    var(--orb-primary-50),
+    var(--orb-neutral-850)
+  );
+  // Like the sidebar tree, hovering uses the same tint as the current page.
+  --nav-hover-background: var(--nav-current-background);
+  flex-direction: column;
+  gap: var(--orb-spacing-3xs);
+
+  :is(a, button) {
+    width: 100%;
+    height: 2.25rem;
+    padding-inline: var(--orb-spacing-lg);
+    text-align: start;
+
+    &[aria-current]:not([aria-current="false"]) {
+      background-color: var(--nav-current-background);
+    }
+  }
+
+  // A list inside an item is indented, with a guide line down its side
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--orb-spacing-3xs);
+    margin: var(--orb-spacing-3xs) 0 0 var(--orb-spacing-sm);
+    padding: 0 0 0 var(--orb-spacing-2xs);
+    //border-inline-start: 1px solid var(--nav-guide-color);
+    list-style: none;
+  }
+}
+
+@media (forced-colors: active) {
+  // Color is removed, so the current page needs another mark
+  ul:is([data-orb~="nav"], [data-orb~="vertical-nav"]) :is(a, button)[aria-current]:not([aria-current="false"]) {
+    text-decoration: underline;
+  }
+}
+
+// Tables
+//
+// Features are space-separated words in `data-orb` on the table, such as
+// `data-orb="striped hover compact"`. Each one only sets custom properties, so
+// they combine, and any property can also be set directly on a table. See
+// docs/css-utilities/native.md for the full list.
+
+[data-orb~="table-container"] {
+  max-width: var(--table-max-width, 100%);
+  max-height: var(--table-max-height, none);
+  overflow: auto;
   scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
 
-  table {
-    border-collapse: collapse;
-    min-width: 100%;
-    width: max-content;
-    max-width: none;
+  &:focus-visible {
+    outline: 2px solid var(--orb-primary-300);
+    outline-offset: 2px;
+  }
+}
 
-    th,
-    td {
-      padding: 8px 12px;
-      text-align: left;
-      border: 1px solid light-dark(#ddd, #444);
-      color: light-dark(#000, #fff);
+table {
+  // Colors. The backgrounds are opaque, mixed over --table-background, since
+  // sticky headers and columns have to hide the cells that scroll under them.
+  --table-background: var(--orb-background-color);
+  --table-border-color: light-dark(
+    var(--orb-neutral-300),
+    var(--orb-neutral-750)
+  );
+  --table-header-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-text-color) 7%
+  );
+  --table-stripe-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-text-color) 4%
+  );
+  --table-hover-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-text-color) 9%
+  );
+  --table-selected-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-primary-500) 16%
+  );
+  --table-success-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-success-500) 18%
+  );
+  --table-warning-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-warning-500) 20%
+  );
+  --table-danger-background: color-mix(
+    in srgb,
+    var(--table-background),
+    var(--orb-danger-500) 16%
+  );
+  --table-muted-color: light-dark(
+    var(--orb-neutral-700),
+    var(--orb-neutral-400)
+  );
+
+  // Borders. The multipliers turn sets of lines on or off: vertical and
+  // horizontal are the lines between cells, outer is the edge of the table.
+  --table-border-width: 1px;
+  --table-vertical-borders: 1;
+  --table-horizontal-borders: 1;
+  --table-outer-inline-borders: 1;
+  --table-outer-block-borders: 1;
+
+  // Spacing
+  --table-cell-padding-y: var(--orb-spacing-xs);
+  --table-cell-padding-x: var(--orb-spacing-sm);
+  --table-border-spacing: 0;
+
+  // Column widths, for `w-xs` to `w-xl`
+  --table-col-width-xs: 4rem;
+  --table-col-width-sm: 8rem;
+  --table-col-width-md: 12rem;
+  --table-col-width-lg: 16rem;
+  --table-col-width-xl: 24rem;
+
+
+  width: 100%;
+  min-width: var(--table-min-width, 0);
+  border-collapse: collapse;
+  border-spacing: var(--table-border-spacing);
+  border-style: solid;
+  border-color: var(--table-border-color);
+  border-inline-width: calc(
+    var(--table-border-width) * var(--table-outer-inline-borders)
+  );
+  border-block-width: calc(
+    var(--table-border-width) * var(--table-outer-block-borders)
+  );
+  font-size: var(--table-font-size, inherit);
+  font-variant-numeric: var(--table-font-variant-numeric, normal);
+  color: var(--orb-text-color);
+
+  caption {
+    padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+    color: var(--table-muted-color);
+    font-size: var(--orb-font-sm);
+    text-align: start;
+  }
+
+  th,
+  td {
+    padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+    border-style: solid;
+    border-color: var(--table-border-color);
+    border-width: 0;
+    border-inline-width: calc(
+      var(--table-border-width) * var(--table-vertical-borders)
+    );
+    border-block-width: calc(
+      var(--table-border-width) * var(--table-horizontal-borders)
+    );
+    // Only a row, or a cell, ever sets this, so every cell paints its row's
+    // background itself. Sticky cells need that to stay opaque.
+    background-color: var(--_row-background, transparent);
+    text-align: start;
+    vertical-align: var(--table-vertical-align, middle);
+  }
+
+  // Header cells. A header in a body row, or with scope="row", names its row,
+  // so it looks like a cell with a bold label.
+  thead :is(th, td) {
+    background-color: var(--table-header-background);
+    font-size: var(--table-header-font-size, inherit);
+    font-weight: var(--orb-font-semi-bold);
+    text-transform: var(--table-header-text-transform, none);
+    letter-spacing: var(--table-header-letter-spacing, normal);
+  }
+
+  tbody th,
+  th[scope="row"] {
+    font-weight: var(--orb-font-semi-bold);
+  }
+
+  tfoot :is(th, td) {
+    background-color: var(--table-header-background);
+    font-weight: var(--orb-font-semi-bold);
+  }
+
+  // Layout
+  &[data-orb~="fixed"] {
+    table-layout: fixed;
+  }
+
+  &[data-orb~="truncate"] :is(th, td) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &[data-orb~="caption-bottom"] {
+    caption-side: bottom;
+  }
+
+  // The separate model gives every cell its own box, with space between them.
+  // It has no shared edges, so the table has no outer border by default.
+  &[data-orb~="separate"] {
+    --table-border-spacing: var(--orb-spacing-3xs);
+    --table-outer-inline-borders: 0;
+    --table-outer-block-borders: 0;
+    border-collapse: separate;
+
+    :is(th, td) {
+      border-radius: var(--table-cell-radius, var(--orb-radius-md));
     }
+  }
 
-    th {
-      background-color: light-dark(#f5f5f5, #333);
-      font-weight: bold;
-    }
+  // Borders
+  &[data-orb~="outer"] {
+    --table-vertical-borders: 0;
+    --table-horizontal-borders: 0;
+  }
 
-    tr:nth-child(even) {
-      background-color: light-dark(#f9f9f9, #2a2a2a);
-    }
+  &[data-orb~="rows"] {
+    --table-vertical-borders: 0;
+    --table-outer-inline-borders: 0;
+  }
 
-    tbody tr {
-      background-color: light-dark(#fff, #1a1a1a);
+  &[data-orb~="borderless"] {
+    --table-vertical-borders: 0;
+    --table-horizontal-borders: 0;
+    --table-outer-inline-borders: 0;
+    --table-outer-block-borders: 0;
+  }
+
+  // Density
+  &[data-orb~="compact"] {
+    --table-cell-padding-y: var(--orb-spacing-3xs);
+    --table-cell-padding-x: var(--orb-spacing-xs);
+  }
+
+  &[data-orb~="comfortable"] {
+    --table-cell-padding-y: var(--orb-spacing-sm);
+    --table-cell-padding-x: var(--orb-spacing-md);
+  }
+
+  // Header style: small uppercase labels
+  &[data-orb~="caps"] {
+    --table-header-text-transform: uppercase;
+    --table-header-letter-spacing: 0.05em;
+    --table-header-font-size: 0.85em;
+  }
+
+  // Row backgrounds, lowest priority first. Stripes and hover use `:where()`
+  // so a selected or meaningful row, further down, always outranks them.
+  &[data-orb~="striped"] :where(tbody tr:nth-child(even)) {
+    --_row-background: var(--table-stripe-background);
+  }
+
+  @media (hover: hover) {
+    &[data-orb~="hover"] :where(tbody tr:hover) {
+      --_row-background: var(--table-hover-background);
     }
+  }
+
+  &[data-orb~="sticky-header"] thead :is(th, td) {
+    position: sticky;
+    top: var(--table-sticky-top, 0);
+    z-index: 2;
+  }
+
+  // The first cell of every row stays in view when the table scrolls sideways.
+  // The corner where the header meets it sits above both.
+  &[data-orb~="sticky-column"] tr > :first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background-color: var(--_row-background, var(--table-background));
+  }
+
+  &[data-orb~="sticky-column"] thead tr > :first-child,
+  &[data-orb~="sticky-column"] tfoot tr > :first-child {
+    background-color: var(--table-header-background);
+  }
+
+  &[data-orb~="sticky-header"][data-orb~="sticky-column"] thead tr > :first-child {
+    z-index: 3;
+  }
+
+  // Collapsed borders belong to the table, so they stay behind when a sticky
+  // cell moves. Sticky cells draw their own edge on top of the border instead,
+  // centered on the same line so it isn't any thicker at rest. The separate
+  // model has no shared borders, so its cells keep their own.
+  &[data-orb~="sticky-header"]:not([data-orb~="separate"]) thead tr:last-child > :is(th, td)::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: calc(var(--table-border-width) * var(--table-horizontal-borders) / -2);
+    height: calc(var(--table-border-width) * var(--table-horizontal-borders));
+    background-color: var(--table-border-color);
+    pointer-events: none;
+  }
+
+  &[data-orb~="sticky-column"]:not([data-orb~="separate"]) tr > :first-child::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: calc(var(--table-border-width) * var(--table-vertical-borders) / -2);
+    width: calc(var(--table-border-width) * var(--table-vertical-borders));
+    background-color: var(--table-border-color);
+    pointer-events: none;
+  }
+
+  // Rows and cells with a state or meaning, which don't need a table setting
+  tr[data-orb~="selected"],
+  :is(td, th)[data-orb~="selected"] {
+    --_row-background: var(--table-selected-background);
+  }
+
+  :is(tr, td, th)[data-orb~="success"] {
+    --_row-background: var(--table-success-background);
+  }
+
+  :is(tr, td, th)[data-orb~="warning"] {
+    --_row-background: var(--table-warning-background);
+  }
+
+  :is(tr, td, th)[data-orb~="danger"] {
+    --_row-background: var(--table-danger-background);
+  }
+
+  // A row that can be focused or clicked
+  tr[data-orb~="interactive"] {
+    cursor: pointer;
+  }
+
+  tr:is([tabindex], [data-orb~="interactive"]):focus-visible {
+    outline: 2px solid var(--orb-primary-300);
+    outline-offset: -2px;
+  }
+
+  // Column widths and alignment, on a `col`, `th`, or `td`. A `col` only sets
+  // widths. Browsers ignore its alignment.
+  :is(col, th, td)[data-orb~="w-xs"] {
+    width: var(--table-col-width-xs);
+  }
+
+  :is(col, th, td)[data-orb~="w-sm"] {
+    width: var(--table-col-width-sm);
+  }
+
+  :is(col, th, td)[data-orb~="w-md"] {
+    width: var(--table-col-width-md);
+  }
+
+  :is(col, th, td)[data-orb~="w-lg"] {
+    width: var(--table-col-width-lg);
+  }
+
+  :is(col, th, td)[data-orb~="w-xl"] {
+    width: var(--table-col-width-xl);
+  }
+
+  :is(col, th, td)[data-orb~="w-auto"] {
+    width: auto;
+  }
+
+  // Only as wide as its content
+  :is(col, th, td)[data-orb~="w-min"] {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  :is(th, td)[data-orb~="start"] {
+    text-align: start;
+  }
+
+  :is(th, td)[data-orb~="center"] {
+    text-align: center;
+  }
+
+  :is(th, td)[data-orb~="end"] {
+    text-align: end;
+  }
+
+  // Numbers line up when they're at the end of the cell, in digits of equal width
+  :is(th, td)[data-orb~="numeric"] {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (forced-colors: active) {
+  // Backgrounds are removed, so a selected row needs another mark
+  table tr[data-orb~="selected"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
   }
 }
