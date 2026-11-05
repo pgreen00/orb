@@ -51,8 +51,8 @@
           {% endfor %}
         </ul>
       </nav>
-      <orb-button class="icon-only" fill="clear" size="lg" slot="end">
-        <iconify-icon height="2rem" width="2rem" icon="mdi:search"></iconify-icon>
+      <orb-button id="search-button" class="icon-only" fill="clear" size="lg" slot="end" aria-label="Search" aria-keyshortcuts="Control+K Meta+K">
+        <iconify-icon height="2rem" width="2rem" icon="mdi:search" aria-hidden="true"></iconify-icon>
       </orb-button>
       <a href="https://github.com/pgreen00/orb" target="_blank" slot="end">
         <iconify-icon height="2.5rem" width="2.5rem" icon="akar-icons:github-fill"></iconify-icon>
@@ -123,6 +123,17 @@
       {{ content | safe }}
     {% endblock %}
   </main>
+  <orb-overlay id="search-overlay" trigger="search-button">
+    <orb-view label="Search" heading-level="2" closable>
+      <orb-textbox id="search-textbox" slot="details" debounce="150">
+        <iconify-icon slot="start" icon="mdi:magnify" aria-hidden="true"></iconify-icon>
+        <input type="search" aria-label="Search the docs" placeholder="Search components, guides, and APIs" autocomplete="off" enterkeyhint="search" spellcheck="false">
+      </orb-textbox>
+      <p id="search-status" role="status" class="search-status"></p>
+      <ul id="search-results" class="search-results" aria-label="Search results"></ul>
+    </orb-view>
+  </orb-overlay>
+  <script type="module" src="/search.js"></script>
 </body>
 
 <script type="module">

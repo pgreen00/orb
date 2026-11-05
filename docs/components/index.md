@@ -37,7 +37,7 @@ templateEngineOverride: njk
 
   <p id="component-count" role="status"></p>
 
-  <orb-mesh space="md" style="--min-column-size: 16rem">
+  <orb-mesh space="md" style="--min-column-size: 16rem" data-search-skip>
     {%- for component in collections.componentsNav %}
     {%- set name = component.label or component.name %}
     <a data-orb="tile quiet" href="/components/{{ component.name }}/" data-search="{{ (name + ' ' + (component.tag or '') + ' ' + (component.description or '')) | lower }}" aria-labelledby="tile-{{ component.name }}-name"{% if component.description %} aria-describedby="tile-{{ component.name }}-description"{% endif %}>

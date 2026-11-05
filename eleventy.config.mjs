@@ -4,6 +4,7 @@ import toc from "markdown-it-table-of-contents";
 import multimdTable from "markdown-it-multimd-table";
 import markdownItContainer from "markdown-it-container";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
+import { buildSearchIndex } from "./scripts/search-index.mjs";
 
 export default async function (eleventyConfig) {
   const md = markdownIt({
@@ -127,6 +128,11 @@ export default async function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({
     "./dist": "build/",
     "./docs/public": "/",
+  });
+
+  eleventyConfig.on("eleventy.after", async ({ dir, results }) => {
+    const { pages, records } = await buildSearchIndex(results, dir.output);
+    console.log(`[search] Indexed ${records} sections from ${pages} pages`);
   });
 
   eleventyConfig.addCollection("componentsNav", function (collectionApi) {
