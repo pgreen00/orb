@@ -1069,6 +1069,50 @@ grid.addEventListener("orbFilterChange", ({ detail }) => {
 - Search "phone", then filter Category. The status counts the matching rows.
 - With the network offline, reload. The status says the products couldn't load.
 
+## Forms
+
+The grid is a form control. Give it a `name`, and it submits its rows with the form: the rows that pass the search and filters, in the order shown, on every page. With `selection`, it submits the selected rows instead, in the order shown.
+
+Each cell is its own entry, named with the grid's name, the row's index from 0, and its column's key, such as `team[0][Name]`. Most server frameworks read names like these as a list of objects. A column's key is its header's `name`, or the header's text when it has none. A cell's value is its `value`, or its text. A grid without a `name` doesn't submit anything, the same as a native field.
+
+Resetting the form clears the selection. A `server-side` grid doesn't submit anything, since it only has one page of rows.
+
+::: live-code-demo
+
+```html
+<form id="team-form">
+  <orb-grid name="team" selection="multiple" select-all aria-label="Team">
+    <orb-cell section="head" name="id" numeric>ID</orb-cell>
+    <orb-cell section="head">Name</orb-cell>
+    <orb-cell section="head" name="salary" numeric sortable>Salary</orb-cell>
+
+    <orb-cell>1</orb-cell><orb-cell>Alice Johnson</orb-cell><orb-cell value="95000">$95,000</orb-cell>
+    <orb-cell>2</orb-cell><orb-cell>Bob Smith</orb-cell><orb-cell value="85000">$85,000</orb-cell>
+    <orb-cell>3</orb-cell><orb-cell>Cara Diaz</orb-cell><orb-cell value="105000">$105,000</orb-cell>
+  </orb-grid>
+  <orb-toolbar class="orb-padding-sm">
+    <orb-button type="submit" size="sm">Submit</orb-button>
+    <orb-button type="reset" size="sm" fill="outline">Reset</orb-button>
+  </orb-toolbar>
+</form>
+<pre id="team-output" aria-live="polite">Select rows, then submit.</pre>
+```
+
+```javascript
+document.querySelector("#team-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const entries = [...new FormData(event.target)].map(([name, value]) => `${name} = ${value}`);
+  document.querySelector("#team-output").textContent = entries.join("\n") || "Nothing selected.";
+});
+```
+
+:::
+
+**Manual test:**
+- Select Bob and Cara, then submit. The output lists `team[0][id] = 2` through `team[1][salary] = 105000`, with the salaries from `value`.
+- Sort by Salary, descending, then submit. Cara comes first.
+- Click Reset. The checkboxes clear. Submit again. The output says nothing is selected.
+
 ## Server-Side Data
 
 For more rows than the browser should hold, set `server-side`, and let your server sort, search, filter, and page. The grid keeps working the same for the user: headers still sort, the search field and filters still take input, and the pagination still turns pages. But the grid shows the body cells it has, in the order they're in, and leaves the rest to you.

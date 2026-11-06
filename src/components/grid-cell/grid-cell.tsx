@@ -162,6 +162,13 @@ export class GridCell {
   @Prop({ reflect: true }) rowStatus?: "success" | "warning" | "danger";
 
   /**
+   * On a header cell, the key its column's values are submitted under when
+   * the grid is in a form, such as `name="salary"` for `employees[0][salary]`.
+   * Without it, the key is the header's text.
+   */
+  @Prop({ reflect: true }) name?: string;
+
+  /**
    * Makes a body cell its row's header, like a `th` with `scope="row"`.
    * Screen readers read it with the other cells in the row.
    */

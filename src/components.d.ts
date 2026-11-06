@@ -291,6 +291,10 @@ export namespace Components {
          */
         "filterValue"?: string | { min?: string; max?: string } | string[];
         /**
+          * On a header cell, the key its column's values are submitted under when the grid is in a form, such as `name="salary"` for `employees[0][salary]`. Without it, the key is the header's text.
+         */
+        "name"?: string;
+        /**
           * Aligns the content to the end, with digits of equal width, so numbers line up. On a header cell that covers one column, it applies to the whole column.
           * @default false
          */
@@ -695,6 +699,10 @@ export namespace Components {
           * @default false
          */
         "interactive": boolean;
+        /**
+          * The name the grid's rows are submitted under in a form. Each cell is an entry named with the grid's name, the row's index, and its column's key, such as `employees[0][Name]`. A column's key is its header's `name`, or its header's text. The rows are the ones that pass the search and filters, in the order shown, on every page. With `selection`, they're the selected rows instead. A grid without a name, or with `server-side`, doesn't submit anything.
+         */
+        "name"?: string;
         /**
           * What the arrow keys move between. `cell` moves focus cell by cell. `row` focuses whole rows, and only the up and down arrows move.
           * @default "cell"
@@ -3178,6 +3186,10 @@ declare namespace LocalJSX {
          */
         "filterValue"?: string | { min?: string; max?: string } | string[];
         /**
+          * On a header cell, the key its column's values are submitted under when the grid is in a form, such as `name="salary"` for `employees[0][salary]`. Without it, the key is the header's text.
+         */
+        "name"?: string;
+        /**
           * Aligns the content to the end, with digits of equal width, so numbers line up. On a header cell that covers one column, it applies to the whole column.
           * @default false
          */
@@ -3578,10 +3590,18 @@ declare namespace LocalJSX {
          */
         "density"?: "compact" | "default" | "comfortable";
         /**
+          * If `true`, the user cannot interact with the element.
+         */
+        "disabled"?: boolean;
+        /**
           * Columns without a `width` share the space equally, instead of sizing to their content, so they don't shift as the content changes.
           * @default false
          */
         "fixed"?: boolean;
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
         /**
           * Tints the body row under the pointer, on devices that hover.
           * @default false
@@ -3592,6 +3612,10 @@ declare namespace LocalJSX {
           * @default false
          */
         "interactive"?: boolean;
+        /**
+          * The name the grid's rows are submitted under in a form. Each cell is an entry named with the grid's name, the row's index, and its column's key, such as `employees[0][Name]`. A column's key is its header's `name`, or its header's text. The rows are the ones that pass the search and filters, in the order shown, on every page. With `selection`, they're the selected rows instead. A grid without a name, or with `server-side`, doesn't submit anything.
+         */
+        "name"?: string;
         /**
           * What the arrow keys move between. `cell` moves focus cell by cell. `row` focuses whole rows, and only the up and down arrows move.
           * @default "cell"
@@ -4828,6 +4852,7 @@ declare namespace LocalJSX {
         "numeric": boolean;
         "status": "success" | "warning" | "danger";
         "rowStatus": "success" | "warning" | "danger";
+        "name": string;
         "rowHeader": boolean;
         "filter": "text" | "number" | "date" | "select";
         "filterValue": string | { min?: string; max?: string } | string[];
@@ -4898,6 +4923,7 @@ declare namespace LocalJSX {
     }
     interface OrbGridAttributes {
         "columns": number;
+        "name": string;
         "navigation": "cell" | "row";
         "selection": "none" | "single" | "multiple";
         "selectAll": boolean;

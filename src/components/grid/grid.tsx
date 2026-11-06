@@ -17,8 +17,6 @@ import lightStyles from "./grid-light.css";
 import tableStyles from "./tables.generated.css";
 import { setState, toggleState } from "../../utils/custom-states";
 
-//todo: form submission
-
 /** `details` is the row an open `orb-row-details` shows in, below its row. */
 type Section = "head" | "body" | "foot" | "details";
 
@@ -121,6 +119,7 @@ const LAYOUT_ATTRIBUTES = [
   "align",
   "numeric",
   "row-status",
+  "name",
 ];
 
 const WIDTHS = ["xs", "sm", "md", "lg", "xl"];
@@ -529,6 +528,7 @@ const FOCUSABLE = [
   shadow: {
     slotAssignment: "manual",
   },
+  formAssociated: true,
 })
 export class Grid {
   @AttachInternals({
@@ -562,6 +562,17 @@ export class Grid {
    * has more than one row, or when there's no header.
    */
   @Prop() columns?: number;
+
+  /**
+   * The name the grid's rows are submitted under in a form. Each cell is an
+   * entry named with the grid's name, the row's index, and its column's key,
+   * such as `employees[0][Name]`. A column's key is its header's `name`, or
+   * its header's text. The rows are the ones that pass the search and
+   * filters, in the order shown, on every page. With `selection`, they're
+   * the selected rows instead. A grid without a name, or with
+   * `server-side`, doesn't submit anything.
+   */
+  @Prop({ reflect: true }) name?: string;
 
   /**
    * What the arrow keys move between. `cell` moves focus cell by cell. `row`
@@ -799,6 +810,8 @@ export class Grid {
   private matchedCells = new Set<HTMLElement>();
   /** Whether an `orbQueryChange` is waiting to emit */
   private queryQueued = false;
+  /** Whether the form value is waiting to update */
+  private formQueued = false;
   /** With `server-side`, the body rows a keyboard page turn started on, and whether `busy` has been set since */
   private pageTurn?: { cells: Set<HTMLElement>; busy: boolean };
   /** Whether focus is in the grid. Kept when the focused cell is removed. */
@@ -869,6 +882,8 @@ export class Grid {
     }
     if (rebuild) this.setRows();
     else if (content) {
+      // A cell's text is its value, unless it has a `value`
+      this.queueFormValue();
       this.updateTabStops();
       // The lead column controls are named from their row's first cell.
       if (this.offset) forceUpdate(this.host);
@@ -989,6 +1004,7 @@ export class Grid {
   @Watch("serverSide")
   onServerSideChange() {
     this.bindPaginator();
+    this.queueFormValue();
   }
 
   /** The sort, search, filters, and page, as `orbQueryChange` reports them */
@@ -2354,6 +2370,66 @@ export class Grid {
 
     this.updateTabStops();
     this.updateHighlights();
+    this.queueFormValue();
+  }
+
+  @Watch("name")
+  onNameChange() {
+    this.queueFormValue();
+  }
+
+  /** Updates the form value once, after every change made in the same task */
+  private queueFormValue() {
+    if (this.formQueued) return;
+    this.formQueued = true;
+    queueMicrotask(() => {
+      this.formQueued = false;
+      this.updateFormValue();
+    });
+  }
+
+  /**
+   * The rows the grid submits, as entries the form adds as they are. A
+   * `FormData` value doesn't use the grid's `name` the way a string value
+   * would, so the grid puts it in each entry's name itself.
+   */
+  private updateFormValue() {
+    const name = this.name?.trim();
+    if (this.serverSide || !name) {
+      this.internals.setFormValue(null);
+      return;
+    }
+    const rows = this.exportRows({ rows: this.selecting ? "selected" : "view", expand: "all" });
+    const keys = this.formKeys();
+    const placed = new Map(layoutSection(rows.flatMap((r) => r.cells), this.columnCount).map((p) => [p.cell, p]));
+    const data = new FormData();
+    rows.forEach((row, index) => {
+      for (const cell of row.cells) {
+        const p = placed.get(cell);
+        if (p) data.append(`${name}[${index}][${keys[p.col]}]`, valueOf(cell));
+      }
+    });
+    this.internals.setFormValue(data);
+  }
+
+  /**
+   * Each column's key in the form: its header's `name`, or its header's text.
+   * A header over one column wins over one that spans several.
+   */
+  private formKeys() {
+    const keys: string[] = Array(this.columnCount).fill("");
+    for (const p of layoutSection(this.cellsIn("head"), this.columnCount)) {
+      const key = p.cell.getAttribute("name")?.trim() || textOf(p.cell).replace(/\s+/g, " ");
+      for (let c = p.col; c < p.col + p.colspan; c++) {
+        if (p.colspan === 1 || !keys[c]) keys[c] = key;
+      }
+    }
+    return keys.map((key, i) => key || String(i + 1));
+  }
+
+  /** A form reset clears the selection, which starts out empty. */
+  formResetCallback() {
+    if (this.selected.size) this.setSelected(new Set());
   }
 
   /**
@@ -2667,6 +2743,7 @@ export class Grid {
   private setSelected(next: Set<HTMLElement>) {
     if (this.cascades) this.settleParents(next);
     this.selected = next;
+    this.queueFormValue();
     this.orbSelectionChange.emit(
       this.allBodyRows.filter((r) => next.has(r.cells[0])).map((r) => r.cells),
     );
