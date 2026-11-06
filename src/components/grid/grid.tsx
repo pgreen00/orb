@@ -69,10 +69,23 @@ export type GridFilterDetail = {
     type: "text" | "number" | "date" | "select";
     value: string | { min?: string; max?: string } | string[];
   }[];
-  /** How many body rows match, on every page */
-  matches: number;
-  /** How many body rows there are */
-  total: number;
+  /** How many body rows match, on every page. Undefined with `server-side`. */
+  matches?: number;
+  /** How many body rows there are. Undefined with `server-side`. */
+  total?: number;
+};
+
+export type GridQueryDetail = {
+  /** The header sorting the rows, its column from 0, and the direction */
+  sort?: { cell: HTMLElement; column: number; direction: "ascending" | "descending" };
+  /** The search text */
+  search: string;
+  /** The headers whose filters have a value, and the value */
+  filters: GridFilterDetail["filters"];
+  /** The current page, from 1, when the grid has `pagination` */
+  page?: number;
+  /** The page size, when the grid has `pagination` */
+  pageSize?: number;
 };
 
 export type GridSortDetail = {
@@ -536,6 +549,8 @@ export class Grid {
       tree: false,
       /** A row is picked up or being dragged */
       dragging: false,
+      /** `busy` is set */
+      busy: false,
     },
   })
   internals: ElementInternals;
@@ -652,6 +667,22 @@ export class Grid {
   @Prop({ reflect: true }) rowHeaders = false;
 
   /**
+   * Leaves sorting, searching, filtering, and paging to the server. The grid
+   * still shows the sort arrows, filters, and page, and emits the same
+   * events, but shows the body cells it has, in the order they're in. Listen
+   * for `orbQueryChange`, fetch the rows, and replace the body cells. Set the
+   * pagination's `total` yourself, and each `select` filter's
+   * `filterOptions`. Printing and exporting aren't available.
+   */
+  @Prop({ reflect: true }) serverSide = false;
+
+  /**
+   * Marks the grid as loading, such as while new rows are fetched. Sets
+   * `aria-busy` and the `busy` state. Style the state to show it.
+   */
+  @Prop({ reflect: true }) busy = false;
+
+  /**
    * Emits when the user presses Enter on a cell, or on a row with
    * `navigation="row"`. Call `preventDefault()` to keep focus where it is.
    * Otherwise focus moves to the first focusable element in the cell or row.
@@ -691,6 +722,13 @@ export class Grid {
    * filtered, with the search, the active filters, and how many rows match.
    */
   @Event() orbFilterChange: EventEmitter<GridFilterDetail>;
+
+  /**
+   * Emits after the sort, search, filters, or page change, from the user or
+   * from a method, with all of them. With `server-side`, fetch the rows for
+   * the query when it fires.
+   */
+  @Event() orbQueryChange: EventEmitter<GridQueryDetail>;
 
   @State() rows: Row[] = [];
   @State() columnCount = 1;
@@ -759,6 +797,19 @@ export class Grid {
   private renderWaiters: (() => void)[] = [];
   /** Cells in the `match` state */
   private matchedCells = new Set<HTMLElement>();
+  /** Whether an `orbQueryChange` is waiting to emit */
+  private queryQueued = false;
+  /** With `server-side`, the body rows a keyboard page turn started on, and whether `busy` has been set since */
+  private pageTurn?: { cells: Set<HTMLElement>; busy: boolean };
+  /** Whether focus is in the grid. Kept when the focused cell is removed. */
+  private focusInside = false;
+  /** The cell or details that had focus, and its slot, to restore focus if it's removed */
+  private lastFocus?: { el: HTMLElement; track: number; col: number; rowIndex: number };
+  /** Where to move focus after the focused cell was removed */
+  private pendingRestore?: { track: number; col: number; rowIndex: number };
+  /** `aria-rowcount`, and each row's `aria-rowindex`, when the grid is paged */
+  private ariaRowCount?: number;
+  private ariaRowIndex = new Map<Row, number>();
   /** This grid's ranges in the shared match highlight */
   private highlightRanges: Range[] = [];
   private announceTimer?: ReturnType<typeof setTimeout>;
@@ -831,6 +882,7 @@ export class Grid {
   private controlObserver = new MutationObserver(() => this.updateControlTabStops());
 
   componentWillLoad() {
+    this.onBusyChange();
     this.internals.role = this.isTree ? "treegrid" : "grid";
     this.onSelectionModeChange();
   }
@@ -865,9 +917,25 @@ export class Grid {
   componentDidRender() {
     this.updateControlTabStops();
     this.observeSticky();
+    // The focused cell was removed, such as when the rows were replaced, so
+    // focus moves to the cell in its place, or the nearest one.
+    if (this.pendingRestore) {
+      const { track, col, rowIndex } = this.pendingRestore;
+      this.pendingRestore = undefined;
+      const active = (this.host.getRootNode() as Document | ShadowRoot).activeElement;
+      const lost = !active || active === document.body;
+      if (lost && this.rows.length) {
+        if (this.navigation === "row") this.focusRow(Math.min(rowIndex, this.rows.length - 1));
+        else {
+          const t = Math.min(track, this.matrix.length - 1);
+          this.focusCell(this.nearestIn(t, col), t, col);
+        }
+      }
+    }
     // After a page turn from the keyboard, focus the same column in the new
-    // page's first row.
-    if (this.pendingPageFocus != null) {
+    // page's first row. With `server-side`, that's once the new rows are in.
+    if (this.pendingPageFocus != null && this.pageTurnSettled()) {
+      this.pageTurn = undefined;
       const col = this.pendingPageFocus;
       this.pendingPageFocus = undefined;
       const index = this.rows.findIndex((r) => r.section === "body");
@@ -897,6 +965,74 @@ export class Grid {
     const waiters = this.renderWaiters;
     this.renderWaiters = [];
     waiters.forEach((resolve) => resolve());
+  }
+
+  /**
+   * Whether a keyboard page turn has its new rows: always without
+   * `server-side`, and with it, once the body cells change, or `busy` is set
+   * and cleared again.
+   */
+  private pageTurnSettled() {
+    const turn = this.pageTurn;
+    if (!this.serverSide || !turn) return true;
+    if (this.busy) return false;
+    return turn.busy || this.bodyRows.some((r) => !turn.cells.has(r.cells[0]));
+  }
+
+  @Watch("busy")
+  onBusyChange() {
+    this.internals.ariaBusy = this.busy ? "true" : null;
+    toggleState(this.internals.states, "busy", this.busy);
+    if (this.busy && this.pageTurn) this.pageTurn.busy = true;
+  }
+
+  @Watch("serverSide")
+  onServerSideChange() {
+    this.bindPaginator();
+  }
+
+  /** The sort, search, filters, and page, as `orbQueryChange` reports them */
+  private get query(): GridQueryDetail {
+    const head = this.cellsIn("head");
+    const sortCell = head.find((el) => el.hasAttribute("sortable") && SORTS.includes(el.getAttribute("sort")));
+    const column = sortCell && layoutSection(head, this.columnCount).find((p) => p.cell === sortCell)?.col;
+    const pages = this.paginator;
+    return {
+      sort: sortCell
+        ? { cell: sortCell, column, direction: sortCell.getAttribute("sort") as "ascending" | "descending" }
+        : undefined,
+      search: this.search ?? "",
+      filters: this.filterDetails,
+      page: pages ? Number(pages.page) || 1 : undefined,
+      pageSize: pages ? Number(pages.pageSize) || 10 : undefined,
+    };
+  }
+
+  /** The headers whose filters have a value */
+  private get filterDetails(): GridFilterDetail["filters"] {
+    type Filterable = HTMLElement & { filterValue?: FilterValue };
+    return (this.cellsIn("head") as Filterable[])
+      .filter((cell) => FILTER_TYPES.includes(cell.getAttribute("filter") as FilterType) && cell.filterValue !== undefined)
+      .map((cell) => ({ cell, type: cell.getAttribute("filter") as FilterType, value: cell.filterValue }));
+  }
+
+  /** Emits `orbQueryChange` once, after every change made in the same task */
+  private queueQuery() {
+    if (this.queryQueued) return;
+    this.queryQueued = true;
+    queueMicrotask(() => {
+      this.queryQueued = false;
+      this.orbQueryChange.emit(this.query);
+    });
+  }
+
+  /**
+   * The sort, search, filters, and page, the same as `orbQueryChange`
+   * reports them. With `server-side`, use it to fetch the first rows.
+   */
+  @Method()
+  async getQuery(): Promise<GridQueryDetail> {
+    return this.query;
   }
 
   /** Every cell, in markup order */
@@ -1077,6 +1213,7 @@ export class Grid {
    */
   @Method()
   async toTable(options: GridExportOptions = {}): Promise<HTMLTableElement> {
+    this.assertClientSide("toTable");
     return this.buildTable(this.exportRows(options));
   }
 
@@ -1087,6 +1224,7 @@ export class Grid {
    */
   @Method()
   async toCSV(options: GridExportOptions = {}): Promise<string> {
+    this.assertClientSide("toCSV");
     const columns = this.columnCount;
     const lines: string[] = [];
     const add = (cells: HTMLElement[]) => {
@@ -1111,6 +1249,7 @@ export class Grid {
    */
   @Method()
   async print(options: GridExportOptions = {}): Promise<void> {
+    this.assertClientSide("print");
     const doc = this.host.ownerDocument;
     const table = this.buildTable(this.exportRows(options), true);
     const computed = getComputedStyle(this.host);
@@ -1275,7 +1414,8 @@ export class Grid {
       if (!this.isOpen(view)) setAttr(ancestor, "expanded", "");
       changed = true;
     }
-    if (this.paginator) {
+    // With `server-side`, every row the grid has is on the current page
+    if (this.paginator && !this.serverSide) {
       const pageSize = Math.max(1, Number(this.paginator.pageSize) || 10);
       const page = Math.floor(this.filteredRoots.indexOf(path[0]) / pageSize) + 1;
       if ((Number(this.paginator.page) || 1) !== page) {
@@ -1323,6 +1463,7 @@ export class Grid {
     } else {
       if (this.paginator) this.paginator.page = 1;
       this.setRows();
+      this.queueQuery();
     }
   }
 
@@ -1414,6 +1555,13 @@ export class Grid {
       }
     }
     return undefined;
+  }
+
+  /** Exporting needs every row, which a `server-side` grid doesn't have */
+  private assertClientSide(method: string) {
+    if (this.serverSide) {
+      throw new Error(`orb-grid: ${method}() isn't available with server-side. Export on the server instead.`);
+    }
   }
 
   /**
@@ -1622,14 +1770,16 @@ export class Grid {
     this.collapsedWhileFiltering.clear();
     if (this.paginator) this.paginator.page = 1;
     this.setRows();
+    this.queueQuery();
+    if (this.serverSide) {
+      // The server knows how many rows match, so the page announces it
+      this.orbFilterChange.emit({ search: this.search ?? "", filters: this.filterDetails });
+      return;
+    }
     const total = this.allBodyRows.length;
     this.orbFilterChange.emit({
       search: this.search ?? "",
-      filters: [...new Set(this.activeFilters.map((f) => f.cell))].map((cell) => ({
-        cell,
-        type: cell.getAttribute("filter") as FilterType,
-        value: (cell as HTMLElement & { filterValue?: FilterValue }).filterValue,
-      })),
+      filters: this.filterDetails,
       matches: this.matchCount,
       total,
     });
@@ -1717,8 +1867,10 @@ export class Grid {
     this.paginator = el;
     // A pagination this grid has already filled in still belongs to it, such
     // as when it's bound again before the first bind finished.
-    this.ownsTotal = ownedTotals.has(el) || (!el.hasAttribute("total") && !el.total);
+    // With `server-side`, only the page knows the total
+    this.ownsTotal = !this.serverSide && (ownedTotals.has(el) || (!el.hasAttribute("total") && !el.total));
     if (this.ownsTotal) ownedTotals.add(el);
+    else ownedTotals.delete(el);
     if (!el.hasAttribute("label") && !el.label) el.label = "Pages";
     el.addEventListener("orbPageChange", this.onPageChange);
     this.setRows();
@@ -1729,7 +1881,10 @@ export class Grid {
     this.paginator = undefined;
   }
 
-  private onPageChange = () => this.setRows();
+  private onPageChange = () => {
+    this.setRows();
+    this.queueQuery();
+  };
 
   /**
    * Turns the page by `delta` from the keyboard. Emits the pagination's own
@@ -1747,6 +1902,7 @@ export class Grid {
     );
     if (!allowed) return;
     this.pendingPageFocus = col;
+    if (this.serverSide) this.pageTurn = { cells: new Set(this.bodyRows.map((r) => r.cells[0])), busy: false };
     el.page = next;
     el.dispatchEvent(new CustomEvent("orbPageChange", options));
   }
@@ -1786,6 +1942,15 @@ export class Grid {
   }
 
   private setRows() {
+    // The focused cell was removed, so focus moves to its place once the new
+    // rows render
+    const last = this.lastFocus;
+    if (this.focusInside && last && last.el.parentElement !== this.host) {
+      const active = (this.host.getRootNode() as Document | ShadowRoot).activeElement;
+      if (!active || active === document.body) this.pendingRestore = last;
+      this.lastFocus = undefined;
+    }
+
     const cells = Array.from(this.host.children).filter(
       (el): el is HTMLElement => el.localName === "orb-cell",
     );
@@ -1856,7 +2021,9 @@ export class Grid {
       (el) => el.hasAttribute("sortable") && SORTS.includes(el.getAttribute("sort")),
     );
     this.sorted = !!sortCell;
-    if (sortCell) {
+    // With `server-side`, the rows come sorted, filtered, and paged
+    const local = !this.serverSide;
+    if (sortCell && local) {
       const head = layoutSection(bySection[0].cells, columns).find((p) => p.cell === sortCell);
       const direction = sortCell.getAttribute("sort");
       const arrange = (nodes: TreeNode[]): TreeNode[] => {
@@ -1888,10 +2055,11 @@ export class Grid {
       }
       return filters.every((filter) => passes(cellAt(row, filter.col), filter));
     };
-    this.matchCount = this.filtering ? markupBody.filter(matches).length : markupBody.length;
+    this.matchCount = this.filtering && local ? markupBody.filter(matches).length : markupBody.length;
 
-    // A select filter lists its column's values, from every body row.
-    for (const p of layoutSection(bySection[0].cells, columns)) {
+    // A select filter lists its column's values, from every body row. With
+    // `server-side`, the page sets them, since the grid only has one page.
+    for (const p of local ? layoutSection(bySection[0].cells, columns) : []) {
       if (p.cell.getAttribute("filter") !== "select") continue;
       const seen = new Map<string, string>();
       for (const row of markupBody) {
@@ -1912,7 +2080,7 @@ export class Grid {
     // under it opens to show the match, without changing its `expanded`.
     const keep = (nodes: TreeNode[], matched: boolean): ViewNode[] =>
       nodes.flatMap((node) => {
-        const self = matched || !this.filtering || matches(node.cells);
+        const self = matched || !this.filtering || !local || matches(node.cells);
         const children = keep(node.children, self);
         if (!self && !children.length) return [];
         return [{ node, children, forced: !self }];
@@ -1924,7 +2092,28 @@ export class Grid {
 
     // Pages hold top-level rows, each with its whole subtree.
     const paginator = this.paginator;
-    if (paginator) {
+    // Where the page's rows start among every row, and how many rows there
+    // are on every page, for `aria-rowindex` and `aria-rowcount`
+    let rowsBefore = 0;
+    let rowsInAll: number | undefined;
+    if (paginator && local) {
+      // A row with its open children and open details
+      const size = (view: ViewNode): number =>
+        1 +
+        (this.detailsOf.get(view.node.cells[0])?.hasAttribute("expanded") ? 1 : 0) +
+        (this.isOpen(view) ? view.children.reduce((n, child) => n + size(child), 0) : 0);
+      const sizes = viewRoots.map(size);
+      const pageSize = Math.max(1, Number(paginator.pageSize) || 10);
+      const page = Math.max(1, Number(paginator.page) || 1);
+      rowsBefore = sizes.slice(0, (page - 1) * pageSize).reduce((a, b) => a + b, 0);
+      rowsInAll = sizes.reduce((a, b) => a + b, 0);
+    } else if (paginator) {
+      const pageSize = Math.max(1, Number(paginator.pageSize) || 10);
+      rowsBefore = (Math.max(1, Number(paginator.page) || 1) - 1) * pageSize;
+      const total = Number(paginator.total);
+      if (Number.isFinite(total) && total > 0) rowsInAll = total;
+    }
+    if (paginator && local) {
       const total = viewRoots.length;
       // The grid fills in the total when the page didn't set one
       if (this.ownsTotal && paginator.total !== total) paginator.total = total;
@@ -2109,6 +2298,32 @@ export class Grid {
     this.columnCount = columns;
     this.placements = placements;
     this.matrix = matrix;
+
+    // A paged grid only has some of its rows, so it tells screen readers
+    // where they are among them all. With `server-side`, the pagination's
+    // `total` is the number of body rows.
+    this.ariaRowIndex = new Map();
+    this.ariaRowCount = undefined;
+    if (paginator) {
+      const head = rows.filter((r) => r.section === "head").length;
+      const body = rows.filter((r) => r.section === "body" || r.section === "details").length;
+      const foot = rows.filter((r) => r.section === "foot").length;
+      const allBody = Math.max(rowsInAll ?? 0, rowsBefore + body);
+      let h = 0;
+      let b = 0;
+      let f = 0;
+      for (const row of rows) {
+        const index =
+          row.section === "head"
+            ? ++h
+            : row.section === "foot"
+              ? head + allBody + (empty ? 1 : 0) + ++f
+              : head + rowsBefore + ++b;
+        this.ariaRowIndex.set(row, index);
+      }
+      this.ariaRowCount = head + allBody + (empty ? 1 : 0) + foot;
+    }
+    this.internals.ariaRowCount = this.ariaRowCount != null ? String(this.ariaRowCount) : null;
     this.rows = rows;
 
     // Drop selections whose row is gone. Rows on other pages stay selected.
@@ -2505,6 +2720,7 @@ export class Grid {
     if (this.paginator) this.paginator.page = 1;
     this.observer.takeRecords();
     this.setRows();
+    this.queueQuery();
 
     const name = this.rowName(cell);
     this.announce(direction === "none" ? `${name}, not sorted.` : `Sorted by ${name}, ${direction}.`);
@@ -2824,6 +3040,18 @@ export class Grid {
   onFocusIn(ev: FocusEvent) {
     const where = this.locate(ev);
     if (!where) return;
+    this.focusInside = true;
+    // Remembered in case the cell is removed while it has focus
+    const el = where.kind === "row" ? this.rows[where.rowIndex]?.cells[0] : where.cell;
+    const p = where.kind === "row" ? undefined : this.placementOf(where.cell);
+    if (el) {
+      this.lastFocus = {
+        el,
+        track: this.position && p && this.at(this.position.track, this.position.col) === where.cell ? this.position.track : (p?.track ?? 0),
+        col: this.position && p && this.at(this.position.track, this.position.col) === where.cell ? this.position.col : (p?.col ?? 0),
+        rowIndex: where.rowIndex,
+      };
+    }
 
     if (where.kind === "row") {
       this.activeRowKey = this.rows[where.rowIndex].cells[0];
@@ -2856,6 +3084,15 @@ export class Grid {
   onFocusOut(ev: FocusEvent) {
     const next = ev.relatedTarget as Node | null;
     if (next && (this.host.contains(next) || this.host.shadowRoot.contains(next))) return;
+    if (next) this.focusInside = false;
+    else {
+      // Focus going nowhere may be a focused cell being removed, which the
+      // grid restores when it rebuilds right after. Otherwise it's gone.
+      setTimeout(() => {
+        const active = (this.host.getRootNode() as Document | ShadowRoot).activeElement;
+        this.focusInside = !!active && this.host.contains(active);
+      });
+    }
     // Focus left the grid, so open content goes back out of the Tab order.
     if (this.openCells.length) {
       this.openCells = [];
@@ -3275,7 +3512,15 @@ export class Grid {
   private renderEmptyRow() {
     const custom = this.host.querySelector<HTMLElement>(":scope > [slot='empty']");
     return (
-      <div role="row" class="empty-row" part="empty-row" style={{ gridRow: String(this.emptyTrack + 1) }}>
+      <div
+        role="row"
+        class="empty-row"
+        part="empty-row"
+        style={{ gridRow: String(this.emptyTrack + 1) }}
+        aria-rowindex={
+          this.ariaRowCount != null ? String(this.rows.filter((r) => r.section === "head").length + 1) : undefined
+        }
+      >
         <div
           role="gridcell"
           class="empty-cell"
@@ -3348,6 +3593,7 @@ export class Grid {
               }}
               tabIndex={rowNav ? (key === this.activeRowKey ? 0 : -1) : undefined}
               aria-selected={selectable ? String(this.selected.has(key)) : undefined}
+              aria-rowindex={this.ariaRowIndex.has(row) ? String(this.ariaRowIndex.get(row)) : undefined}
               {...this.treeAria(row)}
               ref={(el) => el && this.rowEls.set(key, el)}
             >

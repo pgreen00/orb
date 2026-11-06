@@ -9,7 +9,7 @@ import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
-import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -24,7 +24,7 @@ export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
-export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -282,7 +282,7 @@ export namespace Components {
          */
         "filter"?: "text" | "number" | "date" | "select";
         /**
-          * The values a `select` filter lists. Set by the grid from the column's cells. Don't set it directly.
+          * The values a `select` filter lists. The grid sets it from the column's cells. With a `server-side` grid, which only has one page of cells, set it yourself.
           * @default []
          */
         "filterOptions": { value: string; label: string }[];
@@ -638,6 +638,11 @@ export namespace Components {
          */
         "borders": "all" | "outer" | "rows" | "none";
         /**
+          * Marks the grid as loading, such as while new rows are fetched. Sets `aria-busy` and the `busy` state. Style the state to show it.
+          * @default false
+         */
+        "busy": boolean;
+        /**
           * Small uppercase header labels.
           * @default false
          */
@@ -672,6 +677,10 @@ export namespace Components {
           * @default false
          */
         "fixed": boolean;
+        /**
+          * The sort, search, filters, and page, the same as `orbQueryChange` reports them. With `server-side`, use it to fetch the first rows.
+         */
+        "getQuery": () => Promise<GridQueryDetail>;
         /**
           * The selected rows, each as its cells, in markup order. Includes rows on other pages, and rows the search and filters hide.
          */
@@ -749,6 +758,11 @@ export namespace Components {
           * @default false
          */
         "separate": boolean;
+        /**
+          * Leaves sorting, searching, filtering, and paging to the server. The grid still shows the sort arrows, filters, and page, and emits the same events, but shows the body cells it has, in the order they're in. Listen for `orbQueryChange`, fetch the rows, and replace the body cells. Set the pagination's `total` yourself, and each `select` filter's `filterOptions`. Printing and exporting aren't available.
+          * @default false
+         */
+        "serverSide": boolean;
         /**
           * The first column, and the selection, details, and drag handle columns before it, stay at the start while the grid scrolls sideways.
           * @default false
@@ -2238,6 +2252,7 @@ declare global {
         "orbRowToggle": GridRowToggleDetail;
         "orbRowExpand": GridRowExpandDetail;
         "orbFilterChange": GridFilterDetail;
+        "orbQueryChange": GridQueryDetail;
     }
     /**
      * A data grid built from markup. Put `orb-cell` elements directly inside it,
@@ -3154,7 +3169,7 @@ declare namespace LocalJSX {
          */
         "filter"?: "text" | "number" | "date" | "select";
         /**
-          * The values a `select` filter lists. Set by the grid from the column's cells. Don't set it directly.
+          * The values a `select` filter lists. The grid sets it from the column's cells. With a `server-side` grid, which only has one page of cells, set it yourself.
           * @default []
          */
         "filterOptions"?: { value: string; label: string }[];
@@ -3544,6 +3559,11 @@ declare namespace LocalJSX {
          */
         "borders"?: "all" | "outer" | "rows" | "none";
         /**
+          * Marks the grid as loading, such as while new rows are fetched. Sets `aria-busy` and the `busy` state. Style the state to show it.
+          * @default false
+         */
+        "busy"?: boolean;
+        /**
           * Small uppercase header labels.
           * @default false
          */
@@ -3585,6 +3605,10 @@ declare namespace LocalJSX {
           * Emits after the search or a header filter changes and the rows are filtered, with the search, the active filters, and how many rows match.
          */
         "onOrbFilterChange"?: (event: OrbGridCustomEvent<GridFilterDetail>) => void;
+        /**
+          * Emits after the sort, search, filters, or page change, from the user or from a method, with all of them. With `server-side`, fetch the rows for the query when it fires.
+         */
+        "onOrbQueryChange"?: (event: OrbGridCustomEvent<GridQueryDetail>) => void;
         /**
           * Emits before a row moves, with its old and new index among the body rows. Call `preventDefault()` to keep it in place, for example to reorder your own data and render the grid again.
          */
@@ -3643,6 +3667,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "separate"?: boolean;
+        /**
+          * Leaves sorting, searching, filtering, and paging to the server. The grid still shows the sort arrows, filters, and page, and emits the same events, but shows the body cells it has, in the order they're in. Listen for `orbQueryChange`, fetch the rows, and replace the body cells. Set the pagination's `total` yourself, and each `select` filter's `filterOptions`. Printing and exporting aren't available.
+          * @default false
+         */
+        "serverSide"?: boolean;
         /**
           * The first column, and the selection, details, and drag handle columns before it, stay at the start while the grid scrolls sideways.
           * @default false
@@ -4888,6 +4917,8 @@ declare namespace LocalJSX {
         "stickyHeader": boolean;
         "stickyColumn": boolean;
         "rowHeaders": boolean;
+        "serverSide": boolean;
+        "busy": boolean;
     }
     interface OrbLabelAttributes {
         "required": boolean;

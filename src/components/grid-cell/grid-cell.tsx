@@ -183,9 +183,9 @@ export class GridCell {
   @Prop({ mutable: true }) filterValue?: string | { min?: string; max?: string } | string[];
 
   /**
-   * The values a `select` filter lists. Set by the grid from the column's
-   * cells. Don't set it directly.
-   * @internal
+   * The values a `select` filter lists. The grid sets it from the column's
+   * cells. With a `server-side` grid, which only has one page of cells, set
+   * it yourself.
    */
   @Prop() filterOptions: { value: string; label: string }[] = [];
 

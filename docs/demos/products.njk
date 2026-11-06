@@ -1,0 +1,248 @@
+---
+layout: false
+permalink: "/demos/products/"
+---
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/orb.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Server-Side Grid | Orb</title>
+  <script type="module">
+    const t = localStorage.getItem('orb__theme') || 'system'
+    const el = document.documentElement
+    el.classList.toggle('orb-theme-light', t === 'light')
+    el.classList.toggle('orb-theme-dark', t === 'dark')
+  </script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/build/styles/index.css" />
+  <script type="module" src="/build/loader.js"></script>
+  <style>
+    .page {
+      display: flex;
+      flex-direction: column;
+      gap: var(--orb-spacing-md);
+      max-width: 80rem;
+      margin-inline: auto;
+      padding: var(--orb-spacing-lg);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: var(--orb-spacing-md);
+    }
+
+    #product-search {
+      flex: 1 1 20rem;
+      max-width: 28rem;
+    }
+
+    #product-status {
+      color: var(--orb-note-color);
+    }
+
+    /* The grid only sets the busy state. The page decides how it looks. */
+    #products:state(busy) {
+      opacity: 0.6;
+      transition: opacity 150ms 100ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #products:state(busy) {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header>
+      <h1>Server-Side Grid</h1>
+      <p>
+        An <code>orb-grid</code> with <code>server-side</code> set, over 100,000 products.
+        The grid doesn't sort, search, filter, or page anything itself. It emits
+        <code>orbQueryChange</code>, and the page runs the query in
+        <a href="https://duckdb.org/docs/api/wasm/overview">DuckDB-WASM</a>, standing in for a server,
+        then replaces the body cells with one page of results. Each query waits
+        200ms first, like a network round trip.
+      </p>
+      <p><a href="/components/grid/#server-side-data">Back to the grid docs</a></p>
+    </header>
+
+    <div class="controls">
+      <orb-textbox id="product-search" label="Search products" debounce="300">
+        <input type="search">
+      </orb-textbox>
+      <p id="product-status" role="status">Loading the database…</p>
+    </div>
+
+    <orb-grid
+      id="products"
+      server-side
+      searchbox="product-search"
+      pagination="product-pages"
+      selection="multiple"
+      sticky-header
+      striped
+      density="comfortable"
+      aria-label="Products"
+      style="--grid-max-height: 70vh;"
+    >
+      <orb-cell section="head" data-column="id" width="xs" numeric sortable>ID</orb-cell>
+      <orb-cell section="head" data-column="name" sortable filter="text">Name</orb-cell>
+      <orb-cell section="head" data-column="brand" sortable filter="select">Brand</orb-cell>
+      <orb-cell section="head" data-column="category" sortable filter="select">Category</orb-cell>
+      <orb-cell section="head" data-column="price" numeric sortable filter="number">Price</orb-cell>
+      <orb-cell section="head" data-column="rating" numeric sortable filter="number">Rating</orb-cell>
+      <orb-cell section="head" data-column="stock" numeric sortable filter="number">Stock</orb-cell>
+      <orb-cell section="head" data-column="added" sortable filter="date">Added</orb-cell>
+    </orb-grid>
+
+    <orb-pagination id="product-pages" page-size="25" with-summary with-edges></orb-pagination>
+  </main>
+
+  <script type="module">
+    const DUCKDB = "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.32.0/+esm";
+    const LATENCY = 200;
+
+    const grid = document.querySelector("#products");
+    const pages = document.querySelector("#product-pages");
+    const status = document.querySelector("#product-status");
+    const header = (column) => grid.querySelector(`orb-cell[data-column="${column}"]`);
+
+    // DuckDB runs in a worker, with the database file from this site
+    const duckdb = await import(DUCKDB);
+    const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+    const workerUrl = URL.createObjectURL(
+      new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }),
+    );
+    const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), new Worker(workerUrl));
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    URL.revokeObjectURL(workerUrl);
+    const file = await fetch("/demos/products.duckdb").then((res) => res.arrayBuffer());
+    await db.registerFileBuffer("products.duckdb", new Uint8Array(file));
+    const conn = await db.connect();
+    await conn.query("ATTACH 'products.duckdb' AS shop (READ_ONLY)");
+    await conn.query("USE shop");
+
+    /** Runs a query with `?` parameters, and returns plain objects */
+    async function sql(text, params = []) {
+      const statement = await conn.prepare(text);
+      try {
+        return (await statement.query(...params)).toArray().map((row) => row.toJSON());
+      } finally {
+        await statement.close();
+      }
+    }
+
+    // The server knows every value, so it gives the select filters their options
+    for (const column of ["brand", "category"]) {
+      const rows = await sql(`SELECT DISTINCT ${column} AS value FROM products ORDER BY value`);
+      header(column).filterOptions = rows.map(({ value }) => ({ value, label: value }));
+    }
+
+    // Columns can only come from this list, so they're safe to put in the SQL
+    const COLUMNS = ["id", "name", "brand", "category", "price", "rating", "stock", "added"];
+    const DATES = ["added"];
+
+    /** The WHERE clause and its parameters, from the search and the filters */
+    function where({ search, filters }) {
+      const clauses = [];
+      const params = [];
+      for (const word of search.split(/\s+/).filter(Boolean)) {
+        clauses.push("(name || ' ' || brand || ' ' || category) ILIKE ?");
+        params.push(`%${word}%`);
+      }
+      for (const { cell, type, value } of filters) {
+        const column = cell.dataset.column;
+        if (!COLUMNS.includes(column)) continue;
+        if (type === "text") {
+          clauses.push(`${column} ILIKE ?`);
+          params.push(`%${value}%`);
+        } else if (type === "select") {
+          clauses.push(value.length ? `${column} IN (${value.map(() => "?").join(", ")})` : "FALSE");
+          params.push(...value);
+        } else {
+          const cast = DATES.includes(column) ? "CAST(? AS DATE)" : "CAST(? AS DOUBLE)";
+          if (value.min) {
+            clauses.push(`${column} >= ${cast}`);
+            params.push(value.min);
+          }
+          if (value.max) {
+            clauses.push(`${column} <= ${cast}`);
+            params.push(value.max);
+          }
+        }
+      }
+      return { clause: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "", params };
+    }
+
+    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+    const day = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
+    let latest = 0;
+
+    /** Fetches one page of rows for the query, and puts them in the grid */
+    async function load(query) {
+      const request = ++latest;
+      grid.busy = true;
+      try {
+        const { clause, params } = where(query);
+        const column = COLUMNS.includes(query.sort?.cell.dataset.column) ? query.sort.cell.dataset.column : "id";
+        const direction = query.sort?.direction === "descending" ? "DESC" : "ASC";
+        const pageSize = query.pageSize ?? 25;
+        const offset = ((query.page ?? 1) - 1) * pageSize;
+
+        await new Promise((resolve) => setTimeout(resolve, LATENCY));
+        const [{ total }] = await sql(`SELECT count(*)::INTEGER AS total FROM products ${clause}`, params);
+        const rows = await sql(
+          `SELECT id, name, brand, category, price, rating, stock, strftime(added, '%Y-%m-%d') AS added
+           FROM products ${clause}
+           ORDER BY ${column} ${direction}, id
+           LIMIT ${pageSize} OFFSET ${offset}`,
+          params,
+        );
+        // A newer query started while this one ran, so its rows win
+        if (request !== latest) return;
+
+        const cells = document.createDocumentFragment();
+        const add = (text, value) => {
+          const cell = document.createElement("orb-cell");
+          cell.textContent = text;
+          if (value != null) cell.setAttribute("value", value);
+          cells.append(cell);
+        };
+        for (const row of rows) {
+          add(String(row.id));
+          add(row.name);
+          add(row.brand);
+          add(row.category);
+          add(money.format(row.price), row.price);
+          add(row.rating.toFixed(1), row.rating);
+          add(String(row.stock));
+          add(day.format(new Date(row.added)), row.added);
+        }
+        grid.querySelectorAll(':scope > orb-cell:not([section="head"])').forEach((cell) => cell.remove());
+        grid.append(cells);
+        pages.total = total;
+        // The grid can't count the matches, so the page announces them
+        status.textContent = `${total.toLocaleString()} products${clause ? " match" : ""}.`;
+      } catch (error) {
+        if (request === latest) status.textContent = `The query failed: ${error.message}`;
+      } finally {
+        if (request === latest) grid.busy = false;
+      }
+    }
+
+    grid.addEventListener("orbQueryChange", (event) => load(event.detail));
+    await load(await grid.getQuery());
+  </script>
+</body>
+
+</html>

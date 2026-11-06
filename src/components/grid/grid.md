@@ -980,7 +980,7 @@ document.querySelector("#export-csv").addEventListener("click", async () => {
 
 ## Large Grids
 
-The grid handles thousands of rows on the client. Body cells scrolled out of view skip rendering, and rows hidden by pages, filters, or collapsed tree rows aren't rendered at all. When adding many cells from code, append them all at once, such as in a `DocumentFragment`, so the grid lays out its rows once instead of after every cell.
+The grid handles thousands of rows on the client. For more, see [Server-Side Data](#server-side-data). Body cells scrolled out of view skip rendering, and rows hidden by pages, filters, or collapsed tree rows aren't rendered at all. When adding many cells from code, append them all at once, such as in a `DocumentFragment`, so the grid lays out its rows once instead of after every cell.
 
 This demo loads products from [DummyJSON](https://dummyjson.com), a free API of example data, and repeats them to make 1,000 rows. It sends a request to `dummyjson.com` when the page loads.
 
@@ -1068,6 +1068,50 @@ grid.addEventListener("orbFilterChange", ({ detail }) => {
 - Sort by Price. The rows reorder without a long pause.
 - Search "phone", then filter Category. The status counts the matching rows.
 - With the network offline, reload. The status says the products couldn't load.
+
+## Server-Side Data
+
+For more rows than the browser should hold, set `server-side`, and let your server sort, search, filter, and page. The grid keeps working the same for the user: headers still sort, the search field and filters still take input, and the pagination still turns pages. But the grid shows the body cells it has, in the order they're in, and leaves the rest to you.
+
+[See it with 100,000 rows](/demos/products/). The demo uses DuckDB in the browser as its server.
+
+`orbQueryChange` fires after any of them change, with the whole query: the sorting header and its column, the search, the active filters, and the page and page size. Fetch the rows for it, and replace the body cells. `getQuery()` gives the same query, for the first load.
+
+```javascript
+grid.addEventListener("orbQueryChange", async (event) => {
+  const { sort, search, filters, page, pageSize } = event.detail;
+  grid.busy = true;
+  const { rows, total } = await fetchRows({ sort, search, filters, page, pageSize });
+  grid.querySelectorAll(':scope > orb-cell:not([section="head"], [section="foot"])').forEach((cell) => cell.remove());
+  grid.append(...rowsToCells(rows));
+  pagination.total = total;
+  grid.busy = false;
+});
+```
+
+The cancelable events still work, so `orbSortChange`, `orbRowExpand`, and the pagination's `orbBeforePageChange` can stop a change before it happens. A sort, search, or filter change goes back to page 1.
+
+With `server-side`:
+- Set the pagination's `total` to the number of matching rows. The grid uses it to tell screen readers where each row is among them all.
+- Set `filterOptions` on each `select` filter's header, since the grid only has one page of values.
+- Set `busy` while rows load. It sets `aria-busy` and the `busy` state, and you style the state.
+- `orbFilterChange` has no `matches` or `total`, and the grid doesn't announce them. Announce the number of results yourself, such as in a `role="status"` element.
+- After Page Up or Page Down, focus moves to the new page's first row once its cells are in.
+- Selection, `selectAllRows()`, `revealRow()`, and tree rows only cover the rows the grid has. Selections don't carry across pages.
+- `print()`, `toTable()`, and `toCSV()` aren't available, since the grid doesn't have every row. Export on the server.
+- `orbReorder` reports indexes among the rows the grid has. Add the page's offset for an index among all rows.
+
+When the cell that has focus is removed, such as when the rows are replaced, focus moves to the cell in its place, or the nearest one. That's true without `server-side` too.
+
+**Manual test** (on the demo page):
+- The grid fills with the first 25 of 100,000 products, and the status says how many there are.
+- Sort by Price. The rows are the cheapest of all 100,000, not of the 25 that were showing. The pagination goes back to page 1.
+- Search "wireless lamp". The status counts the matches, and the pagination shows their pages.
+- Filter Brand to two brands, and Price to a range. The rows only include those.
+- Turn to the last page. Its rows are the last of the sorted results.
+- Focus a cell, then press Page Down. Focus moves to the same column in the new page's first row, and stays in the grid.
+- While a query runs, the grid dims. With a screen reader, the grid is announced as busy.
+- With a screen reader, a row on page 3 is announced as row 52 or so, out of the total.
 
 ## Keyboard
 
