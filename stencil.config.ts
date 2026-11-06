@@ -5,11 +5,18 @@ import { execSync } from "child_process";
 import { generateLoader } from "./scripts/generate-loader.mjs";
 import { generatePipeManifest } from "./scripts/generate-pipe-manifest.mjs";
 import { writeFileSync, appendFileSync, mkdirSync } from "fs";
+import { compile } from "sass";
 
 generatePipeManifest({
   pipesDir: "src/components/pipe/pipes",
   outFile: "src/components/pipe/pipes.generated.ts",
 });
+
+// orb-grid prints with the native table styles, so it imports them as CSS
+writeFileSync(
+  "src/components/grid/tables.generated.css",
+  compile("src/styles/_tables.scss").css,
+);
 
 export const config: Config = {
   namespace: "orb-style",

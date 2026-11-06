@@ -7,14 +7,17 @@ import {
   forceUpdate,
   Host,
   Listen,
+  Method,
   Prop,
   State,
   Watch,
 } from "@stencil/core";
 import { ChevronRightIcon, GripVerticalIcon, RadioEmpty, RadioFill } from "../../utils/icons";
 import lightStyles from "./grid-light.css";
+import tableStyles from "./tables.generated.css";
+import { setState, toggleState } from "../../utils/custom-states";
 
-//todo: filters, style parity, and form submission
+//todo: form submission
 
 /** `details` is the row an open `orb-row-details` shows in, below its row. */
 type Section = "head" | "body" | "foot" | "details";
@@ -101,7 +104,18 @@ const LAYOUT_ATTRIBUTES = [
   "expanded",
   "depth",
   "expandable",
+  "width",
+  "align",
+  "numeric",
+  "row-status",
 ];
+
+const WIDTHS = ["xs", "sm", "md", "lg", "xl"];
+const ALIGNS = ["start", "center", "end"];
+const STATUSES = ["success", "warning", "danger"];
+
+/** A column's settings, from its header */
+type ColumnInfo = { width?: string; align?: string; numeric: boolean };
 
 /** A cell's span, read from the attribute so it works before the cell upgrades */
 const spanOf = (el: Element, name: "colspan" | "rowspan") =>
@@ -132,6 +146,126 @@ type TreeInfo = {
 };
 
 type Placed = Placement & { cell: HTMLElement };
+
+/**
+ * A row that passes the search and filters, with the rows under it that do.
+ * `forced` is a row that only shows because a row under it matches.
+ */
+type ViewNode = { node: TreeNode; children: ViewNode[]; forced: boolean };
+
+export type GridExportOptions = {
+  /**
+   * Which body rows to include. `view` is every row that passes the search
+   * and filters, on every page, in the order shown. `page` is the rows on
+   * the current page. `all` is every row, ignoring the search and filters.
+   * `selected` is the selected rows. Defaults to `selected` when any row is
+   * selected, and `view` otherwise.
+   */
+  rows?: "view" | "page" | "all" | "selected";
+  /**
+   * Which tree rows and row details to include. `view` includes the children
+   * of open rows and open details, like the grid shows. `all` includes every
+   * child row and all details. Defaults to `view`.
+   */
+  expand?: "view" | "all";
+};
+
+/** A body row to export, with its tree level and its details to include */
+type ExportRow = { cells: HTMLElement[]; level: number; details?: HTMLElement };
+
+/**
+ * Elements that start a new line. Read from the tag, since cells on other
+ * pages and closed details aren't rendered, so they have no layout to read.
+ */
+const BLOCK_TAGS = new Set(
+  "address article aside blockquote dd details dialog div dl dt fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hgroup hr li main nav ol p pre section summary table tr ul".split(
+    " ",
+  ),
+);
+
+/** Elements whose content isn't exported */
+const NOT_EXPORTED =
+  "button, orb-button, script, style, template, [hidden], [aria-hidden='true'], input[type='hidden']";
+
+/**
+ * A cell's content as text, for exporting. Form fields give their value,
+ * buttons are left out, and blocks and line breaks start new lines.
+ */
+function textOf(root: Element): string {
+  const parts: string[] = [];
+  const visit = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      parts.push(node.textContent);
+      return;
+    }
+    if (!(node instanceof globalThis.Element) || node.matches(NOT_EXPORTED)) return;
+    if (node instanceof HTMLInputElement) {
+      const check = node.type === "checkbox" || node.type === "radio";
+      parts.push(check ? (node.checked ? "Yes" : "No") : node.value);
+    } else if (node instanceof HTMLSelectElement) {
+      parts.push([...node.selectedOptions].map((o) => o.text).join(", "));
+    } else if (node instanceof HTMLTextAreaElement) {
+      parts.push(node.value);
+    } else if (node.localName === "br") {
+      parts.push("\n");
+    } else {
+      const block = BLOCK_TAGS.has(node.localName);
+      if (block) parts.push("\n");
+      node.childNodes.forEach(visit);
+      if (block) parts.push("\n");
+    }
+  };
+  root.childNodes.forEach(visit);
+  return parts
+    .join("")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/ ?\n ?/g, "\n")
+    .replace(/\n+/g, "\n")
+    .trim();
+}
+
+/**
+ * A CSV field, quoted when it has to be. Text that a spreadsheet would run
+ * as a formula starts with an apostrophe, so it stays text.
+ */
+function csvField(text: string) {
+  let value = text;
+  if (/^[=+\-@\t\r]/.test(value) && isNaN(Number(value))) value = `'${value}`;
+  return /[",\r\n]|^\s|\s$/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/** Escapes text for HTML */
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+/** The grid's custom properties that the printed table uses, by their table name */
+const PRINT_PROPERTIES = [
+  "background",
+  "border-color",
+  "border-width",
+  "vertical-borders",
+  "horizontal-borders",
+  "outer-inline-borders",
+  "outer-block-borders",
+  "header-background",
+  "stripe-background",
+  "success-background",
+  "warning-background",
+  "danger-background",
+  "cell-padding-y",
+  "cell-padding-x",
+  "cell-radius",
+  "font-size",
+  "header-font-size",
+  "header-text-transform",
+  "header-letter-spacing",
+  "font-variant-numeric",
+  "col-width-xs",
+  "col-width-sm",
+  "col-width-md",
+  "col-width-lg",
+  "col-width-xl",
+];
 
 /**
  * Places one section's cells, from 0. Each cell goes in the next slot in
@@ -290,14 +424,8 @@ document.adoptedStyleSheets = [...document.adoptedStyleSheets, lightStylesheet];
  * compare as numbers, so "$9" comes before "$10". Equal rows keep their
  * markup order.
  */
-function sortRows(
-  rows: HTMLElement[][],
-  cells: HTMLElement[],
-  columns: number,
-  col: number,
-  direction: string,
-) {
-  const placed = new Map(layoutSection(cells, columns).map((p) => [p.cell, p]));
+function sortRows(rows: HTMLElement[][], placed: Map<HTMLElement, Placed>, col: number, direction: string) {
+  if (rows.length < 2) return rows;
   const keyOf = (row: HTMLElement[]) =>
     valueOf(
       row.find((cell) => {
@@ -390,7 +518,27 @@ const FOCUSABLE = [
   },
 })
 export class Grid {
-  @AttachInternals() internals: ElementInternals;
+  @AttachInternals({
+    states: {
+      /** A search or header filter is on */
+      filtering: false,
+      /** At least one row is selected */
+      "has-selection": false,
+      /** Every row that passes the search and filters is selected */
+      "all-selected": false,
+      /** The search and filters hide every row */
+      empty: false,
+      /** There are no body rows */
+      "no-rows": false,
+      /** A header is sorting the rows */
+      sorted: false,
+      /** The grid is a tree grid */
+      tree: false,
+      /** A row is picked up or being dragged */
+      dragging: false,
+    },
+  })
+  internals: ElementInternals;
   @Element() host: HTMLOrbGridElement;
 
   /**
@@ -450,6 +598,58 @@ export class Grid {
    * and `value`.
    */
   @Prop({ mutable: true }) search = "";
+
+  /** Tints every other body row. */
+  @Prop({ reflect: true }) striped = false;
+
+  /** Tints the body row under the pointer, on devices that hover. */
+  @Prop({ reflect: true }) hover = false;
+
+  /** Shows a pointer cursor over body rows, for rows that do something when clicked. */
+  @Prop({ reflect: true }) interactive = false;
+
+  /**
+   * Which lines show. `all` shows every line, `outer` only the grid's edge,
+   * `rows` only lines between rows and above and below the grid, and `none`
+   * no lines.
+   */
+  @Prop({ reflect: true }) borders: "all" | "outer" | "rows" | "none" = "all";
+
+  /** How much padding cells have. */
+  @Prop({ reflect: true }) density: "compact" | "default" | "comfortable" = "default";
+
+  /**
+   * Gives every cell its own box, with rounded corners and space between
+   * them, instead of sharing lines.
+   */
+  @Prop({ reflect: true }) separate = false;
+
+  /** Small uppercase header labels. */
+  @Prop({ reflect: true }) caps = false;
+
+  /**
+   * Columns without a `width` share the space equally, instead of sizing to
+   * their content, so they don't shift as the content changes.
+   */
+  @Prop({ reflect: true }) fixed = false;
+
+  /** Cell text stays on one line and ends in an ellipsis. Pair it with `fixed`. */
+  @Prop({ reflect: true }) truncate = false;
+
+  /**
+   * The header rows stay at the top while the grid scrolls. The grid scrolls
+   * inside its own box, so give it a `--grid-max-height`.
+   */
+  @Prop({ reflect: true }) stickyHeader = false;
+
+  /**
+   * The first column, and the selection, details, and drag handle columns
+   * before it, stay at the start while the grid scrolls sideways.
+   */
+  @Prop({ reflect: true }) stickyColumn = false;
+
+  /** Cells with `row-header` take the header tint, so they read as labels. */
+  @Prop({ reflect: true }) rowHeaders = false;
 
   /**
    * Emits when the user presses Enter on a cell, or on a row with
@@ -547,6 +747,18 @@ export class Grid {
   private emptyTrack?: number;
   /** The bound search field */
   private searchEl?: HTMLElement;
+  /** Every body row in the tree, sorted, before the search and filters */
+  private sortedRoots: TreeNode[] = [];
+  /** The rows that pass the search and filters, sorted, before paging */
+  private filteredRoots: ViewNode[] = [];
+  /** The iframe a print is waiting on */
+  private printFrame?: HTMLIFrameElement;
+  /** Set while a method changes several filters, so they filter once */
+  private batching = false;
+  /** Methods waiting for the next render */
+  private renderWaiters: (() => void)[] = [];
+  /** Cells in the `match` state */
+  private matchedCells = new Set<HTMLElement>();
   /** This grid's ranges in the shared match highlight */
   private highlightRanges: Range[] = [];
   private announceTimer?: ReturnType<typeof setTimeout>;
@@ -567,6 +779,13 @@ export class Grid {
   /** Set while focus is moved back to a moved row's element */
   private refocusing = false;
   private placements = new Map<HTMLElement, Placement>();
+  /** Each column's width, alignment, and numbers, from its header */
+  private columnInfo: ColumnInfo[] = [];
+  /** How many row tracks show, and how many of them are the header's */
+  private trackCount = 0;
+  private headTracks = 0;
+  /** Measures the offsets of sticky rows and columns when they change size */
+  private stickyObserver = new ResizeObserver(() => this.measureSticky());
   /** The cell covering each slot, by row track and column */
   private matrix: (HTMLElement | undefined)[][] = [];
   /**
@@ -645,6 +864,7 @@ export class Grid {
 
   componentDidRender() {
     this.updateControlTabStops();
+    this.observeSticky();
     // After a page turn from the keyboard, focus the same column in the new
     // page's first row.
     if (this.pendingPageFocus != null) {
@@ -672,14 +892,678 @@ export class Grid {
         this.refocusing = false;
       }
     }
+    this.updateStates();
+    this.updateFocusStates();
+    const waiters = this.renderWaiters;
+    this.renderWaiters = [];
+    waiters.forEach((resolve) => resolve());
+  }
+
+  /** Every cell, in markup order */
+  private get cellEls() {
+    return Array.from(this.host.children).filter((el): el is HTMLElement => el.localName === "orb-cell");
+  }
+
+  /** The grid's custom states, and its cells' states that follow the rows */
+  private updateStates() {
+    const selected = new Set<HTMLElement>();
+    const moving = new Set<HTMLElement>();
+    const detailsOpen = new Set<HTMLElement>();
+    const stripes = new Set<HTMLElement>();
+    const movingKey = this.grabbedKey ?? this.dragKey;
+    for (const row of this.allBodyRows) {
+      const key = row.cells[0];
+      const sets = [
+        this.selected.has(key) && selected,
+        key === movingKey && moving,
+        this.detailsOf.get(key)?.hasAttribute("expanded") && detailsOpen,
+      ];
+      for (const set of sets) if (set) row.cells.forEach((cell) => set.add(cell));
+    }
+    // Every other showing body row, like the grid's stripes
+    this.bodyRows.forEach((row, i) => i % 2 === 1 && row.cells.forEach((cell) => stripes.add(cell)));
+    for (const cell of this.cellEls) {
+      setState(cell, "selected", selected.has(cell));
+      setState(cell, "moving", moving.has(cell));
+      setState(cell, "details-open", detailsOpen.has(cell));
+      setState(cell, "stripe", stripes.has(cell));
+    }
+
+    // A row that only shows for a match under it isn't a match itself
+    let matches = 0;
+    let allSelected = this.selecting;
+    const walk = (views: ViewNode[]) =>
+      views.forEach((view) => {
+        if (!view.forced) {
+          matches++;
+          if (!this.selected.has(view.node.cells[0])) allSelected = false;
+        }
+        walk(view.children);
+      });
+    walk(this.filteredRoots);
+
+    const states = this.internals.states;
+    toggleState(states, "filtering", this.filtering);
+    toggleState(states, "has-selection", this.selected.size > 0);
+    toggleState(states, "all-selected", allSelected && matches > 0);
+    toggleState(states, "empty", this.emptyTrack != null);
+    toggleState(states, "no-rows", this.allBodyRows.length === 0);
+    toggleState(states, "sorted", this.sorted);
+    toggleState(states, "tree", this.isTree);
+    toggleState(states, "dragging", !!movingKey);
+  }
+
+  /**
+   * The `current` state on the Tab stop cell, or on every cell of the Tab
+   * stop row, and `editing` on cells whose content is entered
+   */
+  private updateFocusStates() {
+    const current = new Set<HTMLElement>(
+      this.navigation === "row"
+        ? (this.rows.find((r) => r.cells[0] === this.activeRowKey)?.cells ?? [])
+        : this.activeCell
+          ? [this.activeCell]
+          : [],
+    );
+    for (const cell of this.cellEls) {
+      setState(cell, "current", current.has(cell));
+      setState(cell, "editing", this.openCells.includes(cell));
+    }
+  }
+
+  /** Resolves once the grid has rendered its current rows */
+  private afterRender() {
+    return new Promise<void>((resolve) => {
+      this.renderWaiters.push(resolve);
+      forceUpdate(this.host);
+    });
   }
 
   disconnectedCallback() {
     this.observer.disconnect();
     this.controlObserver.disconnect();
+    this.stickyObserver.disconnect();
+    this.printFrame?.remove();
     this.unbindPaginator();
     this.unbindSearchbox();
     this.setHighlights([]);
+  }
+
+  /**
+   * Watches the elements whose size moves the sticky rows and columns: the
+   * header rows, and the first row's cells in the sticky columns. A cell is
+   * as wide as its column.
+   */
+  private observeSticky() {
+    this.stickyObserver.disconnect();
+    if (!this.stickyHeader && !this.stickyColumn) return;
+    this.stickyObserver.observe(this.host);
+    if (this.stickyHeader) {
+      for (const row of this.rows) {
+        const el = row.section === "head" && this.rowEls.get(row.cells[0]);
+        if (el) this.stickyObserver.observe(el);
+      }
+    }
+    const first = this.rows[0];
+    if (this.stickyColumn && first) {
+      this.rowEls.get(first.cells[0])?.querySelectorAll(".lead-cell").forEach((el) => this.stickyObserver.observe(el));
+      for (const cell of first.cells) {
+        if (this.placements.get(cell)?.col === this.offset) this.stickyObserver.observe(cell);
+      }
+    }
+    this.measureSticky();
+  }
+
+  /**
+   * Sets where each sticky header row and column sticks: right after the
+   * rows above it, or the columns before it. Read from the grid's resolved
+   * track sizes, which don't change as the rows stick.
+   */
+  private measureSticky() {
+    if (!this.stickyHeader && !this.stickyColumn) return;
+    const computed = getComputedStyle(this.host);
+    const set = (name: string, px: number) => {
+      const value = `${px}px`;
+      if (this.host.style.getPropertyValue(name) !== value) this.host.style.setProperty(name, value);
+    };
+    const offsets = (tracks: string, gap: string, count: number, prefix: string) => {
+      const sizes = tracks.split(" ").map(parseFloat);
+      const space = parseFloat(gap) || 0;
+      let at = 0;
+      for (let i = 0; i < count; i++) {
+        set(`${prefix}${i}`, at);
+        at += (sizes[i] || 0) + space;
+      }
+      // The sticky area's size, so cells scrolled into view clear it
+      set(`${prefix}end`, at);
+    };
+    if (this.stickyHeader) offsets(computed.gridTemplateRows, computed.rowGap, this.headTracks, "--_head-top-");
+    if (this.stickyColumn) offsets(computed.gridTemplateColumns, computed.columnGap, this.offset + 1, "--_stick-");
+  }
+
+  /** The grid's columns: each one's width from its header, or from `fixed` */
+  private get dataColumns() {
+    return this.columnInfo
+      .map(({ width }) =>
+        WIDTHS.includes(width)
+          ? `var(--grid-col-width-${width})`
+          : width === "min"
+            ? "max-content"
+            : this.fixed
+              ? "minmax(0, 1fr)"
+              : "auto",
+      )
+      .join(" ");
+  }
+
+  /** Where a lead column cell sits, for its borders and sticking */
+  private leadStyle(row: Row, col: number) {
+    return {
+      gridColumn: String(col + 1),
+      insetInlineStart: `var(--_stick-${col}, 0px)`,
+      "--_edge-start": col === 0 ? "1" : "0",
+      "--_edge-end": "0",
+      "--_edge-top": row.track === 0 ? "1" : "0",
+      "--_edge-bottom": row.track + 1 >= this.trackCount ? "1" : "0",
+    };
+  }
+
+  /**
+   * Builds a native `<table>` from the grid, with the rows in the order
+   * shown. Cells hold their content as text, with form fields' values, and
+   * the grid's settings become `data-orb` words, so the table looks like the
+   * grid with Orb's native styles. The grid's label becomes the caption.
+   * The selection, details, and drag handle columns are left out.
+   */
+  @Method()
+  async toTable(options: GridExportOptions = {}): Promise<HTMLTableElement> {
+    return this.buildTable(this.exportRows(options));
+  }
+
+  /**
+   * The grid as CSV text, with the header, body, and footer rows, in the
+   * order shown. Each cell gives its `value` when it has one, and its text
+   * otherwise. A spanning cell's text is in its first slot.
+   */
+  @Method()
+  async toCSV(options: GridExportOptions = {}): Promise<string> {
+    const columns = this.columnCount;
+    const lines: string[] = [];
+    const add = (cells: HTMLElement[]) => {
+      const grid: string[][] = [];
+      for (const p of layoutSection(cells, columns)) {
+        for (let t = p.track; t < p.track + p.rowspan; t++) grid[t] ??= Array(columns).fill("");
+        grid[p.track][p.col] = p.cell.getAttribute("value") ?? textOf(p.cell).replace(/\n/g, " ");
+      }
+      for (const line of grid) lines.push((line ?? Array(columns).fill("")).map(csvField).join(","));
+    };
+    add(this.cellsIn("head"));
+    add(this.exportRows(options).flatMap((row) => row.cells));
+    add(this.cellsIn("foot"));
+    return lines.join("\r\n");
+  }
+
+  /**
+   * Opens the browser's print dialog with the grid as a native table, so it
+   * can be printed or saved as a PDF. The table is the same as `toTable()`
+   * gives, without `truncate`, so no text is cut off, and the grid's colors
+   * and custom properties carry over. Resolves when the dialog closes.
+   */
+  @Method()
+  async print(options: GridExportOptions = {}): Promise<void> {
+    const doc = this.host.ownerDocument;
+    const table = this.buildTable(this.exportRows(options), true);
+    const computed = getComputedStyle(this.host);
+
+    // The page's design tokens, and the grid's own custom properties under
+    // their table names, so the table matches the grid
+    const tokens: string[] = [];
+    for (let i = 0; i < computed.length; i++) {
+      const name = computed[i];
+      if (name.startsWith("--orb-")) tokens.push(`${name}: ${computed.getPropertyValue(name)};`);
+    }
+    const properties = PRINT_PROPERTIES.flatMap((name) => {
+      const value = computed.getPropertyValue(`--grid-${name}`).trim();
+      return value ? [`--table-${name}: ${value};`] : [];
+    });
+    const align = computed.getPropertyValue("--grid-vertical-align").trim();
+    if (align) {
+      const vertical = { start: "top", center: "middle", end: "bottom" }[align] ?? align;
+      properties.push(`--table-vertical-align: ${vertical};`);
+    }
+    if (this.separate) {
+      properties.push(`--table-border-spacing: ${computed.getPropertyValue("--grid-border-spacing").trim()};`);
+    }
+
+    const css = `
+      ${tableStyles()}
+      :root { color-scheme: light; background-color: #fff; ${tokens.join(" ")} }
+      body { margin: 0; font-family: ${computed.fontFamily}; font-size: ${computed.fontSize}; line-height: 1.5; }
+      table { ${properties.join(" ")} }
+      th, td { white-space: pre-line; }
+      tr { break-inside: avoid; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    `.replace(/</g, "\\3c ");
+    const lang = this.host.closest("[lang]")?.getAttribute("lang") ?? "";
+    // Browsers name a saved PDF from the title
+    const title = this.labelText || doc.title;
+    const html =
+      `<!doctype html><html lang="${escapeHtml(lang)}" dir="${computed.direction}">` +
+      `<head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${css}</style></head>` +
+      `<body>${table.outerHTML}</body></html>`;
+
+    this.printFrame?.remove();
+    const frame = doc.createElement("iframe");
+    this.printFrame = frame;
+    frame.setAttribute("aria-hidden", "true");
+    frame.tabIndex = -1;
+    frame.style.cssText =
+      "position: fixed; right: 0; bottom: 0; width: 0; height: 0; border: 0; opacity: 0; pointer-events: none;";
+    frame.srcdoc = html;
+    const loaded = new Promise((resolve) => frame.addEventListener("load", resolve, { once: true }));
+    doc.body.append(frame);
+    await loaded;
+    const win = frame.contentWindow;
+    if (!win) return;
+    await win.document.fonts?.ready;
+
+    await new Promise<void>((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        if (this.printFrame === frame) this.printFrame = undefined;
+        frame.remove();
+        resolve();
+      };
+      // In case the browser never fires afterprint
+      const timer = setTimeout(done, 60_000);
+      win.addEventListener("afterprint", () => setTimeout(done), { once: true });
+      win.focus();
+      win.print();
+    });
+  }
+
+  /**
+   * Selects or deselects rows. Pass each row as its cells, or as any one of
+   * its cells. With `selection="single"`, selecting several rows selects the
+   * last one. In a tree grid with `selection="multiple"`, rows under each row
+   * are selected or deselected with it. Emits `orbSelectionChange`.
+   */
+  @Method()
+  async selectRows(rows: (HTMLElement | HTMLElement[])[], selected = true): Promise<void> {
+    if (!this.selecting) return;
+    const keys = rows.map((row) => this.keyOf(row)).filter(Boolean);
+    let next: Set<HTMLElement>;
+    if (this.selection === "single") {
+      next = selected
+        ? new Set(keys.length ? [keys[keys.length - 1]] : this.selected)
+        : new Set([...this.selected].filter((key) => !keys.includes(key)));
+    } else {
+      next = new Set(this.selected);
+      for (const key of keys) {
+        if (this.cascades) this.cascade(next, key, selected);
+        else if (selected) next.add(key);
+        else next.delete(key);
+      }
+    }
+    this.changeSelection(next);
+  }
+
+  /**
+   * Selects every row that passes the search and filters, on every page,
+   * including rows under collapsed rows. Only with `selection="multiple"`.
+   * Emits `orbSelectionChange`.
+   */
+  @Method()
+  async selectAllRows(): Promise<void> {
+    if (this.selection !== "multiple") return;
+    const next = new Set(this.selected);
+    // A row that only shows for a match under it isn't a match itself. It's
+    // selected when all of its children are.
+    const walk = (views: ViewNode[]) =>
+      views.forEach((view) => {
+        if (!view.forced) next.add(view.node.cells[0]);
+        walk(view.children);
+      });
+    walk(this.filteredRoots);
+    this.changeSelection(next);
+  }
+
+  /** Deselects every row, on every page. Emits `orbSelectionChange`. */
+  @Method()
+  async clearSelection(): Promise<void> {
+    this.changeSelection(new Set());
+  }
+
+  /**
+   * The selected rows, each as its cells, in markup order. Includes rows on
+   * other pages, and rows the search and filters hide.
+   */
+  @Method()
+  async getSelectedRows(): Promise<HTMLElement[][]> {
+    return this.allBodyRows.filter((r) => this.selected.has(r.cells[0])).map((r) => r.cells);
+  }
+
+  /**
+   * Shows a body row: expands the rows above it in a tree, turns to its page,
+   * and scrolls it into view. Pass the row as its cells, or any one of its
+   * cells. With `focus`, focus moves to the row's first cell, or to the row
+   * with `navigation="row"`. Resolves to false when the row isn't in the
+   * grid, or the search or filters hide it. Call `clearFilters()` first to
+   * show it anyway.
+   */
+  @Method()
+  async revealRow(row: HTMLElement | HTMLElement[], options: { focus?: boolean } = {}): Promise<boolean> {
+    const key = this.keyOf(row);
+    if (!key) return false;
+    const find = (views: ViewNode[]): ViewNode[] | undefined => {
+      for (const view of views) {
+        if (view.node.cells[0] === key) return [view];
+        const below = find(view.children);
+        if (below) return [view, ...below];
+      }
+      return undefined;
+    };
+    const path = find(this.filteredRoots);
+    if (!path) return false;
+
+    let changed = false;
+    for (const view of path.slice(0, -1)) {
+      if (this.isOpen(view)) continue;
+      // A row the user closed while a filter opened it opens again
+      const ancestor = view.node.cells[0];
+      this.collapsedWhileFiltering.delete(ancestor);
+      if (!this.isOpen(view)) setAttr(ancestor, "expanded", "");
+      changed = true;
+    }
+    if (this.paginator) {
+      const pageSize = Math.max(1, Number(this.paginator.pageSize) || 10);
+      const page = Math.floor(this.filteredRoots.indexOf(path[0]) / pageSize) + 1;
+      if ((Number(this.paginator.page) || 1) !== page) {
+        this.paginator.page = page;
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.observer.takeRecords();
+      this.setRows();
+    }
+    await this.afterRender();
+
+    if (options.focus) {
+      if (this.navigation === "row") this.focusRow(this.rows.findIndex((r) => r.cells[0] === key));
+      else this.focusCell(key);
+    } else {
+      this.rowEls.get(key)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+    return true;
+  }
+
+  /**
+   * Clears the search and every header filter, and goes back to the first
+   * page. Clears the bound search field too. Emits `orbFilterChange` when
+   * anything was filtering.
+   */
+  @Method()
+  async clearFilters(): Promise<void> {
+    if (this.clearFilterValues()) this.filtersChanged();
+  }
+
+  /**
+   * Clears the search, the header filters, and the sort, and goes back to the
+   * first page, so the rows show in markup order. Selection, expanded rows,
+   * and open details stay as they are.
+   */
+  @Method()
+  async resetView(): Promise<void> {
+    const filtered = this.clearFilterValues();
+    for (const cell of this.host.querySelectorAll(":scope > orb-cell[sort]")) cell.removeAttribute("sort");
+    this.observer.takeRecords();
+    if (filtered) {
+      this.filtersChanged();
+    } else {
+      if (this.paginator) this.paginator.page = 1;
+      this.setRows();
+    }
+  }
+
+  /**
+   * Expands every row in a tree grid that has children, including rows on
+   * other pages. Rows with `expandable` and no children yet stay collapsed.
+   * Doesn't emit `orbRowExpand`, the same as setting `expanded` in the markup.
+   */
+  @Method()
+  async expandAll(): Promise<void> {
+    if (!this.isTree) return;
+    this.collapsedWhileFiltering.clear();
+    for (const [key, node] of this.treeNodes) {
+      if (node.children.length) setAttr(key, "expanded", "");
+    }
+    this.observer.takeRecords();
+    this.setRows();
+  }
+
+  /**
+   * Collapses every row in a tree grid, including rows a search opened to
+   * show a match. Focus inside a row that hides moves to its top-level row.
+   * Doesn't emit `orbRowExpand`, the same as removing `expanded` in the
+   * markup.
+   */
+  @Method()
+  async collapseAll(): Promise<void> {
+    if (!this.isTree) return;
+    const focused = this.focusedRowKey();
+    for (const [key, node] of this.treeNodes) {
+      setAttr(key, "expanded", null);
+      if (this.filtering && node.children.length) this.collapsedWhileFiltering.add(key);
+    }
+    this.observer.takeRecords();
+    this.setRows();
+    if (focused && !this.rows.some((r) => r.cells[0] === focused)) {
+      let top = this.treeNodes.get(focused);
+      while (top.parent) top = top.parent;
+      const key = top.cells[0];
+      if (this.navigation === "row") this.focusRow(this.rows.findIndex((r) => r.cells[0] === key));
+      else this.focusCell(key);
+    }
+  }
+
+  /** A body row's key, which is its first cell, from its cells or any one cell */
+  private keyOf(row: HTMLElement | HTMLElement[]) {
+    const cell = Array.isArray(row) ? row[0] : row;
+    return cell ? this.allBodyRows.find((r) => r.cells.includes(cell))?.cells[0] : undefined;
+  }
+
+  /** Selects exactly these rows, when they're different from the selection now */
+  private changeSelection(next: Set<HTMLElement>) {
+    if (this.cascades) this.settleParents(next);
+    const same = next.size === this.selected.size && [...next].every((key) => this.selected.has(key));
+    if (!same) this.setSelected(next);
+  }
+
+  /**
+   * Clears the search, the bound search field, and the header filters,
+   * without filtering yet. Returns whether anything was filtering.
+   */
+  private clearFilterValues() {
+    type Filterable = HTMLElement & { filterValue?: FilterValue };
+    const headers = (this.cellsIn("head") as Filterable[]).filter((cell) => cell.filterValue !== undefined);
+    const searching = !!this.search;
+    this.batching = true;
+    this.search = "";
+    for (const cell of headers) cell.filterValue = undefined;
+    this.batching = false;
+    // Setting a field's value doesn't fire its events, so the search stays clear
+    const el = this.searchEl;
+    const field = (el?.localName === "orb-textbox" ? el.querySelector("input, textarea") : el) as
+      | HTMLInputElement
+      | undefined;
+    if (field && "value" in field) field.value = "";
+    return searching || headers.length > 0;
+  }
+
+  /** The body row that has focus, in a cell, its details, or a lead column control */
+  private focusedRowKey() {
+    const active = (this.host.getRootNode() as Document | ShadowRoot).activeElement;
+    const shadow = this.host.shadowRoot.activeElement;
+    const inside = (el?: Element) => !!el && !!active && (el === active || el.contains(active));
+    for (const row of this.allBodyRows) {
+      const key = row.cells[0];
+      if (row.cells.some(inside) || inside(this.detailsOf.get(key))) return key;
+      if (shadow && [this.rowEls, this.handleEls, this.toggleEls, this.controlEls].some((els) => els.get(key) === shadow)) {
+        return key;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Whether a row that passes the search and filters shows its children: by
+   * its own `expanded`, or opened by a filter to show a match under it,
+   * unless the user closed it again.
+   */
+  private isOpen({ node, children, forced }: ViewNode) {
+    const key = node.cells[0];
+    return (
+      key.hasAttribute("expanded") ||
+      (this.filtering && forced && children.length > 0 && !this.collapsedWhileFiltering.has(key))
+    );
+  }
+
+  /** The body rows to export, in the order shown */
+  private exportRows(options: GridExportOptions): ExportRow[] {
+    const scope = options.rows ?? (this.selected.size ? "selected" : "view");
+    const expandAll = options.expand === "all";
+    const rows: ExportRow[] = [];
+    const add = (cells: HTMLElement[], level: number) => {
+      const details = this.detailsOf.get(cells[0]);
+      const open = details && (expandAll || details.hasAttribute("expanded"));
+      rows.push({ cells, level: this.isTree ? level : 1, details: open ? details : undefined });
+    };
+
+    if (scope === "view" || scope === "page") {
+      // A page holds top-level rows, each with the rows under it
+      const shown = new Set(this.bodyRows.map((r) => r.cells[0]));
+      const roots =
+        scope === "page" ? this.filteredRoots.filter((v) => shown.has(v.node.cells[0])) : this.filteredRoots;
+      const walk = (views: ViewNode[], level: number) =>
+        views.forEach((view) => {
+          add(view.node.cells, level);
+          if (expandAll || this.isOpen(view)) walk(view.children, level + 1);
+        });
+      walk(roots, 1);
+    } else {
+      // Selected rows under a collapsed row are still selected, so they're included
+      const selected = scope === "selected";
+      const walk = (nodes: TreeNode[], level: number) =>
+        nodes.forEach((node) => {
+          if (!selected || this.selected.has(node.cells[0])) add(node.cells, level);
+          if (selected || expandAll || node.cells[0].hasAttribute("expanded")) walk(node.children, level + 1);
+        });
+      walk(this.sortedRoots, 1);
+    }
+    return rows;
+  }
+
+  /** The header or footer cells, in markup order */
+  private cellsIn(section: "head" | "foot") {
+    return Array.from(this.host.children).filter(
+      (el): el is HTMLElement => el.localName === "orb-cell" && el.getAttribute("section") === section,
+    );
+  }
+
+  /** The grid's accessible name, from an `orb-label` or `aria-label` */
+  private get labelText() {
+    const labels = this.host.ariaLabelledByElements ?? [];
+    const text = labels.map((el) => el.textContent.trim().replace(/\s+/g, " ")).filter(Boolean).join(" ");
+    return text || this.host.getAttribute("aria-label")?.trim() || "";
+  }
+
+  /** A native table with the grid's settings, header, rows, and footer */
+  private buildTable(rows: ExportRow[], forPrint = false) {
+    const doc = this.host.ownerDocument;
+    const columns = this.columnCount;
+    const table = doc.createElement("table");
+    const words = [
+      this.striped && "striped",
+      this.separate && "separate",
+      this.fixed && "fixed",
+      this.truncate && !forPrint && "truncate",
+      this.caps && "caps",
+      this.rowHeaders && "row-headers",
+      { outer: "outer", rows: "rows", none: "borderless" }[this.borders],
+      { compact: "compact", comfortable: "comfortable" }[this.density],
+    ].filter(Boolean);
+    if (words.length) table.dataset.orb = words.join(" ");
+
+    const label = this.labelText;
+    if (label) table.createCaption().textContent = label;
+
+    if (this.columnInfo.some((c) => c.width)) {
+      const group = doc.createElement("colgroup");
+      for (const { width } of this.columnInfo) {
+        const col = doc.createElement("col");
+        if (width) col.dataset.orb = `w-${width}`;
+        group.append(col);
+      }
+      table.append(group);
+    }
+
+    const indent = getComputedStyle(this.host).getPropertyValue("--grid-tree-indent").trim() || "1.25rem";
+    const cellFor = (cell: HTMLElement, p: Placed, header: boolean, level = 1) => {
+      const rowHeader = !header && cell.hasAttribute("row-header");
+      const el = doc.createElement(header || rowHeader ? "th" : "td");
+      if (header) el.setAttribute("scope", p.colspan > 1 ? "colgroup" : "col");
+      else if (rowHeader) el.setAttribute("scope", "row");
+      if (p.colspan > 1) el.colSpan = p.colspan;
+      if (p.rowspan > 1) el.rowSpan = p.rowspan;
+      // Body and footer cells follow their column's alignment, like in the grid
+      const column = header ? undefined : this.columnInfo[p.col];
+      const ownAlign = cell.getAttribute("align");
+      const align = ALIGNS.includes(ownAlign) ? ownAlign : cell.hasAttribute("numeric") ? undefined : column?.align;
+      const numeric = cell.hasAttribute("numeric") || column?.numeric;
+      const status = cell.getAttribute("status");
+      const cellWords = [align ?? (numeric && "numeric"), STATUSES.includes(status) && status].filter(Boolean);
+      if (cellWords.length) el.dataset.orb = cellWords.join(" ");
+      if (level > 1) el.style.paddingInlineStart = `calc(var(--table-cell-padding-x) + ${level - 1} * ${indent})`;
+      el.textContent = textOf(cell);
+      return el;
+    };
+
+    // Every track gets a row, even one that's covered by spans from above, so
+    // the spans line up the same way
+    const section = (tag: "thead" | "tfoot", cells: HTMLElement[]) => {
+      if (!cells.length) return;
+      const placed = layoutSection(cells, columns);
+      const trs = Array.from({ length: Math.max(...placed.map((p) => p.track)) + 1 }, () => doc.createElement("tr"));
+      for (const p of placed) trs[p.track].append(cellFor(p.cell, p, tag === "thead"));
+      const el = doc.createElement(tag);
+      el.append(...trs);
+      table.append(el);
+    };
+
+    section("thead", this.cellsIn("head"));
+    if (rows.length) {
+      const tbody = doc.createElement("tbody");
+      const placed = new Map(layoutSection(rows.flatMap((r) => r.cells), columns).map((p) => [p.cell, p]));
+      for (const row of rows) {
+        const tr = doc.createElement("tr");
+        const status = row.cells[0].getAttribute("row-status");
+        if (STATUSES.includes(status)) tr.dataset.orb = status;
+        row.cells.forEach((cell, i) => tr.append(cellFor(cell, placed.get(cell), false, i === 0 ? row.level : 1)));
+        tbody.append(tr);
+        if (row.details) {
+          const td = doc.createElement("td");
+          td.colSpan = columns;
+          td.textContent = textOf(row.details);
+          const detailsRow = doc.createElement("tr");
+          detailsRow.append(td);
+          tbody.append(detailsRow);
+        }
+      }
+      table.append(tbody);
+    }
+    section("tfoot", this.cellsIn("foot"));
+    return table;
   }
 
   @Watch("searchbox")
@@ -734,6 +1618,7 @@ export class Grid {
    * page, then reports and announces how many rows match.
    */
   private filtersChanged() {
+    if (this.batching) return;
     this.collapsedWhileFiltering.clear();
     if (this.paginator) this.paginator.page = 1;
     this.setRows();
@@ -772,7 +1657,7 @@ export class Grid {
    * accents are highlighted, though matching ignores them.
    */
   private updateHighlights() {
-    if (!matchHighlight) return;
+    const matched = new Set<HTMLElement>();
     const words = fold(this.search ?? "").split(/\s+/).filter(Boolean);
     const ranges: Range[] = [];
     for (const row of this.bodyRows) {
@@ -799,12 +1684,16 @@ export class Grid {
               range.setStart(node, i);
               range.setEnd(node, i + term.length);
               ranges.push(range);
+              matched.add(cell);
             }
           }
         }
       }
     }
     this.setHighlights(ranges);
+    for (const cell of this.matchedCells) if (!matched.has(cell)) setState(cell, "match", false);
+    for (const cell of matched) setState(cell, "match", true);
+    this.matchedCells = matched;
   }
 
   @Watch("pagination")
@@ -916,7 +1805,9 @@ export class Grid {
 
     // The body rows in markup order. Sorting and paging pick which of them
     // show, and in what order, without moving any cells in the page.
-    const markupBody = groupRows(layoutSection(bySection[1].cells, columns));
+    const bodyLayout = layoutSection(bySection[1].cells, columns);
+    const bodyPlaced = new Map(bodyLayout.map((p) => [p.cell, p]));
+    const markupBody = groupRows(bodyLayout);
     this.allBodyRows = markupBody.map((cells) => ({ section: "body", cells, track: 0, span: 1 }));
 
     // An orb-row-details belongs to the body row of the cell just before it.
@@ -969,7 +1860,7 @@ export class Grid {
       const head = layoutSection(bySection[0].cells, columns).find((p) => p.cell === sortCell);
       const direction = sortCell.getAttribute("sort");
       const arrange = (nodes: TreeNode[]): TreeNode[] => {
-        const order = sortRows(nodes.map((n) => n.cells), bySection[1].cells, columns, head.col, direction);
+        const order = sortRows(nodes.map((n) => n.cells), bodyPlaced, head.col, direction);
         return order.map((cells) => {
           const node = treeNodes.get(cells[0]);
           node.children = arrange(node.children);
@@ -985,7 +1876,6 @@ export class Grid {
     const filters = readFilters(bySection[0].cells, columns);
     this.activeFilters = filters;
     this.filtering = words.length > 0 || filters.length > 0;
-    const bodyPlaced = new Map(layoutSection(bySection[1].cells, columns).map((p) => [p.cell, p]));
     const cellAt = (row: HTMLElement[], col: number) =>
       row.find((cell) => {
         const p = bodyPlaced.get(cell);
@@ -1020,7 +1910,6 @@ export class Grid {
     // A row shows when it matches, or a row under it does. Rows under a
     // matching row all show, as they open. A row that only shows for a match
     // under it opens to show the match, without changing its `expanded`.
-    type ViewNode = { node: TreeNode; children: ViewNode[]; forced: boolean };
     const keep = (nodes: TreeNode[], matched: boolean): ViewNode[] =>
       nodes.flatMap((node) => {
         const self = matched || !this.filtering || matches(node.cells);
@@ -1029,6 +1918,9 @@ export class Grid {
         return [{ node, children, forced: !self }];
       });
     let viewRoots = keep(roots, false);
+    // Kept for exporting, which ignores pages
+    this.sortedRoots = roots;
+    this.filteredRoots = viewRoots;
 
     // Pages hold top-level rows, each with its whole subtree.
     const paginator = this.paginator;
@@ -1048,13 +1940,10 @@ export class Grid {
     const viewBody: HTMLElement[][] = [];
     const treeInfo = new Map<HTMLElement, TreeInfo>();
     const walk = (nodes: ViewNode[], level: number) =>
-      nodes.forEach(({ node, children, forced }, index) => {
+      nodes.forEach((view, index) => {
+        const { node, children } = view;
         const key = node.cells[0];
-        // Open by its own `expanded`, or opened by a filter to show a match
-        // under it, unless the user closed it again.
-        const open =
-          key.hasAttribute("expanded") ||
-          (this.filtering && forced && children.length > 0 && !this.collapsedWhileFiltering.has(key));
+        const open = this.isOpen(view);
         treeInfo.set(key, {
           level,
           setsize: nodes.length,
@@ -1073,11 +1962,8 @@ export class Grid {
     // The first cell of each tree row shows the chevron and the indent.
     for (const cell of bySection[1].cells) {
       const info = this.isTree && treeInfo.get(cell);
-      setAttr(
-        cell,
-        "tree-node",
-        info ? (!info.hasChildren ? "leaf" : info.open ? "open" : "parent") : null,
-      );
+      const node = info ? (!info.hasChildren ? "leaf" : info.open ? "open" : "parent") : undefined;
+      for (const name of ["parent", "open", "leaf"]) setState(cell, name, node === name);
       if (info) cell.style.setProperty("--_tree-depth", String(info.level - 1));
       else cell.style.removeProperty("--_tree-depth");
     }
@@ -1158,15 +2044,66 @@ export class Grid {
         });
       }
       trackOffset += rowCount + (shift[rowCount] ?? 0);
+      if (section === "head") this.headTracks = trackOffset;
       if (section === "head" && empty) this.emptyTrack = trackOffset++;
     }
     rows.sort((a, b) => a.track - b.track);
+    this.trackCount = trackOffset;
+
+    // Each column's width and alignment come from the header cells that
+    // cover only that column. A later header row wins.
+    const columnInfo: ColumnInfo[] = Array.from({ length: columns }, () => ({ numeric: false }));
+    for (const cell of bySection[0].cells) {
+      const p = placements.get(cell);
+      if (!p || p.colspan !== 1) continue;
+      const info = columnInfo[p.col - offset];
+      const width = cell.getAttribute("width");
+      const align = cell.getAttribute("align");
+      if (WIDTHS.includes(width) || width === "auto" || width === "min") info.width = width;
+      if (ALIGNS.includes(align)) info.align = align;
+      if (cell.hasAttribute("numeric")) info.numeric = true;
+    }
+    this.columnInfo = columnInfo;
 
     // Explicit placement, since auto-placement can't see cells from other
     // rows' boxes spanning down into this one.
+    const totalColumns = offset + columns;
     for (const [cell, p] of placements) {
-      cell.style.setProperty("--_grid-column", `${p.col + 1} / span ${p.colspan}`);
-      cell.style.setProperty("--_grid-row", `1 / span ${p.rowspan}`);
+      const style = cell.style;
+      style.setProperty("--_grid-column", `${p.col + 1} / span ${p.colspan}`);
+      style.setProperty("--_grid-row", `1 / span ${p.rowspan}`);
+      // Which edges of the grid the cell is on, for its borders
+      style.setProperty("--_edge-start", p.col === 0 ? "1" : "0");
+      style.setProperty("--_edge-end", p.col + p.colspan >= totalColumns ? "1" : "0");
+      style.setProperty("--_edge-top", p.track === 0 ? "1" : "0");
+      style.setProperty("--_edge-bottom", p.track + p.rowspan >= trackOffset ? "1" : "0");
+
+      const isCell = cell.localName === "orb-cell";
+      if (isCell) {
+        setState(cell, "first-column", p.col === 0);
+        setState(cell, "last-column", p.col + p.colspan >= totalColumns);
+        setState(cell, "first-row", p.track === 0);
+        setState(cell, "last-row", p.track + p.rowspan >= trackOffset);
+      }
+      // Body and footer cells follow their column header's alignment
+      const column = isCell && cell.getAttribute("section") !== "head" ? columnInfo[p.col - offset] : undefined;
+      const align = column?.align ?? (column?.numeric ? "end" : undefined);
+      if (align) style.setProperty("--_column-align", align);
+      else style.removeProperty("--_column-align");
+      if (column?.numeric) style.setProperty("--_column-numeric", "tabular-nums");
+      else style.removeProperty("--_column-numeric");
+
+      // The first column's cells stick with `sticky-column`, at the offset
+      // the grid measures for their column
+      if (isCell && p.col === offset) {
+        style.setProperty("--_sticky-position", "sticky");
+        style.setProperty("--_sticky-start", `var(--_stick-${p.col}, 0px)`);
+        style.setProperty("--_sticky-z", "1");
+      } else {
+        style.removeProperty("--_sticky-position");
+        style.removeProperty("--_sticky-start");
+        style.removeProperty("--_sticky-z");
+      }
     }
 
     this.columnCount = columns;
@@ -1238,6 +2175,7 @@ export class Grid {
         open ? this.restoreTabIndex(el) : this.suspendTabIndex(el),
       );
     }
+    this.updateFocusStates();
   }
 
   /** A lead column control is a Tab stop only when it's the active cell. */
@@ -2154,7 +3092,7 @@ export class Grid {
    * first header row, and an empty cell in other rows.
    */
   private renderHandleCell(row: Row) {
-    const style = { gridColumn: "1" };
+    const style = this.leadStyle(row, 0);
     if (row.section !== "body") {
       const firstHead = row === this.rows.find((r) => r.section === "head");
       return (
@@ -2201,7 +3139,7 @@ export class Grid {
    * labelled header in the first header row, and an empty cell in other rows.
    */
   private renderToggleCell(row: Row) {
-    const style = { gridColumn: String(this.toggleCol + 1) };
+    const style = this.leadStyle(row, this.toggleCol);
     const key = row.cells[0];
     const details = row.section === "body" && this.detailsOf.get(key);
     if (!details) {
@@ -2240,7 +3178,7 @@ export class Grid {
    * in footer rows.
    */
   private renderSelectCell(row: Row) {
-    const style = { gridColumn: String(this.selectCol + 1) };
+    const style = this.leadStyle(row, this.selectCol);
     if (row.section === "head") {
       // Only the first header row names the column, or holds select all.
       if (row !== this.rows.find((r) => r.section === "head")) {
@@ -2338,7 +3276,17 @@ export class Grid {
     const custom = this.host.querySelector<HTMLElement>(":scope > [slot='empty']");
     return (
       <div role="row" class="empty-row" part="empty-row" style={{ gridRow: String(this.emptyTrack + 1) }}>
-        <div role="gridcell" class="empty-cell" part="empty-cell">
+        <div
+          role="gridcell"
+          class="empty-cell"
+          part="empty-cell"
+          style={{
+            "--_edge-start": "1",
+            "--_edge-end": "1",
+            "--_edge-top": this.emptyTrack === 0 ? "1" : "0",
+            "--_edge-bottom": this.emptyTrack + 1 >= this.trackCount ? "1" : "0",
+          }}
+        >
           <slot ref={(slot) => slot?.assign(...(custom ? [custom] : []))}>No matching rows</slot>
         </div>
       </div>
@@ -2368,25 +3316,36 @@ export class Grid {
     this.toggleEls = new Map();
     const rowNav = this.navigation === "row";
     const leadColumns = this.offset ? `--_lead-columns: repeat(${this.offset}, min-content);` : "";
+    let bodyIndex = 0;
     return (
       <Host>
-        <style>{`:host { --_columns: ${this.columnCount}; ${leadColumns} }`}</style>
+        <style>{`:host { --_data-columns: ${this.dataColumns}; ${leadColumns} }`}</style>
         {this.rows.map((row) => {
           const key = row.cells[0];
-          const selectable = this.selecting && row.section === "body";
+          const body = row.section === "body";
+          const selectable = this.selecting && body;
+          // Stripes count the body rows that show, like :nth-child(even)
+          const stripe = body && bodyIndex++ % 2 === 1;
+          const status = row.section !== "details" && key.getAttribute("row-status");
           return (
             <div
               role="row"
               part={`row ${row.section}-row`}
               class={{
                 [row.section]: true,
+                stripe: this.striped && stripe,
+                hover: this.hover && body,
+                [`status-${status}`]: STATUSES.includes(status),
                 // A checkbox is enough to show a selected row, so only single
                 // selection tints it.
                 tint: this.selection === "single",
                 moving: key === this.grabbedKey,
                 dragging: key === this.dragKey,
               }}
-              style={{ gridRow: `${row.track + 1} / span ${row.span}` }}
+              style={{
+                gridRow: `${row.track + 1} / span ${row.span}`,
+                "--_head-top": row.section === "head" ? `var(--_head-top-${row.track}, 0px)` : undefined,
+              }}
               tabIndex={rowNav ? (key === this.activeRowKey ? 0 : -1) : undefined}
               aria-selected={selectable ? String(this.selected.has(key)) : undefined}
               {...this.treeAria(row)}

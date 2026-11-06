@@ -1,29 +1,62 @@
-/* Matches a native table cell. The border and padding values come from the
-   parent orb-grid. */
+/* Matches a native table cell. The padding values come from the parent
+   orb-grid, which also draws the cell's borders and background. */
 :host {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  /* Space between several controls in one cell */
+  align-items: var(--grid-vertical-align, center);
   gap: var(--orb-spacing-2xs);
   box-sizing: border-box;
   padding: var(--grid-cell-padding-y, var(--orb-spacing-xs))
     var(--grid-cell-padding-x, var(--orb-spacing-sm));
-  border-style: solid;
-  border-color: var(--grid-border-color, var(--orb-divider-color));
-  border-width: 0;
-  border-inline-end-width: var(--grid-border-width, 1px);
-  border-block-end-width: var(--grid-border-width, 1px);
-  text-align: start;
+  /* The column's alignment, from its header, unless the cell sets its own */
+  font-variant-numeric: var(--_numeric, var(--_column-numeric));
   /* Set by the grid, from the cell's place and spans */
   grid-column: var(--_grid-column, auto);
   grid-row: var(--_grid-row, auto);
 }
 
+:host([numeric]) {
+  --_align: end;
+  --_numeric: tabular-nums;
+}
+
+/* After numeric, so an explicit alignment wins */
+:host([align="start"]) {
+  --_align: start;
+}
+
+:host([align="center"]) {
+  --_align: center;
+}
+
+:host([align="end"]) {
+  --_align: end;
+}
+
+:host([row-header]) {
+  font-weight: var(--orb-font-semi-bold);
+}
+
+/* The content, between the tree chevron and the header's icons. It lays out
+   several controls with space between them, and the grid's `truncate` turns
+   it into one line of text that ends in an ellipsis. */
+.text {
+  display: var(--_text-display, flex);
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: var(--_align, var(--_column-align, start));
+  gap: var(--orb-spacing-2xs);
+  min-width: 0;
+  overflow: var(--_text-overflow);
+  text-overflow: var(--_text-ellipsis);
+  white-space: var(--_text-wrap);
+  text-align: var(--_align, var(--_column-align, start));
+}
+
 /* A tree row's first cell starts with its indent and chevron. Leaves get the
    same space, so their text lines up with their siblings'. */
 .tree-toggle {
-  display: inline-flex;
+  display: none;
   flex: none;
   align-items: center;
   justify-content: center;
@@ -32,8 +65,17 @@
   margin-inline-start: calc(var(--_tree-depth, 0) * var(--grid-tree-indent, 1.25rem));
 }
 
-:host(:is([tree-node="parent"], [tree-node="open"])) .tree-toggle {
+:host(:is(:state(parent), :state(open), :state(leaf))) .tree-toggle {
+  display: inline-flex;
+}
+
+:host(:is(:state(parent), :state(open))) .tree-toggle {
   cursor: pointer;
+}
+
+/* Leaves keep the space, without a chevron */
+:host(:state(leaf)) .tree-toggle svg {
+  visibility: hidden;
 }
 
 .tree-toggle svg {
@@ -47,11 +89,11 @@
 
 /* The grid sets "open" while the row's children show, which is also while a
    filter shows a match inside a collapsed row */
-:host([tree-node="open"]) .tree-toggle svg {
+:host(:state(open)) .tree-toggle svg {
   rotate: 90deg;
 }
 
-:host(:dir(rtl)[tree-node="open"]) .tree-toggle svg {
+:host(:dir(rtl):state(open)) .tree-toggle svg {
   rotate: -90deg;
 }
 
@@ -72,7 +114,6 @@
   flex: none;
   width: 1em;
   height: 1em;
-  margin-inline-start: auto;
   color: var(--orb-note-color);
 }
 
@@ -92,10 +133,6 @@
   cursor: pointer;
 }
 
-/* Pushed to the end when there's no sort arrow to push it */
-:host(:not([sortable])) .filter-button {
-  margin-inline-start: auto;
-}
 
 .filter-button svg {
   width: 1em;

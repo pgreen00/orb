@@ -117,9 +117,9 @@
       const sidebar = document.querySelector('[data-landmark="sidebar"]')
       const current = sidebar.querySelector('[aria-current]')
       requestAnimationFrame(() => {
-        if (!current) return
-        const offset = current.getBoundingClientRect().top - sidebar.getBoundingClientRect().top
-        sidebar.scrollTop += offset - (sidebar.clientHeight - current.offsetHeight) / 2
+        //if (!current) return
+        //const offset = current.getBoundingClientRect().top - sidebar.getBoundingClientRect().top
+        //sidebar.scrollTop += offset - (sidebar.clientHeight - current.offsetHeight) / 2
       })
     </script>
   </nav>

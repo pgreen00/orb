@@ -2,20 +2,14 @@
  * @prop --grid-details-background: Background of the details. Set it on the grid or the details.
  */
 
-/* Matches orb-cell's border and padding. The grid places it across every
-   column, and only renders it while it's expanded. */
+/* Matches orb-cell's padding. The grid draws its borders and background,
+   places it across every column, and only renders it while it's expanded. */
 :host {
   display: block;
   box-sizing: border-box;
   min-width: 0;
   padding: var(--grid-cell-padding-y, var(--orb-spacing-xs))
     var(--grid-cell-padding-x, var(--orb-spacing-sm));
-  border-style: solid;
-  border-color: var(--grid-border-color, var(--orb-divider-color));
-  border-width: 0;
-  border-inline-end-width: var(--grid-border-width, 1px);
-  border-block-end-width: var(--grid-border-width, 1px);
-  background-color: var(--grid-details-background, transparent);
   font-weight: var(--orb-font-regular);
   grid-column: var(--_grid-column, 1 / -1);
   grid-row: var(--_grid-row, auto);

@@ -1,13 +1,39 @@
 /**
- * @prop --grid-background: Background of the grid
- * @prop --grid-border-color: Color of the lines between cells
- * @prop --grid-border-width: Width of the lines between cells
+ * @prop --grid-background: Background of the grid. Tints and sticky cells are mixed over it, so set it to the color behind the grid.
+ * @prop --grid-border-color: Color of the lines
+ * @prop --grid-border-width: Width of the lines
+ * @prop --grid-vertical-borders: 1 or 0, to show or hide the lines between columns
+ * @prop --grid-horizontal-borders: 1 or 0, to show or hide the lines between rows
+ * @prop --grid-outer-inline-borders: 1 or 0, to show or hide the grid's start and end edges
+ * @prop --grid-outer-block-borders: 1 or 0, to show or hide the grid's top and bottom edges
  * @prop --grid-header-background: Background of the header and footer rows
- * @prop --grid-cell-padding-y: Block padding of each cell
- * @prop --grid-cell-padding-x: Inline padding of each cell
- * @prop --grid-selected-background: Background of selected rows
+ * @prop --grid-stripe-background: Background of every other body row, with `striped`
+ * @prop --grid-hover-background: Background of the row under the pointer, with `hover`
+ * @prop --grid-selected-background: Background of the selected row, with `selection="single"`
+ * @prop --grid-success-background: Background of cells and rows with a `success` status
+ * @prop --grid-warning-background: Background of cells and rows with a `warning` status
+ * @prop --grid-danger-background: Background of cells and rows with a `danger` status
  * @prop --grid-moving-background: Background of a row being moved
  * @prop --grid-drop-indicator-color: Color of the line that shows where a dragged row will land
+ * @prop --grid-cell-padding-y: Block padding of each cell
+ * @prop --grid-cell-padding-x: Inline padding of each cell
+ * @prop --grid-border-spacing: Space between cells, with `separate`
+ * @prop --grid-cell-radius: Corners of cells, with `separate`
+ * @prop --grid-font-size: Text size
+ * @prop --grid-header-font-size: Text size of header cells
+ * @prop --grid-header-text-transform: Text transform of header cells
+ * @prop --grid-header-letter-spacing: Letter spacing of header cells
+ * @prop --grid-font-variant-numeric: Numeric font variant of every cell
+ * @prop --grid-vertical-align: Vertical alignment of cell content: start, center, or end
+ * @prop --grid-col-width-xs: Width of columns whose header has `width="xs"`
+ * @prop --grid-col-width-sm: Width of columns whose header has `width="sm"`
+ * @prop --grid-col-width-md: Width of columns whose header has `width="md"`
+ * @prop --grid-col-width-lg: Width of columns whose header has `width="lg"`
+ * @prop --grid-col-width-xl: Width of columns whose header has `width="xl"`
+ * @prop --grid-max-width: Largest width of the grid, before it scrolls sideways
+ * @prop --grid-max-height: Largest height of the grid, before it scrolls. `sticky-header` needs it.
+ * @prop --grid-min-width: Smallest width of the grid's content. A wider minimum than the grid scrolls sideways.
+ * @prop --grid-sticky-top: How far below the top of the grid the sticky header sticks
  * @prop --grid-tree-indent: How far each level of a tree grid is indented
  */
 
@@ -16,46 +42,126 @@
   --grid-background: var(--orb-background-color);
   --grid-border-color: light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
   --grid-border-width: 1px;
-  --grid-header-background: color-mix(
-    in srgb,
-    var(--grid-background),
-    var(--orb-text-color) 7%
-  );
+  --grid-vertical-borders: 1;
+  --grid-horizontal-borders: 1;
+  --grid-outer-inline-borders: 1;
+  --grid-outer-block-borders: 1;
+  --grid-header-background: color-mix(in srgb, var(--grid-background), var(--orb-text-color) 7%);
+  --grid-stripe-background: color-mix(in srgb, var(--grid-background), var(--orb-text-color) 4%);
+  --grid-hover-background: color-mix(in srgb, var(--grid-background), var(--orb-text-color) 9%);
+  --grid-selected-background: color-mix(in srgb, var(--grid-background), var(--orb-primary-500) 28%);
+  --grid-success-background: color-mix(in srgb, var(--grid-background), var(--orb-success-500) 18%);
+  --grid-warning-background: color-mix(in srgb, var(--grid-background), var(--orb-warning-500) 20%);
+  --grid-danger-background: color-mix(in srgb, var(--grid-background), var(--orb-danger-500) 16%);
+  --grid-moving-background: color-mix(in srgb, var(--grid-background), var(--orb-primary-500) 10%);
+  --grid-drop-indicator-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
   --grid-cell-padding-y: var(--orb-spacing-xs);
   --grid-cell-padding-x: var(--orb-spacing-sm);
-  --grid-selected-background: color-mix(
-    in srgb,
-    var(--grid-background),
-    var(--orb-primary-500) 16%
-  );
-  --grid-moving-background: color-mix(
-    in srgb,
-    var(--grid-background),
-    var(--orb-primary-500) 10%
-  );
-  --grid-drop-indicator-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --grid-border-spacing: var(--orb-spacing-3xs);
+  --grid-cell-radius: var(--orb-radius-md);
+  --grid-col-width-xs: 4rem;
+  --grid-col-width-sm: 8rem;
+  --grid-col-width-md: 12rem;
+  --grid-col-width-lg: 16rem;
+  --grid-col-width-xl: 24rem;
+
+  /* 1 with `separate`, where every cell draws all four of its borders */
+  --_sep: 0;
+  /* The grid's own settings for its cells inherit into any grid nested in a
+     cell, so each grid starts them over. */
+  --_row-background: initial;
+  --_align: initial;
+  --_numeric: initial;
+  --_column-align: initial;
+  --_column-numeric: initial;
+  --_sticky-position: initial;
+  --_sticky-start: initial;
+  --_sticky-z: initial;
+  --_text-display: initial;
+  --_text-overflow: initial;
+  --_text-ellipsis: initial;
+  --_text-wrap: initial;
 
   display: grid;
-  /* Narrow first columns for the drag handles and selection controls */
-  grid-template-columns: var(--_lead-columns,) repeat(var(--_columns, 1), auto);
+  /* Narrow first columns for the drag handles and selection controls, then
+     each column's width, set by the grid from its header's `width` */
+  grid-template-columns: var(--_lead-columns,) var(--_data-columns, auto);
+  gap: calc(var(--_sep) * var(--grid-border-spacing));
   /* For the drop line */
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  max-width: 100%;
+  max-width: var(--grid-max-width, 100%);
+  max-height: var(--grid-max-height, none);
   /* A grid wider than its container scrolls sideways inside its own box,
      instead of spilling out. Moving focus scrolls the focused cell into view. */
   overflow: auto;
   scrollbar-width: thin;
-  /* Collapsed borders: the grid draws the top and start edges, and each cell
-     draws its own end and bottom edges. */
-  border-style: solid;
-  border-color: var(--grid-border-color);
-  border-width: 0;
-  border-block-start-width: var(--grid-border-width);
-  border-inline-start-width: var(--grid-border-width);
   background-color: var(--grid-background);
   color: var(--orb-text-color);
+  font-size: var(--grid-font-size, inherit);
+  font-variant-numeric: var(--grid-font-variant-numeric, normal);
+}
+
+/* Spans every column, so the columns grow to at least --grid-min-width */
+:host::before {
+  content: "";
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-self: start;
+  height: 0;
+  min-width: var(--grid-min-width, 0);
+  pointer-events: none;
+}
+
+/* Settings. Each one only sets custom properties, like the native table's. */
+:host([separate]) {
+  --_sep: 1;
+}
+
+:host([borders="outer"]) {
+  --grid-vertical-borders: 0;
+  --grid-horizontal-borders: 0;
+}
+
+:host([borders="rows"]) {
+  --grid-vertical-borders: 0;
+  --grid-outer-inline-borders: 0;
+}
+
+:host([borders="none"]) {
+  --grid-vertical-borders: 0;
+  --grid-horizontal-borders: 0;
+  --grid-outer-inline-borders: 0;
+  --grid-outer-block-borders: 0;
+}
+
+:host([density="compact"]) {
+  --grid-cell-padding-y: var(--orb-spacing-3xs);
+  --grid-cell-padding-x: var(--orb-spacing-xs);
+}
+
+:host([density="comfortable"]) {
+  --grid-cell-padding-y: var(--orb-spacing-sm);
+  --grid-cell-padding-x: var(--orb-spacing-md);
+}
+
+:host([caps]) {
+  --grid-header-text-transform: uppercase;
+  --grid-header-letter-spacing: 0.05em;
+  --grid-header-font-size: 0.85em;
+}
+
+/* Read by orb-cell, which puts its text on one line ending in an ellipsis */
+:host([truncate]) {
+  --_text-display: block;
+  --_text-overflow: hidden;
+  --_text-ellipsis: ellipsis;
+  --_text-wrap: nowrap;
+}
+
+:host([truncate]) [role="row"] > slot::slotted(*) {
+  min-width: 0;
 }
 
 /* Each row spans every column and shares the grid's tracks, so cells line up
@@ -73,28 +179,176 @@
   font-weight: var(--orb-font-semi-bold);
 }
 
-/* Backgrounds go on the cells, not the rows. A row with a tall cell overlaps
-   the rows below it, and its background would cover their cells. */
-.head slot::slotted(*),
-.foot slot::slotted(*),
-.head .lead-cell,
-.foot .lead-cell {
-  background-color: var(--grid-header-background);
+.head > slot::slotted(*) {
+  font-size: var(--grid-header-font-size, inherit);
+  text-transform: var(--grid-header-text-transform, none);
+  letter-spacing: var(--grid-header-letter-spacing, normal);
+}
+
+/* Every cell draws its own borders. In the collapsed model, a cell draws its
+   end and bottom lines, and its start and top lines only on the grid's edge,
+   so each line is drawn once. The grid sets the --_edge-* flags on each cell,
+   from where it's placed. With `separate`, every cell draws all four lines.
+   The multipliers are 0 or 1. */
+[role="row"] > slot::slotted(*),
+.lead-cell,
+.empty-cell {
+  border-style: solid;
+  border-color: var(--grid-border-color);
+  border-inline-start-width: calc(
+    var(--grid-border-width) *
+      (
+        var(--_sep) * var(--grid-vertical-borders) +
+          (1 - var(--_sep)) * var(--_edge-start, 0) * var(--grid-outer-inline-borders)
+      )
+  );
+  border-inline-end-width: calc(
+    var(--grid-border-width) *
+      (
+        var(--_sep) * var(--grid-vertical-borders) +
+          (1 - var(--_sep)) *
+          (
+            var(--_edge-end, 0) * var(--grid-outer-inline-borders) +
+              (1 - var(--_edge-end, 0)) * var(--grid-vertical-borders)
+          )
+      )
+  );
+  border-block-start-width: calc(
+    var(--grid-border-width) *
+      (
+        var(--_sep) * var(--grid-horizontal-borders) +
+          (1 - var(--_sep)) * var(--_edge-top, 0) * var(--grid-outer-block-borders)
+      )
+  );
+  border-block-end-width: calc(
+    var(--grid-border-width) *
+      (
+        var(--_sep) * var(--grid-horizontal-borders) +
+          (1 - var(--_sep)) *
+          (
+            var(--_edge-bottom, 0) * var(--grid-outer-block-borders) +
+              (1 - var(--_edge-bottom, 0)) * var(--grid-horizontal-borders)
+          )
+      )
+  );
+  border-radius: calc(var(--_sep) * var(--grid-cell-radius));
+  /* Backgrounds go on the cells, not the rows, since a row with a tall cell
+     overlaps the rows below it. They're opaque, so sticky cells hide what
+     scrolls under them. */
+  background-color: var(--_row-background, var(--grid-background));
+}
+
+/* Body cells scrolled out of view skip rendering, for very long grids. Not
+   on the rows, since containment would stop them being subgrids. Skipped
+   cells keep the size they last rendered at. Before they've rendered, they
+   guess a row's height and add no width, so auto columns can widen as wider
+   cells first scroll into view. */
+.body > slot::slotted(*) {
+  content-visibility: auto;
+  contain-intrinsic-inline-size: auto none;
+  contain-intrinsic-block-size: auto 2.5rem;
+}
+
+.details > slot::slotted(*) {
+  background-color: var(--grid-details-background, var(--grid-background));
+}
+
+/* Row backgrounds, set on the row and inherited by its cells. They're all in
+   :where(), so the later rule wins: stripes, then hover, then statuses, then
+   selection and moving. The grid adds `stripe` and `hover` from its props. */
+:where(.head, .foot) {
+  --_row-background: var(--grid-header-background);
+}
+
+:where(.stripe) {
+  --_row-background: var(--grid-stripe-background);
+}
+
+@media (hover: hover) {
+  :where(.hover:hover) {
+    --_row-background: var(--grid-hover-background);
+  }
+}
+
+:where(.status-success) {
+  --_row-background: var(--grid-success-background);
+}
+
+:where(.status-warning) {
+  --_row-background: var(--grid-warning-background);
+}
+
+:where(.status-danger) {
+  --_row-background: var(--grid-danger-background);
 }
 
 /* Only single selection tints the row. With multiple, the checkbox shows it. */
-.tint[aria-selected="true"] slot::slotted(*),
-.tint[aria-selected="true"] .lead-cell {
-  background-color: var(--grid-selected-background);
+:where(.tint[aria-selected="true"]) {
+  --_row-background: var(--grid-selected-background);
 }
 
 /* A row picked up from the keyboard, and a dragged row while the browser takes
    its picture for the drag image */
-.moving slot::slotted(*),
-.moving .lead-cell,
-.drag-image slot::slotted(*),
-.drag-image .lead-cell {
-  background-color: var(--grid-moving-background);
+:where(.moving, .drag-image) {
+  --_row-background: var(--grid-moving-background);
+}
+
+/* A cell's own status wins over its row's */
+[role="row"] > slot::slotted([status="success"]) {
+  --_row-background: var(--grid-success-background);
+}
+
+[role="row"] > slot::slotted([status="warning"]) {
+  --_row-background: var(--grid-warning-background);
+}
+
+[role="row"] > slot::slotted([status="danger"]) {
+  --_row-background: var(--grid-danger-background);
+}
+
+/* Row headers take the header tint, mixed over the row's own background, so
+   stripes and statuses still show through */
+:host([row-headers]) .body > slot::slotted([row-header]) {
+  background-color: color-mix(
+    in srgb,
+    var(--_row-background, var(--grid-background)),
+    var(--orb-text-color) 7%
+  );
+}
+
+:host([interactive]) .body {
+  cursor: pointer;
+}
+
+/* The header rows stay at the top while the grid scrolls. Each one sticks
+   below the rows above it, from offsets the grid measures. Whole rows stick,
+   since a cell can't stick outside its row. */
+/* Cells scrolled into view, such as when focus moves, clear the sticky areas */
+:host([sticky-header]) {
+  scroll-padding-block-start: calc(var(--grid-sticky-top, 0px) + var(--_head-top-end, 0px));
+}
+
+:host([sticky-column]) {
+  scroll-padding-inline-start: var(--_stick-end, 0px);
+}
+
+:host([sticky-header]) .head {
+  position: sticky;
+  top: calc(var(--grid-sticky-top, 0px) + var(--_head-top, 0px));
+  z-index: 2;
+}
+
+/* The lead columns and the first column stay at the start while the grid
+   scrolls sideways. The grid sets each sticky cell's offset. */
+:host([sticky-column]) [role="row"] > slot::slotted(*) {
+  position: var(--_sticky-position);
+  inset-inline-start: var(--_sticky-start);
+  z-index: var(--_sticky-z);
+}
+
+:host([sticky-column]) .lead-cell {
+  position: sticky;
+  z-index: 1;
 }
 
 /* The row left behind while its picture follows the pointer */
@@ -107,16 +361,11 @@
 .lead-cell {
   grid-row: 1;
   display: flex;
-  align-items: center;
+  align-items: var(--grid-vertical-align, center);
   justify-content: center;
   box-sizing: border-box;
   /* Narrower than other cells, since it only holds a small control */
   padding: var(--grid-cell-padding-y) var(--orb-spacing-xs);
-  border-style: solid;
-  border-color: var(--grid-border-color);
-  border-width: 0;
-  border-inline-end-width: var(--grid-border-width);
-  border-block-end-width: var(--grid-border-width);
 }
 
 /* The radio button for single selection, sized like orb-checkbox's box */
@@ -153,11 +402,6 @@
   grid-column: 1 / -1;
   box-sizing: border-box;
   padding: var(--orb-spacing-md) var(--grid-cell-padding-x);
-  border-style: solid;
-  border-color: var(--grid-border-color);
-  border-width: 0;
-  border-inline-end-width: var(--grid-border-width);
-  border-block-end-width: var(--grid-border-width);
   color: var(--orb-note-color);
   text-align: center;
 }

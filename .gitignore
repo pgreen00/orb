@@ -39,3 +39,6 @@ UserInterfaceState.xcuserstate
 
 # Generated pipe manifest
 src/components/pipe/pipes.generated.ts
+
+# Native table styles for orb-grid's print
+src/components/grid/tables.generated.css

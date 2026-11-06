@@ -1,6 +1,7 @@
 ---
 title: "OrbGrid | <orb-grid>"
 sidebar_label: "Grid"
+wide: true
 ---
 
 ::: live-code-demo
@@ -530,6 +531,544 @@ document.querySelector("#file-grid").addEventListener("orbRowExpand", (event) =>
 - Search "components". The folder shows with its files, since the folder itself matches.
 - With a screen reader, each row is announced with its level, its place among its siblings, and whether it's expanded.
 
+## Styling
+
+The grid looks like a [native table](/css-utilities/tables/), and has the same settings. Where a table takes words in `data-orb`, the grid takes props, and words for one cell or column go on the `orb-cell`. Each setting only sets `--grid-*` custom properties, so you can set any of them yourself.
+
+| Native table | `orb-grid` |
+| --- | --- |
+| `striped`, `hover`, `interactive` | `striped`, `hover`, `interactive` |
+| `outer`, `rows`, `borderless` | `borders="outer"`, `borders="rows"`, `borders="none"`. The default is `all` |
+| `compact`, `comfortable` | `density="compact"`, `density="comfortable"`. The default is `default` |
+| `separate`, `caps`, `fixed`, `truncate` | `separate`, `caps`, `fixed`, `truncate` |
+| `sticky-header`, `sticky-column` | `sticky-header`, `sticky-column`. The grid scrolls in its own box, so a sticky header needs `--grid-max-height` |
+| `row-headers`, and `th` in the body | `row-headers` on the grid, and `row-header` on the cells |
+| `success`, `warning`, `danger` on a cell | `status` on the cell |
+| `success`, `warning`, `danger` on a row | `row-status` on the row's first cell |
+| `w-xs` to `w-xl`, `w-auto`, `w-min` | `width="xs"` to `width="xl"`, `width="auto"`, `width="min"` on a header cell |
+| `start`, `center`, `end`, `numeric` | `align` and `numeric` on a cell. On a header cell, they apply to the whole column |
+| `table-container` | Not needed. The grid scrolls in its own box. Size it with `--grid-max-width`, `--grid-max-height`, and `--grid-min-width` |
+| `<caption>` | An `orb-label` with `for` set to the grid's `id` |
+| `selected` | Not needed. Use `selection` |
+| `--table-*` properties | The same properties, named `--grid-*` |
+
+### Labels
+
+Give a grid a visible name with an `orb-label` whose `for` is the grid's `id`. Screen readers announce the grid with it.
+
+::: live-code-demo
+
+```html
+<orb-label for="feeder-grid">Feeder visits this week</orb-label>
+<orb-grid id="feeder-grid">
+  <orb-cell section="head">Species</orb-cell>
+  <orb-cell section="head" numeric>Visits</orb-cell>
+  <orb-cell section="head">Seen</orb-cell>
+
+  <orb-cell>American Robin</orb-cell>
+  <orb-cell>12</orb-cell>
+  <orb-cell>Mornings</orb-cell>
+
+  <orb-cell>Steller's Jay</orb-cell>
+  <orb-cell>7</orb-cell>
+  <orb-cell>All day</orb-cell>
+
+  <orb-cell section="foot">Total</orb-cell>
+  <orb-cell section="foot">19</orb-cell>
+  <orb-cell section="foot"></orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- With a screen reader, the grid is announced as "Feeder visits this week".
+- The Visits column, including the footer, is aligned to the end.
+
+### Borders and Spacing
+
+::: live-code-demo
+
+```html
+<orb-mesh space="lg" style="--min-column-size: 18rem; align-items: start;">
+  <orb-grid borders="outer" aria-label="outer">
+    <orb-cell section="head">borders="outer"</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+  <orb-grid borders="rows" aria-label="rows">
+    <orb-cell section="head">borders="rows"</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+  <orb-grid borders="none" striped aria-label="none striped">
+    <orb-cell section="head">borders="none" striped</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+    <orb-cell>Thrush</orb-cell><orb-cell>3</orb-cell>
+  </orb-grid>
+  <orb-grid separate aria-label="separate">
+    <orb-cell section="head">separate</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+  <orb-grid density="compact" aria-label="compact">
+    <orb-cell section="head">density="compact"</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+  <orb-grid density="comfortable" aria-label="comfortable">
+    <orb-cell section="head">density="comfortable"</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+  <orb-grid selection="multiple" borders="rows" aria-label="rows with selection">
+    <orb-cell section="head">rows, with selection</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+  <orb-grid style="--grid-vertical-borders: 0; --grid-border-color: var(--orb-primary-400);" aria-label="custom properties">
+    <orb-cell section="head">custom properties</orb-cell>
+    <orb-cell section="head">Visits</orb-cell>
+    <orb-cell>Robin</orb-cell><orb-cell>12</orb-cell>
+    <orb-cell>Jay</orb-cell><orb-cell>7</orb-cell>
+  </orb-grid>
+</orb-mesh>
+```
+
+:::
+
+**Manual test:**
+- **outer** has a border around the whole grid and no lines inside.
+- **rows** has lines between rows, and above and below the grid, with no vertical lines.
+- **none striped** has no lines. Every other body row is tinted.
+- **separate** has a small gap between cells, and each cell has its own border with rounded corners.
+- **compact** is shorter than the others, and **comfortable** is taller.
+- **rows, with selection** has no vertical line beside the checkboxes either.
+- **custom properties** has no vertical lines and a primary-colored border.
+- No grid has a doubled line anywhere.
+
+### Columns and Text
+
+Set `width` on a header cell to size its column, and `align` or `numeric` to align it. The body and footer cells in the column follow, unless they set their own. With `fixed`, columns without a width share the rest of the space, and `truncate` keeps text on one line.
+
+::: live-code-demo
+
+```html
+<orb-grid caps fixed truncate aria-label="Observations">
+  <orb-cell section="head" width="xs">ID</orb-cell>
+  <orb-cell section="head">Observation</orb-cell>
+  <orb-cell section="head" width="sm" align="center">Region</orb-cell>
+  <orb-cell section="head" width="sm" numeric>Count</orb-cell>
+
+  <orb-cell>001</orb-cell>
+  <orb-cell>A very long note about a Varied Thrush heard calling from deep inside an old-growth stand</orb-cell>
+  <orb-cell>Olympic</orb-cell>
+  <orb-cell>1,284</orb-cell>
+
+  <orb-cell>002</orb-cell>
+  <orb-cell>Short note</orb-cell>
+  <orb-cell align="start">Puget Sound</orb-cell>
+  <orb-cell>11</orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- Header labels are small and uppercase, with extra letter spacing.
+- The ID column is narrow, Region and Count are a little wider, and Observation takes the rest.
+- The long note ends in an ellipsis on one line, and the grid doesn't get wider.
+- "Olympic" is centered under Region, and "Puget Sound" is at the start, since it sets its own alignment.
+- The counts are aligned to the end, and their digits line up.
+
+### Rows and Statuses
+
+`row-status` on a row's first cell tints the row, and `status` tints one cell. Don't rely on color alone: say what the status is in the row. `row-header` makes a cell its row's header, and `row-headers` gives row headers the header tint.
+
+::: live-code-demo
+
+```html
+<orb-grid hover row-headers striped aria-label="Species status">
+  <orb-cell section="head">Species</orb-cell>
+  <orb-cell section="head">Status</orb-cell>
+  <orb-cell section="head">Notes</orb-cell>
+
+  <orb-cell row-header>American Robin</orb-cell>
+  <orb-cell>Normal</orb-cell>
+  <orb-cell>Common</orb-cell>
+
+  <orb-cell row-header row-status="success">Bald Eagle</orb-cell>
+  <orb-cell>Recovered</orb-cell>
+  <orb-cell>Off the endangered list</orb-cell>
+
+  <orb-cell row-header row-status="warning">Pine Siskin</orb-cell>
+  <orb-cell>Declining</orb-cell>
+  <orb-cell>Watch list</orb-cell>
+
+  <orb-cell row-header row-status="danger">Marbled Murrelet</orb-cell>
+  <orb-cell>Endangered</orb-cell>
+  <orb-cell>Old growth only</orb-cell>
+
+  <orb-cell row-header>Varied Thrush</orb-cell>
+  <orb-cell status="danger">Cell only</orb-cell>
+  <orb-cell>Only the status cell is tinted</orb-cell>
+
+  <orb-cell row-header>Barn Owl</orb-cell>
+  <orb-cell>Normal</orb-cell>
+  <orb-cell>Roosts in barns</orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- The species names are semi-bold, with the header tint over each row's own tint.
+- Every other body row is striped. Stripes count every row, so the status rows show their status tint instead, and the owl row is striped.
+- The eagle, siskin, and murrelet rows are tinted green, yellow, and red, and hovering them doesn't change their tint.
+- Move the pointer over the plain rows. Each one tints as the pointer passes.
+- Only "Cell only" is tinted red in its row.
+- With a screen reader, the species name is read as the row's header when moving across the row.
+
+### Scrolling Headers and Columns
+
+`sticky-header` keeps the header rows at the top, and `sticky-column` keeps the first column at the start, along with the selection, details, and drag handle columns. The grid is its own scroll box, so a sticky header needs `--grid-max-height`. Use `--grid-min-width` to make the content wider than the grid. Sticky cells are opaque, so if the grid isn't on the page's background, set `--grid-background` to the color behind it.
+
+::: live-code-demo
+
+```html
+<orb-grid sticky-header sticky-column striped selection="multiple" aria-label="Sighting log" style="--grid-max-width: 32rem; --grid-max-height: 14rem; --grid-min-width: 48rem;">
+  <orb-cell section="head">Species</orb-cell>
+  <orb-cell section="head">Region</orb-cell>
+  <orb-cell section="head">Month</orb-cell>
+  <orb-cell section="head">Habitat</orb-cell>
+  <orb-cell section="head">Notes</orb-cell>
+
+  <orb-cell>American Robin</orb-cell><orb-cell>Puget Sound</orb-cell><orb-cell>March</orb-cell><orb-cell>Lawns</orb-cell><orb-cell>First singing males</orb-cell>
+  <orb-cell>Steller's Jay</orb-cell><orb-cell>Olympic</orb-cell><orb-cell>April</orb-cell><orb-cell>Conifers</orb-cell><orb-cell>Raiding feeders</orb-cell>
+  <orb-cell>Varied Thrush</orb-cell><orb-cell>Cascades</orb-cell><orb-cell>May</orb-cell><orb-cell>Old growth</orb-cell><orb-cell>Heard, not seen</orb-cell>
+  <orb-cell>Bald Eagle</orb-cell><orb-cell>San Juans</orb-cell><orb-cell>June</orb-cell><orb-cell>Shoreline</orb-cell><orb-cell>Nesting pair</orb-cell>
+  <orb-cell>Pine Siskin</orb-cell><orb-cell>Columbia Basin</orb-cell><orb-cell>July</orb-cell><orb-cell>Mixed woods</orb-cell><orb-cell>Large flock</orb-cell>
+  <orb-cell>Barn Owl</orb-cell><orb-cell>Willamette</orb-cell><orb-cell>August</orb-cell><orb-cell>Farmland</orb-cell><orb-cell>Roosting in a barn</orb-cell>
+  <orb-cell>Great Blue Heron</orb-cell><orb-cell>Puget Sound</orb-cell><orb-cell>September</orb-cell><orb-cell>Tideflats</orb-cell><orb-cell>Fishing at low tide</orb-cell>
+  <orb-cell>Black-capped Chickadee</orb-cell><orb-cell>Cascades</orb-cell><orb-cell>October</orb-cell><orb-cell>Mixed woods</orb-cell><orb-cell>Mixed flock</orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- Scroll down inside the grid. The header row stays at the top, and the rows scroll under it without showing through.
+- Scroll sideways. The checkboxes and the Species column stay at the start, and the other columns scroll under them.
+- Scroll both ways. The header's first cells stay put, above everything else.
+- The lines under the header and beside the Species column stay visible while scrolling.
+- Striped rows stay striped in the sticky columns.
+- Press Down and Right with the keyboard. The focused cell scrolls into view, and isn't hidden under the sticky header or column.
+
+## Controlling the Grid from Code
+
+Methods change the grid the same way the user can. Pass a row as its cells, such as the `row` in an event's detail, or as any one of its cells.
+
+| Method | What it does |
+| --- | --- |
+| `selectRows(rows, selected = true)` | Selects or deselects rows. In a tree with `selection="multiple"`, rows under each row go with it |
+| `selectAllRows()` | Selects every row that passes the search and filters, on every page. Only with `selection="multiple"` |
+| `clearSelection()` | Deselects every row |
+| `getSelectedRows()` | The selected rows, each as its cells, including rows on other pages |
+| `revealRow(row, { focus })` | Expands the rows above it, turns to its page, and scrolls it into view. With `focus`, focus moves to it. Resolves to false when the search or filters hide it |
+| `clearFilters()` | Clears the search, the bound search field, and every header filter |
+| `resetView()` | Clears the search, filters, and sort, and goes back to the first page |
+| `expandAll()`, `collapseAll()` | Expands or collapses every tree row, on every page |
+
+The selection methods emit `orbSelectionChange`, and `clearFilters()` emits `orbFilterChange`. `expandAll()` and `collapseAll()` don't emit `orbRowExpand`, the same as setting `expanded` in the markup, so rows that load their children when they open stay collapsed.
+
+::: live-code-demo
+
+```html
+<orb-textbox id="code-search" label="Search birds">
+  <input type="search">
+</orb-textbox>
+<orb-grid id="code-grid" selection="multiple" searchbox="code-search" pagination="code-pages" aria-label="Birds">
+  <orb-cell section="head" sortable>Name</orb-cell>
+  <orb-cell section="head" filter="select">Region</orb-cell>
+
+  <orb-cell>Thrushes</orb-cell><orb-cell>Everywhere</orb-cell>
+  <orb-cell depth="1">American Robin</orb-cell><orb-cell>Puget Sound</orb-cell>
+  <orb-cell depth="1">Varied Thrush</orb-cell><orb-cell>Cascades</orb-cell>
+
+  <orb-cell>Corvids</orb-cell><orb-cell>Everywhere</orb-cell>
+  <orb-cell depth="1">Steller's Jay</orb-cell><orb-cell>Olympic</orb-cell>
+  <orb-cell depth="1">Common Raven</orb-cell><orb-cell>Cascades</orb-cell>
+
+  <orb-cell>Raptors</orb-cell><orb-cell>Everywhere</orb-cell>
+  <orb-cell depth="1">Bald Eagle</orb-cell><orb-cell>San Juans</orb-cell>
+  <orb-cell depth="1">Barn Owl</orb-cell><orb-cell>Willamette</orb-cell>
+</orb-grid>
+<orb-mesh class="orb-padding-sm">
+  <orb-button id="code-expand" size="sm" fill="outline">Expand all</orb-button>
+  <orb-button id="code-collapse" size="sm" fill="outline">Collapse all</orb-button>
+  <orb-button id="code-select" size="sm" fill="outline">Select all</orb-button>
+  <orb-button id="code-clear" size="sm" fill="outline">Clear selection</orb-button>
+  <orb-button id="code-reveal" size="sm" fill="outline">Show the owl</orb-button>
+  <orb-button id="code-reset" size="sm" fill="outline">Reset</orb-button>
+</orb-mesh>
+<orb-pagination id="code-pages" page-size="2"></orb-pagination>
+<p id="code-status" role="status">No birds selected.</p>
+```
+
+```javascript
+const grid = document.querySelector("#code-grid");
+const status = document.querySelector("#code-status");
+const owl = [...grid.querySelectorAll("orb-cell")].find((cell) => cell.textContent === "Barn Owl");
+
+document.querySelector("#code-expand").addEventListener("click", () => grid.expandAll());
+document.querySelector("#code-collapse").addEventListener("click", () => grid.collapseAll());
+document.querySelector("#code-select").addEventListener("click", () => grid.selectAllRows());
+document.querySelector("#code-clear").addEventListener("click", () => grid.clearSelection());
+document.querySelector("#code-reset").addEventListener("click", () => grid.resetView());
+document.querySelector("#code-reveal").addEventListener("click", async () => {
+  const shown = await grid.revealRow(owl, { focus: true });
+  if (!shown) status.textContent = "The search or filters hide the owl.";
+});
+
+grid.addEventListener("orbSelectionChange", async () => {
+  const rows = await grid.getSelectedRows();
+  const names = rows.map((cells) => cells[0].textContent.trim());
+  status.textContent = names.length ? `Selected: ${names.join(", ")}` : "No birds selected.";
+});
+```
+
+:::
+
+**Manual test:**
+- Click Expand all. Every group opens, on both pages. Collapse all closes them.
+- Expand all, focus "Steller's Jay", then click Collapse all. Focus moves to "Corvids".
+- Click Show the owl. The grid turns to page 2, Raptors opens, and focus moves to "Barn Owl".
+- Click Select all. Every bird is selected, on both pages, and the status lists them. Clear selection deselects them.
+- Search "jay", then click Select all. Only Steller's Jay is selected, and Corvids shows as mixed.
+- With "jay" still in the search, click Show the owl. The status says the search hides it.
+- Sort by Name, filter Region, and type a search. Click Reset. The search field is empty, the filter is cleared, the sort is off, and the grid is on page 1. Expanded groups stay expanded.
+
+## Styling with Custom States
+
+The grid and its cells expose what they work out at runtime as [custom states](https://developer.mozilla.org/en-US/docs/Web/CSS/:state), so page CSS can style them with `:state()`, and other elements can react with `:has()`. The grid's states are listed under [Custom States](#custom-states) below, and the cells' states on the [`orb-cell`](../grid-cell/#custom-states) page.
+
+States are only for styling. Screen readers still hear the same things through ARIA, so don't use a state to show something that isn't also announced.
+
+::: live-code-demo
+
+```html
+<style>
+  /* Selected rows aren't tinted with multiple selection, so this opts in */
+  #state-grid orb-cell:state(selected) {
+    background-color: var(--grid-selected-background);
+  }
+
+  /* Marks the cell focus comes back to, while focus is outside the grid */
+  #state-grid:not(:focus-within) orb-cell:state(current) {
+    box-shadow: inset 0 -2px var(--orb-primary-400);
+  }
+
+  /* Headers with an active filter */
+  #state-grid orb-cell:state(filtered) {
+    color: light-dark(var(--orb-primary-600), var(--orb-primary-300));
+  }
+
+  /* The bulk actions and clear button only show when they apply */
+  #state-tools .bulk,
+  #state-tools .clear {
+    display: none;
+  }
+  #state-tools:has(~ #state-grid:state(has-selection)) .bulk,
+  #state-tools:has(~ #state-grid:state(filtering)) .clear {
+    display: inline-flex;
+  }
+</style>
+<orb-toolbar id="state-tools" class="orb-padding-sm">
+  <orb-textbox id="state-search" label="Search">
+    <input type="search">
+  </orb-textbox>
+  <orb-button class="clear" size="sm" fill="outline" onclick="document.querySelector('#state-grid').clearFilters()">Clear filters</orb-button>
+  <orb-button class="bulk" size="sm" fill="outline" color="danger" slot="end">Archive selected</orb-button>
+</orb-toolbar>
+<orb-grid id="state-grid" selection="multiple" searchbox="state-search" aria-label="Birds">
+  <orb-cell section="head">Species</orb-cell>
+  <orb-cell section="head" filter="select">Region</orb-cell>
+
+  <orb-cell>American Robin</orb-cell><orb-cell>Puget Sound</orb-cell>
+  <orb-cell>Steller's Jay</orb-cell><orb-cell>Olympic</orb-cell>
+  <orb-cell>Varied Thrush</orb-cell><orb-cell>Cascades</orb-cell>
+  <orb-cell>Bald Eagle</orb-cell><orb-cell>San Juans</orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- Check a row. Its cells are tinted, and "Archive selected" shows. Uncheck it, and the button hides.
+- Type in the search. "Clear filters" shows. Click it. The search field empties, and the button hides.
+- Uncheck a value in the Region filter. The Region header turns the primary color, and "Clear filters" shows.
+- Focus a cell, then click outside the grid. The cell keeps a line along its bottom. Tab back in, and the line goes away while the focus ring shows.
+
+## Printing and Exporting
+
+`print()` opens the browser's print dialog with the grid as a native table, so it can be printed or saved as a PDF. `toTable()` gives the same `<table>` to use yourself, and `toCSV()` gives the grid as CSV text.
+
+Each one takes the rows in the order shown. By default, that's every row that passes the search and filters, on every page, or only the selected rows when any are selected. Pass `{ rows }` to choose: `"view"`, `"page"`, `"all"`, or `"selected"`. In a tree grid, the children of open rows are included, and open row details. Pass `{ expand: "all" }` to include every row and all details.
+
+The table holds each cell's content as text. Form fields give their value, and buttons are left out. The grid's settings become [`data-orb` words](/css-utilities/tables/), and the grid's label becomes the caption, and the title of a saved PDF. The selection, details, and drag handle columns are left out. When printing, the grid's colors and custom properties carry over, and `truncate` is left off so no text is cut off.
+
+In CSV, each cell gives its `value` when it has one, and its text otherwise. Text that a spreadsheet would run as a formula, such as `=SUM(A1)`, starts with an apostrophe.
+
+::: live-code-demo
+
+```html
+<orb-label for="export-grid">Sightings</orb-label>
+<orb-grid id="export-grid" pagination="export-pages" selection="multiple" striped>
+  <orb-cell section="head" sortable>Species</orb-cell>
+  <orb-cell section="head" sortable>Region</orb-cell>
+  <orb-cell section="head" sortable numeric>Count</orb-cell>
+  <orb-cell section="head">Seen</orb-cell>
+
+  <orb-cell>American Robin</orb-cell><orb-cell>Puget Sound</orb-cell><orb-cell>12</orb-cell><orb-cell value="2025-03-02">March 2</orb-cell>
+  <orb-cell>Steller's Jay</orb-cell><orb-cell>Olympic</orb-cell><orb-cell>7</orb-cell><orb-cell value="2025-04-11">April 11</orb-cell>
+  <orb-cell>Varied Thrush</orb-cell><orb-cell>Cascades</orb-cell><orb-cell>3</orb-cell><orb-cell value="2025-05-20">May 20</orb-cell>
+  <orb-cell row-status="success">Bald Eagle</orb-cell><orb-cell>San Juans</orb-cell><orb-cell>2</orb-cell><orb-cell value="2025-06-08">June 8</orb-cell>
+  <orb-cell>Pine Siskin</orb-cell><orb-cell>Columbia Basin</orb-cell><orb-cell>40</orb-cell><orb-cell value="2025-07-15">July 15</orb-cell>
+  <orb-cell>Barn Owl</orb-cell><orb-cell>Willamette</orb-cell><orb-cell>1</orb-cell><orb-cell value="2025-08-30">August 30</orb-cell>
+
+  <orb-cell section="foot">Total</orb-cell><orb-cell section="foot"></orb-cell><orb-cell section="foot">65</orb-cell><orb-cell section="foot"></orb-cell>
+</orb-grid>
+<orb-toolbar class="orb-padding-sm">
+  <orb-button id="export-print" size="sm" fill="outline">Print</orb-button>
+  <orb-button id="export-csv" size="sm" fill="outline">Download CSV</orb-button>
+  <orb-pagination id="export-pages" page-size="3" with-summary slot="end"></orb-pagination>
+</orb-toolbar>
+```
+
+```javascript
+const grid = document.querySelector("#export-grid");
+
+document.querySelector("#export-print").addEventListener("click", () => grid.print());
+
+document.querySelector("#export-csv").addEventListener("click", async () => {
+  const csv = await grid.toCSV();
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const link = Object.assign(document.createElement("a"), { href: url, download: "sightings.csv" });
+  link.click();
+  URL.revokeObjectURL(url);
+});
+```
+
+:::
+
+**Manual test:**
+- Click Print. The print dialog opens with a table titled "Sightings" that has all six rows, not only the three on this page, and the footer.
+- The printed table is striped, its header is tinted, the Count column is aligned to the end, and the eagle row is tinted green. There are no checkboxes.
+- Save it as a PDF. The suggested file name is "Sightings".
+- Sort by Count, then print. The rows are in the sorted order.
+- Select two rows, then print. Only those two rows are in the table.
+- Click Download CSV. The file has a header row, every body row, and the footer. The Seen column has the ISO dates from `value`.
+- Close the print dialog. Focus goes back to the page, and no empty frame is left in it.
+
+## Large Grids
+
+The grid handles thousands of rows on the client. Body cells scrolled out of view skip rendering, and rows hidden by pages, filters, or collapsed tree rows aren't rendered at all. When adding many cells from code, append them all at once, such as in a `DocumentFragment`, so the grid lays out its rows once instead of after every cell.
+
+This demo loads products from [DummyJSON](https://dummyjson.com), a free API of example data, and repeats them to make 1,000 rows. It sends a request to `dummyjson.com` when the page loads.
+
+::: live-code-demo
+
+```html
+<orb-textbox id="product-search" label="Search products" debounce="300" class="orb-margin-bottom">
+  <input type="search">
+</orb-textbox>
+<orb-grid
+  id="product-grid"
+  searchbox="product-search"
+  sticky-header
+  striped
+  density="compact"
+  aria-label="Products"
+  style="--grid-max-height: 30rem;"
+  pagination="product-pages"
+>
+  <orb-cell section="head" width="xs" numeric sortable>ID</orb-cell>
+  <orb-cell section="head" width="lg" sortable>Product</orb-cell>
+  <orb-cell section="head" width="md" sortable filter="text">Brand</orb-cell>
+  <orb-cell section="head" width="sm" sortable filter="select">Category</orb-cell>
+  <orb-cell section="head" numeric sortable filter="number">Price</orb-cell>
+  <orb-cell section="head" numeric sortable>Rating</orb-cell>
+  <orb-cell section="head" numeric sortable>Stock</orb-cell>
+</orb-grid>
+<p id="product-status" role="status">Loading products…</p>
+<div style="display: flex; justify-content: flex-end;">
+  <orb-pagination 
+    class="orb-margin-sm" 
+    id="product-pages" 
+    page-size="50" 
+    with-summary
+  ></orb-pagination>
+</div>
+```
+
+```javascript
+const grid = document.querySelector("#product-grid");
+const status = document.querySelector("#product-status");
+const rows = 1000;
+
+try {
+  const response = await fetch(
+    "https://dummyjson.com/products?limit=0&select=title,brand,category,price,rating,stock",
+  );
+  if (!response.ok) throw new Error(response.statusText);
+  const { products } = await response.json();
+
+  const cells = document.createDocumentFragment();
+  const add = (text, value) => {
+    const cell = document.createElement("orb-cell");
+    cell.textContent = text;
+    if (value != null) cell.setAttribute("value", value);
+    cells.append(cell);
+  };
+  for (let i = 0; i < rows; i++) {
+    const product = products[i % products.length];
+    add(String(i + 1));
+    add(product.title);
+    add(product.brand ?? "");
+    add(product.category);
+    add(`$${product.price.toFixed(2)}`, product.price);
+    add(product.rating.toFixed(1), product.rating);
+    add(String(product.stock));
+  }
+  // All at once, so the grid lays out its rows once
+  grid.append(cells);
+  status.textContent = `${rows} rows, from ${products.length} DummyJSON products.`;
+} catch (error) {
+  status.textContent = `Couldn't load the products: ${error.message}`;
+}
+
+grid.addEventListener("orbFilterChange", ({ detail }) => {
+  status.textContent = `${detail.matches} of ${detail.total} rows match.`;
+});
+```
+
+:::
+
+**Manual test:**
+- The grid fills with 1,000 rows, and the status says how many products they came from.
+- Scroll inside the grid. The header stays at the top, and scrolling stays smooth.
+- Sort by Price. The rows reorder without a long pause.
+- Search "phone", then filter Category. The status counts the matching rows.
+- With the network offline, reload. The status says the products couldn't load.
+
 ## Keyboard
 
 The grid is a single Tab stop. Once it has focus, the keys move around inside it.
@@ -712,3 +1251,8 @@ With `navigation="row"`, focus moves between whole rows. The up and down arrows 
 - [ ] Highlighted matches are still readable in light and dark mode, and in forced colors mode.
 - [ ] After a page change, the new page is announced by the pagination, and focus stays in the grid when the page was turned from the keyboard.
 - [ ] In forced colors mode, a row being moved has a dashed outline, and the drop line is visible.
+- [ ] A grid with an `orb-label` is announced with the label's text.
+- [ ] A cell with `row-header` is announced as a row header, and read as the row's header for the other cells in the row.
+- [ ] Text in tinted rows and cells has enough contrast, and statuses are also shown with text, not color alone.
+- [ ] A focused cell scrolled under a sticky header or column is still visible when focus moves to it.
+- [ ] A printed table, or one from `toTable()`, has a caption, header cells with `scope`, and row headers as `th scope="row"`.

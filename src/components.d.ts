@@ -9,7 +9,7 @@ import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
-import { GridActivateDetail, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -24,7 +24,7 @@ export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
-export { GridActivateDetail, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -254,6 +254,10 @@ export namespace Components {
      */
     interface OrbCell {
         /**
+          * Aligns the cell's content. On a header cell that covers one column, the body and footer cells in its column are aligned the same way, unless they set their own.
+         */
+        "align"?: "start" | "center" | "end";
+        /**
           * Number of columns the cell covers, like a table cell's `colspan`
           * @default 1
          */
@@ -287,9 +291,23 @@ export namespace Components {
          */
         "filterValue"?: string | { min?: string; max?: string } | string[];
         /**
+          * Aligns the content to the end, with digits of equal width, so numbers line up. On a header cell that covers one column, it applies to the whole column.
+          * @default false
+         */
+        "numeric": boolean;
+        /**
           * Opens the header's filter, and moves focus into it.
          */
         "openFilter": () => Promise<void>;
+        /**
+          * Makes a body cell its row's header, like a `th` with `scope="row"`. Screen readers read it with the other cells in the row.
+          * @default false
+         */
+        "rowHeader": boolean;
+        /**
+          * Tints the whole row to show a meaning. Set it on the row's first cell. Don't rely on color alone.
+         */
+        "rowStatus"?: "success" | "warning" | "danger";
         /**
           * Number of rows the cell covers, like a table cell's `rowspan`. It stops at the end of the cell's section.
           * @default 1
@@ -310,13 +328,17 @@ export namespace Components {
          */
         "sortable": boolean;
         /**
-          * Set by the grid on a tree row's first cell. Don't set it directly.
+          * Tints the cell to show a meaning. Don't rely on color alone.
          */
-        "treeNode"?: "parent" | "open" | "leaf";
+        "status"?: "success" | "warning" | "danger";
         /**
           * The cell's value for sorting and filtering, when its text isn't the real value, such as an ISO date for a cell that shows "May 3", or a number for "48 KB". Searches match both the text and the value.
          */
         "value"?: string;
+        /**
+          * The column's width. Set it on a header cell that covers one column. `xs` to `xl` are fixed widths from `--grid-col-width-xs` to `--grid-col-width-xl`, `auto` sizes to the content, and `min` is only as wide as the content, without wrapping.
+         */
+        "width"?: "xs" | "sm" | "md" | "lg" | "xl" | "auto" | "min";
     }
     interface OrbChannel {
     }
@@ -611,9 +633,59 @@ export namespace Components {
      */
     interface OrbGrid {
         /**
+          * Which lines show. `all` shows every line, `outer` only the grid's edge, `rows` only lines between rows and above and below the grid, and `none` no lines.
+          * @default "all"
+         */
+        "borders": "all" | "outer" | "rows" | "none";
+        /**
+          * Small uppercase header labels.
+          * @default false
+         */
+        "caps": boolean;
+        /**
+          * Clears the search and every header filter, and goes back to the first page. Clears the bound search field too. Emits `orbFilterChange` when anything was filtering.
+         */
+        "clearFilters": () => Promise<void>;
+        /**
+          * Deselects every row, on every page. Emits `orbSelectionChange`.
+         */
+        "clearSelection": () => Promise<void>;
+        /**
+          * Collapses every row in a tree grid, including rows a search opened to show a match. Focus inside a row that hides moves to its top-level row. Doesn't emit `orbRowExpand`, the same as removing `expanded` in the markup.
+         */
+        "collapseAll": () => Promise<void>;
+        /**
           * Number of columns. When it isn't set, it's the sum of the header cells' column spans, which assumes a single header row. Set it when the header has more than one row, or when there's no header.
          */
         "columns"?: number;
+        /**
+          * How much padding cells have.
+          * @default "default"
+         */
+        "density": "compact" | "default" | "comfortable";
+        /**
+          * Expands every row in a tree grid that has children, including rows on other pages. Rows with `expandable` and no children yet stay collapsed. Doesn't emit `orbRowExpand`, the same as setting `expanded` in the markup.
+         */
+        "expandAll": () => Promise<void>;
+        /**
+          * Columns without a `width` share the space equally, instead of sizing to their content, so they don't shift as the content changes.
+          * @default false
+         */
+        "fixed": boolean;
+        /**
+          * The selected rows, each as its cells, in markup order. Includes rows on other pages, and rows the search and filters hide.
+         */
+        "getSelectedRows": () => Promise<HTMLElement[][]>;
+        /**
+          * Tints the body row under the pointer, on devices that hover.
+          * @default false
+         */
+        "hover": boolean;
+        /**
+          * Shows a pointer cursor over body rows, for rows that do something when clicked.
+          * @default false
+         */
+        "interactive": boolean;
         /**
           * What the arrow keys move between. `cell` moves focus cell by cell. `row` focuses whole rows, and only the up and down arrows move.
           * @default "cell"
@@ -624,10 +696,27 @@ export namespace Components {
          */
         "pagination"?: string;
         /**
+          * Opens the browser's print dialog with the grid as a native table, so it can be printed or saved as a PDF. The table is the same as `toTable()` gives, without `truncate`, so no text is cut off, and the grid's colors and custom properties carry over. Resolves when the dialog closes.
+         */
+        "print": (options?: GridExportOptions) => Promise<void>;
+        /**
           * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
           * @default false
          */
         "reorder": boolean;
+        /**
+          * Clears the search, the header filters, and the sort, and goes back to the first page, so the rows show in markup order. Selection, expanded rows, and open details stay as they are.
+         */
+        "resetView": () => Promise<void>;
+        /**
+          * Shows a body row: expands the rows above it in a tree, turns to its page, and scrolls it into view. Pass the row as its cells, or any one of its cells. With `focus`, focus moves to the row's first cell, or to the row with `navigation="row"`. Resolves to false when the row isn't in the grid, or the search or filters hide it. Call `clearFilters()` first to show it anyway.
+         */
+        "revealRow": (row: HTMLElement | HTMLElement[], options?: { focus?: boolean; }) => Promise<boolean>;
+        /**
+          * Cells with `row-header` take the header tint, so they read as labels.
+          * @default false
+         */
+        "rowHeaders": boolean;
         /**
           * The search text. The grid sets it from `searchbox`, and it can be set directly. Matching ignores case and accents, and checks each cell's text and `value`.
           * @default ""
@@ -643,10 +732,51 @@ export namespace Components {
          */
         "selectAll": boolean;
         /**
+          * Selects every row that passes the search and filters, on every page, including rows under collapsed rows. Only with `selection="multiple"`. Emits `orbSelectionChange`.
+         */
+        "selectAllRows": () => Promise<void>;
+        /**
+          * Selects or deselects rows. Pass each row as its cells, or as any one of its cells. With `selection="single"`, selecting several rows selects the last one. In a tree grid with `selection="multiple"`, rows under each row are selected or deselected with it. Emits `orbSelectionChange`.
+         */
+        "selectRows": (rows: (HTMLElement | HTMLElement[])[], selected?: boolean) => Promise<void>;
+        /**
           * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row.
           * @default "none"
          */
         "selection": "none" | "single" | "multiple";
+        /**
+          * Gives every cell its own box, with rounded corners and space between them, instead of sharing lines.
+          * @default false
+         */
+        "separate": boolean;
+        /**
+          * The first column, and the selection, details, and drag handle columns before it, stay at the start while the grid scrolls sideways.
+          * @default false
+         */
+        "stickyColumn": boolean;
+        /**
+          * The header rows stay at the top while the grid scrolls. The grid scrolls inside its own box, so give it a `--grid-max-height`.
+          * @default false
+         */
+        "stickyHeader": boolean;
+        /**
+          * Tints every other body row.
+          * @default false
+         */
+        "striped": boolean;
+        /**
+          * The grid as CSV text, with the header, body, and footer rows, in the order shown. Each cell gives its `value` when it has one, and its text otherwise. A spanning cell's text is in its first slot.
+         */
+        "toCSV": (options?: GridExportOptions) => Promise<string>;
+        /**
+          * Builds a native `<table>` from the grid, with the rows in the order shown. Cells hold their content as text, with form fields' values, and the grid's settings become `data-orb` words, so the table looks like the grid with Orb's native styles. The grid's label becomes the caption. The selection, details, and drag handle columns are left out.
+         */
+        "toTable": (options?: GridExportOptions) => Promise<HTMLTableElement>;
+        /**
+          * Cell text stays on one line and ends in an ellipsis. Pair it with `fixed`.
+          * @default false
+         */
+        "truncate": boolean;
     }
     interface OrbLabel {
         "for"?: string;
@@ -2996,6 +3126,10 @@ declare namespace LocalJSX {
      */
     interface OrbCell {
         /**
+          * Aligns the cell's content. On a header cell that covers one column, the body and footer cells in its column are aligned the same way, unless they set their own.
+         */
+        "align"?: "start" | "center" | "end";
+        /**
           * Number of columns the cell covers, like a table cell's `colspan`
           * @default 1
          */
@@ -3029,9 +3163,23 @@ declare namespace LocalJSX {
          */
         "filterValue"?: string | { min?: string; max?: string } | string[];
         /**
+          * Aligns the content to the end, with digits of equal width, so numbers line up. On a header cell that covers one column, it applies to the whole column.
+          * @default false
+         */
+        "numeric"?: boolean;
+        /**
           * Emits when a header's filter value changes, from its popover or from code. The grid listens for it.
          */
         "onOrbFilterInput"?: (event: OrbCellCustomEvent<void>) => void;
+        /**
+          * Makes a body cell its row's header, like a `th` with `scope="row"`. Screen readers read it with the other cells in the row.
+          * @default false
+         */
+        "rowHeader"?: boolean;
+        /**
+          * Tints the whole row to show a meaning. Set it on the row's first cell. Don't rely on color alone.
+         */
+        "rowStatus"?: "success" | "warning" | "danger";
         /**
           * Number of rows the cell covers, like a table cell's `rowspan`. It stops at the end of the cell's section.
           * @default 1
@@ -3052,13 +3200,17 @@ declare namespace LocalJSX {
          */
         "sortable"?: boolean;
         /**
-          * Set by the grid on a tree row's first cell. Don't set it directly.
+          * Tints the cell to show a meaning. Don't rely on color alone.
          */
-        "treeNode"?: "parent" | "open" | "leaf";
+        "status"?: "success" | "warning" | "danger";
         /**
           * The cell's value for sorting and filtering, when its text isn't the real value, such as an ISO date for a cell that shows "May 3", or a number for "48 KB". Searches match both the text and the value.
          */
         "value"?: string;
+        /**
+          * The column's width. Set it on a header cell that covers one column. `xs` to `xl` are fixed widths from `--grid-col-width-xs` to `--grid-col-width-xl`, `auto` sizes to the content, and `min` is only as wide as the content, without wrapping.
+         */
+        "width"?: "xs" | "sm" | "md" | "lg" | "xl" | "auto" | "min";
     }
     interface OrbChannel {
     }
@@ -3387,9 +3539,39 @@ declare namespace LocalJSX {
      */
     interface OrbGrid {
         /**
+          * Which lines show. `all` shows every line, `outer` only the grid's edge, `rows` only lines between rows and above and below the grid, and `none` no lines.
+          * @default "all"
+         */
+        "borders"?: "all" | "outer" | "rows" | "none";
+        /**
+          * Small uppercase header labels.
+          * @default false
+         */
+        "caps"?: boolean;
+        /**
           * Number of columns. When it isn't set, it's the sum of the header cells' column spans, which assumes a single header row. Set it when the header has more than one row, or when there's no header.
          */
         "columns"?: number;
+        /**
+          * How much padding cells have.
+          * @default "default"
+         */
+        "density"?: "compact" | "default" | "comfortable";
+        /**
+          * Columns without a `width` share the space equally, instead of sizing to their content, so they don't shift as the content changes.
+          * @default false
+         */
+        "fixed"?: boolean;
+        /**
+          * Tints the body row under the pointer, on devices that hover.
+          * @default false
+         */
+        "hover"?: boolean;
+        /**
+          * Shows a pointer cursor over body rows, for rows that do something when clicked.
+          * @default false
+         */
+        "interactive"?: boolean;
         /**
           * What the arrow keys move between. `cell` moves focus cell by cell. `row` focuses whole rows, and only the up and down arrows move.
           * @default "cell"
@@ -3433,6 +3615,11 @@ declare namespace LocalJSX {
          */
         "reorder"?: boolean;
         /**
+          * Cells with `row-header` take the header tint, so they read as labels.
+          * @default false
+         */
+        "rowHeaders"?: boolean;
+        /**
           * The search text. The grid sets it from `searchbox`, and it can be set directly. Matching ignores case and accents, and checks each cell's text and `value`.
           * @default ""
          */
@@ -3451,6 +3638,31 @@ declare namespace LocalJSX {
           * @default "none"
          */
         "selection"?: "none" | "single" | "multiple";
+        /**
+          * Gives every cell its own box, with rounded corners and space between them, instead of sharing lines.
+          * @default false
+         */
+        "separate"?: boolean;
+        /**
+          * The first column, and the selection, details, and drag handle columns before it, stay at the start while the grid scrolls sideways.
+          * @default false
+         */
+        "stickyColumn"?: boolean;
+        /**
+          * The header rows stay at the top while the grid scrolls. The grid scrolls inside its own box, so give it a `--grid-max-height`.
+          * @default false
+         */
+        "stickyHeader"?: boolean;
+        /**
+          * Tints every other body row.
+          * @default false
+         */
+        "striped"?: boolean;
+        /**
+          * Cell text stays on one line and ends in an ellipsis. Pair it with `fixed`.
+          * @default false
+         */
+        "truncate"?: boolean;
     }
     interface OrbLabel {
         "for"?: string;
@@ -4582,7 +4794,12 @@ declare namespace LocalJSX {
         "depth": number;
         "expanded": boolean;
         "expandable": boolean;
-        "treeNode": "parent" | "open" | "leaf";
+        "width": "xs" | "sm" | "md" | "lg" | "xl" | "auto" | "min";
+        "align": "start" | "center" | "end";
+        "numeric": boolean;
+        "status": "success" | "warning" | "danger";
+        "rowStatus": "success" | "warning" | "danger";
+        "rowHeader": boolean;
         "filter": "text" | "number" | "date" | "select";
         "filterValue": string | { min?: string; max?: string } | string[];
     }
@@ -4659,6 +4876,18 @@ declare namespace LocalJSX {
         "pagination": string;
         "searchbox": string;
         "search": string;
+        "striped": boolean;
+        "hover": boolean;
+        "interactive": boolean;
+        "borders": "all" | "outer" | "rows" | "none";
+        "density": "compact" | "default" | "comfortable";
+        "separate": boolean;
+        "caps": boolean;
+        "fixed": boolean;
+        "truncate": boolean;
+        "stickyHeader": boolean;
+        "stickyColumn": boolean;
+        "rowHeaders": boolean;
     }
     interface OrbLabelAttributes {
         "required": boolean;

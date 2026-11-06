@@ -17,6 +17,7 @@ import {
   SortDescendingIcon,
   SortIcon,
 } from "../../utils/icons";
+import { shareStates, toggleState } from "../../utils/custom-states";
 
 /**
  * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
@@ -35,7 +36,43 @@ import {
   shadow: true,
 })
 export class GridCell {
-  @AttachInternals() internals: ElementInternals;
+  @AttachInternals({
+    states: {
+      /** The cell's row is selected */
+      selected: false,
+      /** The cell is the grid's Tab stop, even while focus is elsewhere. With `navigation="row"`, every cell in the row that's the Tab stop */
+      current: false,
+      /** The cell's content has been entered, with Enter, F2, or a click inside */
+      editing: false,
+      /** The cell has text that matches the search, or its column's text filter */
+      match: false,
+      /** A header whose filter has a value */
+      filtered: false,
+      /** A header whose filter popover is open */
+      "filter-open": false,
+      /** The cell is at the grid's start edge. The selection, details, and drag handle columns count */
+      "first-column": false,
+      /** The cell is at the grid's end edge */
+      "last-column": false,
+      /** The cell is at the grid's top edge */
+      "first-row": false,
+      /** The cell is at the grid's bottom edge */
+      "last-row": false,
+      /** The cell is in every other body row that shows, whether or not the grid is `striped` */
+      stripe: false,
+      /** The first cell of a collapsed tree row that has children */
+      parent: false,
+      /** The first cell of an expanded tree row */
+      open: false,
+      /** The first cell of a tree row without children */
+      leaf: false,
+      /** The cell's row is picked up or being dragged */
+      moving: false,
+      /** The cell's row has its details showing */
+      "details-open": false,
+    },
+  })
+  internals: ElementInternals;
   @Element() host: HTMLOrbCellElement;
 
   /**
@@ -92,11 +129,43 @@ export class GridCell {
    */
   @Prop({ reflect: true }) expandable = false;
 
+
   /**
-   * Set by the grid on a tree row's first cell. Don't set it directly.
-   * @internal
+   * The column's width. Set it on a header cell that covers one column. `xs`
+   * to `xl` are fixed widths from `--grid-col-width-xs` to
+   * `--grid-col-width-xl`, `auto` sizes to the content, and `min` is only as
+   * wide as the content, without wrapping.
    */
-  @Prop() treeNode?: "parent" | "open" | "leaf";
+  @Prop({ reflect: true }) width?: "xs" | "sm" | "md" | "lg" | "xl" | "auto" | "min";
+
+  /**
+   * Aligns the cell's content. On a header cell that covers one column, the
+   * body and footer cells in its column are aligned the same way, unless they
+   * set their own.
+   */
+  @Prop({ reflect: true }) align?: "start" | "center" | "end";
+
+  /**
+   * Aligns the content to the end, with digits of equal width, so numbers line
+   * up. On a header cell that covers one column, it applies to the whole
+   * column.
+   */
+  @Prop({ reflect: true }) numeric = false;
+
+  /** Tints the cell to show a meaning. Don't rely on color alone. */
+  @Prop({ reflect: true }) status?: "success" | "warning" | "danger";
+
+  /**
+   * Tints the whole row to show a meaning. Set it on the row's first cell.
+   * Don't rely on color alone.
+   */
+  @Prop({ reflect: true }) rowStatus?: "success" | "warning" | "danger";
+
+  /**
+   * Makes a body cell its row's header, like a `th` with `scope="row"`.
+   * Screen readers read it with the other cells in the row.
+   */
+  @Prop({ reflect: true }) rowHeader = false;
 
   /**
    * Gives a header cell a filter for its column, in a popover that opens from
@@ -160,6 +229,7 @@ export class GridCell {
     // the key that opens its filter, since the funnel isn't a keyboard stop.
     const internals = this.internals as ElementInternals & { ariaDescription: string | null };
     internals.ariaDescription = this.filterActive ? "Filtered" : null;
+    toggleState(internals.states, "filtered", this.section === "head" && this.filterActive);
     internals.ariaKeyShortcuts = this.section === "head" && this.filter ? "Alt+ArrowDown" : null;
   }
 
@@ -188,6 +258,7 @@ export class GridCell {
   /** Moves focus to the first control once the popover is open */
   private onFilterPresent = () => {
     this.filterOpen = true;
+    toggleState(this.internals.states, "filter-open", true);
     const first = this.filterPanel?.querySelector<HTMLElement>("input, orb-checkbox");
     first?.focus();
   };
@@ -195,10 +266,13 @@ export class GridCell {
   /** Focus goes back to the header, unless the user clicked somewhere else */
   private onFilterDismiss = () => {
     this.filterOpen = false;
+    toggleState(this.internals.states, "filter-open", false);
     if (this.host.shadowRoot.activeElement) this.host.focus();
   };
 
   componentWillLoad() {
+    // The grid sets the cell's other states
+    shareStates(this.host, this.internals);
     this.onSectionChange();
     this.onSpanChange();
     this.updateFilterDescription();
@@ -212,9 +286,10 @@ export class GridCell {
   @Watch("section")
   @Watch("sortable")
   @Watch("sort")
+  @Watch("rowHeader")
   onSectionChange() {
     const head = this.section === "head";
-    this.internals.role = head ? "columnheader" : "gridcell";
+    this.internals.role = head ? "columnheader" : this.rowHeader ? "rowheader" : "gridcell";
     this.internals.ariaSort = head && this.sortable ? (this.sort ?? "none") : null;
   }
 
@@ -237,15 +312,15 @@ export class GridCell {
   }
 
   /**
-   * The indent and chevron of a tree row's first cell. The chevron is for the
-   * pointer only. Screen readers hear the row's expanded state, and the
-   * keyboard uses the arrow keys.
+   * The indent and chevron of a tree row's first cell. It only shows in the
+   * `parent`, `open`, and `leaf` states, which the grid sets. The chevron is
+   * for the pointer only. Screen readers hear the row's expanded state, and
+   * the keyboard uses the arrow keys.
    */
   private renderTreeToggle() {
-    if (!this.treeNode) return null;
     return (
       <span class="tree-toggle" part="tree-toggle" aria-hidden="true">
-        {this.treeNode !== "leaf" && <ChevronRightIcon />}
+        <ChevronRightIcon />
       </span>
     );
   }
@@ -371,7 +446,10 @@ export class GridCell {
     return (
       <Host>
         {this.renderTreeToggle()}
-        <slot />
+        {/* Holds the text in one box when the grid truncates it */}
+        <span class="text">
+          <slot />
+        </span>
         {this.renderSortIcon()}
         {this.renderFilter()}
       </Host>
