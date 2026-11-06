@@ -1,5 +1,5 @@
-@import url('layers.css');
-@import url('variables.css') layer(orb.core);
-@import url('landmarks.css') layer(orb.landmarks);
-@import url('native.css') layer(orb.native);
-@import url('classes.css') layer(orb.utilities);
+@import url('styles/layers.css');
+@import url('styles/variables.css') layer(orb.core);
+@import url('styles/landmarks.css') layer(orb.landmarks);
+@import url('styles/native.css') layer(orb.native);
+@import url('styles/classes.css') layer(orb.utilities);

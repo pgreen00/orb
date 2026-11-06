@@ -43,13 +43,13 @@ export const config: Config = {
           "src/styles/variables.scss:dist/styles/variables.css",
           "src/styles/landmarks.scss:dist/styles/landmarks.css",
           "src/styles/native.scss:dist/styles/native.css",
-          "src/styles/index.scss:dist/styles/index.css",
+          "src/styles/index.scss:dist/orb.css",
         ];
         execSync(`npx sass --no-source-map ${files.join(" ")}`);
 
         const tagNames = buildCtx.components.map((c) => c.tagName).sort();
         const fouc = `:is(${tagNames.join(",")}):not(:defined){visibility:hidden;}\n`;
-        appendFileSync("dist/styles/index.css", fouc);
+        appendFileSync("dist/orb.css", fouc);
       },
     },
     {
