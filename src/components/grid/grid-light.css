@@ -1,0 +1,9 @@
+/* Adopted into the page, and into a shadow root that holds a grid, since the
+   cells' text is in the page, not the grid's shadow root. */
+@layer orb.components.grid {
+  /* Search and filter matches, like a <mark> */
+  ::highlight(orb-grid-match) {
+    background-color: var(--orb-warning-450);
+    color: var(--orb-warning-950);
+  }
+}

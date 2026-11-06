@@ -9,7 +9,7 @@ import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
-import { GridActivateDetail, GridReorderDetail } from "./components/grid/grid";
+import { GridActivateDetail, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -24,7 +24,7 @@ export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
-export { GridActivateDetail, GridReorderDetail } from "./components/grid/grid";
+export { GridActivateDetail, GridFilterDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -259,6 +259,38 @@ export namespace Components {
          */
         "colspan": number;
         /**
+          * Makes the grid a tree grid. Set it on a row's first cell: 0 is the top level, and a row is the child of the closest row above it with a smaller depth.
+          * @default 0
+         */
+        "depth": number;
+        /**
+          * Gives a tree row a chevron before it has children, so the children can be added when it's first expanded. Set it on the row's first cell.
+          * @default false
+         */
+        "expandable": boolean;
+        /**
+          * Whether a tree row's children are showing. Set it on the row's first cell. The grid sets it when the row's chevron is clicked.
+          * @default false
+         */
+        "expanded": boolean;
+        /**
+          * Gives a header cell a filter for its column, in a popover that opens from a funnel button. `text` shows cells containing the text, `number` and `date` show cells within a range, and `select` shows cells whose value is checked in a list of the column's values.
+         */
+        "filter"?: "text" | "number" | "date" | "select";
+        /**
+          * The values a `select` filter lists. Set by the grid from the column's cells. Don't set it directly.
+          * @default []
+         */
+        "filterOptions": { value: string; label: string }[];
+        /**
+          * The filter's value: a string for `text`, `{ min, max }` for `number` and `date`, and the checked values for `select`, where undefined means every value is checked. Set it to filter from code.
+         */
+        "filterValue"?: string | { min?: string; max?: string } | string[];
+        /**
+          * Opens the header's filter, and moves focus into it.
+         */
+        "openFilter": () => Promise<void>;
+        /**
           * Number of rows the cell covers, like a table cell's `rowspan`. It stops at the end of the cell's section.
           * @default 1
          */
@@ -268,6 +300,23 @@ export namespace Components {
           * @default "body"
          */
         "section": "head" | "body" | "foot";
+        /**
+          * How a sortable header is sorting its column. The grid sets it, and only one header sorts at a time. Set it in the markup to start out sorted.
+         */
+        "sort"?: "ascending" | "descending";
+        /**
+          * Makes a header cell sort the body rows by its column. Clicking it, or pressing Enter on it, sorts ascending, then descending, then back to the markup order.
+          * @default false
+         */
+        "sortable": boolean;
+        /**
+          * Set by the grid on a tree row's first cell. Don't set it directly.
+         */
+        "treeNode"?: "parent" | "open" | "leaf";
+        /**
+          * The cell's value for sorting and filtering, when its text isn't the real value, such as an ISO date for a cell that shows "May 3", or a number for "48 KB". Searches match both the text and the value.
+         */
+        "value"?: string;
     }
     interface OrbChannel {
     }
@@ -549,6 +598,13 @@ export namespace Components {
      * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
      * out of the Tab order until the user presses Enter on the cell, or clicks
      * into it. Escape goes back to the cell.
+     * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
+     * listed parent first, and each row's parent is the closest row above it with
+     * a smaller depth. Rows start collapsed, and `expanded` on the first cell
+     * opens one.
+     * A body row can have details: put an `orb-row-details` right after its
+     * cells, and the grid adds a toggle that shows the details below the row,
+     * across every column.
      * With `reorder`, each body row gets a drag handle. Dragging it moves the
      * row's cells to the new position in the page, so the grid's markup always
      * matches what's shown.
@@ -564,10 +620,23 @@ export namespace Components {
          */
         "navigation": "cell" | "row";
         /**
+          * The `id` of an `orb-pagination` that pages the body rows. The grid shows the rows on its current page, and follows its page changes. When the pagination has no `total`, the grid sets it to the number of body rows, and keeps it up to date. When it has no `label`, the grid sets one.
+         */
+        "pagination"?: string;
+        /**
           * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
           * @default false
          */
         "reorder": boolean;
+        /**
+          * The search text. The grid sets it from `searchbox`, and it can be set directly. Matching ignores case and accents, and checks each cell's text and `value`.
+          * @default ""
+         */
+        "search": string;
+        /**
+          * The `id` of a search field, either an `orb-textbox` or an `input`. The grid shows the body rows that contain every word typed in it, in any column. With an `orb-textbox`, the textbox's `debounce` applies.
+         */
+        "searchbox"?: string;
         /**
           * Adds a checkbox to the header that selects or clears every body row. Only applies with `selection="multiple"` and a header row.
           * @default false
@@ -1120,6 +1189,21 @@ export namespace Components {
         "value": string;
     }
     /**
+     * Content that a row of an `orb-grid` shows and hides. Put it right after the
+     * cells of the row it belongs to. The grid adds a toggle button to that row,
+     * and shows the details below it, across every column. Put anything inside:
+     * text, a form, a chart, or another grid.
+     * Like a cell, the details are one stop for the arrow keys. Press Enter to
+     * move into their content, and Escape to come back out.
+     */
+    interface OrbRowDetails {
+        /**
+          * Whether the details are showing. The row's toggle button sets it. Set it in the markup to start out open.
+          * @default false
+         */
+        "expanded": boolean;
+    }
+    /**
      * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
      * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
      * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
@@ -1615,6 +1699,10 @@ export interface OrbCalendarCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCalendarElement;
 }
+export interface OrbCellCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbCellElement;
+}
 export interface OrbCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCheckboxElement;
@@ -1795,11 +1883,22 @@ declare global {
         prototype: HTMLOrbCardElement;
         new (): HTMLOrbCardElement;
     };
+    interface HTMLOrbCellElementEventMap {
+        "orbFilterInput": void;
+    }
     /**
      * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
      * order, and the grid places them in rows.
      */
     interface HTMLOrbCellElement extends Components.OrbCell, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbCellElementEventMap>(type: K, listener: (this: HTMLOrbCellElement, ev: OrbCellCustomEvent<HTMLOrbCellElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbCellElementEventMap>(type: K, listener: (this: HTMLOrbCellElement, ev: OrbCellCustomEvent<HTMLOrbCellElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbCellElement: {
         prototype: HTMLOrbCellElement;
@@ -2005,6 +2104,10 @@ declare global {
         "orbActivate": GridActivateDetail;
         "orbSelectionChange": HTMLElement[][];
         "orbReorder": GridReorderDetail;
+        "orbSortChange": GridSortDetail;
+        "orbRowToggle": GridRowToggleDetail;
+        "orbRowExpand": GridRowExpandDetail;
+        "orbFilterChange": GridFilterDetail;
     }
     /**
      * A data grid built from markup. Put `orb-cell` elements directly inside it,
@@ -2022,6 +2125,13 @@ declare global {
      * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
      * out of the Tab order until the user presses Enter on the cell, or clicks
      * into it. Escape goes back to the cell.
+     * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
+     * listed parent first, and each row's parent is the closest row above it with
+     * a smaller depth. Rows start collapsed, and `expanded` on the first cell
+     * opens one.
+     * A body row can have details: put an `orb-row-details` right after its
+     * cells, and the grid adds a toggle that shows the details below the row,
+     * across every column.
      * With `reorder`, each body row gets a drag handle. Dragging it moves the
      * row's cells to the new position in the page, so the grid's markup always
      * matches what's shown.
@@ -2315,6 +2425,20 @@ declare global {
     var HTMLOrbRichTextElement: {
         prototype: HTMLOrbRichTextElement;
         new (): HTMLOrbRichTextElement;
+    };
+    /**
+     * Content that a row of an `orb-grid` shows and hides. Put it right after the
+     * cells of the row it belongs to. The grid adds a toggle button to that row,
+     * and shows the details below it, across every column. Put anything inside:
+     * text, a form, a chart, or another grid.
+     * Like a cell, the details are one stop for the arrow keys. Press Enter to
+     * move into their content, and Escape to come back out.
+     */
+    interface HTMLOrbRowDetailsElement extends Components.OrbRowDetails, HTMLStencilElement {
+    }
+    var HTMLOrbRowDetailsElement: {
+        prototype: HTMLOrbRowDetailsElement;
+        new (): HTMLOrbRowDetailsElement;
     };
     interface HTMLOrbShaderCanvasElementEventMap {
         "orbReady": void;
@@ -2627,6 +2751,7 @@ declare global {
         "orb-range": HTMLOrbRangeElement;
         "orb-relative-time": HTMLOrbRelativeTimeElement;
         "orb-rich-text": HTMLOrbRichTextElement;
+        "orb-row-details": HTMLOrbRowDetailsElement;
         "orb-shader-canvas": HTMLOrbShaderCanvasElement;
         "orb-split-panel": HTMLOrbSplitPanelElement;
         "orb-split-view": HTMLOrbSplitViewElement;
@@ -2876,6 +3001,38 @@ declare namespace LocalJSX {
          */
         "colspan"?: number;
         /**
+          * Makes the grid a tree grid. Set it on a row's first cell: 0 is the top level, and a row is the child of the closest row above it with a smaller depth.
+          * @default 0
+         */
+        "depth"?: number;
+        /**
+          * Gives a tree row a chevron before it has children, so the children can be added when it's first expanded. Set it on the row's first cell.
+          * @default false
+         */
+        "expandable"?: boolean;
+        /**
+          * Whether a tree row's children are showing. Set it on the row's first cell. The grid sets it when the row's chevron is clicked.
+          * @default false
+         */
+        "expanded"?: boolean;
+        /**
+          * Gives a header cell a filter for its column, in a popover that opens from a funnel button. `text` shows cells containing the text, `number` and `date` show cells within a range, and `select` shows cells whose value is checked in a list of the column's values.
+         */
+        "filter"?: "text" | "number" | "date" | "select";
+        /**
+          * The values a `select` filter lists. Set by the grid from the column's cells. Don't set it directly.
+          * @default []
+         */
+        "filterOptions"?: { value: string; label: string }[];
+        /**
+          * The filter's value: a string for `text`, `{ min, max }` for `number` and `date`, and the checked values for `select`, where undefined means every value is checked. Set it to filter from code.
+         */
+        "filterValue"?: string | { min?: string; max?: string } | string[];
+        /**
+          * Emits when a header's filter value changes, from its popover or from code. The grid listens for it.
+         */
+        "onOrbFilterInput"?: (event: OrbCellCustomEvent<void>) => void;
+        /**
           * Number of rows the cell covers, like a table cell's `rowspan`. It stops at the end of the cell's section.
           * @default 1
          */
@@ -2885,6 +3042,23 @@ declare namespace LocalJSX {
           * @default "body"
          */
         "section"?: "head" | "body" | "foot";
+        /**
+          * How a sortable header is sorting its column. The grid sets it, and only one header sorts at a time. Set it in the markup to start out sorted.
+         */
+        "sort"?: "ascending" | "descending";
+        /**
+          * Makes a header cell sort the body rows by its column. Clicking it, or pressing Enter on it, sorts ascending, then descending, then back to the markup order.
+          * @default false
+         */
+        "sortable"?: boolean;
+        /**
+          * Set by the grid on a tree row's first cell. Don't set it directly.
+         */
+        "treeNode"?: "parent" | "open" | "leaf";
+        /**
+          * The cell's value for sorting and filtering, when its text isn't the real value, such as an ISO date for a cell that shows "May 3", or a number for "48 KB". Searches match both the text and the value.
+         */
+        "value"?: string;
     }
     interface OrbChannel {
     }
@@ -3200,6 +3374,13 @@ declare namespace LocalJSX {
      * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
      * out of the Tab order until the user presses Enter on the cell, or clicks
      * into it. Escape goes back to the cell.
+     * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
+     * listed parent first, and each row's parent is the closest row above it with
+     * a smaller depth. Rows start collapsed, and `expanded` on the first cell
+     * opens one.
+     * A body row can have details: put an `orb-row-details` right after its
+     * cells, and the grid adds a toggle that shows the details below the row,
+     * across every column.
      * With `reorder`, each body row gets a drag handle. Dragging it moves the
      * row's cells to the new position in the page, so the grid's markup always
      * matches what's shown.
@@ -3219,18 +3400,47 @@ declare namespace LocalJSX {
          */
         "onOrbActivate"?: (event: OrbGridCustomEvent<GridActivateDetail>) => void;
         /**
+          * Emits after the search or a header filter changes and the rows are filtered, with the search, the active filters, and how many rows match.
+         */
+        "onOrbFilterChange"?: (event: OrbGridCustomEvent<GridFilterDetail>) => void;
+        /**
           * Emits before a row moves, with its old and new index among the body rows. Call `preventDefault()` to keep it in place, for example to reorder your own data and render the grid again.
          */
         "onOrbReorder"?: (event: OrbGridCustomEvent<GridReorderDetail>) => void;
+        /**
+          * Emits before a tree row expands or collapses. Call `preventDefault()` to keep it as it is, or use it to add the row's children when it first opens.
+         */
+        "onOrbRowExpand"?: (event: OrbGridCustomEvent<GridRowExpandDetail>) => void;
+        /**
+          * Emits before a row's details open or close. Call `preventDefault()` to keep them as they are, or use it to load the details' content.
+         */
+        "onOrbRowToggle"?: (event: OrbGridCustomEvent<GridRowToggleDetail>) => void;
         /**
           * Emits when the selected rows change. The detail is each selected row's cells.
          */
         "onOrbSelectionChange"?: (event: OrbGridCustomEvent<HTMLElement[][]>) => void;
         /**
+          * Emits before the rows are sorted, when a sortable header is clicked or Enter is pressed on it. Call `preventDefault()` to leave the sort as it is.
+         */
+        "onOrbSortChange"?: (event: OrbGridCustomEvent<GridSortDetail>) => void;
+        /**
+          * The `id` of an `orb-pagination` that pages the body rows. The grid shows the rows on its current page, and follows its page changes. When the pagination has no `total`, the grid sets it to the number of body rows, and keeps it up to date. When it has no `label`, the grid sets one.
+         */
+        "pagination"?: string;
+        /**
           * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
           * @default false
          */
         "reorder"?: boolean;
+        /**
+          * The search text. The grid sets it from `searchbox`, and it can be set directly. Matching ignores case and accents, and checks each cell's text and `value`.
+          * @default ""
+         */
+        "search"?: string;
+        /**
+          * The `id` of a search field, either an `orb-textbox` or an `input`. The grid shows the body rows that contain every word typed in it, in any column. With an `orb-textbox`, the textbox's `debounce` applies.
+         */
+        "searchbox"?: string;
         /**
           * Adds a checkbox to the header that selects or clears every body row. Only applies with `selection="multiple"` and a header row.
           * @default false
@@ -3823,6 +4033,21 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
+     * Content that a row of an `orb-grid` shows and hides. Put it right after the
+     * cells of the row it belongs to. The grid adds a toggle button to that row,
+     * and shows the details below it, across every column. Put anything inside:
+     * text, a form, a chart, or another grid.
+     * Like a cell, the details are one stop for the arrow keys. Press Enter to
+     * move into their content, and Escape to come back out.
+     */
+    interface OrbRowDetails {
+        /**
+          * Whether the details are showing. The row's toggle button sets it. Set it in the markup to start out open.
+          * @default false
+         */
+        "expanded"?: boolean;
+    }
+    /**
      * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
      * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
      * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
@@ -4351,6 +4576,15 @@ declare namespace LocalJSX {
         "section": "head" | "body" | "foot";
         "colspan": number;
         "rowspan": number;
+        "sortable": boolean;
+        "sort": "ascending" | "descending";
+        "value": string;
+        "depth": number;
+        "expanded": boolean;
+        "expandable": boolean;
+        "treeNode": "parent" | "open" | "leaf";
+        "filter": "text" | "number" | "date" | "select";
+        "filterValue": string | { min?: string; max?: string } | string[];
     }
     interface OrbCheckboxAttributes {
         "defaultChecked": "true" | "false" | "mixed";
@@ -4422,6 +4656,9 @@ declare namespace LocalJSX {
         "selection": "none" | "single" | "multiple";
         "selectAll": boolean;
         "reorder": boolean;
+        "pagination": string;
+        "searchbox": string;
+        "search": string;
     }
     interface OrbLabelAttributes {
         "required": boolean;
@@ -4557,6 +4794,9 @@ declare namespace LocalJSX {
         "minHeight": string;
         "maxHeight": string;
         "showWordCount": boolean;
+    }
+    interface OrbRowDetailsAttributes {
+        "expanded": boolean;
     }
     interface OrbShaderCanvasAttributes {
         "width": number;
@@ -4731,6 +4971,7 @@ declare namespace LocalJSX {
         "orb-range": Omit<OrbRange, keyof OrbRangeAttributes> & { [K in keyof OrbRange & keyof OrbRangeAttributes]?: OrbRange[K] } & { [K in keyof OrbRange & keyof OrbRangeAttributes as `attr:${K}`]?: OrbRangeAttributes[K] } & { [K in keyof OrbRange & keyof OrbRangeAttributes as `prop:${K}`]?: OrbRange[K] };
         "orb-relative-time": Omit<OrbRelativeTime, keyof OrbRelativeTimeAttributes> & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes]?: OrbRelativeTime[K] } & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes as `attr:${K}`]?: OrbRelativeTimeAttributes[K] } & { [K in keyof OrbRelativeTime & keyof OrbRelativeTimeAttributes as `prop:${K}`]?: OrbRelativeTime[K] };
         "orb-rich-text": Omit<OrbRichText, keyof OrbRichTextAttributes> & { [K in keyof OrbRichText & keyof OrbRichTextAttributes]?: OrbRichText[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `attr:${K}`]?: OrbRichTextAttributes[K] } & { [K in keyof OrbRichText & keyof OrbRichTextAttributes as `prop:${K}`]?: OrbRichText[K] };
+        "orb-row-details": Omit<OrbRowDetails, keyof OrbRowDetailsAttributes> & { [K in keyof OrbRowDetails & keyof OrbRowDetailsAttributes]?: OrbRowDetails[K] } & { [K in keyof OrbRowDetails & keyof OrbRowDetailsAttributes as `attr:${K}`]?: OrbRowDetailsAttributes[K] } & { [K in keyof OrbRowDetails & keyof OrbRowDetailsAttributes as `prop:${K}`]?: OrbRowDetails[K] };
         "orb-shader-canvas": Omit<OrbShaderCanvas, keyof OrbShaderCanvasAttributes> & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes]?: OrbShaderCanvas[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `attr:${K}`]?: OrbShaderCanvasAttributes[K] } & { [K in keyof OrbShaderCanvas & keyof OrbShaderCanvasAttributes as `prop:${K}`]?: OrbShaderCanvas[K] };
         "orb-split-panel": Omit<OrbSplitPanel, keyof OrbSplitPanelAttributes> & { [K in keyof OrbSplitPanel & keyof OrbSplitPanelAttributes]?: OrbSplitPanel[K] } & { [K in keyof OrbSplitPanel & keyof OrbSplitPanelAttributes as `attr:${K}`]?: OrbSplitPanelAttributes[K] } & { [K in keyof OrbSplitPanel & keyof OrbSplitPanelAttributes as `prop:${K}`]?: OrbSplitPanel[K] };
         "orb-split-view": Omit<OrbSplitView, keyof OrbSplitViewAttributes> & { [K in keyof OrbSplitView & keyof OrbSplitViewAttributes]?: OrbSplitView[K] } & { [K in keyof OrbSplitView & keyof OrbSplitViewAttributes as `attr:${K}`]?: OrbSplitViewAttributes[K] } & { [K in keyof OrbSplitView & keyof OrbSplitViewAttributes as `prop:${K}`]?: OrbSplitView[K] };
@@ -4854,6 +5095,13 @@ declare module "@stencil/core" {
              * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
              * out of the Tab order until the user presses Enter on the cell, or clicks
              * into it. Escape goes back to the cell.
+             * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
+             * listed parent first, and each row's parent is the closest row above it with
+             * a smaller depth. Rows start collapsed, and `expanded` on the first cell
+             * opens one.
+             * A body row can have details: put an `orb-row-details` right after its
+             * cells, and the grid adds a toggle that shows the details below the row,
+             * across every column.
              * With `reorder`, each body row gets a drag handle. Dragging it moves the
              * row's cells to the new position in the page, so the grid's markup always
              * matches what's shown.
@@ -4924,6 +5172,15 @@ declare module "@stencil/core" {
              */
             "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
+            /**
+             * Content that a row of an `orb-grid` shows and hides. Put it right after the
+             * cells of the row it belongs to. The grid adds a toggle button to that row,
+             * and shows the details below it, across every column. Put anything inside:
+             * text, a form, a chart, or another grid.
+             * Like a cell, the details are one stop for the arrow keys. Press Enter to
+             * move into their content, and Escape to come back out.
+             */
+            "orb-row-details": LocalJSX.IntrinsicElements["orb-row-details"] & JSXBase.HTMLAttributes<HTMLOrbRowDetailsElement>;
             /**
              * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
              * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script

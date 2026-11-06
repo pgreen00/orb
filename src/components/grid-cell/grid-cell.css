@@ -20,6 +20,138 @@
   grid-row: var(--_grid-row, auto);
 }
 
+/* A tree row's first cell starts with its indent and chevron. Leaves get the
+   same space, so their text lines up with their siblings'. */
+.tree-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  margin-inline-start: calc(var(--_tree-depth, 0) * var(--grid-tree-indent, 1.25rem));
+}
+
+:host(:is([tree-node="parent"], [tree-node="open"])) .tree-toggle {
+  cursor: pointer;
+}
+
+.tree-toggle svg {
+  width: 100%;
+  height: 100%;
+}
+
+:host(:dir(rtl)) .tree-toggle svg {
+  scale: -1 1;
+}
+
+/* The grid sets "open" while the row's children show, which is also while a
+   filter shows a match inside a collapsed row */
+:host([tree-node="open"]) .tree-toggle svg {
+  rotate: 90deg;
+}
+
+:host(:dir(rtl)[tree-node="open"]) .tree-toggle svg {
+  rotate: -90deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-toggle svg {
+    transition: none;
+  }
+}
+
+/* A sortable header is clickable, with its arrow at the end */
+:host([sortable][section="head"]) {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sort-icon {
+  flex: none;
+  width: 1em;
+  height: 1em;
+  margin-inline-start: auto;
+  color: var(--orb-note-color);
+}
+
+/* The funnel at the end of a filterable header, after the sort arrow */
+.filter-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--orb-spacing-3xs);
+  border: 0;
+  border-radius: var(--orb-radius-pill);
+  background: none;
+  color: var(--orb-note-color);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Pushed to the end when there's no sort arrow to push it */
+:host(:not([sortable])) .filter-button {
+  margin-inline-start: auto;
+}
+
+.filter-button svg {
+  width: 1em;
+  height: 1em;
+}
+
+@media (hover: hover) {
+  .filter-button:hover {
+    color: var(--orb-text-color);
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+  }
+}
+
+.filter-button.active {
+  color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+}
+
+.filter-button.active svg {
+  fill: currentColor;
+}
+
+.filter-button:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 1px;
+}
+
+/* The popover's content: regular text, not the header's semi-bold */
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-sm);
+  min-width: 14rem;
+  font-weight: var(--orb-font-regular);
+  cursor: auto;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.filter-panel orb-button {
+  align-self: flex-end;
+}
+
+/* A long list of values scrolls inside the popover */
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-2xs);
+  max-height: 15rem;
+  overflow-y: auto;
+  padding-inline-start: var(--orb-spacing-md);
+}
+
+:host([sort]) .sort-icon {
+  color: inherit;
+}
+
 /* Inside the cell, so the ring isn't hidden by the cells around it */
 :host(:focus-visible) {
   outline: 2px solid var(--orb-primary-300);

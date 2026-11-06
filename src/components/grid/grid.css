@@ -8,6 +8,7 @@
  * @prop --grid-selected-background: Background of selected rows
  * @prop --grid-moving-background: Background of a row being moved
  * @prop --grid-drop-indicator-color: Color of the line that shows where a dragged row will land
+ * @prop --grid-tree-indent: How far each level of a tree grid is indented
  */
 
 /* The values match the native table styles. */
@@ -145,6 +146,58 @@
 .lead-cell :focus-visible {
   outline: 2px solid var(--orb-primary-300);
   outline-offset: 2px;
+}
+
+/* Shown when the search and filters hide every row. It spans every column. */
+.empty-cell {
+  grid-column: 1 / -1;
+  box-sizing: border-box;
+  padding: var(--orb-spacing-md) var(--grid-cell-padding-x);
+  border-style: solid;
+  border-color: var(--grid-border-color);
+  border-width: 0;
+  border-inline-end-width: var(--grid-border-width);
+  border-block-end-width: var(--grid-border-width);
+  color: var(--orb-note-color);
+  text-align: center;
+}
+
+/* The details toggle: a chevron that points down while the details are open */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--orb-spacing-3xs);
+  border: 0;
+  border-radius: var(--orb-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+:host(:dir(rtl)) .toggle svg {
+  scale: -1 1;
+}
+
+.toggle[aria-expanded="true"] svg {
+  rotate: 90deg;
+}
+
+:host(:dir(rtl)) .toggle[aria-expanded="true"] svg {
+  rotate: -90deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle svg {
+    transition: none;
+  }
 }
 
 /* The drag handle */

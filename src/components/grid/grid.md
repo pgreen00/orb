@@ -27,10 +27,6 @@ sidebar_label: "Grid"
   <orb-cell>Marketing Manager</orb-cell>
   <orb-cell>$85,000</orb-cell>
   <orb-cell>Active</orb-cell>
-
-  <orb-cell section="foot" colspan="6" style="justify-content: flex-end">
-    <orb-pagination total="237" page-size="10" page="1" with-summary label="Compact with summary"></orb-pagination>
-  </orb-cell>
 </orb-grid>
 ```
 
@@ -209,6 +205,331 @@ document.querySelector("#task-grid").addEventListener("orbReorder", (event) => {
 - Pick a row up, press Down, then Escape. It goes back to where it started.
 - On any cell in a body row, press Alt + Down. The row moves down one, and focus stays on the same cell.
 
+## Sorting
+
+Add `sortable` to a header cell, and clicking it, or pressing Enter on it, sorts the body rows by that column: ascending, then descending, then back to the order in the markup. Only one column sorts at a time, and the header shows an arrow for its direction. To start out sorted, set `sort="ascending"` or `sort="descending"` on the header.
+
+Cells sort by their text, with numbers inside the text compared as numbers, so "$9,000" comes before "$85,000". When the text doesn't sort the way it should, such as a date written out in words, set `value` on the cell to what it should sort and filter by.
+
+Sorting only changes the order the rows are shown in. The cells stay in their markup order, so clearing the sort puts the rows back. `orbSortChange` fires before each change, and `preventDefault()` cancels it. Reordering is off while a column is sorted, since the sort decides the order.
+
+::: live-code-demo
+
+```html
+<orb-grid>
+  <orb-cell section="head" sortable>Name</orb-cell>
+  <orb-cell section="head" sortable>Salary</orb-cell>
+  <orb-cell section="head" sortable sort="ascending">Started</orb-cell>
+
+  <orb-cell>Alice Johnson</orb-cell>
+  <orb-cell>$95,000</orb-cell>
+  <orb-cell value="2019-03-04">March 4, 2019</orb-cell>
+
+  <orb-cell>Bob Smith</orb-cell>
+  <orb-cell>$85,000</orb-cell>
+  <orb-cell value="2021-11-15">November 15, 2021</orb-cell>
+
+  <orb-cell>Cara Diaz</orb-cell>
+  <orb-cell>$9,000</orb-cell>
+  <orb-cell value="2018-07-30">July 30, 2018</orb-cell>
+
+  <orb-cell>Dan Lee</orb-cell>
+  <orb-cell>$120,000</orb-cell>
+  <orb-cell value="2021-02-01">February 1, 2021</orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- The grid starts sorted by Started, oldest first: Cara, Alice, Dan, Bob. The Started header shows an up arrow.
+- Click Salary. The rows sort $9,000, $85,000, $95,000, $120,000. Salary shows an up arrow, and Started goes back to the plain arrows.
+- Click Salary again. The order flips, with a down arrow. Click it a third time. The rows go back to Alice, Bob, Cara, Dan.
+- Focus a header with the arrow keys and press Enter. It sorts the same as a click.
+- With a screen reader, a sorted header is announced as sorted ascending or descending, and each sort is announced.
+
+## Pagination
+
+To split the body rows into pages, add an [`orb-pagination`](../pagination/) with an `id`, and set the grid's `pagination` to that `id`. The grid shows the rows on the pagination's current page, and follows it when the page or `page-size` changes. The header and footer show on every page.
+
+Leave out `total`, and the grid sets it to the number of body rows, and keeps it up to date as rows are added and removed. Leave out `label`, and the grid names it "Pages". Set `total` yourself when the grid only holds one page of a larger set, such as rows loaded from a server for each page.
+
+Sorting sorts every row, not just the current page, and goes back to the first page. Selections are kept across pages, and select all works on the current page.
+
+::: live-code-demo
+
+```html
+<orb-grid pagination="staff-pages" selection="multiple" select-all>
+  <orb-cell section="head" sortable>Name</orb-cell>
+  <orb-cell section="head" sortable>Department</orb-cell>
+
+  <orb-cell>Alice Johnson</orb-cell><orb-cell>Engineering</orb-cell>
+  <orb-cell>Bob Smith</orb-cell><orb-cell>Marketing</orb-cell>
+  <orb-cell>Cara Diaz</orb-cell><orb-cell>Sales</orb-cell>
+  <orb-cell>Dan Lee</orb-cell><orb-cell>Engineering</orb-cell>
+  <orb-cell>Eve Moreno</orb-cell><orb-cell>Support</orb-cell>
+  <orb-cell>Frank Okafor</orb-cell><orb-cell>Finance</orb-cell>
+  <orb-cell>Grace Park</orb-cell><orb-cell>Engineering</orb-cell>
+  <orb-cell>Hiro Tanaka</orb-cell><orb-cell>Design</orb-cell>
+</orb-grid>
+<div style="display: flex; justify-content: flex-end;">
+  <orb-pagination 
+    class="orb-margin-sm" 
+    id="staff-pages" 
+    page-size="3" 
+    with-summary
+  ></orb-pagination>
+</div>
+```
+
+:::
+
+**Manual test:**
+- The grid shows Alice, Bob, and Cara, and the pagination reads "1–3 of 8" with three pages.
+- Click page 2. The grid shows Dan, Eve, and Frank. Page 3 shows Grace and Hiro.
+- Focus a cell in the grid and press Page Down. The grid goes to the next page, the pagination follows, and focus moves to the same column in the first row. Page Up goes back.
+- On page 3, click Name twice to sort descending. The grid goes back to page 1 and shows Hiro, Grace, and Frank.
+- Select a row, go to another page, and come back. It's still selected.
+- On page 2, check select all. Only page 2's rows are selected.
+- In devtools, remove two cells for a row. The pagination's total drops to 7.
+
+## Searching and Filtering
+
+To search every column, point `searchbox` at the `id` of a search field: an `orb-textbox`, or a plain `input`. The grid shows the body rows that contain every word typed, in any column, ignoring case and accents. With an `orb-textbox`, its `debounce` applies. Set the grid's `search` property to search from code.
+
+To filter a column, set `filter` on its header cell. The header gets a funnel button that opens the filter in a popover. Filters apply as you change them, with text waiting for a short pause in typing:
+
+| `filter` | Popover | Shows rows where the column's cell |
+| --- | --- | --- |
+| `text` | A text field | Contains the text |
+| `number` | Min and Max fields | Is within the range. Either end can be left empty |
+| `date` | From and To date fields | Is within the range. Give date cells an ISO date in `value`, such as `value="2021-03-04"` |
+| `select` | A checkbox for each value in the column, all checked to start | Has a checked value. Select all checks or clears every value |
+
+Each popover has a Clear button. While a filter hides rows, its funnel is filled in, and screen readers hear "Filtered" on the header. To filter from code, set the header's `filterValue`: a string for `text`, `{ min, max }` for `number` and `date`, and an array of the checked values for `select`.
+
+Cells are compared by their `value` when they have one, and their text otherwise. Numbers in text compare as numbers, so "$95,000" is over a minimum of 90000. A row shows when it matches the search and every filter. Matches are highlighted in the cells, in browsers with the CSS Custom Highlight API.
+
+When nothing matches, a row says "No matching rows". Give an element `slot="empty"` inside the grid to say something else. Each change goes back to the first page, announces how many rows match, and fires `orbFilterChange` with the search, each filtered header and its value, and the number of matches. Selected rows stay selected while they're filtered out.
+
+From the keyboard, press Alt + Down on a header to open its filter. On a header that doesn't sort, Enter opens it too. Tab moves between the filter's controls, and Escape closes it and goes back to the header.
+
+::: live-code-demo
+
+```html
+<orb-textbox id="people-search" label="Search people" debounce="200" class="orb-margin-bottom-sm">
+  <input type="search" placeholder="Name, department, or city">
+</orb-textbox>
+<orb-grid id="people-grid" searchbox="people-search" pagination="people-pages">
+  <orb-cell section="head" sortable filter="text">Name</orb-cell>
+  <orb-cell section="head" sortable filter="select">Department</orb-cell>
+  <orb-cell section="head" sortable filter="number">Salary</orb-cell>
+  <orb-cell section="head" sortable filter="date">Started</orb-cell>
+  <orb-cell section="head" filter="select">City</orb-cell>
+
+  <orb-cell>Alice Johnson</orb-cell><orb-cell>Engineering</orb-cell><orb-cell>$95,000</orb-cell><orb-cell value="2019-03-04">Mar 4, 2019</orb-cell><orb-cell>Seattle</orb-cell>
+  <orb-cell>Bob Smith</orb-cell><orb-cell>Marketing</orb-cell><orb-cell>$85,000</orb-cell><orb-cell value="2021-11-15">Nov 15, 2021</orb-cell><orb-cell>Portland</orb-cell>
+  <orb-cell>Cara Díaz</orb-cell><orb-cell>Sales</orb-cell><orb-cell>$62,000</orb-cell><orb-cell value="2018-07-30">Jul 30, 2018</orb-cell><orb-cell>Seattle</orb-cell>
+  <orb-cell>Dan Lee</orb-cell><orb-cell>Engineering</orb-cell><orb-cell>$120,000</orb-cell><orb-cell value="2021-02-01">Feb 1, 2021</orb-cell><orb-cell>Vancouver</orb-cell>
+  <orb-cell>Eve Moreno</orb-cell><orb-cell>Sales</orb-cell><orb-cell>$58,000</orb-cell><orb-cell value="2022-06-13">Jun 13, 2022</orb-cell><orb-cell>Portland</orb-cell>
+  <orb-cell>Frank Okafor</orb-cell><orb-cell>Marketing</orb-cell><orb-cell>$77,000</orb-cell><orb-cell value="2020-09-21">Sep 21, 2020</orb-cell><orb-cell>Boise</orb-cell>
+  <orb-cell>Grace Park</orb-cell><orb-cell>Engineering</orb-cell><orb-cell>$105,000</orb-cell><orb-cell value="2017-01-09">Jan 9, 2017</orb-cell><orb-cell>Seattle</orb-cell>
+  <orb-cell>Hiro Tanaka</orb-cell><orb-cell>Sales</orb-cell><orb-cell>$71,000</orb-cell><orb-cell value="2023-04-03">Apr 3, 2023</orb-cell><orb-cell>Vancouver</orb-cell>
+
+  <p slot="empty">No people match. Try fewer words, or clear a filter.</p>
+</orb-grid>
+<orb-toolbar class="orb-padding-sm">
+  <p id="people-status">Showing everyone.</p>
+  <orb-pagination 
+    id="people-pages" 
+    page-size="5" 
+    with-summary 
+    slot="end"
+  ></orb-pagination>
+</orb-toolbar>
+```
+
+```javascript
+document.querySelector("#people-grid").addEventListener("orbFilterChange", (event) => {
+  const { search, filters, matches, total } = event.detail;
+  document.querySelector("#people-status").textContent =
+    search || filters.length ? `${matches} of ${total} people match.` : "Showing everyone.";
+});
+```
+
+:::
+
+**Manual test:**
+- Type "seattle" in the search. Alice, Cara, and Grace show, "Seattle" is highlighted in each row, and the pagination reads "1–3 of 3".
+- Type "seattle eng". Only Alice and Grace show, since every word has to match.
+- Search "cara diaz" without the accent. Cara Díaz shows.
+- Clear the search. Click the funnel on Department. Every department is checked. Uncheck Engineering and Marketing. Only Cara, Eve, and Hiro show, and the funnel is filled in.
+- Click the funnel on Salary, and type 70000 in Min. Only Hiro shows.
+- In the Department filter, click Select all, then Clear. Every row shows again, and the funnel is outlined.
+- Filter Started from 2020-01-01 to 2021-12-31. Bob, Dan, and Frank show.
+- Type "zzz" in the Name filter. The grid shows "No people match. Try fewer words, or clear a filter." under the header.
+- Clicking a funnel, or anywhere in its popover, doesn't sort the column. Clicking the header's label still does.
+- Focus the Name header and press Alt + Down. The filter opens with focus in its field. Press Escape. It closes, and focus is back on the header. On City, which doesn't sort, Enter opens the filter too.
+- With a screen reader, each change is announced, such as "3 of 8 rows match", and a filtered header is described as "Filtered".
+
+## Row Details
+
+To give a body row content it can show and hide, put an [`orb-row-details`](../row-details/) right after the row's cells. The grid adds a column with a toggle button to rows that have details, and shows the details below the row when it's open. The details span every column and lay out however you like, so they can hold anything: text, a form, a chart, or another grid. Set `expanded` on `orb-row-details` to start it open.
+
+`orbRowToggle` fires before the details open or close, with the row's cells, the details, and whether they're opening. Call `preventDefault()` to stop it, or use it to load the content the first time the row opens.
+
+The details follow their row: they sort, page, and move with it. They follow the grid's keyboard rules too: they're one arrow-key stop below their row, and controls inside them are out of the Tab order until you press Enter on the details. With `navigation="row"`, Right opens a row's details and Left closes them.
+
+::: live-code-demo
+
+```html
+<orb-grid id="order-grid" selection="multiple">
+  <orb-cell section="head">Order</orb-cell>
+  <orb-cell section="head">Customer</orb-cell>
+  <orb-cell section="head">Total</orb-cell>
+
+  <orb-cell>#1042</orb-cell>
+  <orb-cell>Alice Johnson</orb-cell>
+  <orb-cell>$120.00</orb-cell>
+  <orb-row-details>
+    <dl data-orb="mesh">
+      <div><dt>Ship to</dt><dd>12 Pine St, Seattle</dd></div>
+      <div><dt>Items</dt><dd>2 field guides, 1 feeder</dd></div>
+      <div><dt>Status</dt><dd>Shipped May 3</dd></div>
+    </dl>
+  </orb-row-details>
+
+  <orb-cell>#1043</orb-cell>
+  <orb-cell>Bob Smith</orb-cell>
+  <orb-cell>$45.50</orb-cell>
+
+  <orb-cell>#1044</orb-cell>
+  <orb-cell>Cara Diaz</orb-cell>
+  <orb-cell>$310.00</orb-cell>
+  <orb-row-details expanded>
+    <orb-textbox label="Note for the warehouse">
+      <input value="Gift wrap the binoculars">
+    </orb-textbox>
+  </orb-row-details>
+</orb-grid>
+<p id="order-status">Open a row to see its details.</p>
+```
+
+```javascript
+document.querySelector("#order-grid").addEventListener("orbRowToggle", (event) => {
+  const { row, expanded } = event.detail;
+  document.querySelector("#order-status").textContent =
+    `${expanded ? "Opened" : "Closed"} ${row[0].textContent.trim()}.`;
+});
+```
+
+:::
+
+**Manual test:**
+- Orders #1042 and #1044 have a chevron, and #1043 doesn't. #1044 starts open, with its note below it across the whole grid.
+- Click #1042's chevron. It turns down, the shipping details open below the row, and the status line reports it. Click it again to close them.
+- The details don't line up with the columns. They lay out on their own across the full width.
+- Focus #1042's Order cell and press Left. Focus moves to the chevron. Press Space to open the details, then Right and Down. Focus moves to the details.
+- On the open note, press Enter. Focus moves into the field. Escape comes back to the details.
+- Select #1044. Only the row is selected, not its details.
+
+## Tree Grids
+
+To nest rows, set `depth` on each row's first cell. Top-level rows have a depth of 0, which is the default, so they don't need it. List rows parent first: a row is the child of the closest row above it with a smaller depth. The grid becomes a tree grid, and each parent row's first cell gets a chevron, with every level indented by `--grid-tree-indent`.
+
+Rows start collapsed. Set `expanded` on a row's first cell to start it open. `orbRowExpand` fires before a row expands or collapses, with the row's cells and whether it's expanding. To load a row's children when it first opens, set `expandable` on its first cell, so it has a chevron before it has children, and add the children's cells after the row in the event.
+
+The tree works with the grid's other features:
+- Sorting sorts each parent's children, so rows stay under their parents.
+- Pagination pages top-level rows, each with its whole subtree.
+- Searching and filtering show matching rows, and the rows above them. A row that only shows for a match under it opens while the search is on, without changing its `expanded`. Rows under a matching row show as usual.
+- With `selection="multiple"`, a parent's checkbox follows its children. It's checked when all of them are selected, mixed when some are, and clear when none are. Checking or clearing a parent does the same to every row under it, including rows under collapsed rows. Children added under a checked parent, such as ones loaded when it opens, start checked. With `selection="single"`, rows are selected on their own.
+- Row details stay with their row, and hide along with it.
+- Reordering is off in tree grids.
+
+::: live-code-demo
+
+```html
+<orb-textbox id="file-search" label="Search files">
+  <input type="search">
+</orb-textbox>
+<orb-grid id="file-grid" selection="multiple" searchbox="file-search">
+  <orb-cell section="head" sortable>Name</orb-cell>
+  <orb-cell section="head" sortable>Size</orb-cell>
+  <orb-cell section="head">Kind</orb-cell>
+
+  <orb-cell expanded>src</orb-cell>
+  <orb-cell value="0">—</orb-cell>
+  <orb-cell>Folder</orb-cell>
+
+  <orb-cell depth="1" expanded>components</orb-cell>
+  <orb-cell value="0">—</orb-cell>
+  <orb-cell>Folder</orb-cell>
+
+  <orb-cell depth="2">grid.tsx</orb-cell>
+  <orb-cell value="48">48 KB</orb-cell>
+  <orb-cell>TypeScript</orb-cell>
+
+  <orb-cell depth="2">grid.css</orb-cell>
+  <orb-cell value="6">6 KB</orb-cell>
+  <orb-cell>CSS</orb-cell>
+
+  <orb-cell depth="1">utils</orb-cell>
+  <orb-cell value="0">—</orb-cell>
+  <orb-cell>Folder</orb-cell>
+
+  <orb-cell depth="2">icons.tsx</orb-cell>
+  <orb-cell value="14">14 KB</orb-cell>
+  <orb-cell>TypeScript</orb-cell>
+
+  <orb-cell expandable>docs</orb-cell>
+  <orb-cell value="0">—</orb-cell>
+  <orb-cell>Folder</orb-cell>
+
+  <orb-cell>README.md</orb-cell>
+  <orb-cell value="2">2 KB</orb-cell>
+  <orb-cell>Markdown</orb-cell>
+</orb-grid>
+```
+
+```javascript
+// "docs" loads its children the first time it opens.
+document.querySelector("#file-grid").addEventListener("orbRowExpand", (event) => {
+  const [first, , last] = event.detail.row;
+  if (!event.detail.expanded || !first.hasAttribute("expandable")) return;
+  first.removeAttribute("expandable");
+  const files = [["index.md", "3 KB", 3], ["installation.md", "1 KB", 1]];
+  const cells = files.flatMap(([name, size, bytes]) => {
+    const row = [name, size, "Markdown"].map((text) => {
+      const cell = document.createElement("orb-cell");
+      cell.textContent = text;
+      return cell;
+    });
+    row[0].setAttribute("depth", "1");
+    row[1].setAttribute("value", String(bytes));
+    return row;
+  });
+  last.after(...cells);
+});
+```
+
+:::
+
+**Manual test:**
+- "src" and "components" are open, so their children show, each level indented further. "utils" is closed, with a chevron pointing to the side.
+- Click the chevron beside "utils". It opens and shows "icons.tsx". Click it again to close it.
+- Click the chevron beside "docs". It loads and shows two files.
+- Focus "utils" and press Right. It opens. Press Left. It closes. Press Left again on "icons.tsx" while "utils" is open, and focus moves to "utils".
+- Close "src" while focus is on "grid.tsx". Focus moves to "src".
+- Sort by Size, descending. Each folder's files sort among themselves, and every file stays under its folder.
+- Check "grid.tsx". "components" and "src" show as mixed. Check "grid.css" too. "components" is checked, and "src" is still mixed.
+- Check "src". Every row under it is checked, including "icons.tsx" while "utils" is closed. Clear "src", and they all clear.
+- Check "docs" before opening it, then open it. Its loaded files start checked.
+- Press Space on a mixed row. It and every row under it are checked.
+- Close "utils", then search "icons". "src" and "utils" show and open to show "icons.tsx", and the other rows hide. Clear the search, and "utils" is closed again.
+- Search "components". The folder shows with its files, since the folder itself matches.
+- With a screen reader, each row is announced with its level, its place among its siblings, and whether it's expanded.
+
 ## Keyboard
 
 The grid is a single Tab stop. Once it has focus, the keys move around inside it.
@@ -219,11 +540,17 @@ The grid is a single Tab stop. Once it has focus, the keys move around inside it
 | Home / End | First or last cell in the row. With `navigation="row"`, the first or last row |
 | Ctrl + Home / End | First or last cell in the grid |
 | Space | Toggle selection of the focused row, when `selection` is set. On a radio button, select its row |
-| Enter | Activate, then enter the cell's content |
+| Enter | Activate, then enter the cell's content. On a sortable header, sort |
+| F2 | Enter the cell's content |
+| Alt + Down, on a header with `filter` | Open the header's filter. On a header that doesn't sort, Enter does too |
+| Page Up / Page Down | With `pagination`, the previous or next page. Otherwise, move about one screen of rows |
 | Space or Enter on a drag handle | Pick the row up, or drop it |
 | Up / Down, with a row picked up | Move the row |
 | Escape, with a row picked up | Put the row back where it started |
 | Alt + Up / Down | Move the focused row, when `reorder` is set |
+| Right / Left, with `navigation="row"` | Open or close the focused row's details. Left on open details goes back to their row |
+| Right, in a tree grid | On a collapsed row, expand it. With `navigation="row"`, on an expanded row, move to its first child |
+| Left, in a tree grid | On an expanded row, collapse it. On a collapsed row or a leaf, move to its parent |
 | Escape | Leave the cell's content |
 
 A cell that spans several columns or rows is one stop for the arrow keys. Moving out of it continues from the row or column you entered it from.
@@ -371,4 +698,17 @@ With `navigation="row"`, focus moves between whole rows. The up and down arrows 
 - [ ] Each drag handle is announced as "Reorder" and the row's name, as a toggle button that's pressed while the row is picked up.
 - [ ] Picking up, moving, dropping, and canceling a row are each announced, with the row's position.
 - [ ] Rows can be reordered without a pointer, from a handle or with Alt + Up and Down.
+- [ ] A sortable header is announced with its sort state: ascending, descending, or none. Each sort is announced.
+- [ ] A details toggle is announced as "Details for" and the row's name, as expanded or collapsed. Open details are announced as a row with one cell.
+- [ ] Closed details aren't read by a screen reader and can't be reached with the keyboard.
+- [ ] A tree grid is announced as a tree grid. Each row is announced with its level, its position among its siblings, and whether it's expanded or collapsed.
+- [ ] Rows inside a collapsed row aren't read by a screen reader and can't be reached with the keyboard.
+- [ ] A parent row's checkbox is announced as checked, not checked, or mixed, matching its children.
+- [ ] Each funnel button is named "Filter" and the column's name, and each filter's fields have labels.
+- [ ] A filtered header is described as "Filtered" by screen readers.
+- [ ] When a filter closes, focus goes back to its header.
+- [ ] After the search or a filter changes, the number of matching rows is announced once typing stops.
+- [ ] When nothing matches, the empty row is read by a screen reader.
+- [ ] Highlighted matches are still readable in light and dark mode, and in forced colors mode.
+- [ ] After a page change, the new page is announced by the pagination, and focus stays in the grid when the page was turned from the keyboard.
 - [ ] In forced colors mode, a row being moved has a dashed outline, and the drop line is visible.
