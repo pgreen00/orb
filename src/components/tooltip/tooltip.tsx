@@ -8,20 +8,7 @@ import {
   size,
 } from "@floating-ui/dom";
 import { Component, Host, Prop, State, Watch, Element, AttachInternals } from "@stencil/core";
-import {
-  Subscription,
-  fromEvent,
-  debounceTime,
-  map,
-  merge,
-  distinctUntilChanged,
-  switchMap,
-  timer,
-  startWith,
-  combineLatest,
-  filter,
-  takeWhile
-} from "rxjs";
+
 
 @Component({
   tag: "orb-tooltip",
@@ -32,7 +19,12 @@ export class Tooltip {
   @AttachInternals() internals!: ElementInternals;
   @Element() el!: HTMLElement;
   @State() open = false;
-  private sub?: Subscription;
+  /** Removes the trigger's listeners */
+  private listeners?: AbortController;
+  /** Waits for hover and focus changes to settle */
+  private settleTimer?: ReturnType<typeof setTimeout>;
+  /** A pending open or close */
+  private openTimer?: ReturnType<typeof setTimeout>;
   private get referenceEl() {
     return this.findExternalTrigger() ?? {
       getBoundingClientRect: () => new DOMRect(),
@@ -78,42 +70,55 @@ export class Tooltip {
       return;
     }
     this.setAria(triggerEl)
+    this.listeners?.abort();
+    this.listeners = new AbortController();
+    const { signal } = this.listeners;
 
-    const hover$ = merge(
-      fromEvent(triggerEl, 'mouseenter').pipe(map(() => true)),
-      fromEvent(triggerEl, 'mouseleave').pipe(map(() => false)),
-    ).pipe(startWith(false));
+    let overTrigger = false;
+    let focused = false;
+    let mode: "idle" | "pointer" | "keyboard" | undefined;
+    // Whether Escape can still close it, until the mode changes
+    let escapable = false;
 
-    const focus$ = merge(
-      fromEvent(triggerEl, 'focusin').pipe(map(() => true)),
-      fromEvent(triggerEl, 'focusout').pipe(map(() => false)),
-    ).pipe(startWith(false));
-
-    const escape$ = fromEvent<KeyboardEvent>(document, 'keydown').pipe(
-      filter(e => e.key === 'Escape'),
-    );
-
-    this.sub = combineLatest([hover$, focus$]).pipe(
-      debounceTime(10),
-      map(([overTrigger, focused]) =>
+    // Shows for keyboard focus right away, and for hover after `timeout`.
+    // Hides 100ms after both end. Escape hides it until the mode changes.
+    const settle = () => {
+      const next =
         focused && triggerEl.matches(':focus-visible, :has(:focus-visible)') ? 'keyboard'
         : overTrigger ? 'pointer'
-        : 'idle'
-      ),
-      distinctUntilChanged(),
-      switchMap(mode =>
-        mode === 'idle'
-          ? timer(100).pipe(map(() => false))
-          : merge(
-              timer(mode === 'keyboard' ? 0 : this.timeout).pipe(map(() => true)),
-              escape$.pipe(map(() => false)),
-            ).pipe(takeWhile(open => open, true))
-      ),
-    ).subscribe(open => (this.open = open));
+        : 'idle';
+      if (next === mode) return;
+      mode = next;
+      escapable = next !== 'idle';
+      clearTimeout(this.openTimer);
+      this.openTimer =
+        next === 'idle'
+          ? setTimeout(() => (this.open = false), 100)
+          : setTimeout(() => (this.open = true), next === 'keyboard' ? 0 : this.timeout);
+    };
+    // Waits for a burst of changes, such as focus moving within the trigger
+    const update = () => {
+      clearTimeout(this.settleTimer);
+      this.settleTimer = setTimeout(settle, 10);
+    };
+    const on = (type: string, fn: () => void) => triggerEl.addEventListener(type, () => { fn(); update(); }, { signal });
+    on('mouseenter', () => (overTrigger = true));
+    on('mouseleave', () => (overTrigger = false));
+    on('focusin', () => (focused = true));
+    on('focusout', () => (focused = false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !escapable) return;
+      escapable = false;
+      clearTimeout(this.openTimer);
+      this.open = false;
+    }, { signal });
   }
 
   disconnectedCallback() {
-    this.sub?.unsubscribe();
+    this.listeners?.abort();
+    this.listeners = undefined;
+    clearTimeout(this.settleTimer);
+    clearTimeout(this.openTimer);
   }
 
   @Watch("open")

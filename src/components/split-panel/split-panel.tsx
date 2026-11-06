@@ -1,6 +1,4 @@
 import { Component, Host, Prop, Element } from "@stencil/core";
-import { AsyncSubject, fromEvent, Subscription } from "rxjs";
-import { filter, switchMap, takeUntil } from "rxjs/operators";
 
 @Component({
   tag: "orb-split-panel",
@@ -36,37 +34,44 @@ export class SplitPanel {
    */
   @Prop({ reflect: true }) afterPrimary = false;
 
-  private divider$ = new AsyncSubject<HTMLElement>();
-  private sub?: Subscription;
+  private divider?: HTMLElement;
+  /** Ends a drag in progress */
+  private stopDrag?: () => void;
 
-  connectedCallback() {
-    this.sub = this.divider$.pipe(
-      switchMap(border => fromEvent(border, 'mousedown').pipe(
-        filter(() => !this.fixed),
-        switchMap(() => fromEvent(document, 'mousemove').pipe(
-          takeUntil(fromEvent(document, 'mouseup'))
-        )),
-      ))
-    ).subscribe((ev: MouseEvent) => {
+  disconnectedCallback() {
+    this.stopDrag?.();
+  }
+
+  /** Resizes the panel to follow the pointer, from a press on the divider until it's released */
+  private onDividerDown = () => {
+    if (this.fixed) return;
+    this.stopDrag?.();
+    const move = (ev: MouseEvent) => {
       const rect = this.el.getBoundingClientRect();
       if (this.vertical) {
         const relativeY = ev.clientY - rect.top;
-        this.el.style.height = `${this.beforePrimary ? relativeY : rect.height - relativeY}px`
+        this.el.style.height = `${this.beforePrimary ? relativeY : rect.height - relativeY}px`;
       } else {
         const relativeX = ev.clientX - rect.left;
-        this.el.style.width = `${this.beforePrimary ? relativeX : rect.width - relativeX}px`
+        this.el.style.width = `${this.beforePrimary ? relativeX : rect.width - relativeX}px`;
       }
-    })
-  }
+    };
+    const stop = () => {
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", stop);
+      this.stopDrag = undefined;
+    };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", stop);
+    this.stopDrag = stop;
+  };
 
-  disconnectedCallback() {
-    this.sub?.unsubscribe()
-  }
-
-  private dividerInit = (el: HTMLElement) => {
-    this.divider$.next(el)
-    this.divider$.complete()
-  }
+  private dividerInit = (el?: HTMLElement) => {
+    if (el === this.divider) return;
+    this.divider?.removeEventListener("mousedown", this.onDividerDown);
+    this.divider = el;
+    el?.addEventListener("mousedown", this.onDividerDown);
+  };
 
   render() {
     return (

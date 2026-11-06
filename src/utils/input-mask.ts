@@ -1,4 +1,10 @@
-import { BehaviorSubject } from "rxjs";
+/** Holds a value. `next` replaces it. Nothing listens for changes. */
+class Value<T> {
+  constructor(public value: T) {}
+  next(value: T) {
+    this.value = value;
+  }
+}
 
 export interface InputMaskOptions {
   inputElement: HTMLInputElement | HTMLElement;
@@ -13,8 +19,8 @@ export class InputMask {
   private formatter: (str: string) => string;
   private extractor: (str: string) => string;
   private masker?: (rawValue: string, formattedValue: string) => string;
-  private rawValue: BehaviorSubject<string>;
-  private formattedValue: BehaviorSubject<string>;
+  private rawValue: Value<string>;
+  private formattedValue: Value<string>;
   private pendingCursor: { cancelled: boolean } | null = null;
 
   constructor({
@@ -30,8 +36,8 @@ export class InputMask {
     this.extractor = extractor;
     this.masker = masker;
 
-    this.rawValue = new BehaviorSubject(this.extractor(this.getValue()));
-    this.formattedValue = new BehaviorSubject(
+    this.rawValue = new Value(this.extractor(this.getValue()));
+    this.formattedValue = new Value(
       this.formatter(this.rawValue.value),
     );
     this.setValue(this.getDisplayValue());

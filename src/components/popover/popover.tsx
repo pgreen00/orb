@@ -20,7 +20,7 @@ import {
   shift,
   size,
 } from "@floating-ui/dom";
-import { map, merge, takeWhile, filter, tap, scan, distinctUntilChanged, switchMap, combineLatest, timer, startWith, fromEvent, Subscription } from "rxjs";
+
 
 @Component({
   tag: "orb-popover",
@@ -50,7 +50,11 @@ export class Popover {
 
   private cleanup?: () => void;
 
-  private sub?: Subscription;
+  /** Removes the trigger's listeners */
+  private listeners?: AbortController;
+
+  /** A pending hover open or close */
+  private hoverTimer?: ReturnType<typeof setTimeout>;
 
   @State() open = false;
 
@@ -130,18 +134,18 @@ export class Popover {
     this.triggerEl.ariaHasPopup ??= 'dialog'
     this.triggerEl.ariaExpanded = 'false'
 
+    this.listeners?.abort();
+    this.listeners = new AbortController();
+    const { signal } = this.listeners;
     switch (this.showOn) {
       case 'click':
-        this.sub = this.clickFlow(this.triggerEl).subscribe(open => this.setOpen(this.triggerEl, open));
+        this.listenForClick(this.triggerEl, signal);
         break;
       case 'context-menu':
-        this.sub = this.contextMenuFlow(this.triggerEl).subscribe(({ open, point }) => {
-          if (open) this.anchorPoint = point;
-          this.setOpen(this.triggerEl, open);
-        });
+        this.listenForContextMenu(this.triggerEl, signal);
         break;
       case 'hover':
-        this.sub = this.hoverFlow(this.triggerEl).subscribe(open => this.setOpen(this.triggerEl, open));
+        this.listenForHover(this.triggerEl, signal);
         break;
       default:
         console.warn(`Popover: unknown showOn value "${this.showOn}"`);
@@ -149,7 +153,9 @@ export class Popover {
   }
 
   disconnectedCallback() {
-    this.sub?.unsubscribe();
+    this.listeners?.abort();
+    this.listeners = undefined;
+    clearTimeout(this.hoverTimer);
   }
 
   @Watch("open")
@@ -214,97 +220,92 @@ export class Popover {
     return e.composedPath().includes(el);
   }
 
-  private escape$() {
-    return fromEvent<KeyboardEvent>(document, 'keydown').pipe(
-      filter(e => e.key === 'Escape'),
-    );
+  /** Opens or closes from the trigger, only when it changes */
+  private request(triggerEl: Element, open: boolean) {
+    if (open !== this.open) this.setOpen(triggerEl, open);
   }
 
-  private clickFlow(triggerEl: HTMLElement) {
-    const toggle$ = fromEvent(triggerEl, 'click').pipe(
-      map(() => 'toggle' as const),
-    );
-
-    const outside$ = fromEvent<PointerEvent>(document, 'pointerdown').pipe(
-      filter(e => !this.isInside(e, triggerEl) && !this.isInside(e, this.el)),
-      map(() => 'close' as const),
-    );
-
-    const escape$ = this.escape$().pipe(
-      filter(() => this.open),
-      tap(() => triggerEl.focus()), // return focus to the trigger
-      map(() => 'close' as const),
-    );
-
-    return merge(toggle$, outside$, escape$).pipe(
-      scan((open, action) => (action === 'toggle' ? !open : false), false),
-      distinctUntilChanged(),
-    );
+  /** Click toggles. A press outside, or Escape, closes. */
+  private listenForClick(triggerEl: HTMLElement, signal: AbortSignal) {
+    triggerEl.addEventListener('click', () => this.request(triggerEl, !this.open), { signal });
+    document.addEventListener('pointerdown', (e) => {
+      if (!this.isInside(e, triggerEl) && !this.isInside(e, this.el)) this.request(triggerEl, false);
+    }, { signal });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !this.open) return;
+      triggerEl.focus(); // return focus to the trigger
+      this.request(triggerEl, false);
+    }, { signal });
   }
 
-  private contextMenuFlow(triggerEl: HTMLElement) {
-    const open$ = fromEvent<MouseEvent>(triggerEl, 'contextmenu').pipe(
-      tap(e => e.preventDefault()),
-      map(e => {
-        // Keyboard-invoked (Menu key / Shift+F10) reports 0,0 → fall back to the trigger
-        const fromKeyboard = e.clientX === 0 && e.clientY === 0;
-        const rect = triggerEl.getBoundingClientRect();
-        const point = fromKeyboard
-          ? new DOMRect(rect.left, rect.bottom)
-          : new DOMRect(e.clientX, e.clientY);
-        return { open: true, point };
-      }),
-    );
+  /**
+   * A right-click on the trigger opens it at the pointer. A press elsewhere,
+   * another context menu, scrolling, resizing, leaving the window, or Escape
+   * closes it.
+   */
+  private listenForContextMenu(triggerEl: HTMLElement, signal: AbortSignal) {
+    triggerEl.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      // Keyboard-invoked (Menu key / Shift+F10) reports 0,0 → fall back to the trigger
+      const fromKeyboard = e.clientX === 0 && e.clientY === 0;
+      const rect = triggerEl.getBoundingClientRect();
+      this.anchorPoint = fromKeyboard ? new DOMRect(rect.left, rect.bottom) : new DOMRect(e.clientX, e.clientY);
+      this.setOpen(triggerEl, true);
+    }, { signal });
 
-    const close$ = merge(
-      // Any press outside the popover, except the right-click that's about to reopen it
-      fromEvent<PointerEvent>(document, 'pointerdown').pipe(
-        filter(e => !this.isInside(e, this.el) && !(e.button === 2 && this.isInside(e, triggerEl))),
-      ),
-      // Native context menu requested somewhere else
-      fromEvent<MouseEvent>(document, 'contextmenu').pipe(
-        filter(e => !this.isInside(e, triggerEl)),
-      ),
-      // Scrolling anywhere but inside the popover
-      fromEvent(document, 'scroll', { capture: true }).pipe(
-        filter(e => !this.isInside(e, this.el)),
-      ),
-      fromEvent(window, 'resize'),
-      fromEvent(window, 'blur'),
-      this.escape$(),
-    ).pipe(
-      filter(() => this.open),
-      map(() => ({ open: false, point: new DOMRect })),
-    );
-
-    return merge(open$, close$);
+    const close = () => this.request(triggerEl, false);
+    // Any press outside the popover, except the right-click that's about to reopen it
+    document.addEventListener('pointerdown', (e) => {
+      if (!this.isInside(e, this.el) && !(e.button === 2 && this.isInside(e, triggerEl))) close();
+    }, { signal });
+    // Native context menu requested somewhere else
+    document.addEventListener('contextmenu', (e) => {
+      if (!this.isInside(e, triggerEl)) close();
+    }, { signal });
+    // Scrolling anywhere but inside the popover
+    document.addEventListener('scroll', (e) => {
+      if (!this.isInside(e, this.el)) close();
+    }, { signal, capture: true });
+    window.addEventListener('resize', close, { signal });
+    window.addEventListener('blur', close, { signal });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close();
+    }, { signal });
   }
 
-  private hoverFlow(triggerEl: HTMLElement) {
-    const hovering = (el: Element) =>
-      merge(
-        fromEvent(el, 'mouseenter').pipe(map(() => true)),
-        fromEvent(el, 'mouseleave').pipe(map(() => false)),
-      ).pipe(startWith(false));
-
-    const escape$ = this.escape$();
-
-    return combineLatest([hovering(triggerEl), hovering(this.el)]).pipe(
-      map(([overTrigger, overPopover]) => overTrigger || overPopover),
-      distinctUntilChanged(),
-      switchMap(inZone =>
-        inZone
-          ? merge(
-              // If the popover is already open, the false→true flip cancels the pending close
-              // and the stream never emits false, so it stays open with no flicker
-              timer(this.open ? 0 : 100).pipe(map(() => true)),
-              escape$.pipe(map(() => false)),
-            ).pipe(takeWhile(open => open, true))
-          // Grace period so the pointer can cross the gap between trigger and popover
-          : timer(300).pipe(map(() => false)),
-      ),
-      distinctUntilChanged(),
-    );
+  /**
+   * Opens while the pointer is over the trigger or the popover. Entering
+   * waits 100ms to open, unless it's already open. Leaving waits 300ms to
+   * close, so the pointer can cross the gap between them. Escape closes it
+   * until the pointer leaves and comes back.
+   */
+  private listenForHover(triggerEl: HTMLElement, signal: AbortSignal) {
+    let overTrigger = false;
+    let overPopover = false;
+    let inZone = false;
+    // Whether Escape can still close it, until the pointer leaves
+    let escapable = false;
+    const update = () => {
+      const next = overTrigger || overPopover;
+      if (next === inZone) return;
+      inZone = next;
+      escapable = next;
+      clearTimeout(this.hoverTimer);
+      // If it's already open, entering again cancels the pending close, with no flicker
+      this.hoverTimer = setTimeout(() => this.request(triggerEl, next), next ? (this.open ? 0 : 100) : 300);
+    };
+    const track = (el: Element, set: (over: boolean) => void) => {
+      el.addEventListener('mouseenter', () => { set(true); update(); }, { signal });
+      el.addEventListener('mouseleave', () => { set(false); update(); }, { signal });
+    };
+    track(triggerEl, (over) => (overTrigger = over));
+    track(this.el, (over) => (overPopover = over));
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !inZone || !escapable) return;
+      escapable = false;
+      clearTimeout(this.hoverTimer);
+      this.request(triggerEl, false);
+    }, { signal });
   }
 
   private startPositioning() {
