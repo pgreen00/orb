@@ -1,6 +1,7 @@
 ---
 title: Tables
 section: css-utilities
+order: 5
 layout: css-utilities.njk
 description: A plain table looks right out of the box. Words in data-orb turn on layout, borders, spacing, states, and sticky headers.
 ---

@@ -1,6 +1,7 @@
 ---
 title: Links
 section: css-utilities
+order: 4
 layout: css-utilities.njk
 description: Links are underlined and muted until they're hovered or focused. Words in data-orb change them into accent links, quiet links, buttons, and tiles.
 ---

@@ -45,9 +45,14 @@ eleventyComputed:
         :scope {
           padding: 1rem;
           max-width: 100%;
+          grid-template:
+            "aside" auto
+            "header" auto
+            "article-body" 1fr / minmax(0, max-content);
         }
         aside {
-          display: none;
+          position: static;
+          max-height: none;
         }
       }
     }
@@ -60,6 +65,11 @@ eleventyComputed:
     {{ component.content | markdown | safe }}
   </div>
   <aside>
-    <orb-toc></orb-toc>
+    <orb-layout-swap breakpoint="767">
+      <orb-toc slot="desktop"></orb-toc>
+      <orb-details slot="mobile" summary="Table of Contents" class="orb-margin-bottom">
+        <orb-toc></orb-toc>
+      </orb-details>
+    </orb-layout-swap>
   </aside>
 </article>

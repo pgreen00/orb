@@ -45,14 +45,6 @@ function labelOf(item: HTMLElement) {
 /**
  * A list of actions or options, made of `orb-mi` items.
  *
- * Set `for` to the id of a button and the menu opens from it, as a dropdown.
- * With `show-on="context-menu"`, it opens where the element is right-clicked
- * instead. Without `for`, the menu shows inline.
- *
- * For a submenu, give an item an id and point a nested `orb-menu` at it with
- * `for`. Choosing an item closes every menu in the chain, and opening a
- * submenu keeps its parent open. For a menubar, use `orb-menubar`.
- *
  * @slot - `orb-mi` items, `orb-divider`s, and submenus
  */
 @Component({

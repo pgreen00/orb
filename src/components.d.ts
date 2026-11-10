@@ -42,9 +42,7 @@ export namespace Components {
     interface OrbAccordion {
     }
     /**
-     * A short, prominent message, such as a confirmation or an error. It's hidden
-     * until `open` is set, then animates in. Users can dismiss it with a close
-     * button when `closable` is set, and it dismisses itself after `duration`.
+     * A short, prominent message, such as a confirmation, callout, or error.
      */
     interface OrbAlert {
         /**
@@ -133,12 +131,7 @@ export namespace Components {
     interface OrbButtonGroup {
     }
     /**
-     * A full calendar with day, week, and month views, multiple named calendars,
-     * all-day and recurring (RRULE) events with per-occurrence editing, drag and
-     * resize, and ICS export. Times are in the browser's local time zone.
-     * The host owns the `events` array. The calendar emits change requests
-     * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
-     * `applyEventChange` helper and assign the result back to `events`.
+     * A full featured calendar.
      */
     interface OrbCalendar {
         /**
@@ -217,10 +210,7 @@ export namespace Components {
         "weekStartsOn": OrbWeekStart;
     }
     /**
-     * A container for related content. The `layout` prop picks the structure, and
-     * each layout has its own named slots. The default slot always lands in the
-     * layout's main text area, so a card with only default content works in any
-     * layout. Sections whose slots are empty aren't shown.
+     * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
      */
     interface OrbCard {
         /**
@@ -249,8 +239,7 @@ export namespace Components {
         "trend"?: "up" | "down" | "flat";
     }
     /**
-     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
-     * order, and the grid places them in rows.
+     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading order, and the grid places them in rows.
      */
     interface OrbCell {
         /**
@@ -377,9 +366,7 @@ export namespace Components {
         "value"?: string;
     }
     /**
-     * Groups related checkboxes or toggles under a shared label. The host has the
-     * `group` role and takes its accessible name from the label and its
-     * description from the note.
+     * Groups related checkboxes or toggles under a shared label.
      */
     interface OrbCheckboxGroup {
         /**
@@ -415,8 +402,7 @@ export namespace Components {
     interface OrbControl {
     }
     /**
-     * A button that copies text to the clipboard, swapping to a checkmark to
-     * confirm. Copies the `value` prop when set, otherwise its own text content.
+     * A button that copies text to the clipboard.
      */
     interface OrbCopyButton {
         /**
@@ -434,12 +420,7 @@ export namespace Components {
         "value"?: string;
     }
     /**
-     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
-     * link or a `<button>` for apps that navigate with click handlers. The crumbs
-     * stay in the page: the trail assigns each one to a slot in a list and adds
-     * the separators between them, so your own elements, attributes, and listeners
-     * work as written. The last crumb is the current page and gets
-     * `aria-current="page"`.
+     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a link or a `<button>` for apps that navigate with click handlers.
      */
     interface OrbCrumbs {
         /**
@@ -458,12 +439,7 @@ export namespace Components {
         "maxItems"?: number;
     }
     /**
-     * An inline date and time picker. It renders a month calendar and/or time
-     * columns and reports the selected value as epoch milliseconds. It fills the
-     * width of its container, so it works inline, inside an `orb-card`, or as the
-     * content of an `orb-popover`.
-     * The day grid and each time column use a roving tabindex: one button in each
-     * is in the Tab order, and arrow keys move between the rest.
+     * An inline date and time picker.
      */
     interface OrbDatepicker {
         /**
@@ -581,11 +557,7 @@ export namespace Components {
         "size": "xs" | "sm" | "md" | "lg";
     }
     /**
-     * A button that floats over the page, in a corner or along an edge of the
-     * viewport. It stays in place while the page scrolls. Put an `orb-button` in
-     * it with an `aria-label` for the action. Set `scroll-threshold` to show it
-     * only after the page has scrolled, such as for a back-to-top button. Hidden
-     * buttons can't be focused or read by screen readers.
+     * A button that floats over the page, in a corner or along an edge of the viewport.
      */
     interface OrbFloatingButton {
         /**
@@ -609,31 +581,7 @@ export namespace Components {
         "scrollThreshold"?: number;
     }
     /**
-     * A data grid built from markup. Put `orb-cell` elements directly inside it,
-     * in reading order, and the grid splits them into rows. The number of columns
-     * is set by `columns`, or by the header cells' column spans when it isn't set.
-     * Header cells come first, then body cells, then footer cells, whatever their
-     * order in the markup.
-     * Cells span columns and rows with `colspan` and `rowspan`, the same way table
-     * cells do. A cell is placed in the next free slot of the row, skipping slots
-     * that cells from rows above span into, and wraps to a new row when it
-     * doesn't fit. Row spans stop at the end of their section.
-     * The cells stay in the page: each row is a `role="row"` element in the grid's
-     * shadow root, with a slot that the row's cells are assigned to.
-     * The grid is one Tab stop. The arrow keys move between cells, or between rows
-     * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
-     * out of the Tab order until the user presses Enter on the cell, or clicks
-     * into it. Escape goes back to the cell.
-     * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
-     * listed parent first, and each row's parent is the closest row above it with
-     * a smaller depth. Rows start collapsed, and `expanded` on the first cell
-     * opens one.
-     * A body row can have details: put an `orb-row-details` right after its
-     * cells, and the grid adds a toggle that shows the details below the row,
-     * across every column.
-     * With `reorder`, each body row gets a drag handle. Dragging it moves the
-     * row's cells to the new position in the page, so the grid's markup always
-     * matches what's shown.
+     * A data grid built from markup.
      */
     interface OrbGrid {
         /**
@@ -651,6 +599,11 @@ export namespace Components {
           * @default false
          */
         "caps": boolean;
+        /**
+          * With `layout="auto"`, the grid width below which rows show as cards: a number of pixels, or `sm` (640), `md` (768), `lg` (1024), or `xl` (1280).
+          * @default "sm"
+         */
+        "cardBreakpoint": number | string;
         /**
           * Clears the search and every header filter, and goes back to the first page. Clears the bound search field too. Emits `orbFilterChange` when anything was filtering.
          */
@@ -699,6 +652,11 @@ export namespace Components {
           * @default false
          */
         "interactive": boolean;
+        /**
+          * How the rows are laid out. `table` lines cells up in columns. `cards` shows each row as a card, with each cell on its own line next to its column's name, and the header cells as a row of chips above. `auto` uses cards while the grid is narrower than `card-breakpoint`. The grid reads the same to screen readers and the keyboard either way.
+          * @default "table"
+         */
+        "layout": "table" | "cards" | "auto";
         /**
           * The name the grid's rows are submitted under in a form. Each cell is an entry named with the grid's name, the row's index, and its column's key, such as `employees[0][Name]`. A column's key is its header's `name`, or its header's text. The rows are the ones that pass the search and filters, in the order shown, on every page. With `selection`, they're the selected rows instead. A grid without a name, or with `server-side`, doesn't submit anything.
          */
@@ -820,8 +778,7 @@ export namespace Components {
     interface OrbLoading {
     }
     /**
-     * Renders markdown from a child `<script type="text/markdown">` into the light
-     * DOM, so the output picks up the page's native element styles.
+     * Renders markdown into the light DOM.
      */
     interface OrbMarkdown {
         /**
@@ -849,12 +806,6 @@ export namespace Components {
     }
     /**
      * A list of actions or options, made of `orb-mi` items.
-     * Set `for` to the id of a button and the menu opens from it, as a dropdown.
-     * With `show-on="context-menu"`, it opens where the element is right-clicked
-     * instead. Without `for`, the menu shows inline.
-     * For a submenu, give an item an id and point a nested `orb-menu` at it with
-     * `for`. Choosing an item closes every menu in the chain, and opening a
-     * submenu keeps its parent open. For a menubar, use `orb-menubar`.
      */
     interface OrbMenu {
         /**
@@ -892,11 +843,7 @@ export namespace Components {
         "showOn": "click" | "context-menu";
     }
     /**
-     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
-     * app. Give an item an id and point an `orb-menu` at it with `for` to open a
-     * menu from it. Items without a menu are chosen directly.
-     * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
-     * listener on the menubar.
+     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop app.
      */
     interface OrbMenubar {
         /**
@@ -921,9 +868,6 @@ export namespace Components {
     }
     /**
      * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
-     * Choosing it emits `orbSelect` from the menu.
-     * To open a submenu, give the item an id and point a nested `orb-menu` at it
-     * with `for`.
      */
     interface OrbMi {
         /**
@@ -1002,8 +946,7 @@ export namespace Components {
         "trigger"?: string;
     }
     /**
-     * Splits a long list into pages and lets the user move between them. Renders
-     * native buttons by default, or links when `href-template` is set.
+     * Splits a long list into pages and lets the user move between them. Renders native buttons by default, or links when `href-template` is set.
      */
     interface OrbPagination {
         /**
@@ -1221,9 +1164,7 @@ export namespace Components {
         "value"?: any;
     }
     /**
-     * A slider for picking a number in a range. It wraps a native range input, so
-     * the keyboard, screen readers, and dragging work the way they do on the
-     * platform. The value shows in a tooltip while it's being changed.
+     * A slider for picking a number in a range.
      */
     interface OrbRange {
         /**
@@ -1282,8 +1223,7 @@ export namespace Components {
         "value"?: number;
     }
     /**
-     * Displays a date as a localized phrase relative to now, such as "3 hours ago"
-     * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+     * Displays a date as a localized phrase relative to now, such as "3 hours ago" or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
      */
     interface OrbRelativeTime {
         /**
@@ -1341,12 +1281,7 @@ export namespace Components {
         "value": string;
     }
     /**
-     * Content that a row of an `orb-grid` shows and hides. Put it right after the
-     * cells of the row it belongs to. The grid adds a toggle button to that row,
-     * and shows the details below it, across every column. Put anything inside:
-     * text, a form, a chart, or another grid.
-     * Like a cell, the details are one stop for the arrow keys. Press Enter to
-     * move into their content, and Escape to come back out.
+     * Content that a row of an `orb-grid` shows and hides. Put anything inside: text, a form, a chart, or another grid.
      */
     interface OrbRowDetails {
         /**
@@ -1356,11 +1291,7 @@ export namespace Components {
         "expanded": boolean;
     }
     /**
-     * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
-     * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
-     * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
-     * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
-     * and a full-screen vertex stage are injected for you — you only write the fragment.
+     * Renders a WGSL fragment shader with WebGPU.
      */
     interface OrbShaderCanvas {
         /**
@@ -1464,9 +1395,7 @@ export namespace Components {
     interface OrbSynth {
     }
     /**
-     * The host is a plain wrapper. The element with `role="tab"` is inside the
-     * shadow root, and the close button sits beside it rather than inside it,
-     * because a tab can't contain other interactive controls.
+     * A button that selects a tab panel inside an `<orb-tabs>` element.
      */
     interface OrbTabButton {
         /**
@@ -1480,10 +1409,7 @@ export namespace Components {
         "panel"?: string;
     }
     /**
-     * Content inside a `<template>` child is lazy loaded: it's cloned into the
-     * panel the first time the panel is selected. With an offload delay, the clone
-     * is removed again after the panel has been inactive for that long, and
-     * re-created the next time it's selected.
+     * A content panel inside an `<orb-tabs>` element.
      */
     interface OrbTabPanel {
         "name"?: string;
@@ -1528,8 +1454,7 @@ export namespace Components {
         "wrap": boolean;
     }
     /**
-     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
-     * validation messages. A `textarea` grows with its content.
+     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and validation messages.
      */
     interface OrbTextbox {
         /**
@@ -1571,8 +1496,7 @@ export namespace Components {
         "value"?: string;
     }
     /**
-     * A countdown that displays the time remaining and emits `orbCountdownComplete`
-     * when it reaches zero.
+     * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
      */
     interface OrbTimer {
         /**
@@ -1686,10 +1610,7 @@ export namespace Components {
         "value"?: string | string[];
     }
     /**
-     * A layout for a page's worth of content, with a header, a body, and a footer
-     * for actions. By default the view scrolls its own content, which suits
-     * overlays. Turn off `scrollable` when the view lays out a whole page and the
-     * page itself scrolls. Either way, the header and footer stay in place.
+     * A layout for a page's worth of content.
      */
     interface OrbView {
         /**
@@ -1741,13 +1662,7 @@ export namespace Components {
         "showWizard": boolean;
     }
     /**
-     * Manages a set of `orb-view` children, showing one at a time. Use it for
-     * multi-step wizards and nested flows, such as adding a related record
-     * without leaving a form. It animates between views, keeps breadcrumbs, places
-     * a shared `orb-wizard` in views that show it, and lazy loads each view's
-     * `<template>`.
-     * Navigate with `data-view-link="<id>"` on any button inside the manager, or
-     * call `navigate()`.
+     * Manages a set of `orb-view` children, showing one at a time.
      */
     interface OrbViewManager {
         /**
@@ -1765,8 +1680,7 @@ export namespace Components {
         "value"?: string;
     }
     /**
-     * One step in an `<orb-wizard>`. Set `active` on the current step and
-     * `completed` on finished ones.
+     * One step in an `<orb-wizard>`.
      */
     interface OrbWi {
         /**
@@ -1804,10 +1718,7 @@ export namespace Components {
         "variant": "primary" | "success" | "warning" | "danger";
     }
     /**
-     * Shows progress through a sequence of steps. Each `<orb-wi>` is a
-     * step, and the one with the `active` attribute is the current step. The
-     * wizard only shows progress: render each step's content yourself, and mark
-     * steps `completed` from your own code.
+     * Shows progress through a sequence of steps.
      */
     interface OrbWizard {
         /**
@@ -1962,9 +1873,7 @@ declare global {
         "orbDismiss": OverlayData;
     }
     /**
-     * A short, prominent message, such as a confirmation or an error. It's hidden
-     * until `open` is set, then animates in. Users can dismiss it with a close
-     * button when `closable` is set, and it dismisses itself after `duration`.
+     * A short, prominent message, such as a confirmation, callout, or error.
      */
     interface HTMLOrbAlertElement extends Components.OrbAlert, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbAlertElementEventMap>(type: K, listener: (this: HTMLOrbAlertElement, ev: OrbAlertCustomEvent<HTMLOrbAlertElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2002,12 +1911,7 @@ declare global {
         "orbEventDelete": OrbCalendarMutation;
     }
     /**
-     * A full calendar with day, week, and month views, multiple named calendars,
-     * all-day and recurring (RRULE) events with per-occurrence editing, drag and
-     * resize, and ICS export. Times are in the browser's local time zone.
-     * The host owns the `events` array. The calendar emits change requests
-     * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
-     * `applyEventChange` helper and assign the result back to `events`.
+     * A full featured calendar.
      */
     interface HTMLOrbCalendarElement extends Components.OrbCalendar, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbCalendarElementEventMap>(type: K, listener: (this: HTMLOrbCalendarElement, ev: OrbCalendarCustomEvent<HTMLOrbCalendarElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2024,10 +1928,7 @@ declare global {
         new (): HTMLOrbCalendarElement;
     };
     /**
-     * A container for related content. The `layout` prop picks the structure, and
-     * each layout has its own named slots. The default slot always lands in the
-     * layout's main text area, so a card with only default content works in any
-     * layout. Sections whose slots are empty aren't shown.
+     * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
      */
     interface HTMLOrbCardElement extends Components.OrbCard, HTMLStencilElement {
     }
@@ -2039,8 +1940,7 @@ declare global {
         "orbFilterInput": void;
     }
     /**
-     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
-     * order, and the grid places them in rows.
+     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading order, and the grid places them in rows.
      */
     interface HTMLOrbCellElement extends Components.OrbCell, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbCellElementEventMap>(type: K, listener: (this: HTMLOrbCellElement, ev: OrbCellCustomEvent<HTMLOrbCellElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2080,9 +1980,7 @@ declare global {
         new (): HTMLOrbCheckboxElement;
     };
     /**
-     * Groups related checkboxes or toggles under a shared label. The host has the
-     * `group` role and takes its accessible name from the label and its
-     * description from the note.
+     * Groups related checkboxes or toggles under a shared label.
      */
     interface HTMLOrbCheckboxGroupElement extends Components.OrbCheckboxGroup, HTMLStencilElement {
     }
@@ -2109,8 +2007,7 @@ declare global {
         new (): HTMLOrbControlElement;
     };
     /**
-     * A button that copies text to the clipboard, swapping to a checkmark to
-     * confirm. Copies the `value` prop when set, otherwise its own text content.
+     * A button that copies text to the clipboard.
      */
     interface HTMLOrbCopyButtonElement extends Components.OrbCopyButton, HTMLStencilElement {
     }
@@ -2122,12 +2019,7 @@ declare global {
         "orbExpandClick": HTMLElement[];
     }
     /**
-     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
-     * link or a `<button>` for apps that navigate with click handlers. The crumbs
-     * stay in the page: the trail assigns each one to a slot in a list and adds
-     * the separators between them, so your own elements, attributes, and listeners
-     * work as written. The last crumb is the current page and gets
-     * `aria-current="page"`.
+     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a link or a `<button>` for apps that navigate with click handlers.
      */
     interface HTMLOrbCrumbsElement extends Components.OrbCrumbs, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbCrumbsElementEventMap>(type: K, listener: (this: HTMLOrbCrumbsElement, ev: OrbCrumbsCustomEvent<HTMLOrbCrumbsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2147,12 +2039,7 @@ declare global {
         "orbValueChange": number | undefined;
     }
     /**
-     * An inline date and time picker. It renders a month calendar and/or time
-     * columns and reports the selected value as epoch milliseconds. It fills the
-     * width of its container, so it works inline, inside an `orb-card`, or as the
-     * content of an `orb-popover`.
-     * The day grid and each time column use a roving tabindex: one button in each
-     * is in the Tab order, and arrow keys move between the rest.
+     * An inline date and time picker.
      */
     interface HTMLOrbDatepickerElement extends Components.OrbDatepicker, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbDatepickerElementEventMap>(type: K, listener: (this: HTMLOrbDatepickerElement, ev: OrbDatepickerCustomEvent<HTMLOrbDatepickerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2232,11 +2119,7 @@ declare global {
         "orbOpenChange": boolean;
     }
     /**
-     * A button that floats over the page, in a corner or along an edge of the
-     * viewport. It stays in place while the page scrolls. Put an `orb-button` in
-     * it with an `aria-label` for the action. Set `scroll-threshold` to show it
-     * only after the page has scrolled, such as for a back-to-top button. Hidden
-     * buttons can't be focused or read by screen readers.
+     * A button that floats over the page, in a corner or along an edge of the viewport.
      */
     interface HTMLOrbFloatingButtonElement extends Components.OrbFloatingButton, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbFloatingButtonElementEventMap>(type: K, listener: (this: HTMLOrbFloatingButtonElement, ev: OrbFloatingButtonCustomEvent<HTMLOrbFloatingButtonElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2263,31 +2146,7 @@ declare global {
         "orbQueryChange": GridQueryDetail;
     }
     /**
-     * A data grid built from markup. Put `orb-cell` elements directly inside it,
-     * in reading order, and the grid splits them into rows. The number of columns
-     * is set by `columns`, or by the header cells' column spans when it isn't set.
-     * Header cells come first, then body cells, then footer cells, whatever their
-     * order in the markup.
-     * Cells span columns and rows with `colspan` and `rowspan`, the same way table
-     * cells do. A cell is placed in the next free slot of the row, skipping slots
-     * that cells from rows above span into, and wraps to a new row when it
-     * doesn't fit. Row spans stop at the end of their section.
-     * The cells stay in the page: each row is a `role="row"` element in the grid's
-     * shadow root, with a slot that the row's cells are assigned to.
-     * The grid is one Tab stop. The arrow keys move between cells, or between rows
-     * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
-     * out of the Tab order until the user presses Enter on the cell, or clicks
-     * into it. Escape goes back to the cell.
-     * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
-     * listed parent first, and each row's parent is the closest row above it with
-     * a smaller depth. Rows start collapsed, and `expanded` on the first cell
-     * opens one.
-     * A body row can have details: put an `orb-row-details` right after its
-     * cells, and the grid adds a toggle that shows the details below the row,
-     * across every column.
-     * With `reorder`, each body row gets a drag handle. Dragging it moves the
-     * row's cells to the new position in the page, so the grid's markup always
-     * matches what's shown.
+     * A data grid built from markup.
      */
     interface HTMLOrbGridElement extends Components.OrbGrid, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbGridElementEventMap>(type: K, listener: (this: HTMLOrbGridElement, ev: OrbGridCustomEvent<HTMLOrbGridElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2322,8 +2181,7 @@ declare global {
         new (): HTMLOrbLoadingElement;
     };
     /**
-     * Renders markdown from a child `<script type="text/markdown">` into the light
-     * DOM, so the output picks up the page's native element styles.
+     * Renders markdown into the light DOM.
      */
     interface HTMLOrbMarkdownElement extends Components.OrbMarkdown, HTMLStencilElement {
     }
@@ -2342,12 +2200,6 @@ declare global {
     }
     /**
      * A list of actions or options, made of `orb-mi` items.
-     * Set `for` to the id of a button and the menu opens from it, as a dropdown.
-     * With `show-on="context-menu"`, it opens where the element is right-clicked
-     * instead. Without `for`, the menu shows inline.
-     * For a submenu, give an item an id and point a nested `orb-menu` at it with
-     * `for`. Choosing an item closes every menu in the chain, and opening a
-     * submenu keeps its parent open. For a menubar, use `orb-menubar`.
      */
     interface HTMLOrbMenuElement extends Components.OrbMenu, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbMenuElementEventMap>(type: K, listener: (this: HTMLOrbMenuElement, ev: OrbMenuCustomEvent<HTMLOrbMenuElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2367,11 +2219,7 @@ declare global {
         "orbSelect": MenuSelectDetail1;
     }
     /**
-     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
-     * app. Give an item an id and point an `orb-menu` at it with `for` to open a
-     * menu from it. Items without a menu are chosen directly.
-     * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
-     * listener on the menubar.
+     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop app.
      */
     interface HTMLOrbMenubarElement extends Components.OrbMenubar, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbMenubarElementEventMap>(type: K, listener: (this: HTMLOrbMenubarElement, ev: OrbMenubarCustomEvent<HTMLOrbMenubarElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2395,9 +2243,6 @@ declare global {
     };
     /**
      * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
-     * Choosing it emits `orbSelect` from the menu.
-     * To open a submenu, give the item an id and point a nested `orb-menu` at it
-     * with `for`.
      */
     interface HTMLOrbMiElement extends Components.OrbMi, HTMLStencilElement {
     }
@@ -2447,8 +2292,7 @@ declare global {
         "orbPageChange": PageChangeDetail;
     }
     /**
-     * Splits a long list into pages and lets the user move between them. Renders
-     * native buttons by default, or links when `href-template` is set.
+     * Splits a long list into pages and lets the user move between them. Renders native buttons by default, or links when `href-template` is set.
      */
     interface HTMLOrbPaginationElement extends Components.OrbPagination, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbPaginationElementEventMap>(type: K, listener: (this: HTMLOrbPaginationElement, ev: OrbPaginationCustomEvent<HTMLOrbPaginationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2532,9 +2376,7 @@ declare global {
         "orbValueChange": number;
     }
     /**
-     * A slider for picking a number in a range. It wraps a native range input, so
-     * the keyboard, screen readers, and dragging work the way they do on the
-     * platform. The value shows in a tooltip while it's being changed.
+     * A slider for picking a number in a range.
      */
     interface HTMLOrbRangeElement extends Components.OrbRange, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbRangeElementEventMap>(type: K, listener: (this: HTMLOrbRangeElement, ev: OrbRangeCustomEvent<HTMLOrbRangeElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2551,8 +2393,7 @@ declare global {
         new (): HTMLOrbRangeElement;
     };
     /**
-     * Displays a date as a localized phrase relative to now, such as "3 hours ago"
-     * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+     * Displays a date as a localized phrase relative to now, such as "3 hours ago" or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
      */
     interface HTMLOrbRelativeTimeElement extends Components.OrbRelativeTime, HTMLStencilElement {
     }
@@ -2580,12 +2421,7 @@ declare global {
         new (): HTMLOrbRichTextElement;
     };
     /**
-     * Content that a row of an `orb-grid` shows and hides. Put it right after the
-     * cells of the row it belongs to. The grid adds a toggle button to that row,
-     * and shows the details below it, across every column. Put anything inside:
-     * text, a form, a chart, or another grid.
-     * Like a cell, the details are one stop for the arrow keys. Press Enter to
-     * move into their content, and Escape to come back out.
+     * Content that a row of an `orb-grid` shows and hides. Put anything inside: text, a form, a chart, or another grid.
      */
     interface HTMLOrbRowDetailsElement extends Components.OrbRowDetails, HTMLStencilElement {
     }
@@ -2598,11 +2434,7 @@ declare global {
         "orbShaderError": ShaderErrorDetail;
     }
     /**
-     * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
-     * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
-     * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
-     * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
-     * and a full-screen vertex stage are injected for you — you only write the fragment.
+     * Renders a WGSL fragment shader with WebGPU.
      */
     interface HTMLOrbShaderCanvasElement extends Components.OrbShaderCanvas, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbShaderCanvasElementEventMap>(type: K, listener: (this: HTMLOrbShaderCanvasElement, ev: OrbShaderCanvasCustomEvent<HTMLOrbShaderCanvasElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2646,9 +2478,7 @@ declare global {
         "orbTabClose": TabCloseDetail;
     }
     /**
-     * The host is a plain wrapper. The element with `role="tab"` is inside the
-     * shadow root, and the close button sits beside it rather than inside it,
-     * because a tab can't contain other interactive controls.
+     * A button that selects a tab panel inside an `<orb-tabs>` element.
      */
     interface HTMLOrbTabButtonElement extends Components.OrbTabButton, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbTabButtonElementEventMap>(type: K, listener: (this: HTMLOrbTabButtonElement, ev: OrbTabButtonCustomEvent<HTMLOrbTabButtonElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2665,10 +2495,7 @@ declare global {
         new (): HTMLOrbTabButtonElement;
     };
     /**
-     * Content inside a `<template>` child is lazy loaded: it's cloned into the
-     * panel the first time the panel is selected. With an offload delay, the clone
-     * is removed again after the panel has been inactive for that long, and
-     * re-created the next time it's selected.
+     * A content panel inside an `<orb-tabs>` element.
      */
     interface HTMLOrbTabPanelElement extends Components.OrbTabPanel, HTMLStencilElement {
     }
@@ -2686,8 +2513,7 @@ declare global {
         "orbValueChange": string;
     }
     /**
-     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
-     * validation messages. A `textarea` grows with its content.
+     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and validation messages.
      */
     interface HTMLOrbTextboxElement extends Components.OrbTextbox, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbTextboxElementEventMap>(type: K, listener: (this: HTMLOrbTextboxElement, ev: OrbTextboxCustomEvent<HTMLOrbTextboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2713,8 +2539,7 @@ declare global {
         "orbCountdownComplete": any;
     }
     /**
-     * A countdown that displays the time remaining and emits `orbCountdownComplete`
-     * when it reaches zero.
+     * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
      */
     interface HTMLOrbTimerElement extends Components.OrbTimer, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbTimerElementEventMap>(type: K, listener: (this: HTMLOrbTimerElement, ev: OrbTimerCustomEvent<HTMLOrbTimerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2783,10 +2608,7 @@ declare global {
         new (): HTMLOrbTreeElement;
     };
     /**
-     * A layout for a page's worth of content, with a header, a body, and a footer
-     * for actions. By default the view scrolls its own content, which suits
-     * overlays. Turn off `scrollable` when the view lays out a whole page and the
-     * page itself scrolls. Either way, the header and footer stay in place.
+     * A layout for a page's worth of content.
      */
     interface HTMLOrbViewElement extends Components.OrbView, HTMLStencilElement {
     }
@@ -2799,13 +2621,7 @@ declare global {
         "orbViewMount": string;
     }
     /**
-     * Manages a set of `orb-view` children, showing one at a time. Use it for
-     * multi-step wizards and nested flows, such as adding a related record
-     * without leaving a form. It animates between views, keeps breadcrumbs, places
-     * a shared `orb-wizard` in views that show it, and lazy loads each view's
-     * `<template>`.
-     * Navigate with `data-view-link="<id>"` on any button inside the manager, or
-     * call `navigate()`.
+     * Manages a set of `orb-view` children, showing one at a time.
      */
     interface HTMLOrbViewManagerElement extends Components.OrbViewManager, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbViewManagerElementEventMap>(type: K, listener: (this: HTMLOrbViewManagerElement, ev: OrbViewManagerCustomEvent<HTMLOrbViewManagerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2822,8 +2638,7 @@ declare global {
         new (): HTMLOrbViewManagerElement;
     };
     /**
-     * One step in an `<orb-wizard>`. Set `active` on the current step and
-     * `completed` on finished ones.
+     * One step in an `<orb-wizard>`.
      */
     interface HTMLOrbWiElement extends Components.OrbWi, HTMLStencilElement {
     }
@@ -2837,10 +2652,7 @@ declare global {
         "orbFinish": void;
     }
     /**
-     * Shows progress through a sequence of steps. Each `<orb-wi>` is a
-     * step, and the one with the `active` attribute is the current step. The
-     * wizard only shows progress: render each step's content yourself, and mark
-     * steps `completed` from your own code.
+     * Shows progress through a sequence of steps.
      */
     interface HTMLOrbWizardElement extends Components.OrbWizard, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbWizardElementEventMap>(type: K, listener: (this: HTMLOrbWizardElement, ev: OrbWizardCustomEvent<HTMLOrbWizardElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -2936,9 +2748,7 @@ declare namespace LocalJSX {
     interface OrbAccordion {
     }
     /**
-     * A short, prominent message, such as a confirmation or an error. It's hidden
-     * until `open` is set, then animates in. Users can dismiss it with a close
-     * button when `closable` is set, and it dismisses itself after `duration`.
+     * A short, prominent message, such as a confirmation, callout, or error.
      */
     interface OrbAlert {
         /**
@@ -3024,12 +2834,7 @@ declare namespace LocalJSX {
     interface OrbButtonGroup {
     }
     /**
-     * A full calendar with day, week, and month views, multiple named calendars,
-     * all-day and recurring (RRULE) events with per-occurrence editing, drag and
-     * resize, and ICS export. Times are in the browser's local time zone.
-     * The host owns the `events` array. The calendar emits change requests
-     * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
-     * `applyEventChange` helper and assign the result back to `events`.
+     * A full featured calendar.
      */
     interface OrbCalendar {
         /**
@@ -3112,10 +2917,7 @@ declare namespace LocalJSX {
         "weekStartsOn"?: OrbWeekStart;
     }
     /**
-     * A container for related content. The `layout` prop picks the structure, and
-     * each layout has its own named slots. The default slot always lands in the
-     * layout's main text area, so a card with only default content works in any
-     * layout. Sections whose slots are empty aren't shown.
+     * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
      */
     interface OrbCard {
         /**
@@ -3144,8 +2946,7 @@ declare namespace LocalJSX {
         "trend"?: "up" | "down" | "flat";
     }
     /**
-     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
-     * order, and the grid places them in rows.
+     * A cell in an `orb-grid`. Put cells directly inside the grid, in reading order, and the grid places them in rows.
      */
     interface OrbCell {
         /**
@@ -3288,9 +3089,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
-     * Groups related checkboxes or toggles under a shared label. The host has the
-     * `group` role and takes its accessible name from the label and its
-     * description from the note.
+     * Groups related checkboxes or toggles under a shared label.
      */
     interface OrbCheckboxGroup {
         /**
@@ -3326,8 +3125,7 @@ declare namespace LocalJSX {
     interface OrbControl {
     }
     /**
-     * A button that copies text to the clipboard, swapping to a checkmark to
-     * confirm. Copies the `value` prop when set, otherwise its own text content.
+     * A button that copies text to the clipboard.
      */
     interface OrbCopyButton {
         /**
@@ -3345,12 +3143,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
-     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
-     * link or a `<button>` for apps that navigate with click handlers. The crumbs
-     * stay in the page: the trail assigns each one to a slot in a list and adds
-     * the separators between them, so your own elements, attributes, and listeners
-     * work as written. The last crumb is the current page and gets
-     * `aria-current="page"`.
+     * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a link or a `<button>` for apps that navigate with click handlers.
      */
     interface OrbCrumbs {
         /**
@@ -3373,12 +3166,7 @@ declare namespace LocalJSX {
         "onOrbExpandClick"?: (event: OrbCrumbsCustomEvent<HTMLElement[]>) => void;
     }
     /**
-     * An inline date and time picker. It renders a month calendar and/or time
-     * columns and reports the selected value as epoch milliseconds. It fills the
-     * width of its container, so it works inline, inside an `orb-card`, or as the
-     * content of an `orb-popover`.
-     * The day grid and each time column use a roving tabindex: one button in each
-     * is in the Tab order, and arrow keys move between the rest.
+     * An inline date and time picker.
      */
     interface OrbDatepicker {
         /**
@@ -3506,11 +3294,7 @@ declare namespace LocalJSX {
         "size"?: "xs" | "sm" | "md" | "lg";
     }
     /**
-     * A button that floats over the page, in a corner or along an edge of the
-     * viewport. It stays in place while the page scrolls. Put an `orb-button` in
-     * it with an `aria-label` for the action. Set `scroll-threshold` to show it
-     * only after the page has scrolled, such as for a back-to-top button. Hidden
-     * buttons can't be focused or read by screen readers.
+     * A button that floats over the page, in a corner or along an edge of the viewport.
      */
     interface OrbFloatingButton {
         /**
@@ -3538,31 +3322,7 @@ declare namespace LocalJSX {
         "scrollThreshold"?: number;
     }
     /**
-     * A data grid built from markup. Put `orb-cell` elements directly inside it,
-     * in reading order, and the grid splits them into rows. The number of columns
-     * is set by `columns`, or by the header cells' column spans when it isn't set.
-     * Header cells come first, then body cells, then footer cells, whatever their
-     * order in the markup.
-     * Cells span columns and rows with `colspan` and `rowspan`, the same way table
-     * cells do. A cell is placed in the next free slot of the row, skipping slots
-     * that cells from rows above span into, and wraps to a new row when it
-     * doesn't fit. Row spans stop at the end of their section.
-     * The cells stay in the page: each row is a `role="row"` element in the grid's
-     * shadow root, with a slot that the row's cells are assigned to.
-     * The grid is one Tab stop. The arrow keys move between cells, or between rows
-     * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
-     * out of the Tab order until the user presses Enter on the cell, or clicks
-     * into it. Escape goes back to the cell.
-     * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
-     * listed parent first, and each row's parent is the closest row above it with
-     * a smaller depth. Rows start collapsed, and `expanded` on the first cell
-     * opens one.
-     * A body row can have details: put an `orb-row-details` right after its
-     * cells, and the grid adds a toggle that shows the details below the row,
-     * across every column.
-     * With `reorder`, each body row gets a drag handle. Dragging it moves the
-     * row's cells to the new position in the page, so the grid's markup always
-     * matches what's shown.
+     * A data grid built from markup.
      */
     interface OrbGrid {
         /**
@@ -3580,6 +3340,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "caps"?: boolean;
+        /**
+          * With `layout="auto"`, the grid width below which rows show as cards: a number of pixels, or `sm` (640), `md` (768), `lg` (1024), or `xl` (1280).
+          * @default "sm"
+         */
+        "cardBreakpoint"?: number | string;
         /**
           * Number of columns. When it isn't set, it's the sum of the header cells' column spans, which assumes a single header row. Set it when the header has more than one row, or when there's no header.
          */
@@ -3612,6 +3377,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "interactive"?: boolean;
+        /**
+          * How the rows are laid out. `table` lines cells up in columns. `cards` shows each row as a card, with each cell on its own line next to its column's name, and the header cells as a row of chips above. `auto` uses cards while the grid is narrower than `card-breakpoint`. The grid reads the same to screen readers and the keyboard either way.
+          * @default "table"
+         */
+        "layout"?: "table" | "cards" | "auto";
         /**
           * The name the grid's rows are submitted under in a form. Each cell is an entry named with the grid's name, the row's index, and its column's key, such as `employees[0][Name]`. A column's key is its header's `name`, or its header's text. The rows are the ones that pass the search and filters, in the order shown, on every page. With `selection`, they're the selected rows instead. A grid without a name, or with `server-side`, doesn't submit anything.
          */
@@ -3737,8 +3507,7 @@ declare namespace LocalJSX {
     interface OrbLoading {
     }
     /**
-     * Renders markdown from a child `<script type="text/markdown">` into the light
-     * DOM, so the output picks up the page's native element styles.
+     * Renders markdown into the light DOM.
      */
     interface OrbMarkdown {
         /**
@@ -3766,12 +3535,6 @@ declare namespace LocalJSX {
     }
     /**
      * A list of actions or options, made of `orb-mi` items.
-     * Set `for` to the id of a button and the menu opens from it, as a dropdown.
-     * With `show-on="context-menu"`, it opens where the element is right-clicked
-     * instead. Without `for`, the menu shows inline.
-     * For a submenu, give an item an id and point a nested `orb-menu` at it with
-     * `for`. Choosing an item closes every menu in the chain, and opening a
-     * submenu keeps its parent open. For a menubar, use `orb-menubar`.
      */
     interface OrbMenu {
         /**
@@ -3797,11 +3560,7 @@ declare namespace LocalJSX {
         "showOn"?: "click" | "context-menu";
     }
     /**
-     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
-     * app. Give an item an id and point an `orb-menu` at it with `for` to open a
-     * menu from it. Items without a menu are chosen directly.
-     * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
-     * listener on the menubar.
+     * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop app.
      */
     interface OrbMenubar {
         /**
@@ -3826,9 +3585,6 @@ declare namespace LocalJSX {
     }
     /**
      * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
-     * Choosing it emits `orbSelect` from the menu.
-     * To open a submenu, give the item an id and point a nested `orb-menu` at it
-     * with `for`.
      */
     interface OrbMi {
         /**
@@ -3917,8 +3673,7 @@ declare namespace LocalJSX {
         "trigger"?: string;
     }
     /**
-     * Splits a long list into pages and lets the user move between them. Renders
-     * native buttons by default, or links when `href-template` is set.
+     * Splits a long list into pages and lets the user move between them. Renders native buttons by default, or links when `href-template` is set.
      */
     interface OrbPagination {
         /**
@@ -4167,9 +3922,7 @@ declare namespace LocalJSX {
         "value"?: any;
     }
     /**
-     * A slider for picking a number in a range. It wraps a native range input, so
-     * the keyboard, screen readers, and dragging work the way they do on the
-     * platform. The value shows in a tooltip while it's being changed.
+     * A slider for picking a number in a range.
      */
     interface OrbRange {
         /**
@@ -4240,8 +3993,7 @@ declare namespace LocalJSX {
         "value"?: number;
     }
     /**
-     * Displays a date as a localized phrase relative to now, such as "3 hours ago"
-     * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+     * Displays a date as a localized phrase relative to now, such as "3 hours ago" or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
      */
     interface OrbRelativeTime {
         /**
@@ -4298,12 +4050,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
-     * Content that a row of an `orb-grid` shows and hides. Put it right after the
-     * cells of the row it belongs to. The grid adds a toggle button to that row,
-     * and shows the details below it, across every column. Put anything inside:
-     * text, a form, a chart, or another grid.
-     * Like a cell, the details are one stop for the arrow keys. Press Enter to
-     * move into their content, and Escape to come back out.
+     * Content that a row of an `orb-grid` shows and hides. Put anything inside: text, a form, a chart, or another grid.
      */
     interface OrbRowDetails {
         /**
@@ -4313,11 +4060,7 @@ declare namespace LocalJSX {
         "expanded"?: boolean;
     }
     /**
-     * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
-     * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
-     * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
-     * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
-     * and a full-screen vertex stage are injected for you — you only write the fragment.
+     * Renders a WGSL fragment shader with WebGPU.
      */
     interface OrbShaderCanvas {
         /**
@@ -4409,9 +4152,7 @@ declare namespace LocalJSX {
     interface OrbSynth {
     }
     /**
-     * The host is a plain wrapper. The element with `role="tab"` is inside the
-     * shadow root, and the close button sits beside it rather than inside it,
-     * because a tab can't contain other interactive controls.
+     * A button that selects a tab panel inside an `<orb-tabs>` element.
      */
     interface OrbTabButton {
         /**
@@ -4429,10 +4170,7 @@ declare namespace LocalJSX {
         "panel"?: string;
     }
     /**
-     * Content inside a `<template>` child is lazy loaded: it's cloned into the
-     * panel the first time the panel is selected. With an offload delay, the clone
-     * is removed again after the panel has been inactive for that long, and
-     * re-created the next time it's selected.
+     * A content panel inside an `<orb-tabs>` element.
      */
     interface OrbTabPanel {
         "name"?: string;
@@ -4473,8 +4211,7 @@ declare namespace LocalJSX {
         "wrap"?: boolean;
     }
     /**
-     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
-     * validation messages. A `textarea` grows with its content.
+     * Wraps a native `input`, `select`, or `textarea` with a label, a note, and validation messages.
      */
     interface OrbTextbox {
         /**
@@ -4519,8 +4256,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
-     * A countdown that displays the time remaining and emits `orbCountdownComplete`
-     * when it reaches zero.
+     * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
      */
     interface OrbTimer {
         /**
@@ -4642,10 +4378,7 @@ declare namespace LocalJSX {
         "value"?: string | string[];
     }
     /**
-     * A layout for a page's worth of content, with a header, a body, and a footer
-     * for actions. By default the view scrolls its own content, which suits
-     * overlays. Turn off `scrollable` when the view lays out a whole page and the
-     * page itself scrolls. Either way, the header and footer stay in place.
+     * A layout for a page's worth of content.
      */
     interface OrbView {
         /**
@@ -4697,13 +4430,7 @@ declare namespace LocalJSX {
         "showWizard"?: boolean;
     }
     /**
-     * Manages a set of `orb-view` children, showing one at a time. Use it for
-     * multi-step wizards and nested flows, such as adding a related record
-     * without leaving a form. It animates between views, keeps breadcrumbs, places
-     * a shared `orb-wizard` in views that show it, and lazy loads each view's
-     * `<template>`.
-     * Navigate with `data-view-link="<id>"` on any button inside the manager, or
-     * call `navigate()`.
+     * Manages a set of `orb-view` children, showing one at a time.
      */
     interface OrbViewManager {
         /**
@@ -4725,8 +4452,7 @@ declare namespace LocalJSX {
         "value"?: string;
     }
     /**
-     * One step in an `<orb-wizard>`. Set `active` on the current step and
-     * `completed` on finished ones.
+     * One step in an `<orb-wizard>`.
      */
     interface OrbWi {
         /**
@@ -4764,10 +4490,7 @@ declare namespace LocalJSX {
         "variant"?: "primary" | "success" | "warning" | "danger";
     }
     /**
-     * Shows progress through a sequence of steps. Each `<orb-wi>` is a
-     * step, and the one with the `active` attribute is the current step. The
-     * wizard only shows progress: render each step's content yourself, and mark
-     * steps `completed` from your own code.
+     * Shows progress through a sequence of steps.
      */
     interface OrbWizard {
         /**
@@ -4945,6 +4668,8 @@ declare namespace LocalJSX {
         "rowHeaders": boolean;
         "serverSide": boolean;
         "busy": boolean;
+        "layout": "table" | "cards" | "auto";
+        "cardBreakpoint": string;
     }
     interface OrbLabelAttributes {
         "required": boolean;
@@ -5289,66 +5014,42 @@ declare module "@stencil/core" {
              */
             "orb-accordion": LocalJSX.IntrinsicElements["orb-accordion"] & JSXBase.HTMLAttributes<HTMLOrbAccordionElement>;
             /**
-             * A short, prominent message, such as a confirmation or an error. It's hidden
-             * until `open` is set, then animates in. Users can dismiss it with a close
-             * button when `closable` is set, and it dismisses itself after `duration`.
+             * A short, prominent message, such as a confirmation, callout, or error.
              */
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
             /**
-             * A full calendar with day, week, and month views, multiple named calendars,
-             * all-day and recurring (RRULE) events with per-occurrence editing, drag and
-             * resize, and ICS export. Times are in the browser's local time zone.
-             * The host owns the `events` array. The calendar emits change requests
-             * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
-             * `applyEventChange` helper and assign the result back to `events`.
+             * A full featured calendar.
              */
             "orb-calendar": LocalJSX.IntrinsicElements["orb-calendar"] & JSXBase.HTMLAttributes<HTMLOrbCalendarElement>;
             /**
-             * A container for related content. The `layout` prop picks the structure, and
-             * each layout has its own named slots. The default slot always lands in the
-             * layout's main text area, so a card with only default content works in any
-             * layout. Sections whose slots are empty aren't shown.
+             * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
              */
             "orb-card": LocalJSX.IntrinsicElements["orb-card"] & JSXBase.HTMLAttributes<HTMLOrbCardElement>;
             /**
-             * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
-             * order, and the grid places them in rows.
+             * A cell in an `orb-grid`. Put cells directly inside the grid, in reading order, and the grid places them in rows.
              */
             "orb-cell": LocalJSX.IntrinsicElements["orb-cell"] & JSXBase.HTMLAttributes<HTMLOrbCellElement>;
             "orb-channel": LocalJSX.IntrinsicElements["orb-channel"] & JSXBase.HTMLAttributes<HTMLOrbChannelElement>;
             "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;
             /**
-             * Groups related checkboxes or toggles under a shared label. The host has the
-             * `group` role and takes its accessible name from the label and its
-             * description from the note.
+             * Groups related checkboxes or toggles under a shared label.
              */
             "orb-checkbox-group": LocalJSX.IntrinsicElements["orb-checkbox-group"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxGroupElement>;
             "orb-color": LocalJSX.IntrinsicElements["orb-color"] & JSXBase.HTMLAttributes<HTMLOrbColorElement>;
             "orb-comp": LocalJSX.IntrinsicElements["orb-comp"] & JSXBase.HTMLAttributes<HTMLOrbCompElement>;
             "orb-control": LocalJSX.IntrinsicElements["orb-control"] & JSXBase.HTMLAttributes<HTMLOrbControlElement>;
             /**
-             * A button that copies text to the clipboard, swapping to a checkmark to
-             * confirm. Copies the `value` prop when set, otherwise its own text content.
+             * A button that copies text to the clipboard.
              */
             "orb-copy-button": LocalJSX.IntrinsicElements["orb-copy-button"] & JSXBase.HTMLAttributes<HTMLOrbCopyButtonElement>;
             /**
-             * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
-             * link or a `<button>` for apps that navigate with click handlers. The crumbs
-             * stay in the page: the trail assigns each one to a slot in a list and adds
-             * the separators between them, so your own elements, attributes, and listeners
-             * work as written. The last crumb is the current page and gets
-             * `aria-current="page"`.
+             * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a link or a `<button>` for apps that navigate with click handlers.
              */
             "orb-crumbs": LocalJSX.IntrinsicElements["orb-crumbs"] & JSXBase.HTMLAttributes<HTMLOrbCrumbsElement>;
             /**
-             * An inline date and time picker. It renders a month calendar and/or time
-             * columns and reports the selected value as epoch milliseconds. It fills the
-             * width of its container, so it works inline, inside an `orb-card`, or as the
-             * content of an `orb-popover`.
-             * The day grid and each time column use a roving tabindex: one button in each
-             * is in the Tab order, and arrow keys move between the rest.
+             * An inline date and time picker.
              */
             "orb-datepicker": LocalJSX.IntrinsicElements["orb-datepicker"] & JSXBase.HTMLAttributes<HTMLOrbDatepickerElement>;
             "orb-daw": LocalJSX.IntrinsicElements["orb-daw"] & JSXBase.HTMLAttributes<HTMLOrbDawElement>;
@@ -5358,74 +5059,32 @@ declare module "@stencil/core" {
             "orb-eq": LocalJSX.IntrinsicElements["orb-eq"] & JSXBase.HTMLAttributes<HTMLOrbEqElement>;
             "orb-file-input": LocalJSX.IntrinsicElements["orb-file-input"] & JSXBase.HTMLAttributes<HTMLOrbFileInputElement>;
             /**
-             * A button that floats over the page, in a corner or along an edge of the
-             * viewport. It stays in place while the page scrolls. Put an `orb-button` in
-             * it with an `aria-label` for the action. Set `scroll-threshold` to show it
-             * only after the page has scrolled, such as for a back-to-top button. Hidden
-             * buttons can't be focused or read by screen readers.
+             * A button that floats over the page, in a corner or along an edge of the viewport.
              */
             "orb-floating-button": LocalJSX.IntrinsicElements["orb-floating-button"] & JSXBase.HTMLAttributes<HTMLOrbFloatingButtonElement>;
             /**
-             * A data grid built from markup. Put `orb-cell` elements directly inside it,
-             * in reading order, and the grid splits them into rows. The number of columns
-             * is set by `columns`, or by the header cells' column spans when it isn't set.
-             * Header cells come first, then body cells, then footer cells, whatever their
-             * order in the markup.
-             * Cells span columns and rows with `colspan` and `rowspan`, the same way table
-             * cells do. A cell is placed in the next free slot of the row, skipping slots
-             * that cells from rows above span into, and wraps to a new row when it
-             * doesn't fit. Row spans stop at the end of their section.
-             * The cells stay in the page: each row is a `role="row"` element in the grid's
-             * shadow root, with a slot that the row's cells are assigned to.
-             * The grid is one Tab stop. The arrow keys move between cells, or between rows
-             * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
-             * out of the Tab order until the user presses Enter on the cell, or clicks
-             * into it. Escape goes back to the cell.
-             * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
-             * listed parent first, and each row's parent is the closest row above it with
-             * a smaller depth. Rows start collapsed, and `expanded` on the first cell
-             * opens one.
-             * A body row can have details: put an `orb-row-details` right after its
-             * cells, and the grid adds a toggle that shows the details below the row,
-             * across every column.
-             * With `reorder`, each body row gets a drag handle. Dragging it moves the
-             * row's cells to the new position in the page, so the grid's markup always
-             * matches what's shown.
+             * A data grid built from markup.
              */
             "orb-grid": LocalJSX.IntrinsicElements["orb-grid"] & JSXBase.HTMLAttributes<HTMLOrbGridElement>;
             "orb-label": LocalJSX.IntrinsicElements["orb-label"] & JSXBase.HTMLAttributes<HTMLOrbLabelElement>;
             "orb-layout-swap": LocalJSX.IntrinsicElements["orb-layout-swap"] & JSXBase.HTMLAttributes<HTMLOrbLayoutSwapElement>;
             "orb-loading": LocalJSX.IntrinsicElements["orb-loading"] & JSXBase.HTMLAttributes<HTMLOrbLoadingElement>;
             /**
-             * Renders markdown from a child `<script type="text/markdown">` into the light
-             * DOM, so the output picks up the page's native element styles.
+             * Renders markdown into the light DOM.
              */
             "orb-markdown": LocalJSX.IntrinsicElements["orb-markdown"] & JSXBase.HTMLAttributes<HTMLOrbMarkdownElement>;
             "orb-mask-input": LocalJSX.IntrinsicElements["orb-mask-input"] & JSXBase.HTMLAttributes<HTMLOrbMaskInputElement>;
             /**
              * A list of actions or options, made of `orb-mi` items.
-             * Set `for` to the id of a button and the menu opens from it, as a dropdown.
-             * With `show-on="context-menu"`, it opens where the element is right-clicked
-             * instead. Without `for`, the menu shows inline.
-             * For a submenu, give an item an id and point a nested `orb-menu` at it with
-             * `for`. Choosing an item closes every menu in the chain, and opening a
-             * submenu keeps its parent open. For a menubar, use `orb-menubar`.
              */
             "orb-menu": LocalJSX.IntrinsicElements["orb-menu"] & JSXBase.HTMLAttributes<HTMLOrbMenuElement>;
             /**
-             * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
-             * app. Give an item an id and point an `orb-menu` at it with `for` to open a
-             * menu from it. Items without a menu are chosen directly.
-             * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
-             * listener on the menubar.
+             * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop app.
              */
             "orb-menubar": LocalJSX.IntrinsicElements["orb-menubar"] & JSXBase.HTMLAttributes<HTMLOrbMenubarElement>;
             "orb-mesh": LocalJSX.IntrinsicElements["orb-mesh"] & JSXBase.HTMLAttributes<HTMLOrbMeshElement>;
             /**
              * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
-             * Choosing it emits `orbSelect` from the menu.
-             * To open a submenu, give the item an id and point a nested `orb-menu` at it
-             * with `for`.
              */
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
@@ -5433,8 +5092,7 @@ declare module "@stencil/core" {
             "orb-otp-input": LocalJSX.IntrinsicElements["orb-otp-input"] & JSXBase.HTMLAttributes<HTMLOrbOtpInputElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
             /**
-             * Splits a long list into pages and lets the user move between them. Renders
-             * native buttons by default, or links when `href-template` is set.
+             * Splits a long list into pages and lets the user move between them. Renders native buttons by default, or links when `href-template` is set.
              */
             "orb-pagination": LocalJSX.IntrinsicElements["orb-pagination"] & JSXBase.HTMLAttributes<HTMLOrbPaginationElement>;
             "orb-pill": LocalJSX.IntrinsicElements["orb-pill"] & JSXBase.HTMLAttributes<HTMLOrbPillElement>;
@@ -5447,32 +5105,20 @@ declare module "@stencil/core" {
             "orb-radio": LocalJSX.IntrinsicElements["orb-radio"] & JSXBase.HTMLAttributes<HTMLOrbRadioElement>;
             "orb-radio-group": LocalJSX.IntrinsicElements["orb-radio-group"] & JSXBase.HTMLAttributes<HTMLOrbRadioGroupElement>;
             /**
-             * A slider for picking a number in a range. It wraps a native range input, so
-             * the keyboard, screen readers, and dragging work the way they do on the
-             * platform. The value shows in a tooltip while it's being changed.
+             * A slider for picking a number in a range.
              */
             "orb-range": LocalJSX.IntrinsicElements["orb-range"] & JSXBase.HTMLAttributes<HTMLOrbRangeElement>;
             /**
-             * Displays a date as a localized phrase relative to now, such as "3 hours ago"
-             * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+             * Displays a date as a localized phrase relative to now, such as "3 hours ago" or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
              */
             "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**
-             * Content that a row of an `orb-grid` shows and hides. Put it right after the
-             * cells of the row it belongs to. The grid adds a toggle button to that row,
-             * and shows the details below it, across every column. Put anything inside:
-             * text, a form, a chart, or another grid.
-             * Like a cell, the details are one stop for the arrow keys. Press Enter to
-             * move into their content, and Escape to come back out.
+             * Content that a row of an `orb-grid` shows and hides. Put anything inside: text, a form, a chart, or another grid.
              */
             "orb-row-details": LocalJSX.IntrinsicElements["orb-row-details"] & JSXBase.HTMLAttributes<HTMLOrbRowDetailsElement>;
             /**
-             * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
-             * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
-             * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
-             * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
-             * and a full-screen vertex stage are injected for you — you only write the fragment.
+             * Renders a WGSL fragment shader with WebGPU.
              */
             "orb-shader-canvas": LocalJSX.IntrinsicElements["orb-shader-canvas"] & JSXBase.HTMLAttributes<HTMLOrbShaderCanvasElement>;
             "orb-split-panel": LocalJSX.IntrinsicElements["orb-split-panel"] & JSXBase.HTMLAttributes<HTMLOrbSplitPanelElement>;
@@ -5480,28 +5126,21 @@ declare module "@stencil/core" {
             "orb-stack": LocalJSX.IntrinsicElements["orb-stack"] & JSXBase.HTMLAttributes<HTMLOrbStackElement>;
             "orb-synth": LocalJSX.IntrinsicElements["orb-synth"] & JSXBase.HTMLAttributes<HTMLOrbSynthElement>;
             /**
-             * The host is a plain wrapper. The element with `role="tab"` is inside the
-             * shadow root, and the close button sits beside it rather than inside it,
-             * because a tab can't contain other interactive controls.
+             * A button that selects a tab panel inside an `<orb-tabs>` element.
              */
             "orb-tab-button": LocalJSX.IntrinsicElements["orb-tab-button"] & JSXBase.HTMLAttributes<HTMLOrbTabButtonElement>;
             /**
-             * Content inside a `<template>` child is lazy loaded: it's cloned into the
-             * panel the first time the panel is selected. With an offload delay, the clone
-             * is removed again after the panel has been inactive for that long, and
-             * re-created the next time it's selected.
+             * A content panel inside an `<orb-tabs>` element.
              */
             "orb-tab-panel": LocalJSX.IntrinsicElements["orb-tab-panel"] & JSXBase.HTMLAttributes<HTMLOrbTabPanelElement>;
             "orb-tabs": LocalJSX.IntrinsicElements["orb-tabs"] & JSXBase.HTMLAttributes<HTMLOrbTabsElement>;
             /**
-             * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
-             * validation messages. A `textarea` grows with its content.
+             * Wraps a native `input`, `select`, or `textarea` with a label, a note, and validation messages.
              */
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
             "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;
             /**
-             * A countdown that displays the time remaining and emits `orbCountdownComplete`
-             * when it reaches zero.
+             * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
              */
             "orb-timer": LocalJSX.IntrinsicElements["orb-timer"] & JSXBase.HTMLAttributes<HTMLOrbTimerElement>;
             "orb-toc": LocalJSX.IntrinsicElements["orb-toc"] & JSXBase.HTMLAttributes<HTMLOrbTocElement>;
@@ -5510,32 +5149,19 @@ declare module "@stencil/core" {
             "orb-tooltip": LocalJSX.IntrinsicElements["orb-tooltip"] & JSXBase.HTMLAttributes<HTMLOrbTooltipElement>;
             "orb-tree": LocalJSX.IntrinsicElements["orb-tree"] & JSXBase.HTMLAttributes<HTMLOrbTreeElement>;
             /**
-             * A layout for a page's worth of content, with a header, a body, and a footer
-             * for actions. By default the view scrolls its own content, which suits
-             * overlays. Turn off `scrollable` when the view lays out a whole page and the
-             * page itself scrolls. Either way, the header and footer stay in place.
+             * A layout for a page's worth of content.
              */
             "orb-view": LocalJSX.IntrinsicElements["orb-view"] & JSXBase.HTMLAttributes<HTMLOrbViewElement>;
             /**
-             * Manages a set of `orb-view` children, showing one at a time. Use it for
-             * multi-step wizards and nested flows, such as adding a related record
-             * without leaving a form. It animates between views, keeps breadcrumbs, places
-             * a shared `orb-wizard` in views that show it, and lazy loads each view's
-             * `<template>`.
-             * Navigate with `data-view-link="<id>"` on any button inside the manager, or
-             * call `navigate()`.
+             * Manages a set of `orb-view` children, showing one at a time.
              */
             "orb-view-manager": LocalJSX.IntrinsicElements["orb-view-manager"] & JSXBase.HTMLAttributes<HTMLOrbViewManagerElement>;
             /**
-             * One step in an `<orb-wizard>`. Set `active` on the current step and
-             * `completed` on finished ones.
+             * One step in an `<orb-wizard>`.
              */
             "orb-wi": LocalJSX.IntrinsicElements["orb-wi"] & JSXBase.HTMLAttributes<HTMLOrbWiElement>;
             /**
-             * Shows progress through a sequence of steps. Each `<orb-wi>` is a
-             * step, and the one with the `active` attribute is the current step. The
-             * wizard only shows progress: render each step's content yourself, and mark
-             * steps `completed` from your own code.
+             * Shows progress through a sequence of steps.
              */
             "orb-wizard": LocalJSX.IntrinsicElements["orb-wizard"] & JSXBase.HTMLAttributes<HTMLOrbWizardElement>;
         }

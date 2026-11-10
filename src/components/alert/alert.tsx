@@ -15,9 +15,7 @@ import { OverlayData } from "../overlay/overlay";
 import { CloseIcon } from "../../utils/icons";
 
 /**
- * A short, prominent message, such as a confirmation or an error. It's hidden
- * until `open` is set, then animates in. Users can dismiss it with a close
- * button when `closable` is set, and it dismisses itself after `duration`.
+ * A short, prominent message, such as a confirmation, callout, or error.
  *
  * @slot - The message
  * @slot start - Content before the message, such as an icon

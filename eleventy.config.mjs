@@ -17,7 +17,7 @@ export default async function (eleventyConfig) {
       permalink: anchor.permalink.headerLink({
         renderAttrs: () => ({ "data-toc": "" }),
       }),
-      level: [2, 3],
+      level: [2, 3, 4],
     })
     .use(toc, {
       includeLevel: [1, 2],
@@ -161,6 +161,46 @@ export default async function (eleventyConfig) {
     const { pages, records } = await buildSearchIndex(results, dir.output);
     console.log(`[search] Indexed ${records} sections from ${pages} pages`);
   });
+
+  // A section's landing page is its index, at the section's own URL. It's the
+  // section's entry in the top nav. The other pages with the same `section` are
+  // its sidebar, in `order`, then by name. Both use the page's `order` front
+  // matter, so the lists don't need to be written out in the templates.
+  const isLanding = (page) => page.url === `/${page.data.section}/`;
+  const bySidebarOrder = (a, b) => {
+    const rank = (page) => page.data.order ?? Infinity;
+    if (rank(a) !== rank(b)) return rank(a) < rank(b) ? -1 : 1;
+    const name = (page) => page.data.sidebar_label || page.data.title || "";
+    return name(a).localeCompare(name(b));
+  };
+
+  eleventyConfig.addCollection("sectionLandings", (collectionApi) =>
+    collectionApi
+      .getAll()
+      .filter((page) => page.data.section && isLanding(page))
+      .sort(bySidebarOrder),
+  );
+
+  eleventyConfig.addCollection("sidebarPages", (collectionApi) => {
+    const pages = collectionApi
+      .getAll()
+      .filter((page) => page.data.section && !isLanding(page) && page.data.section !== "components");
+    // Component pages are paginated from the component list, and not all of
+    // them reach the collection, so the sidebar reads them from that list.
+    const components = (collectionApi.getAll()[0]?.data?.components || []).map((cmp) => ({
+      url: `/components/${cmp.name}/`,
+      data: {
+        section: "components",
+        title: cmp.label || cmp.name,
+        sidebar_label: cmp.data?.sidebar_label || cmp.name,
+      },
+    }));
+    return [...pages, ...components].sort(bySidebarOrder);
+  });
+
+  eleventyConfig.addFilter("inSection", (pages, section) =>
+    pages.filter((page) => page.data.section === section),
+  );
 
   eleventyConfig.addCollection("componentsNav", function (collectionApi) {
     const components = collectionApi.getAll()[0]?.data?.components || [];

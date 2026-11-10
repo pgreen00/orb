@@ -64,10 +64,7 @@ function labelOf(item: HTMLElement) {
 }
 
 /**
- * Shows progress through a sequence of steps. Each `<orb-wi>` is a
- * step, and the one with the `active` attribute is the current step. The
- * wizard only shows progress: render each step's content yourself, and mark
- * steps `completed` from your own code.
+ * Shows progress through a sequence of steps.
  *
  * @slot - One or more `<orb-wi>` elements
  */

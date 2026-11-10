@@ -29,8 +29,7 @@ const isSource = (node: Node) =>
   node instanceof HTMLScriptElement && node.matches(SOURCE_SELECTOR);
 
 /**
- * Renders markdown from a child `<script type="text/markdown">` into the light
- * DOM, so the output picks up the page's native element styles.
+ * Renders markdown into the light DOM.
  */
 @Component({
   tag: "orb-markdown",

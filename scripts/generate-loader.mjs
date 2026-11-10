@@ -71,7 +71,7 @@ export async function start(root = document.body) {
   await load(root);
 }
 
-start();
+start().then(() => document.body.classList.add("orb-hydrated"));
 `;
 
 /**

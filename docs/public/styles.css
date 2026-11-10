@@ -21,6 +21,39 @@
   min-width: 0;
 }
 
+/* Narrow screens: the section links, GitHub, and theme move into the menu overlay */
+.menu-button {
+  display: none;
+}
+
+/* orb-layout-swap picks one of these per breakpoint, so they don't need to set a display */
+.header-actions {
+  display: contents;
+}
+
+.overlay-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-sm);
+  margin-block-start: var(--orb-spacing-md);
+}
+
+@media (width < 900px) {
+  .section-nav {
+    display: none;
+  }
+
+  .menu-button {
+    display: inline-flex;
+  }
+
+  /* On phones the header says "Orb" */
+  .banner-logo,
+  .banner-rest {
+    display: none;
+  }
+}
+
 /* Site search */
 .search-status {
   color: var(--orb-note-color);

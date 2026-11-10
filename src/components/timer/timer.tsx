@@ -10,8 +10,7 @@ import {
 } from "@stencil/core";
 
 /**
- * A countdown that displays the time remaining and emits `orbCountdownComplete`
- * when it reaches zero.
+ * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
  */
 @Component({
   tag: "orb-timer",

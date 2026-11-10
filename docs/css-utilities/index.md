@@ -1,6 +1,7 @@
 ---
 title: CSS Utilities
 section: css-utilities
+order: 4
 layout: css-utilities.njk
 description: The styles behind Orb. They make plain HTML look right, and give you tokens and classes to build your own pages with the same look.
 ---

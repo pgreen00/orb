@@ -180,17 +180,17 @@ const eventsToMarkdown = (events) => {
   }
   content.push(`## Events`);
   content.push(``);
-  const table = new MarkdownTable();
-  table.addHeader(["Event", "Description", "Type"]);
   events.forEach((ev) => {
-    table.addRow([
-      `\`${ev.event}\``,
-      getDocsField(ev),
-      `\`CustomEvent<${ev.detail}>\``,
-    ]);
+    content.push(`### ${ev.event}`);
+    content.push(``);
+    content.push(
+      ...verticalTable([
+        ["Description", getCellDocs(ev)],
+        ["Type", `\`CustomEvent<${ev.detail}>\``],
+      ]),
+    );
+    content.push(``);
   });
-  content.push(...table.toMarkdown());
-  content.push(``);
   content.push(``);
   return content;
 };

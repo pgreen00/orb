@@ -19,12 +19,7 @@ export interface ShaderErrorDetail {
 }
 
 /**
- * `<orb-shader-canvas>` renders a WGSL fragment shader with WebGPU, ShaderToy-style.
- *
- * Provide the fragment shader inside a `<script type="wgsl">` child. Using a script
- * block (rather than raw text) means the HTML parser treats the WGSL as opaque text,
- * so `<`, `>`, and generics like `mat2x2<f32>` need no escaping. A `uniforms` binding
- * and a full-screen vertex stage are injected for you — you only write the fragment.
+ * Renders a WGSL fragment shader with WebGPU.
  */
 @Component({
   tag: "orb-shader-canvas",

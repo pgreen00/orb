@@ -1,6 +1,7 @@
 ---
 title: Design Tokens
 section: css-utilities
+order: 1
 layout: css-utilities.njk
 templateEngineOverride: njk,md
 description: Colors, type, spacing, radius, elevation, and motion as CSS custom properties. Orb's components and classes read the same tokens, so changing one changes them all.

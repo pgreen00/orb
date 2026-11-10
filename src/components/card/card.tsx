@@ -12,10 +12,7 @@ export type CardLayout =
   | "pricing";
 
 /**
- * A container for related content. The `layout` prop picks the structure, and
- * each layout has its own named slots. The default slot always lands in the
- * layout's main text area, so a card with only default content works in any
- * layout. Sections whose slots are empty aren't shown.
+ * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
  *
  * @slot - Main content: the body in stacked, horizontal, overlay, feature, and pricing; the title in compact; the value in stat; the name in profile.
  * @slot media - Image or video. Used by stacked, horizontal, overlay, and compact (as a thumbnail or avatar).

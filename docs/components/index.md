@@ -1,6 +1,7 @@
 ---
 title: Components
 section: components
+order: 3
 templateEngineOverride: njk
 ---
 

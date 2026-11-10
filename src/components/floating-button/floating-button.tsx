@@ -1,11 +1,7 @@
 import { Component, Event, EventEmitter, Host, Listen, Prop, Watch } from "@stencil/core";
 
 /**
- * A button that floats over the page, in a corner or along an edge of the
- * viewport. It stays in place while the page scrolls. Put an `orb-button` in
- * it with an `aria-label` for the action. Set `scroll-threshold` to show it
- * only after the page has scrolled, such as for a back-to-top button. Hidden
- * buttons can't be focused or read by screen readers.
+ * A button that floats over the page, in a corner or along an edge of the viewport.
  *
  * @slot - The button, usually an `orb-button` with an `aria-label`
  */

@@ -1,6 +1,7 @@
 ---
 title: Utility Classes
 section: css-utilities
+order: 2
 layout: css-utilities.njk
 description: Single-purpose classes for spacing, font weight and size, elevation, radius, and hiding content visually. Each one is a thin wrapper around a design token.
 ---

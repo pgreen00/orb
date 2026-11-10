@@ -4,6 +4,8 @@ sidebar_label: "Grid"
 wide: true
 ---
 
+## Examples
+
 ::: live-code-demo
 
 ```html
@@ -33,7 +35,7 @@ wide: true
 
 :::
 
-## Spanning
+### Spanning
 
 Set `colspan` and `rowspan` on a cell to cover more than one column or row, the same as a table cell. The grid places each cell in the next free slot, skipping slots that a cell above spans into, and lays them out with CSS grid's `grid-column` and `grid-row` spans. A row span stops at the end of its section, so a body cell can't reach into the footer.
 
@@ -103,7 +105,7 @@ Without `columns`, the number of columns is the sum of the header cells' column 
 - "Name" covers both header rows, and "Contact" covers the Email and Phone columns.
 - Both header rows are tinted, including the part of "Name" in the second row.
 
-## Selection
+### Selection
 
 Set `selection` to `single` or `multiple`, and the grid adds a first column with a control in every body row: a radio button for `single`, and an `orb-checkbox` for `multiple`. Each control is named from its row's first cell, such as "Select Alice Johnson", so put something that identifies the row there. With `single`, the selected row is also tinted. With `multiple`, the checkboxes show which rows are selected, so rows aren't tinted. `orbSelectionChange` reports each selected row's cells.
 
@@ -151,7 +153,7 @@ document.querySelector("#plan-grid").addEventListener("orbSelectionChange", (eve
 - Tab into the grid and press Down, then Home. Focus is on the row's radio button. Press Space. The row is selected.
 - With a screen reader, each radio button is announced as "Select Starter" and so on, with its checked state.
 
-## Reordering
+### Reordering
 
 Add `reorder`, and each body row gets a drag handle at its start. Press and hold the handle, then drag the row up or down. It uses the browser's drag and drop, so a picture of the row follows the pointer, the row left behind fades, and a line shows where it will land. Touch dragging depends on the browser's drag and drop support. The grid moves the row's cells in the page, so the markup always matches the order on screen.
 
@@ -206,7 +208,7 @@ document.querySelector("#task-grid").addEventListener("orbReorder", (event) => {
 - Pick a row up, press Down, then Escape. It goes back to where it started.
 - On any cell in a body row, press Alt + Down. The row moves down one, and focus stays on the same cell.
 
-## Sorting
+### Sorting
 
 Add `sortable` to a header cell, and clicking it, or pressing Enter on it, sorts the body rows by that column: ascending, then descending, then back to the order in the markup. Only one column sorts at a time, and the header shows an arrow for its direction. To start out sorted, set `sort="ascending"` or `sort="descending"` on the header.
 
@@ -249,7 +251,7 @@ Sorting only changes the order the rows are shown in. The cells stay in their ma
 - Focus a header with the arrow keys and press Enter. It sorts the same as a click.
 - With a screen reader, a sorted header is announced as sorted ascending or descending, and each sort is announced.
 
-## Pagination
+### Pagination
 
 To split the body rows into pages, add an [`orb-pagination`](../pagination/) with an `id`, and set the grid's `pagination` to that `id`. The grid shows the rows on the pagination's current page, and follows it when the page or `page-size` changes. The header and footer show on every page.
 
@@ -294,7 +296,7 @@ Sorting sorts every row, not just the current page, and goes back to the first p
 - On page 2, check select all. Only page 2's rows are selected.
 - In devtools, remove two cells for a row. The pagination's total drops to 7.
 
-## Searching and Filtering
+### Searching and Filtering
 
 To search every column, point `searchbox` at the `id` of a search field: an `orb-textbox`, or a plain `input`. The grid shows the body rows that contain every word typed, in any column, ignoring case and accents. With an `orb-textbox`, its `debounce` applies. Set the grid's `search` property to search from code.
 
@@ -373,7 +375,7 @@ document.querySelector("#people-grid").addEventListener("orbFilterChange", (even
 - Focus the Name header and press Alt + Down. The filter opens with focus in its field. Press Escape. It closes, and focus is back on the header. On City, which doesn't sort, Enter opens the filter too.
 - With a screen reader, each change is announced, such as "3 of 8 rows match", and a filtered header is described as "Filtered".
 
-## Row Details
+### Row Details
 
 To give a body row content it can show and hide, put an [`orb-row-details`](../row-details/) right after the row's cells. The grid adds a column with a toggle button to rows that have details, and shows the details below the row when it's open. The details span every column and lay out however you like, so they can hold anything: text, a form, a chart, or another grid. Set `expanded` on `orb-row-details` to start it open.
 
@@ -434,7 +436,7 @@ document.querySelector("#order-grid").addEventListener("orbRowToggle", (event) =
 - On the open note, press Enter. Focus moves into the field. Escape comes back to the details.
 - Select #1044. Only the row is selected, not its details.
 
-## Tree Grids
+### Tree Grids
 
 To nest rows, set `depth` on each row's first cell. Top-level rows have a depth of 0, which is the default, so they don't need it. List rows parent first: a row is the child of the closest row above it with a smaller depth. The grid becomes a tree grid, and each parent row's first cell gets a chevron, with every level indented by `--grid-tree-indent`.
 
@@ -531,27 +533,6 @@ document.querySelector("#file-grid").addEventListener("orbRowExpand", (event) =>
 - Search "components". The folder shows with its files, since the folder itself matches.
 - With a screen reader, each row is announced with its level, its place among its siblings, and whether it's expanded.
 
-## Styling
-
-The grid looks like a [native table](/css-utilities/tables/), and has the same settings. Where a table takes words in `data-orb`, the grid takes props, and words for one cell or column go on the `orb-cell`. Each setting only sets `--grid-*` custom properties, so you can set any of them yourself.
-
-| Native table | `orb-grid` |
-| --- | --- |
-| `striped`, `hover`, `interactive` | `striped`, `hover`, `interactive` |
-| `outer`, `rows`, `borderless` | `borders="outer"`, `borders="rows"`, `borders="none"`. The default is `all` |
-| `compact`, `comfortable` | `density="compact"`, `density="comfortable"`. The default is `default` |
-| `separate`, `caps`, `fixed`, `truncate` | `separate`, `caps`, `fixed`, `truncate` |
-| `sticky-header`, `sticky-column` | `sticky-header`, `sticky-column`. The grid scrolls in its own box, so a sticky header needs `--grid-max-height` |
-| `row-headers`, and `th` in the body | `row-headers` on the grid, and `row-header` on the cells |
-| `success`, `warning`, `danger` on a cell | `status` on the cell |
-| `success`, `warning`, `danger` on a row | `row-status` on the row's first cell |
-| `w-xs` to `w-xl`, `w-auto`, `w-min` | `width="xs"` to `width="xl"`, `width="auto"`, `width="min"` on a header cell |
-| `start`, `center`, `end`, `numeric` | `align` and `numeric` on a cell. On a header cell, they apply to the whole column |
-| `table-container` | Not needed. The grid scrolls in its own box. Size it with `--grid-max-width`, `--grid-max-height`, and `--grid-min-width` |
-| `<caption>` | An `orb-label` with `for` set to the grid's `id` |
-| `selected` | Not needed. Use `selection` |
-| `--table-*` properties | The same properties, named `--grid-*` |
-
 ### Labels
 
 Give a grid a visible name with an `orb-label` whose `for` is the grid's `id`. Screen readers announce the grid with it.
@@ -585,7 +566,7 @@ Give a grid a visible name with an `orb-label` whose `for` is the grid's `id`. S
 - With a screen reader, the grid is announced as "Feeder visits this week".
 - The Visits column, including the footer, is aligned to the end.
 
-### Borders and Spacing
+### Borders
 
 ::: live-code-demo
 
@@ -772,7 +753,54 @@ Set `width` on a header cell to size its column, and `align` or `numeric` to ali
 - Striped rows stay striped in the sticky columns.
 - Press Down and Right with the keyboard. The focused cell scrolls into view, and isn't hidden under the sticky header or column.
 
-## Controlling the Grid from Code
+### Cards on Small Screens
+
+With `layout="auto"`, the grid shows each row as a card while it's narrower than `card-breakpoint`, which is 640 pixels by default. Each cell is on its own line, with its column's name at the start and its content at the end. A row's selection checkbox, drag handle, and details toggle go on the card's first line. The header cells become a row of chips above the cards, so sorting and filtering work the same way. `layout="cards"` always shows cards, and `layout="table"`, the default, never does.
+
+The breakpoint is the grid's own width, not the window's, so a grid in a narrow column switches too. Set `card-breakpoint` to a number of pixels, or `sm`, `md`, `lg`, or `xl`.
+
+Only the look changes. Screen readers hear the same grid, with the same rows, cells, and column headers, and the arrow keys move the same way: Left and Right between the cells of a row, and Up and Down between rows. The column names in the cards are hidden from screen readers, which already hear the column headers.
+
+In cards:
+- Nothing sticks, and column widths and alignment don't apply. Content lines up at the end of each line.
+- A cell that spans columns is one line. A cell that spans rows only shows in its first row's card.
+- Tree cards are indented by their level. Open details show in a card joined to their row's card.
+- The footer is a card of its own at the end.
+- The grid sets the `cards` state, and each body and footer cell the `card` state, for styling. `--grid-card-gap` and `--grid-card-radius` set the space between cards and their corners.
+
+This demo sets `card-breakpoint="480"`, since the docs column is narrow. Drag the corner of the box to make it narrower than 480 pixels.
+
+::: live-code-demo
+
+```html
+<div style="resize: horizontal; overflow: auto; max-width: 100%; width: 48rem; min-width: 16rem; padding-block-end: var(--orb-spacing-sm);">
+  <orb-grid layout="auto" card-breakpoint="480" selection="multiple" select-all aria-label="Team">
+    <orb-cell section="head" sortable>Name</orb-cell>
+    <orb-cell section="head" sortable filter="select">Role</orb-cell>
+    <orb-cell section="head" filter="select">Status</orb-cell>
+    <orb-cell section="head" sortable numeric>Projects</orb-cell>
+
+    <orb-cell row-header>Choi Seo-ah</orb-cell><orb-cell>Designer</orb-cell><orb-cell>Active</orb-cell><orb-cell>4</orb-cell>
+    <orb-cell row-header>Marcus Webb</orb-cell><orb-cell>Engineer</orb-cell><orb-cell>On leave</orb-cell><orb-cell>2</orb-cell>
+    <orb-cell row-header row-status="warning">Priya Nair</orb-cell><orb-cell>Product</orb-cell><orb-cell>Review</orb-cell><orb-cell>6</orb-cell>
+    <orb-cell row-header>Diego Álvarez</orb-cell><orb-cell>Engineer</orb-cell><orb-cell>Active</orb-cell><orb-cell>3</orb-cell>
+
+    <orb-cell section="foot">Total</orb-cell><orb-cell section="foot"></orb-cell><orb-cell section="foot"></orb-cell><orb-cell section="foot">15</orb-cell>
+  </orb-grid>
+</div>
+```
+
+:::
+
+**Manual test:**
+- At full width, the grid is a table. Drag the box narrower than 480 pixels. Each row becomes a card, with "NAME", "ROLE", "STATUS", and "PROJECTS" at the start of each line, and the values at the end.
+- The headers are chips above the cards, with the select all checkbox. Click "Name". The cards sort by name. Open the Role filter and uncheck a role. Its cards hide.
+- Each card's checkbox is on its first line. Checking one selects the row.
+- Priya's card is tinted for its warning status. The footer is a card at the end.
+- Focus a cell and press Right. Focus moves to the next cell in the card, which is the line below. Press Down. Focus moves to the same column in the next card.
+- Drag the box wider again. The table comes back.
+
+### Controlling the Grid from Code
 
 Methods change the grid the same way the user can. Pass a row as its cells, such as the `row` in an event's detail, or as any one of its cells.
 
@@ -856,7 +884,7 @@ grid.addEventListener("orbSelectionChange", async () => {
 - With "jay" still in the search, click Show the owl. The status says the search hides it.
 - Sort by Name, filter Region, and type a search. Click Reset. The search field is empty, the filter is cleared, the sort is off, and the grid is on page 1. Expanded groups stay expanded.
 
-## Styling with Custom States
+### Styling with Custom States
 
 The grid and its cells expose what they work out at runtime as [custom states](https://developer.mozilla.org/en-US/docs/Web/CSS/:state), so page CSS can style them with `:state()`, and other elements can react with `:has()`. The grid's states are listed under [Custom States](#custom-states) below, and the cells' states on the [`orb-cell`](../grid-cell/#custom-states) page.
 
@@ -917,7 +945,7 @@ States are only for styling. Screen readers still hear the same things through A
 - Uncheck a value in the Region filter. The Region header turns the primary color, and "Clear filters" shows.
 - Focus a cell, then click outside the grid. The cell keeps a line along its bottom. Tab back in, and the line goes away while the focus ring shows.
 
-## Printing and Exporting
+### Printing and Exporting
 
 `print()` opens the browser's print dialog with the grid as a native table, so it can be printed or saved as a PDF. `toTable()` gives the same `<table>` to use yourself, and `toCSV()` gives the grid as CSV text.
 
@@ -978,98 +1006,7 @@ document.querySelector("#export-csv").addEventListener("click", async () => {
 - Click Download CSV. The file has a header row, every body row, and the footer. The Seen column has the ISO dates from `value`.
 - Close the print dialog. Focus goes back to the page, and no empty frame is left in it.
 
-## Large Grids
-
-The grid handles thousands of rows on the client. For more, see [Server-Side Data](#server-side-data). Body cells scrolled out of view skip rendering, and rows hidden by pages, filters, or collapsed tree rows aren't rendered at all. When adding many cells from code, append them all at once, such as in a `DocumentFragment`, so the grid lays out its rows once instead of after every cell.
-
-This demo loads products from [DummyJSON](https://dummyjson.com), a free API of example data, and repeats them to make 1,000 rows. It sends a request to `dummyjson.com` when the page loads.
-
-::: live-code-demo
-
-```html
-<orb-textbox id="product-search" label="Search products" debounce="300" class="orb-margin-bottom">
-  <input type="search">
-</orb-textbox>
-<orb-grid
-  id="product-grid"
-  searchbox="product-search"
-  sticky-header
-  striped
-  density="compact"
-  aria-label="Products"
-  style="--grid-max-height: 30rem;"
-  pagination="product-pages"
->
-  <orb-cell section="head" width="xs" numeric sortable>ID</orb-cell>
-  <orb-cell section="head" width="lg" sortable>Product</orb-cell>
-  <orb-cell section="head" width="md" sortable filter="text">Brand</orb-cell>
-  <orb-cell section="head" width="sm" sortable filter="select">Category</orb-cell>
-  <orb-cell section="head" numeric sortable filter="number">Price</orb-cell>
-  <orb-cell section="head" numeric sortable>Rating</orb-cell>
-  <orb-cell section="head" numeric sortable>Stock</orb-cell>
-</orb-grid>
-<p id="product-status" role="status">Loading products…</p>
-<div style="display: flex; justify-content: flex-end;">
-  <orb-pagination 
-    class="orb-margin-sm" 
-    id="product-pages" 
-    page-size="50" 
-    with-summary
-  ></orb-pagination>
-</div>
-```
-
-```javascript
-const grid = document.querySelector("#product-grid");
-const status = document.querySelector("#product-status");
-const rows = 1000;
-
-try {
-  const response = await fetch(
-    "https://dummyjson.com/products?limit=0&select=title,brand,category,price,rating,stock",
-  );
-  if (!response.ok) throw new Error(response.statusText);
-  const { products } = await response.json();
-
-  const cells = document.createDocumentFragment();
-  const add = (text, value) => {
-    const cell = document.createElement("orb-cell");
-    cell.textContent = text;
-    if (value != null) cell.setAttribute("value", value);
-    cells.append(cell);
-  };
-  for (let i = 0; i < rows; i++) {
-    const product = products[i % products.length];
-    add(String(i + 1));
-    add(product.title);
-    add(product.brand ?? "");
-    add(product.category);
-    add(`$${product.price.toFixed(2)}`, product.price);
-    add(product.rating.toFixed(1), product.rating);
-    add(String(product.stock));
-  }
-  // All at once, so the grid lays out its rows once
-  grid.append(cells);
-  status.textContent = `${rows} rows, from ${products.length} DummyJSON products.`;
-} catch (error) {
-  status.textContent = `Couldn't load the products: ${error.message}`;
-}
-
-grid.addEventListener("orbFilterChange", ({ detail }) => {
-  status.textContent = `${detail.matches} of ${detail.total} rows match.`;
-});
-```
-
-:::
-
-**Manual test:**
-- The grid fills with 1,000 rows, and the status says how many products they came from.
-- Scroll inside the grid. The header stays at the top, and scrolling stays smooth.
-- Sort by Price. The rows reorder without a long pause.
-- Search "phone", then filter Category. The status counts the matching rows.
-- With the network offline, reload. The status says the products couldn't load.
-
-## Forms
+### Forms
 
 The grid is a form control. Give it a `name`, and it submits its rows with the form: the rows that pass the search and filters, in the order shown, on every page. With `selection`, it submits the selected rows instead, in the order shown.
 
@@ -1113,7 +1050,7 @@ document.querySelector("#team-form").addEventListener("submit", (event) => {
 - Sort by Salary, descending, then submit. Cara comes first.
 - Click Reset. The checkboxes clear. Submit again. The output says nothing is selected.
 
-## Server-Side Data
+### Server-Side Data
 
 For more rows than the browser should hold, set `server-side`, and let your server sort, search, filter, and page. The grid keeps working the same for the user: headers still sort, the search field and filters still take input, and the pagination still turns pages. But the grid shows the body cells it has, in the order they're in, and leaves the rest to you.
 
@@ -1157,7 +1094,7 @@ When the cell that has focus is removed, such as when the rows are replaced, foc
 - While a query runs, the grid dims. With a screen reader, the grid is announced as busy.
 - With a screen reader, a row on page 3 is announced as row 52 or so, out of the total.
 
-## Keyboard
+### Keyboard
 
 The grid is a single Tab stop. Once it has focus, the keys move around inside it.
 
@@ -1184,7 +1121,7 @@ A cell that spans several columns or rows is one stop for the arrow keys. Moving
 
 Links, buttons, and fields inside a cell aren't in the Tab order, so Tab leaves the grid instead of stopping on every control. Press Enter on a cell to fire `orbActivate` and move focus to the first control inside it. Tab then moves between the controls in that cell, and Escape goes back to the cell. Clicking a control also enters its cell. Call `preventDefault()` on `orbActivate` to handle Enter yourself and keep focus on the cell.
 
-## Interactive Cells
+### Interactive Cells
 
 This grid uses `selection="multiple"`, so each body row has a checkbox in the first column.
 
@@ -1274,7 +1211,7 @@ grid.addEventListener("orbActivate", (event) => {
 - On Cara's "No profile" cell, press Enter. The status line reports it, and focus stays on the cell.
 - Click the "Notes" field for Bob. You can type in it, and Tab moves on from there.
 
-### Row Navigation
+#### Row Navigation
 
 With `navigation="row"`, focus moves between whole rows. The up and down arrows move, and Home and End go to the first and last row. Enter fires `orbActivate` without a `cell`, then moves into the row's first control.
 
@@ -1308,7 +1245,7 @@ With `navigation="row"`, focus moves between whole rows. The up and down arrows 
 - Press Space on a body row. It's selected, and selecting another row deselects the first.
 - Press Enter on a body row. Focus moves to its "Open sighting" link. Escape returns to the row.
 
-## Accessibility
+### Accessibility
 
 **Manual test checklist:**
 

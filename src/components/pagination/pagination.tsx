@@ -34,8 +34,7 @@ interface ControlOptions {
 }
 
 /**
- * Splits a long list into pages and lets the user move between them. Renders
- * native buttons by default, or links when `href-template` is set.
+ * Splits a long list into pages and lets the user move between them. Renders native buttons by default, or links when `href-template` is set.
  */
 @Component({
   tag: "orb-pagination",

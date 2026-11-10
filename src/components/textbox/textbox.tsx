@@ -16,8 +16,7 @@ import { debounceEvent, DebouncedEventEmitter } from "../../utils/debounce-event
 const UTILITY_SLOTS = ["top-start", "top-end", "bottom-start", "bottom-end"] as const;
 
 /**
- * Wraps a native `input`, `select`, or `textarea` with a label, a note, and
- * validation messages. A `textarea` grows with its content.
+ * Wraps a native `input`, `select`, or `textarea` with a label, a note, and validation messages.
  *
  * @slot - The `input`, `select`, or `textarea`, plus an `orb-label` and `orb-note`
  * @slot start - Content before the control, inside the border, such as an icon

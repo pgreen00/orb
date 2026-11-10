@@ -32,14 +32,7 @@ export interface ViewNavigateOptions {
 const ANIMATION_MS = 250;
 
 /**
- * Manages a set of `orb-view` children, showing one at a time. Use it for
- * multi-step wizards and nested flows, such as adding a related record
- * without leaving a form. It animates between views, keeps breadcrumbs, places
- * a shared `orb-wizard` in views that show it, and lazy loads each view's
- * `<template>`.
- *
- * Navigate with `data-view-link="<id>"` on any button inside the manager, or
- * call `navigate()`.
+ * Manages a set of `orb-view` children, showing one at a time.
  *
  * @slot - `orb-view` elements, each with an `id`
  * @slot wizard - An `orb-wizard`, moved to the top of the active view's content when it has `show-wizard`

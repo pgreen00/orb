@@ -10,8 +10,7 @@ import {
 import { CheckIcon, CloseIcon } from "../../utils/icons";
 
 /**
- * One step in an `<orb-wizard>`. Set `active` on the current step and
- * `completed` on finished ones.
+ * One step in an `<orb-wizard>`.
  *
  * @slot - The step's label
  * @slot icon - Replaces the number, checkmark, or spinner in the marker

@@ -15,12 +15,7 @@ import { menuOf, ownItems, pointer } from "../menu/menu-registry";
 import type { MenuSelectDetail } from "../menu/menu";
 
 /**
- * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop
- * app. Give an item an id and point an `orb-menu` at it with `for` to open a
- * menu from it. Items without a menu are chosen directly.
- *
- * Put the menus inside the menubar, so `orbSelect` from any of them reaches a
- * listener on the menubar.
+ * A horizontal bar of `orb-mi` items, like the menus at the top of a desktop app.
  *
  * @slot - `orb-mi` items, and the `orb-menu`s they open
  */

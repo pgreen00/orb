@@ -1,9 +1,10 @@
 @use "sass:meta";
 
 :root {
-  font-size: clamp(14px, 12px + 0.4545vw, 18px);
+  font-size: clamp(18px, 16px + 0.2273vw, 20px);
   line-height: 1.75;
   font-weight: var(--orb-font-regular);
+  -webkit-tap-highlight-color: transparent;
 }
 
 *, *::before, *::after { box-sizing: border-box; }

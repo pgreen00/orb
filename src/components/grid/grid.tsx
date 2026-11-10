@@ -246,6 +246,10 @@ function csvField(text: string) {
   return /[",\r\n]|^\s|\s$/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
+/** Text as a CSS string, for `content` */
+const cssString = (text: string) =>
+  `"${text.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\A ")}"`;
+
 /** Escapes text for HTML */
 const escapeHtml = (text: string) =>
   text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -469,37 +473,7 @@ const FOCUSABLE = [
 ].join(", ");
 
 /**
- * A data grid built from markup. Put `orb-cell` elements directly inside it,
- * in reading order, and the grid splits them into rows. The number of columns
- * is set by `columns`, or by the header cells' column spans when it isn't set.
- * Header cells come first, then body cells, then footer cells, whatever their
- * order in the markup.
- *
- * Cells span columns and rows with `colspan` and `rowspan`, the same way table
- * cells do. A cell is placed in the next free slot of the row, skipping slots
- * that cells from rows above span into, and wraps to a new row when it
- * doesn't fit. Row spans stop at the end of their section.
- *
- * The cells stay in the page: each row is a `role="row"` element in the grid's
- * shadow root, with a slot that the row's cells are assigned to.
- *
- * The grid is one Tab stop. The arrow keys move between cells, or between rows
- * with `navigation="row"`. Links, buttons, and fields inside a cell are taken
- * out of the Tab order until the user presses Enter on the cell, or clicks
- * into it. Escape goes back to the cell.
- *
- * Set `depth` on a row's first cell to make the grid a tree grid. Rows are
- * listed parent first, and each row's parent is the closest row above it with
- * a smaller depth. Rows start collapsed, and `expanded` on the first cell
- * opens one.
- *
- * A body row can have details: put an `orb-row-details` right after its
- * cells, and the grid adds a toggle that shows the details below the row,
- * across every column.
- *
- * With `reorder`, each body row gets a drag handle. Dragging it moves the
- * row's cells to the new position in the page, so the grid's markup always
- * matches what's shown.
+ * A data grid built from markup.
  *
  * @slot - `orb-cell` elements. Other elements aren't shown.
  *
@@ -519,8 +493,7 @@ const FOCUSABLE = [
  * @part empty-row - The row shown when the search and filters hide every row
  * @part empty-cell - The cell in the empty row
  *
- * @slot empty - Replaces "No matching rows" when nothing matches. Give the
- *   element `slot="empty"`.
+ * @slot empty - Replaces "No matching rows" when nothing matches. Give the element `slot="empty"`.
  */
 @Component({
   tag: "orb-grid",
@@ -551,6 +524,8 @@ export class Grid {
       dragging: false,
       /** `busy` is set */
       busy: false,
+      /** The rows show as cards, from `layout` */
+      cards: false,
     },
   })
   internals: ElementInternals;
@@ -694,6 +669,21 @@ export class Grid {
   @Prop({ reflect: true }) busy = false;
 
   /**
+   * How the rows are laid out. `table` lines cells up in columns. `cards`
+   * shows each row as a card, with each cell on its own line next to its
+   * column's name, and the header cells as a row of chips above. `auto`
+   * uses cards while the grid is narrower than `card-breakpoint`. The grid
+   * reads the same to screen readers and the keyboard either way.
+   */
+  @Prop({ reflect: true }) layout: "table" | "cards" | "auto" = "table";
+
+  /**
+   * With `layout="auto"`, the grid width below which rows show as cards: a
+   * number of pixels, or `sm` (640), `md` (768), `lg` (1024), or `xl` (1280).
+   */
+  @Prop() cardBreakpoint: number | string = "sm";
+
+  /**
    * Emits when the user presses Enter on a cell, or on a row with
    * `navigation="row"`. Call `preventDefault()` to keep focus where it is.
    * Otherwise focus moves to the first focusable element in the cell or row.
@@ -812,6 +802,15 @@ export class Grid {
   private queryQueued = false;
   /** Whether the form value is waiting to update */
   private formQueued = false;
+  /** Whether the rows show as cards */
+  private cardMode = false;
+  /** The grid's width, for `layout="auto"` */
+  private width = 0;
+  private layoutObserver = new ResizeObserver(([entry]) => {
+    this.width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+    // Next frame, since switching resizes the grid, which would loop here
+    requestAnimationFrame(() => this.updateLayout());
+  });
   /** With `server-side`, the body rows a keyboard page turn started on, and whether `busy` has been set since */
   private pageTurn?: { cells: Set<HTMLElement>; busy: boolean };
   /** Whether focus is in the grid. Kept when the focused cell is removed. */
@@ -848,8 +847,10 @@ export class Grid {
   /** How many row tracks show, and how many of them are the header's */
   private trackCount = 0;
   private headTracks = 0;
-  /** Measures the offsets of sticky rows and columns when they change size */
+  /** Measures the offsets of sticky header rows when their heights change */
   private stickyObserver = new ResizeObserver(() => this.measureSticky());
+  /** The last value set on the grid for each property, so unchanged values aren't written */
+  private hostValues = new Map<string, string>();
   /** The cell covering each slot, by row track and column */
   private matrix: (HTMLElement | undefined)[][] = [];
   /**
@@ -919,6 +920,7 @@ export class Grid {
   }
 
   componentDidLoad() {
+    this.layoutObserver.observe(this.host);
     // The pagination may come after the grid in the page, so it might not
     // have been found when the grid connected.
     if (this.pagination && !this.paginator) this.bindPaginator();
@@ -1056,6 +1058,24 @@ export class Grid {
     return Array.from(this.host.children).filter((el): el is HTMLElement => el.localName === "orb-cell");
   }
 
+  @Watch("layout")
+  @Watch("cardBreakpoint")
+  onLayoutChange() {
+    this.updateLayout();
+  }
+
+  /** Switches between the table and the cards, from `layout` and the grid's width */
+  private updateLayout() {
+    const named = { sm: 640, md: 768, lg: 1024, xl: 1280 }[String(this.cardBreakpoint)];
+    const breakpoint = named ?? (Number.parseFloat(String(this.cardBreakpoint)) || 0);
+    const cards = this.layout === "cards" || (this.layout === "auto" && this.width > 0 && this.width < breakpoint);
+    if (cards === this.cardMode) return;
+    this.cardMode = cards;
+    toggleState(this.internals.states, "cards", cards);
+    for (const cell of this.cellEls) setState(cell, "card", cards && cell.getAttribute("section") !== "head");
+    this.observeSticky();
+  }
+
   /** The grid's custom states, and its cells' states that follow the rows */
   private updateStates() {
     const selected = new Set<HTMLElement>();
@@ -1079,6 +1099,7 @@ export class Grid {
       setState(cell, "moving", moving.has(cell));
       setState(cell, "details-open", detailsOpen.has(cell));
       setState(cell, "stripe", stripes.has(cell));
+      setState(cell, "card", this.cardMode && cell.getAttribute("section") !== "head");
     }
 
     // A row that only shows for a match under it isn't a match itself
@@ -1135,6 +1156,7 @@ export class Grid {
     this.observer.disconnect();
     this.controlObserver.disconnect();
     this.stickyObserver.disconnect();
+    this.layoutObserver.disconnect();
     this.printFrame?.remove();
     this.unbindPaginator();
     this.unbindSearchbox();
@@ -1142,14 +1164,18 @@ export class Grid {
   }
 
   /**
-   * Watches the elements whose size moves the sticky rows and columns: the
-   * header rows, and the first row's cells in the sticky columns. A cell is
-   * as wide as its column.
+   * Watches what moves the sticky header rows: their own heights, which change
+   * when their cells wrap. The sticky columns are the lead columns, which are
+   * sized to their content, so they're measured when the rows render, and
+   * not on every resize. Cells aren't watched, since there are many of them.
    */
   private observeSticky() {
     this.stickyObserver.disconnect();
-    if (!this.stickyHeader && !this.stickyColumn) return;
-    this.stickyObserver.observe(this.host);
+    // Nothing sticks in cards
+    if ((!this.stickyHeader && !this.stickyColumn) || this.cardMode) {
+      this.setHostValue("scroll-padding-block-start", "");
+      return;
+    }
     if (this.stickyHeader) {
       for (const row of this.rows) {
         const el = row.section === "head" && this.rowEls.get(row.cells[0]);
@@ -1159,38 +1185,58 @@ export class Grid {
     const first = this.rows[0];
     if (this.stickyColumn && first) {
       this.rowEls.get(first.cells[0])?.querySelectorAll(".lead-cell").forEach((el) => this.stickyObserver.observe(el));
-      for (const cell of first.cells) {
-        if (this.placements.get(cell)?.col === this.offset) this.stickyObserver.observe(cell);
-      }
     }
     this.measureSticky();
   }
 
   /**
-   * Sets where each sticky header row and column sticks: right after the
-   * rows above it, or the columns before it. Read from the grid's resolved
-   * track sizes, which don't change as the rows stick.
+   * Sets where the sticky header rows and columns stick. A header row sticks
+   * below the rows above it, using the grid's resolved track sizes. Each row
+   * gets its own offset, so a resize only restyles the header rows. The grid
+   * itself is only written to when the lead columns change, since every cell
+   * inherits from it.
    */
   private measureSticky() {
-    if (!this.stickyHeader && !this.stickyColumn) return;
+    if ((!this.stickyHeader && !this.stickyColumn) || this.cardMode) return;
     const computed = getComputedStyle(this.host);
-    const set = (name: string, px: number) => {
-      const value = `${px}px`;
-      if (this.host.style.getPropertyValue(name) !== value) this.host.style.setProperty(name, value);
-    };
-    const offsets = (tracks: string, gap: string, count: number, prefix: string) => {
-      const sizes = tracks.split(" ").map(parseFloat);
-      const space = parseFloat(gap) || 0;
+    if (this.stickyHeader) {
+      const sizes = computed.gridTemplateRows.split(" ").map(parseFloat);
+      const space = parseFloat(computed.rowGap) || 0;
+      // Where the track starts: the sizes and gaps of the tracks above it
+      const startOf = (track: number) => {
+        let total = 0;
+        for (let i = 0; i < track; i++) total += (sizes[i] || 0) + space;
+        return total;
+      };
+      for (const row of this.rows) {
+        if (row.section !== "head") continue;
+        const el = this.rowEls.get(row.cells[0]);
+        const value = `${startOf(row.track)}px`;
+        if (el && el.style.getPropertyValue("--_head-top") !== value) el.style.setProperty("--_head-top", value);
+      }
+      // Scrolling to a cell leaves room for the header
+      this.setHostValue("scroll-padding-block-start", `calc(var(--grid-sticky-top, 0px) + ${startOf(this.headTracks)}px)`);
+    } else {
+      this.setHostValue("scroll-padding-block-start", "");
+    }
+    if (this.stickyColumn) {
+      const sizes = computed.gridTemplateColumns.split(" ").map(parseFloat);
+      const space = parseFloat(computed.columnGap) || 0;
       let at = 0;
-      for (let i = 0; i < count; i++) {
-        set(`${prefix}${i}`, at);
+      for (let i = 0; i <= this.offset; i++) {
+        this.setHostValue(`--_stick-${i}`, `${at}px`);
         at += (sizes[i] || 0) + space;
       }
       // The sticky area's size, so cells scrolled into view clear it
-      set(`${prefix}end`, at);
-    };
-    if (this.stickyHeader) offsets(computed.gridTemplateRows, computed.rowGap, this.headTracks, "--_head-top-");
-    if (this.stickyColumn) offsets(computed.gridTemplateColumns, computed.columnGap, this.offset + 1, "--_stick-");
+      this.setHostValue("--_stick-end", `${at}px`);
+    }
+  }
+
+  /** Sets a property on the grid, only when its value changes */
+  private setHostValue(name: string, value: string) {
+    if (this.hostValues.get(name) === value) return;
+    this.hostValues.set(name, value);
+    this.host.style.setProperty(name, value);
   }
 
   /** The grid's columns: each one's width from its header, or from `fixed` */
@@ -2270,6 +2316,18 @@ export class Grid {
     }
     this.columnInfo = columnInfo;
 
+    // Each column's name for the cards: the headers over it, top to bottom,
+    // such as "Contact › Email"
+    const columnLabels = Array.from({ length: columns }, (_, col) => {
+      const names = bySection[0].cells
+        .map((cell) => ({ cell, p: placements.get(cell) }))
+        .filter(({ p }) => p && p.col - offset <= col && col < p.col - offset + p.colspan)
+        .sort((a, b) => a.p.track - b.p.track)
+        .map(({ cell }) => textOf(cell).replace(/\s+/g, " "))
+        .filter(Boolean);
+      return names.filter((name, i) => name !== names[i - 1]).join(" › ");
+    });
+
     // Explicit placement, since auto-placement can't see cells from other
     // rows' boxes spanning down into this one.
     const totalColumns = offset + columns;
@@ -2284,6 +2342,10 @@ export class Grid {
       style.setProperty("--_edge-bottom", p.track + p.rowspan >= trackOffset ? "1" : "0");
 
       const isCell = cell.localName === "orb-cell";
+      // In cards, body and footer cells show their column's name
+      const label = isCell && cell.getAttribute("section") !== "head" ? columnLabels[p.col - offset] : "";
+      if (label) style.setProperty("--_column-label", cssString(label));
+      else style.removeProperty("--_column-label");
       if (isCell) {
         setState(cell, "first-column", p.col === 0);
         setState(cell, "last-column", p.col + p.colspan >= totalColumns);
@@ -3593,7 +3655,7 @@ export class Grid {
         role="row"
         class="empty-row"
         part="empty-row"
-        style={{ gridRow: String(this.emptyTrack + 1) }}
+        style={{ gridRow: String(this.emptyTrack + 1), order: String(this.emptyTrack) }}
         aria-rowindex={
           this.ariaRowCount != null ? String(this.rows.filter((r) => r.section === "head").length + 1) : undefined
         }
@@ -3663,10 +3725,16 @@ export class Grid {
                 tint: this.selection === "single",
                 moving: key === this.grabbedKey,
                 dragging: key === this.dragKey,
+                // Joins the card to its details card below it
+                "has-details": body && !!this.detailsOf.get(key)?.hasAttribute("expanded"),
               }}
               style={{
                 gridRow: `${row.track + 1} / span ${row.span}`,
-                "--_head-top": row.section === "head" ? `var(--_head-top-${row.track}, 0px)` : undefined,
+                // Keeps the rows in order in the cards, which aren't a grid
+                order: String(row.track),
+
+                // Indents tree cards
+                "--_card-depth": body && this.isTree ? String((this.treeInfo.get(key)?.level ?? 1) - 1) : undefined,
               }}
               tabIndex={rowNav ? (key === this.activeRowKey ? 0 : -1) : undefined}
               aria-selected={selectable ? String(this.selected.has(key)) : undefined}

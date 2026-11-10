@@ -1,8 +1,7 @@
 import { Component, Host, Prop, State, Watch } from "@stencil/core";
 
 /**
- * Displays a date as a localized phrase relative to now, such as "3 hours ago"
- * or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
+ * Displays a date as a localized phrase relative to now, such as "3 hours ago" or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
  */
 @Component({
   tag: "orb-relative-time",

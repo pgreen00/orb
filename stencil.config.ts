@@ -36,7 +36,7 @@ export const config: Config = {
     {
       type: "custom",
       name: "styles",
-      async generator(_config, _compilerCtx, buildCtx) {
+      async generator(_config, _compilerCtx, _buildCtx) {
         const files = [
           "src/styles/layers.scss:dist/styles/layers.css",
           "src/styles/classes.scss:dist/styles/classes.css",
@@ -46,10 +46,6 @@ export const config: Config = {
           "src/styles/index.scss:dist/orb.css",
         ];
         execSync(`npx sass --no-source-map ${files.join(" ")}`);
-
-        const tagNames = buildCtx.components.map((c) => c.tagName).sort();
-        const fouc = `:is(${tagNames.join(",")}):not(:defined){visibility:hidden;}\n`;
-        appendFileSync("dist/orb.css", fouc);
       },
     },
     {

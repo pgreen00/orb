@@ -1,6 +1,7 @@
 ---
 title: Lists
 section: css-utilities
+order: 6
 layout: css-utilities.njk
 description: Ordered, unordered, definition, and navigation lists. Lists keep their meaning, and Orb only gives them a look.
 ---

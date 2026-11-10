@@ -35,6 +35,8 @@
  * @prop --grid-min-width: Smallest width of the grid's content. A wider minimum than the grid scrolls sideways.
  * @prop --grid-sticky-top: How far below the top of the grid the sticky header sticks
  * @prop --grid-tree-indent: How far each level of a tree grid is indented
+ * @prop --grid-card-gap: Space between cards, when the rows show as cards
+ * @prop --grid-card-radius: Corners of cards, when the rows show as cards
  */
 
 /* The values match the native table styles. */
@@ -324,9 +326,6 @@
    below the rows above it, from offsets the grid measures. Whole rows stick,
    since a cell can't stick outside its row. */
 /* Cells scrolled into view, such as when focus moves, clear the sticky areas */
-:host([sticky-header]) {
-  scroll-padding-block-start: calc(var(--grid-sticky-top, 0px) + var(--_head-top-end, 0px));
-}
 
 :host([sticky-column]) {
   scroll-padding-inline-start: var(--_stick-end, 0px);
@@ -506,6 +505,92 @@
 [role="row"]:focus-visible {
   outline: 2px solid var(--orb-primary-300);
   outline-offset: -2px;
+}
+
+/* Cards. Each row is a card, with its controls on the first line and each
+   cell on a line of its own. The header cells become a row of chips above
+   the cards, so sorting and filtering still work. Nothing sticks. */
+:host(:state(cards)) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--grid-card-gap, var(--orb-spacing-sm));
+  background-color: transparent;
+}
+
+:host(:state(cards))::before {
+  display: none;
+}
+
+:host(:state(cards)) [role="row"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  position: static;
+  padding: var(--orb-spacing-2xs);
+  border: var(--grid-border-width) solid var(--grid-border-color);
+  border-radius: var(--grid-card-radius, var(--orb-radius-lg));
+  background-color: var(--_row-background, var(--grid-background));
+  margin-inline-start: calc(var(--_card-depth, 0) * var(--grid-tree-indent, 1.25rem));
+}
+
+/* Cards out of view skip rendering, instead of their cells */
+:host(:state(cards)) .body {
+  content-visibility: auto;
+  contain-intrinsic-inline-size: auto none;
+  contain-intrinsic-block-size: auto 10rem;
+}
+
+:host(:state(cards)) [role="row"] > slot::slotted(*),
+:host(:state(cards)) .empty-cell {
+  flex: 1 1 100%;
+  min-width: 0;
+  position: static;
+  border-width: 0;
+  border-radius: var(--orb-radius-md);
+  content-visibility: visible;
+}
+
+:host(:state(cards)) .lead-cell {
+  flex: none;
+  position: static;
+  padding: var(--orb-spacing-3xs);
+  border-width: 0;
+}
+
+/* Lead cells with nothing to show, such as the toggle cell of a row
+   without details, or a header that only names its column */
+:host(:state(cards)) .lead-cell:empty,
+:host(:state(cards)) .lead-cell:has(> .visually-hidden:only-child) {
+  display: none;
+}
+
+/* The header row is a row of chips, with each header's sort arrow and filter */
+:host(:state(cards)) .head {
+  gap: var(--orb-spacing-2xs);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+:host(:state(cards)) .head > slot::slotted(*) {
+  flex: none;
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-sm);
+  border: var(--grid-border-width) solid var(--grid-border-color);
+  border-radius: var(--orb-radius-pill);
+  background-color: var(--grid-header-background);
+}
+
+/* A card with open details joins the details card below it */
+:host(:state(cards)) .has-details {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+:host(:state(cards)) .details {
+  margin-block-start: calc(-1 * var(--grid-card-gap, var(--orb-spacing-sm)));
+  border-block-start-width: 0;
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
 }
 
 @media (forced-colors: active) {

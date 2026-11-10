@@ -2,10 +2,7 @@ import { Component, Element, Host, Prop, State } from "@stencil/core";
 import { CloseIcon, EllipsisIcon } from "../../utils/icons";
 
 /**
- * A layout for a page's worth of content, with a header, a body, and a footer
- * for actions. By default the view scrolls its own content, which suits
- * overlays. Turn off `scrollable` when the view lays out a whole page and the
- * page itself scrolls. Either way, the header and footer stay in place.
+ * A layout for a page's worth of content.
  *
  * @slot - The main content
  * @slot label - Replaces the `label` heading

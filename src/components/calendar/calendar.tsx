@@ -35,13 +35,7 @@ import { EventEditor } from "./views/event-editor";
 const HOUR = 60 * 60 * 1000;
 
 /**
- * A full calendar with day, week, and month views, multiple named calendars,
- * all-day and recurring (RRULE) events with per-occurrence editing, drag and
- * resize, and ICS export. Times are in the browser's local time zone.
- *
- * The host owns the `events` array. The calendar emits change requests
- * (`orbEventCreate`, `orbEventUpdate`, `orbEventDelete`). Apply them with the exported
- * `applyEventChange` helper and assign the result back to `events`.
+ * A full featured calendar.
  *
  * @part header - The top toolbar
  * @part view-switcher - The day/week/month control

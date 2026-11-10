@@ -1,9 +1,7 @@
 import { AttachInternals, Component, Host, Prop } from "@stencil/core";
 
 /**
- * Groups related checkboxes or toggles under a shared label. The host has the
- * `group` role and takes its accessible name from the label and its
- * description from the note.
+ * Groups related checkboxes or toggles under a shared label.
  *
  * @slot - The checkboxes or toggles in the group
  * @slot label - Label content, used instead of the `label` attribute

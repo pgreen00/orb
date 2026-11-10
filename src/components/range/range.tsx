@@ -20,9 +20,7 @@ const ARC_CIRCUMFERENCE = 2 * Math.PI * ARC_RADIUS;
 const ARC_LENGTH = ARC_CIRCUMFERENCE * 0.75;
 
 /**
- * A slider for picking a number in a range. It wraps a native range input, so
- * the keyboard, screen readers, and dragging work the way they do on the
- * platform. The value shows in a tooltip while it's being changed.
+ * A slider for picking a number in a range.
  *
  * @slot label - Label content, used instead of the `label` attribute
  * @slot note - Note content, used instead of the `note` attribute

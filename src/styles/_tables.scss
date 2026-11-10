@@ -363,6 +363,15 @@ table {
     text-align: end;
     font-variant-numeric: tabular-nums;
   }
+
+  td, th {
+    overflow-wrap: break-word;
+  }
+
+  td code, th code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 @media (forced-colors: active) {

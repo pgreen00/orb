@@ -1,5 +1,5 @@
 :host {
-  display: contents;
+  display: block;
 
   --content-open-padding: var(--orb-spacing-md) 0 0 0;
 }

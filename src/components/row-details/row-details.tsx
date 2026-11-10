@@ -1,13 +1,7 @@
 import { AttachInternals, Component, Host, Prop } from "@stencil/core";
 
 /**
- * Content that a row of an `orb-grid` shows and hides. Put it right after the
- * cells of the row it belongs to. The grid adds a toggle button to that row,
- * and shows the details below it, across every column. Put anything inside:
- * text, a form, a chart, or another grid.
- *
- * Like a cell, the details are one stop for the arrow keys. Press Enter to
- * move into their content, and Escape to come back out.
+ * Content that a row of an `orb-grid` shows and hides. Put anything inside: text, a form, a chart, or another grid.
  *
  * @slot - The details' content
  */

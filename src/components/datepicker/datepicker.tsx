@@ -43,13 +43,7 @@ const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 type TimeColumn = "hour" | "minute" | "second";
 
 /**
- * An inline date and time picker. It renders a month calendar and/or time
- * columns and reports the selected value as epoch milliseconds. It fills the
- * width of its container, so it works inline, inside an `orb-card`, or as the
- * content of an `orb-popover`.
- *
- * The day grid and each time column use a roving tabindex: one button in each
- * is in the Tab order, and arrow keys move between the rest.
+ * An inline date and time picker.
  *
  * @part header - The month and year navigation row
  * @part weekdays - The row of weekday names

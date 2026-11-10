@@ -53,6 +53,39 @@
   text-align: var(--_align, var(--_column-align, start));
 }
 
+/* The column's name, only in cards */
+.label {
+  display: none;
+}
+
+.label::before {
+  content: var(--_column-label, "");
+}
+
+/* In a card, each cell is a line: its column's name at the start, and its
+   content at the end. The grid indents the card, not the cell. */
+:host(:state(card)) .label {
+  display: block;
+  flex: none;
+  max-width: 50%;
+  margin-inline-end: auto;
+  color: var(--orb-note-color);
+  font-size: 0.8em;
+  font-weight: var(--orb-font-semi-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+:host(:state(card)) .text {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  text-align: end;
+}
+
+:host(:state(card)) .tree-toggle {
+  margin-inline-start: 0;
+}
+
 /* A tree row's first cell starts with its indent and chevron. Leaves get the
    same space, so their text lines up with their siblings'. */
 .tree-toggle {

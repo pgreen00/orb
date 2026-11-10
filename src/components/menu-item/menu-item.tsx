@@ -3,10 +3,6 @@ import { CheckIcon, ChevronRightIcon } from "../../utils/icons";
 
 /**
  * An item in an `orb-menu` or `orb-menubar`. Its content is the label.
- * Choosing it emits `orbSelect` from the menu.
- *
- * To open a submenu, give the item an id and point a nested `orb-menu` at it
- * with `for`.
  *
  * @slot - The label
  * @slot icon - An icon before the label

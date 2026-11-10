@@ -21,12 +21,7 @@ type TrailItem =
   | { type: "collapse"; crumbs: HTMLElement[] };
 
 /**
- * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a
- * link or a `<button>` for apps that navigate with click handlers. The crumbs
- * stay in the page: the trail assigns each one to a slot in a list and adds
- * the separators between them, so your own elements, attributes, and listeners
- * work as written. The last crumb is the current page and gets
- * `aria-current="page"`.
+ * A breadcrumb trail. Each child element is a crumb, usually an `<a>` for a link or a `<button>` for apps that navigate with click handlers.
  *
  * @slot - The crumbs, in order from the top of the hierarchy
  *

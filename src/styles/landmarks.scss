@@ -24,12 +24,18 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  //overflow: visible;
   min-height: 100%;
   grid-template:
     "head head" auto
     "sub sub" auto
     "side main" 1fr
     "foot foot" auto / auto minmax(0, 1fr);
+  opacity: 0;
+  transition: opacity var(--orb-transition-x-fast) ease-in-out;
+  &.orb-hydrated {
+    opacity: 1;
+  }
   --border-color: var(--orb-divider-color);
   --sidebar-width: clamp(215px, 22vw, 305px);
   --top-height: calc(var(--head-height, 0px) + var(--sub-height, 0px) + var(--banner-height, 0px));

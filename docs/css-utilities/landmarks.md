@@ -1,6 +1,7 @@
 ---
 title: Landmarks
 section: css-utilities
+order: 3
 layout: css-utilities.njk
 description: Put a header, a sidebar, a main area, and a footer in the body, and Orb lays out the page and keeps the header and footer in place.
 ---

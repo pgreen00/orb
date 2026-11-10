@@ -16,9 +16,7 @@ export interface TabCloseDetail {
 }
 
 /**
- * The host is a plain wrapper. The element with `role="tab"` is inside the
- * shadow root, and the close button sits beside it rather than inside it,
- * because a tab can't contain other interactive controls.
+ * A button that selects a tab panel inside an `<orb-tabs>` element.
  *
  * @slot - The tab label
  * @slot icon - An icon shown before the label

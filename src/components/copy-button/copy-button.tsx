@@ -2,8 +2,7 @@ import { Component, Element, Host, Prop, State } from "@stencil/core";
 import { CheckIcon, CopyIcon } from "../../utils/icons";
 
 /**
- * A button that copies text to the clipboard, swapping to a checkmark to
- * confirm. Copies the `value` prop when set, otherwise its own text content.
+ * A button that copies text to the clipboard.
  */
 @Component({
   tag: "orb-copy-button",

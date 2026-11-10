@@ -10,10 +10,7 @@ import {
 const TEMPLATE_ROOT_CLASS = "orb--tab-panel-template-root";
 
 /**
- * Content inside a `<template>` child is lazy loaded: it's cloned into the
- * panel the first time the panel is selected. With an offload delay, the clone
- * is removed again after the panel has been inactive for that long, and
- * re-created the next time it's selected.
+ * A content panel inside an `<orb-tabs>` element.
  */
 @Component({
   tag: "orb-tab-panel",

@@ -20,8 +20,7 @@ import {
 import { shareStates, toggleState } from "../../utils/custom-states";
 
 /**
- * A cell in an `orb-grid`. Put cells directly inside the grid, in reading
- * order, and the grid places them in rows.
+ * A cell in an `orb-grid`. Put cells directly inside the grid, in reading order, and the grid places them in rows.
  *
  * @slot - The cell's content
  *
@@ -29,6 +28,7 @@ import { shareStates, toggleState } from "../../utils/custom-states";
  * @part tree-toggle - The chevron and indent at the start of a tree row's first cell
  * @part filter-button - The funnel button that opens a header's filter
  * @part filter-panel - The filter's content, inside its popover
+ * @part label - The column's name, shown before the content when the grid shows cards
  */
 @Component({
   tag: "orb-cell",
@@ -70,6 +70,8 @@ export class GridCell {
       moving: false,
       /** The cell's row has its details showing */
       "details-open": false,
+      /** The grid shows its rows as cards, and the cell is in one */
+      card: false,
     },
   })
   internals: ElementInternals;
@@ -452,6 +454,9 @@ export class GridCell {
   render() {
     return (
       <Host>
+        {/* The column's name, which the grid sets. Hidden from screen
+            readers, which already hear the column header. */}
+        <span class="label" part="label" aria-hidden="true" />
         {this.renderTreeToggle()}
         {/* Holds the text in one box when the grid truncates it */}
         <span class="text">
