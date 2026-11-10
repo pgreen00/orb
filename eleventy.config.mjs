@@ -20,7 +20,10 @@ export default async function (eleventyConfig) {
       level: [2, 3, 4],
     })
     .use(toc, {
-      includeLevel: [1, 2],
+      // The levels the heading anchors cover
+      includeLevel: [2, 3, 4],
+      containerClass: "table-of-contents",
+      listType: "ul",
     })
     .use(multimdTable, {
       multiline: true,
@@ -54,6 +57,17 @@ export default async function (eleventyConfig) {
         tokens[end].tag = "th";
       }
     });
+  });
+
+  // A page's table of contents, from its markdown source. The plugin only
+  // builds one where its [[toc]] marker is, so the source is rendered again with
+  // the marker first. The container is the first thing in the output.
+  eleventyConfig.addFilter("toc", (source) => {
+    const body = String(source ?? "").replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+    const html = md.render(`[[toc]]\n\n${body}`);
+    const match = html.match(/<div class="table-of-contents">([\s\S]*?)<\/div>/);
+    if (!match || !match[1].includes("<li>")) return "";
+    return `<nav data-orb="toc" aria-label="Table of contents">${match[1]}</nav>`;
   });
 
   const defaultFence = md.renderer.rules.fence;

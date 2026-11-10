@@ -15,8 +15,7 @@ const SKIP = new Set([
   "template",
   "noscript",
   "svg",
-  "iconify-icon",
-  "orb-toc",
+  "iconify-icon"
 ]);
 
 // Elements that sit inside a line of text, so no space is added around them

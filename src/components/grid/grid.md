@@ -839,7 +839,7 @@ The selection methods emit `orbSelectionChange`, and `clearFilters()` emits `orb
   <orb-cell depth="1">Bald Eagle</orb-cell><orb-cell>San Juans</orb-cell>
   <orb-cell depth="1">Barn Owl</orb-cell><orb-cell>Willamette</orb-cell>
 </orb-grid>
-<orb-mesh class="orb-padding-sm">
+<orb-mesh class="orb-margin-vertical" space="md">
   <orb-button id="code-expand" size="sm" fill="outline">Expand all</orb-button>
   <orb-button id="code-collapse" size="sm" fill="outline">Collapse all</orb-button>
   <orb-button id="code-select" size="sm" fill="outline">Select all</orb-button>

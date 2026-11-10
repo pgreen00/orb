@@ -1476,25 +1476,6 @@ export namespace Components {
          */
         "ready": Promise<unknown>;
     }
-    interface OrbTi {
-        "href"?: string;
-        /**
-          * @default false
-         */
-        "indentation": boolean;
-        "isLeaf": () => Promise<boolean>;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "open": boolean;
-        /**
-          * @default false
-         */
-        "selected": boolean | null;
-        "selection"?: "single" | "multiple" | "leaf";
-        "value"?: string;
-    }
     /**
      * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
      */
@@ -1521,9 +1502,6 @@ export namespace Components {
           * Starts or resumes the countdown. Starts from the full duration if the timer has already completed.
          */
         "start": () => Promise<void>;
-    }
-    interface OrbToc {
-        "update": () => Promise<void>;
     }
     interface OrbToggle {
         /**
@@ -1597,17 +1575,6 @@ export namespace Components {
           * @default "description"
          */
         "type": "description" | "label";
-    }
-    interface OrbTree {
-        /**
-          * @default false
-         */
-        "indentation": boolean;
-        /**
-          * @default "leaf"
-         */
-        "selection": "single" | "multiple" | "leaf";
-        "value"?: string | string[];
     }
     /**
      * A layout for a page's worth of content.
@@ -1845,10 +1812,6 @@ export interface OrbTimerCustomEvent<T> extends CustomEvent<T> {
 export interface OrbToggleCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbToggleElement;
-}
-export interface OrbTreeCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLOrbTreeElement;
 }
 export interface OrbViewManagerCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -2529,12 +2492,6 @@ declare global {
         prototype: HTMLOrbTextboxElement;
         new (): HTMLOrbTextboxElement;
     };
-    interface HTMLOrbTiElement extends Components.OrbTi, HTMLStencilElement {
-    }
-    var HTMLOrbTiElement: {
-        prototype: HTMLOrbTiElement;
-        new (): HTMLOrbTiElement;
-    };
     interface HTMLOrbTimerElementEventMap {
         "orbCountdownComplete": any;
     }
@@ -2554,12 +2511,6 @@ declare global {
     var HTMLOrbTimerElement: {
         prototype: HTMLOrbTimerElement;
         new (): HTMLOrbTimerElement;
-    };
-    interface HTMLOrbTocElement extends Components.OrbToc, HTMLStencilElement {
-    }
-    var HTMLOrbTocElement: {
-        prototype: HTMLOrbTocElement;
-        new (): HTMLOrbTocElement;
     };
     interface HTMLOrbToggleElementEventMap {
         "orbCheckedChange": boolean;
@@ -2589,23 +2540,6 @@ declare global {
     var HTMLOrbTooltipElement: {
         prototype: HTMLOrbTooltipElement;
         new (): HTMLOrbTooltipElement;
-    };
-    interface HTMLOrbTreeElementEventMap {
-        "orbValueChange": string | string[];
-    }
-    interface HTMLOrbTreeElement extends Components.OrbTree, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLOrbTreeElementEventMap>(type: K, listener: (this: HTMLOrbTreeElement, ev: OrbTreeCustomEvent<HTMLOrbTreeElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLOrbTreeElementEventMap>(type: K, listener: (this: HTMLOrbTreeElement, ev: OrbTreeCustomEvent<HTMLOrbTreeElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLOrbTreeElement: {
-        prototype: HTMLOrbTreeElement;
-        new (): HTMLOrbTreeElement;
     };
     /**
      * A layout for a page's worth of content.
@@ -2726,13 +2660,10 @@ declare global {
         "orb-tab-panel": HTMLOrbTabPanelElement;
         "orb-tabs": HTMLOrbTabsElement;
         "orb-textbox": HTMLOrbTextboxElement;
-        "orb-ti": HTMLOrbTiElement;
         "orb-timer": HTMLOrbTimerElement;
-        "orb-toc": HTMLOrbTocElement;
         "orb-toggle": HTMLOrbToggleElement;
         "orb-toolbar": HTMLOrbToolbarElement;
         "orb-tooltip": HTMLOrbTooltipElement;
-        "orb-tree": HTMLOrbTreeElement;
         "orb-view": HTMLOrbViewElement;
         "orb-view-manager": HTMLOrbViewManagerElement;
         "orb-wi": HTMLOrbWiElement;
@@ -4237,24 +4168,6 @@ declare namespace LocalJSX {
          */
         "ready"?: Promise<unknown>;
     }
-    interface OrbTi {
-        "href"?: string;
-        /**
-          * @default false
-         */
-        "indentation"?: boolean;
-        "label"?: string;
-        /**
-          * @default false
-         */
-        "open"?: boolean;
-        /**
-          * @default false
-         */
-        "selected"?: boolean | null;
-        "selection"?: "single" | "multiple" | "leaf";
-        "value"?: string;
-    }
     /**
      * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
      */
@@ -4273,8 +4186,6 @@ declare namespace LocalJSX {
           * Emitted when the countdown reaches zero.
          */
         "onOrbCountdownComplete"?: (event: OrbTimerCustomEvent<any>) => void;
-    }
-    interface OrbToc {
     }
     interface OrbToggle {
         /**
@@ -4364,18 +4275,6 @@ declare namespace LocalJSX {
           * @default "description"
          */
         "type"?: "description" | "label";
-    }
-    interface OrbTree {
-        /**
-          * @default false
-         */
-        "indentation"?: boolean;
-        "onOrbValueChange"?: (event: OrbTreeCustomEvent<string | string[]>) => void;
-        /**
-          * @default "leaf"
-         */
-        "selection"?: "single" | "multiple" | "leaf";
-        "value"?: string | string[];
     }
     /**
      * A layout for a page's worth of content.
@@ -4862,15 +4761,6 @@ declare namespace LocalJSX {
         "note": string;
         "debounce": number;
     }
-    interface OrbTiAttributes {
-        "selection": "single" | "multiple" | "leaf";
-        "indentation": boolean;
-        "open": boolean;
-        "value": string;
-        "label": string;
-        "selected": boolean | null;
-        "href": string;
-    }
     interface OrbTimerAttributes {
         "duration": number;
         "autostart": boolean;
@@ -4900,11 +4790,6 @@ declare namespace LocalJSX {
         "offsetX": number;
         "offsetY": number;
         "timeout": number;
-    }
-    interface OrbTreeAttributes {
-        "value": string | string[];
-        "selection": "single" | "multiple" | "leaf";
-        "indentation": boolean;
     }
     interface OrbViewAttributes {
         "label": string;
@@ -4992,13 +4877,10 @@ declare namespace LocalJSX {
         "orb-tab-panel": Omit<OrbTabPanel, keyof OrbTabPanelAttributes> & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes]?: OrbTabPanel[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `attr:${K}`]?: OrbTabPanelAttributes[K] } & { [K in keyof OrbTabPanel & keyof OrbTabPanelAttributes as `prop:${K}`]?: OrbTabPanel[K] };
         "orb-tabs": Omit<OrbTabs, keyof OrbTabsAttributes> & { [K in keyof OrbTabs & keyof OrbTabsAttributes]?: OrbTabs[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `attr:${K}`]?: OrbTabsAttributes[K] } & { [K in keyof OrbTabs & keyof OrbTabsAttributes as `prop:${K}`]?: OrbTabs[K] };
         "orb-textbox": Omit<OrbTextbox, keyof OrbTextboxAttributes> & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes]?: OrbTextbox[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `attr:${K}`]?: OrbTextboxAttributes[K] } & { [K in keyof OrbTextbox & keyof OrbTextboxAttributes as `prop:${K}`]?: OrbTextbox[K] };
-        "orb-ti": Omit<OrbTi, keyof OrbTiAttributes> & { [K in keyof OrbTi & keyof OrbTiAttributes]?: OrbTi[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `attr:${K}`]?: OrbTiAttributes[K] } & { [K in keyof OrbTi & keyof OrbTiAttributes as `prop:${K}`]?: OrbTi[K] };
         "orb-timer": Omit<OrbTimer, keyof OrbTimerAttributes> & { [K in keyof OrbTimer & keyof OrbTimerAttributes]?: OrbTimer[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `attr:${K}`]?: OrbTimerAttributes[K] } & { [K in keyof OrbTimer & keyof OrbTimerAttributes as `prop:${K}`]?: OrbTimer[K] };
-        "orb-toc": OrbToc;
         "orb-toggle": Omit<OrbToggle, keyof OrbToggleAttributes> & { [K in keyof OrbToggle & keyof OrbToggleAttributes]?: OrbToggle[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `attr:${K}`]?: OrbToggleAttributes[K] } & { [K in keyof OrbToggle & keyof OrbToggleAttributes as `prop:${K}`]?: OrbToggle[K] };
         "orb-toolbar": Omit<OrbToolbar, keyof OrbToolbarAttributes> & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes]?: OrbToolbar[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `attr:${K}`]?: OrbToolbarAttributes[K] } & { [K in keyof OrbToolbar & keyof OrbToolbarAttributes as `prop:${K}`]?: OrbToolbar[K] };
         "orb-tooltip": Omit<OrbTooltip, keyof OrbTooltipAttributes> & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes]?: OrbTooltip[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `attr:${K}`]?: OrbTooltipAttributes[K] } & { [K in keyof OrbTooltip & keyof OrbTooltipAttributes as `prop:${K}`]?: OrbTooltip[K] } & OneOf<"for", OrbTooltip["for"], OrbTooltipAttributes["for"]>;
-        "orb-tree": Omit<OrbTree, keyof OrbTreeAttributes> & { [K in keyof OrbTree & keyof OrbTreeAttributes]?: OrbTree[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `attr:${K}`]?: OrbTreeAttributes[K] } & { [K in keyof OrbTree & keyof OrbTreeAttributes as `prop:${K}`]?: OrbTree[K] };
         "orb-view": Omit<OrbView, keyof OrbViewAttributes> & { [K in keyof OrbView & keyof OrbViewAttributes]?: OrbView[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `attr:${K}`]?: OrbViewAttributes[K] } & { [K in keyof OrbView & keyof OrbViewAttributes as `prop:${K}`]?: OrbView[K] };
         "orb-view-manager": Omit<OrbViewManager, keyof OrbViewManagerAttributes> & { [K in keyof OrbViewManager & keyof OrbViewManagerAttributes]?: OrbViewManager[K] } & { [K in keyof OrbViewManager & keyof OrbViewManagerAttributes as `attr:${K}`]?: OrbViewManagerAttributes[K] } & { [K in keyof OrbViewManager & keyof OrbViewManagerAttributes as `prop:${K}`]?: OrbViewManager[K] };
         "orb-wi": Omit<OrbWi, keyof OrbWiAttributes> & { [K in keyof OrbWi & keyof OrbWiAttributes]?: OrbWi[K] } & { [K in keyof OrbWi & keyof OrbWiAttributes as `attr:${K}`]?: OrbWiAttributes[K] } & { [K in keyof OrbWi & keyof OrbWiAttributes as `prop:${K}`]?: OrbWi[K] };
@@ -5138,16 +5020,13 @@ declare module "@stencil/core" {
              * Wraps a native `input`, `select`, or `textarea` with a label, a note, and validation messages.
              */
             "orb-textbox": LocalJSX.IntrinsicElements["orb-textbox"] & JSXBase.HTMLAttributes<HTMLOrbTextboxElement>;
-            "orb-ti": LocalJSX.IntrinsicElements["orb-ti"] & JSXBase.HTMLAttributes<HTMLOrbTiElement>;
             /**
              * A countdown that displays the time remaining and emits `orbCountdownComplete` when it reaches zero.
              */
             "orb-timer": LocalJSX.IntrinsicElements["orb-timer"] & JSXBase.HTMLAttributes<HTMLOrbTimerElement>;
-            "orb-toc": LocalJSX.IntrinsicElements["orb-toc"] & JSXBase.HTMLAttributes<HTMLOrbTocElement>;
             "orb-toggle": LocalJSX.IntrinsicElements["orb-toggle"] & JSXBase.HTMLAttributes<HTMLOrbToggleElement>;
             "orb-toolbar": LocalJSX.IntrinsicElements["orb-toolbar"] & JSXBase.HTMLAttributes<HTMLOrbToolbarElement>;
             "orb-tooltip": LocalJSX.IntrinsicElements["orb-tooltip"] & JSXBase.HTMLAttributes<HTMLOrbTooltipElement>;
-            "orb-tree": LocalJSX.IntrinsicElements["orb-tree"] & JSXBase.HTMLAttributes<HTMLOrbTreeElement>;
             /**
              * A layout for a page's worth of content.
              */

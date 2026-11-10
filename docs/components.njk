@@ -64,12 +64,15 @@ eleventyComputed:
   <div class="article-body">
     {{ component.content | markdown | safe }}
   </div>
+  {% set toc = component.content | toc %}
+  {% if toc %}
   <aside>
     <orb-layout-swap breakpoint="767">
-      <orb-toc slot="desktop"></orb-toc>
+      <div slot="desktop">{{ toc | safe }}</div>
       <orb-details slot="mobile" summary="Table of Contents" class="orb-margin-bottom">
-        <orb-toc></orb-toc>
+        {{ toc | safe }}
       </orb-details>
     </orb-layout-swap>
   </aside>
+  {% endif %}
 </article>

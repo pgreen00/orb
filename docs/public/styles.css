@@ -130,7 +130,7 @@ a.header-anchor {
 }
 
 :has(a.header-anchor) {
-  scroll-margin-top: var(--head-height);
+  scroll-margin-top: calc(var(--head-height) + 1rem);
 }
 
 [id^="code-demo-"] {

@@ -48,7 +48,10 @@ layout: default.njk
   <div class="article-body">
     {{ content | safe }}
   </div>
+  {% set toc = page.rawInput | toc %}
+  {% if toc %}
   <aside>
-    <orb-toc></orb-toc>
+    {{ toc | safe }}
   </aside>
+  {% endif %}
 </article>
