@@ -1,5 +1,5 @@
 /**
- * Generates docs/public/demos/products.duckdb, the 100,000 example products
+ * Generates docs/public/products.duckdb, the 100,000 example products
  * the server-side grid demo queries. The rows come from hashes of each id, so
  * every run makes the same data. It runs DuckDB-WASM from jsdelivr in headless
  * Chromium, the same build the site loads, so the file always opens there.
@@ -12,7 +12,7 @@ import { chromium } from "@playwright/test";
 
 const DUCKDB = "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.32.0/+esm";
 const ROWS = 100_000;
-const OUT = "docs/public/demos/products.duckdb";
+const OUT = "docs/public/products.duckdb";
 
 // Each item has its category and a typical price
 const ITEMS = [

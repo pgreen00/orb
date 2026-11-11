@@ -134,10 +134,10 @@ sup {
 
 code {
   display: inline-flex;
-  padding: 0.15rem 0.3rem;
+  padding-inline: 0.35rem;
   background-color: light-dark(var(--orb-neutral-200), var(--orb-neutral-875));
   border-radius: var(--orb-radius-lg);
-  line-height: 1.5;
+  line-height: 1.4;
   color: light-dark(var(--orb-neutral-875), var(--orb-neutral-200));
   font-family: inherit;
 }

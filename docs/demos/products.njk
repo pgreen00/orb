@@ -126,7 +126,7 @@ permalink: "/demos/products/"
     const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), new Worker(workerUrl));
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
     URL.revokeObjectURL(workerUrl);
-    const file = await fetch("/demos/products.duckdb").then((res) => res.arrayBuffer());
+    const file = await fetch("/products.duckdb").then((res) => res.arrayBuffer());
     await db.registerFileBuffer("products.duckdb", new Uint8Array(file));
     const conn = await db.connect();
     await conn.query("ATTACH 'products.duckdb' AS shop (READ_ONLY)");
