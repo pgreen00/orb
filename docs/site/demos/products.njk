@@ -20,6 +20,7 @@ permalink: "/demos/products/"
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/build/orb.css" />
   <script type="module" src="/build/loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
   <style>
     .page {
       display: flex;
@@ -64,7 +65,12 @@ permalink: "/demos/products/"
 <body>
   <main class="page">
     <header>
-      <h1>Server-Side Grid</h1>
+      <orb-stack mode="row">
+        <a href="/components/grid/#server-side-data" aria-label="Back to the grid docs">
+          <iconify-icon icon="mdi:arrow-left" width="24" aria-hidden="true"></iconify-icon>
+        </a>
+        <h1>Server-Side Grid</h1>
+      </orb-stack
       <p>
         An <code>orb-grid</code> with <code>server-side</code> set, over 100,000 products.
         The grid doesn't sort, search, filter, or page anything itself. It emits
@@ -73,7 +79,7 @@ permalink: "/demos/products/"
         then replaces the body cells with one page of results. Each query waits
         200ms first, like a network round trip.
       </p>
-      <p><a href="/components/grid/#server-side-data">Back to the grid docs</a></p>
+      <p></p>
     </header>
 
     <div class="controls">
@@ -91,7 +97,7 @@ permalink: "/demos/products/"
       selection="multiple"
       sticky-header
       striped
-      layout="auto"
+      layout="cards"
       density="compact"
       aria-label="Products"
     >

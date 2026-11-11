@@ -32,7 +32,7 @@ body {
     "side main" 1fr
     "foot foot" auto / auto minmax(0, 1fr);
   opacity: 0;
-  transition: opacity var(--orb-transition-x-fast) ease-in-out;
+  transition: opacity var(--orb-transition-fast) ease-in-out;
   &.orb-hydrated {
     opacity: 1;
   }

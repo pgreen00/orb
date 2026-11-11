@@ -227,10 +227,10 @@ export default async function (eleventyConfig) {
 
   return {
     dir: {
-      input: "docs",
+      input: "docs/site",
       output: "www",
-      includes: "includes",
-      data: "data",
+      includes: "../includes",
+      data: "../data",
     },
   };
 }

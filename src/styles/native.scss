@@ -283,6 +283,8 @@ a {
     --default-decoration: none;
   }
   &[data-orb~="button"] {
+    --default-decoration: none;
+    --hover-decoration: none;
     color: var(--color);
     background-color: var(--background, transparent);
     border-radius: var(--orb-radius-md);
@@ -333,9 +335,9 @@ a {
 // `aria-label`.
 
 ul:is([data-orb~="nav"], [data-orb~="vertical-nav"]) {
-  --nav-color: light-dark(var(--orb-neutral-700), var(--orb-neutral-250));
+  --nav-color: light-dark(var(--orb-neutral-750), var(--orb-neutral-250));
   --nav-hover-background: light-dark(
-    var(--orb-neutral-100),
+    var(--orb-neutral-150),
     var(--orb-neutral-850)
   );
   --nav-current-color: light-dark(
@@ -409,15 +411,11 @@ ul[data-orb~="nav"] {
 }
 
 ul[data-orb~="vertical-nav"] {
-  --nav-current-color: light-dark(
-    var(--orb-primary-600),
-    var(--orb-primary-200)
-  );
   --nav-current-background: light-dark(
-    var(--orb-primary-50),
+    var(--orb-primary-75),
     var(--orb-neutral-850)
   );
-  // Like the sidebar tree, hovering uses the same tint as the current page.
+  // hovering uses the same tint as the current page.
   --nav-hover-background: var(--nav-current-background);
   flex-direction: column;
   gap: var(--orb-spacing-3xs);
@@ -440,7 +438,7 @@ ul[data-orb~="vertical-nav"] {
     gap: var(--orb-spacing-3xs);
     margin: var(--orb-spacing-3xs) 0 0 var(--orb-spacing-sm);
     padding: 0 0 0 var(--orb-spacing-2xs);
-    //border-inline-start: 1px solid var(--nav-guide-color);
+    border-inline-start: 1px solid var(--nav-guide-color);
     list-style: none;
   }
 }

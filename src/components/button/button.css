@@ -130,11 +130,11 @@
   --color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
   --background: transparent;
   --hover-background: light-dark(
-    var(--orb-neutral-100),
+    var(--orb-neutral-150),
     var(--orb-neutral-850)
   );
   --active-background: light-dark(
-    var(--orb-neutral-150),
+    var(--orb-neutral-200),
     var(--orb-neutral-800)
   );
   --border: solid 1px light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
