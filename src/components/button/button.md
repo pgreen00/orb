@@ -51,3 +51,47 @@ sidebar_label: "Button"
 ```
 
 :::
+
+### Radius
+
+::: live-code-demo
+
+```html
+<orb-button>Default Radius</orb-button>
+<orb-button radius="pill">Pill</orb-button>
+<orb-button radius="circle">
+  <iconify-icon icon="mdi:heart"></iconify-icon>
+</orb-button>
+```
+
+:::
+
+### Disabled
+
+::: live-code-demo
+
+```html
+<orb-button color="primary" disabled>Medium</orb-button>
+```
+
+:::
+
+### Pending
+
+::: live-code-demo
+
+```html
+<orb-button id="pending-button" color="primary">Save</orb-button>
+```
+
+```javascript
+const button = document.querySelector('#pending-button');
+button.addEventListener('click', () => {
+  button.pending = true;
+  setTimeout(() => {
+    button.pending = false;
+  }, 2000);
+});
+```
+
+:::

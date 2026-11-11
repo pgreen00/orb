@@ -80,6 +80,9 @@ export namespace Components {
          */
         "show": () => Promise<void>;
     }
+    /**
+     * Buttons represent actions the user can take, such as submitting a form, opening a dialog, or navigating to another page.
+     */
     interface OrbButton {
         /**
           * Predefined colors
@@ -109,6 +112,11 @@ export namespace Components {
           * @default false
          */
         "pending": boolean;
+        /**
+          * Button corners
+          * @default "default"
+         */
+        "radius": "default" | "circle" | "pill";
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
@@ -1852,6 +1860,9 @@ declare global {
         prototype: HTMLOrbAlertElement;
         new (): HTMLOrbAlertElement;
     };
+    /**
+     * Buttons represent actions the user can take, such as submitting a form, opening a dialog, or navigating to another page.
+     */
     interface HTMLOrbButtonElement extends Components.OrbButton, HTMLStencilElement {
     }
     var HTMLOrbButtonElement: {
@@ -2710,6 +2721,9 @@ declare namespace LocalJSX {
          */
         "open"?: boolean;
     }
+    /**
+     * Buttons represent actions the user can take, such as submitting a form, opening a dialog, or navigating to another page.
+     */
     interface OrbButton {
         /**
           * Predefined colors
@@ -2743,6 +2757,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "pending"?: boolean;
+        /**
+          * Button corners
+          * @default "default"
+         */
+        "radius"?: "default" | "circle" | "pill";
         /**
           * A promise that resolves when the component has completed it's initial render
           * @default new Promise((res) => (this.#resolve = res))
@@ -4439,6 +4458,7 @@ declare namespace LocalJSX {
         "pending": boolean;
         "fill": "solid" | "outline" | "clear";
         "size": "md" | "lg" | "sm" | "xs";
+        "radius": "default" | "circle" | "pill";
         "color": Color;
         "value": string | File | FormData;
     }
@@ -4899,6 +4919,9 @@ declare module "@stencil/core" {
              * A short, prominent message, such as a confirmation, callout, or error.
              */
             "orb-alert": LocalJSX.IntrinsicElements["orb-alert"] & JSXBase.HTMLAttributes<HTMLOrbAlertElement>;
+            /**
+             * Buttons represent actions the user can take, such as submitting a form, opening a dialog, or navigating to another page.
+             */
             "orb-button": LocalJSX.IntrinsicElements["orb-button"] & JSXBase.HTMLAttributes<HTMLOrbButtonElement>;
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
             /**

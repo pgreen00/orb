@@ -6,10 +6,18 @@ import {
   Host,
   Watch,
   AttachInternals,
+  Fragment,
 } from "@stencil/core";
 import { Color } from "../../utils/color";
 import { ReadyController } from "../../utils/ready-controller";
+import { toggleState } from "../../utils/custom-states";
 
+/**
+ * Buttons represent actions the user can take, such as submitting a form, opening a dialog, or navigating to another page.
+ * @slot - Button content
+ * @slot badge - Badge content
+ * @part loading - The `orb-loading` element displayed when pending
+ */
 @Component({
   tag: "orb-button",
   styleUrl: "button.css",
@@ -17,13 +25,19 @@ import { ReadyController } from "../../utils/ready-controller";
   formAssociated: true,
 })
 export class Button extends ReadyController {
-  @AttachInternals() internals: ElementInternals;
+  @AttachInternals({
+    states: {
+      /** Whenever the button is pending */
+      pending: false
+    }
+  }) internals: ElementInternals;
   @Element() el: HTMLOrbButtonElement;
   private get formEl() {
     return this.form
       ? document.getElementById(this.form)?.closest("form")
       : this.internals.form;
   }
+  private pendingWidth = 0;
 
   /** Disables button */
   @Prop() disabled = false;
@@ -49,6 +63,9 @@ export class Button extends ReadyController {
   /** Button size */
   @Prop({ reflect: true }) size: "md" | "lg" | "sm" | "xs" = "md";
 
+  /** Button corners */
+  @Prop({ reflect: true }) radius: "default" | "circle" | "pill" = "default";
+
   /** Predefined colors */
   @Prop({ reflect: true }) color?: Color;
 
@@ -57,6 +74,28 @@ export class Button extends ReadyController {
 
   componentWillLoad() {
     this.internals.role = "button";
+    this.internals.ariaPressed = "false";
+  }
+
+  @Watch('value', { immediate: true })
+  async onValueChange() {
+    await this.ready
+    this.internals.setFormValue(this.value ?? null);
+  }
+
+  @Watch("disabled", { immediate: true })
+  async onDisabledChange() {
+    await this.ready
+    this.internals.ariaDisabled = this.disabled ? "true" : "false";
+    this.el.tabIndex = this.disabled ? -1 : 0;
+  }
+
+  @Watch("pending", { immediate: true })
+  async onPendingChange() {
+    await this.ready
+    this.internals.ariaBusy = this.pending ? "true" : "false";
+    this.pendingWidth = this.el.clientWidth;
+    toggleState(this.internals.states, 'pending', this.pending)
   }
 
   @Listen("click")
@@ -68,43 +107,35 @@ export class Button extends ReadyController {
     }
   }
 
-  @Watch("pending")
-  onPendingChange() {
-    if (this.pending) {
-      this.el.style.setProperty("--pending-width", `${this.el.clientWidth}px`);
-    }
-  }
-
-  @Watch('value', { immediate: true })
-  async onValueChange() {
-    await this.ready
-    this.internals.setFormValue(this.value ?? null);
-  }
-
   @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
-    if (
-      !this.disabled &&
-      !this.pending &&
-      (ev.key === "Enter" || ev.key == " ")
-    ) {
+    if (ev.key === "Enter" || ev.key == " ") {
       ev.preventDefault();
       this.el.click();
     }
   }
 
-  @Watch("disabled", { immediate: true })
-  @Watch("pending")
-  async onDisabledChange() {
-    await this.ready
-    this.internals.ariaDisabled = this.disabled ? "true" : "false";
-    this.el.tabIndex = this.disabled || this.pending ? -1 : 0;
+  @Listen("pointerdown")
+  onPointerDown() {
+    this.internals.ariaPressed = "true";
+  }
+
+  @Listen("pointerup")
+  onPointerUp() {
+    this.internals.ariaPressed = "false";
   }
 
   render() {
     return (
-      <Host>
-        {this.pending ? <orb-loading /> : <slot />}
+      <Host disabled={this.pending || null}>
+        {this.pending ? (
+          <Fragment>
+            <style>{`:host{--pending-width:${this.pendingWidth}px;}`}</style>
+            <orb-loading part="loading" />
+          </Fragment>
+        ) : (
+          <slot />
+        )}
         <slot name="badge" />
       </Host>
     );

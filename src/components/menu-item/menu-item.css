@@ -18,6 +18,8 @@
   user-select: none;
   -webkit-user-select: none;
   white-space: nowrap;
+  font-size: var(--orb-font-md);
+  font-weight: var(--orb-font-semi-bold);
 }
 
 /* One highlight for hover, keyboard focus, and an open submenu. Menubar
