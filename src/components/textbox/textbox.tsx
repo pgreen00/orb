@@ -13,6 +13,7 @@ import { EyeIcon, EyeOffIcon } from "../../utils/icons";
 import { ReadyController } from "../../utils/ready-controller";
 import { debounceEvent, DebouncedEventEmitter } from "../../utils/debounce-event";
 
+const CONTROLS = 'input, select, textarea, orb-mask-input'
 const UTILITY_SLOTS = ["top-start", "top-end", "bottom-start", "bottom-end"] as const;
 
 /**
@@ -121,20 +122,22 @@ export class Textbox extends ReadyController {
 
   @Listen('invalid', { capture: true })
   onInvalid() {
-    this.userInvalid = this.formControl.matches(':user-invalid')
-    this.validationMessage = this.formControl.validationMessage
+    this.syncValidity()
   }
 
-  @Listen('blur', { capture: true })
-  onBlur() {
-    this.userInvalid = this.formControl.matches(':user-invalid')
-    this.validationMessage = this.formControl.validationMessage
+  /**
+   * Bubbles, unlike `blur`, so it runs after the control has updated its own
+   * validity state. A form-associated custom control sets that state in its
+   * blur handler.
+   */
+  @Listen('focusout')
+  onFocusOut() {
+    this.syncValidity()
   }
 
   @Listen('input')
   onInput(ev: globalThis.Event) {
-    this.userInvalid = this.formControl.matches(':user-invalid')
-    this.validationMessage = this.formControl.validationMessage
+    this.syncValidity()
     this.autogrow()
     // Inputs in the utility slots, such as a filter field, aren't the value.
     if (ev.target === this.formControl) this.valueChange?.emit(this.formControl.value)
@@ -142,7 +145,15 @@ export class Textbox extends ReadyController {
 
   @Listen('change')
   onChange() {
-    this.userInvalid = this.formControl.matches(':user-invalid')
+    this.syncValidity()
+  }
+
+  /**
+   * Form-associated custom controls, such as `orb-mask-input`, report the user-invalid
+   * state as a custom state rather than through the native pseudo-class.
+   */
+  private syncValidity() {
+    this.userInvalid = this.formControl.matches(':user-invalid, :state(user-invalid)')
     this.validationMessage = this.formControl.validationMessage
   }
 
@@ -172,7 +183,7 @@ export class Textbox extends ReadyController {
     const children = Array.from(this.hostEl.children)
     // The control is a direct child without a slot, so an input in a utility
     // slot, such as a filter field, isn't mistaken for it.
-    const controls = children.filter(el => !el.slot && el.matches('input, select, textarea'))
+    const controls = children.filter(el => !el.slot && el.matches(CONTROLS))
     this.formControl = controls[0] as typeof this.formControl;
     this.hasPasswordInput = this.formControl?.matches('input[type=password]') ?? false;
     this.hasSearchinput = this.formControl?.matches('input[type=search]') ?? false;

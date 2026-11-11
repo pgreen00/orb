@@ -32,7 +32,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Built with [Stencil](https://stenciljs.com/)
 - Popovers and tooltips powered by [Floating UI](https://floating-ui.com)
-- Date and calendar components utilize [date-fns](https://date-fns.org)
+- Date and calendar components utilize [date-fns](https://date-fns.org) and [rrule](https://github.com/jkbrzt/rrule)
 - Overlays use [interactjs](https://interactjs.io) for dragging functionality
 - Many public API's are heavily inspired by [Ionic Framework](https://ionicframework.com) and [Web Awesome](https://webawesome.com)
 

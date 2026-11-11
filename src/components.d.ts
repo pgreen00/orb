@@ -10,6 +10,7 @@ import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
 import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+import { MaskDefinition } from "./components/mask-input/mask";
 import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -26,6 +27,7 @@ export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
 export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+export { MaskDefinition } from "./components/mask-input/mask";
 export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
@@ -812,7 +814,89 @@ export namespace Components {
          */
         "typographer": boolean;
     }
+    /**
+     * Formats and restricts what the user types, such as a phone number or a date.
+     * It's the input inside an `orb-textbox`, so it has no border, label, or note
+     * of its own.
+     */
     interface OrbMaskInput {
+        /**
+          * How the browser capitalizes what the user types
+          * @default "none"
+         */
+        "autocapitalize": "off" | "none" | "on" | "sentences" | "words" | "characters";
+        /**
+          * The value a form reset returns to. Defaults to the initial `value`.
+         */
+        "defaultValue"?: string;
+        /**
+          * Disables the field
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * The label of the Enter key on touch keyboards
+          * @default "done"
+         */
+        "enterkeyhint": "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+        /**
+          * When the rest of the mask shows in the empty positions. `focus` shows it while the field has focus.
+          * @default "focus"
+         */
+        "guide": "focus" | "always" | "off";
+        /**
+          * The keyboard shown on touch devices. Defaults to the mask's keyboard.
+         */
+        "inputmode"?: string;
+        /**
+          * The mask: the name of a built-in or registered mask, such as `phone`, a pattern such as `(###) ###-####`, or a definition. Without one, the field is plain text.
+         */
+        "mask"?: string | MaskDefinition;
+        /**
+          * Shown when the field is empty and the guide isn't showing
+         */
+        "placeholder"?: string;
+        /**
+          * The character shown in each empty position of the guide
+          * @default "_"
+         */
+        "placeholderChar": string;
+        /**
+          * Shows the value without allowing edits. Still focusable and submitted with the form.
+          * @default false
+         */
+        "readonly": boolean;
+        /**
+          * Requires a complete value before the form can be submitted
+          * @default false
+         */
+        "required": boolean;
+        /**
+          * Clears custom errors and the user interaction state, so validation styling is hidden until the user interacts with the field again.
+         */
+        "resetValidity": () => Promise<void>;
+        /**
+          * Focuses the field and selects all of its text
+         */
+        "select": () => Promise<void>;
+        /**
+          * Sets a custom validation error. Pass an empty string to clear it.
+         */
+        "setCustomValidity": (message: string) => Promise<void>;
+        /**
+          * Selects the characters from `start` to `end` of the formatted text
+         */
+        "setSelectionRange": (start: number, end: number) => Promise<void>;
+        /**
+          * Submits the unmasked value, such as `5551234567`, instead of the formatted text
+          * @default false
+         */
+        "unmasked": boolean;
+        /**
+          * The formatted text. Setting it also accepts the raw characters, such as `5551234567`, and formats them.
+          * @default ""
+         */
+        "value": string;
     }
     /**
      * A list of actions or options, made of `orb-mi` items.
@@ -1875,6 +1959,10 @@ export interface OrbGridCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbGridElement;
 }
+export interface OrbMaskInputCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbMaskInputElement;
+}
 export interface OrbMenuCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbMenuElement;
@@ -2273,7 +2361,23 @@ declare global {
         prototype: HTMLOrbMarkdownElement;
         new (): HTMLOrbMarkdownElement;
     };
+    interface HTMLOrbMaskInputElementEventMap {
+        "orbComplete": string;
+    }
+    /**
+     * Formats and restricts what the user types, such as a phone number or a date.
+     * It's the input inside an `orb-textbox`, so it has no border, label, or note
+     * of its own.
+     */
     interface HTMLOrbMaskInputElement extends Components.OrbMaskInput, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbMaskInputElementEventMap>(type: K, listener: (this: HTMLOrbMaskInputElement, ev: OrbMaskInputCustomEvent<HTMLOrbMaskInputElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbMaskInputElementEventMap>(type: K, listener: (this: HTMLOrbMaskInputElement, ev: OrbMaskInputCustomEvent<HTMLOrbMaskInputElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbMaskInputElement: {
         prototype: HTMLOrbMaskInputElement;
@@ -3607,7 +3711,85 @@ declare namespace LocalJSX {
          */
         "typographer"?: boolean;
     }
+    /**
+     * Formats and restricts what the user types, such as a phone number or a date.
+     * It's the input inside an `orb-textbox`, so it has no border, label, or note
+     * of its own.
+     */
     interface OrbMaskInput {
+        /**
+          * How the browser capitalizes what the user types
+          * @default "none"
+         */
+        "autocapitalize"?: "off" | "none" | "on" | "sentences" | "words" | "characters";
+        /**
+          * The value a form reset returns to. Defaults to the initial `value`.
+         */
+        "defaultValue"?: string;
+        /**
+          * Disables the field
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * The label of the Enter key on touch keyboards
+          * @default "done"
+         */
+        "enterkeyhint"?: "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        /**
+          * When the rest of the mask shows in the empty positions. `focus` shows it while the field has focus.
+          * @default "focus"
+         */
+        "guide"?: "focus" | "always" | "off";
+        /**
+          * The keyboard shown on touch devices. Defaults to the mask's keyboard.
+         */
+        "inputmode"?: string;
+        /**
+          * The mask: the name of a built-in or registered mask, such as `phone`, a pattern such as `(###) ###-####`, or a definition. Without one, the field is plain text.
+         */
+        "mask"?: string | MaskDefinition;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
+        /**
+          * Emitted once when the value becomes complete for its mask
+         */
+        "onOrbComplete"?: (event: OrbMaskInputCustomEvent<string>) => void;
+        /**
+          * Shown when the field is empty and the guide isn't showing
+         */
+        "placeholder"?: string;
+        /**
+          * The character shown in each empty position of the guide
+          * @default "_"
+         */
+        "placeholderChar"?: string;
+        /**
+          * Shows the value without allowing edits. Still focusable and submitted with the form.
+          * @default false
+         */
+        "readonly"?: boolean;
+        /**
+          * Requires a complete value before the form can be submitted
+          * @default false
+         */
+        "required"?: boolean;
+        /**
+          * Submits the unmasked value, such as `5551234567`, instead of the formatted text
+          * @default false
+         */
+        "unmasked"?: boolean;
+        /**
+          * The formatted text. Setting it also accepts the raw characters, such as `5551234567`, and formats them.
+          * @default ""
+         */
+        "value"?: string;
     }
     /**
      * A list of actions or options, made of `orb-mi` items.
@@ -4838,6 +5020,21 @@ declare namespace LocalJSX {
         "linkify": boolean;
         "typographer": boolean;
     }
+    interface OrbMaskInputAttributes {
+        "mask": string | MaskDefinition;
+        "value": string;
+        "defaultValue": string;
+        "unmasked": boolean;
+        "guide": "focus" | "always" | "off";
+        "placeholderChar": string;
+        "placeholder": string;
+        "inputmode": string;
+        "enterkeyhint": "enter" | "done" | "go" | "next" | "previous" | "search" | "send";
+        "autocapitalize": "off" | "none" | "on" | "sentences" | "words" | "characters";
+        "required": boolean;
+        "disabled": boolean;
+        "readonly": boolean;
+    }
     interface OrbMenuAttributes {
         "for": string;
         "showOn": "click" | "context-menu";
@@ -5124,7 +5321,7 @@ declare namespace LocalJSX {
         "orb-layout-swap": Omit<OrbLayoutSwap, keyof OrbLayoutSwapAttributes> & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes]?: OrbLayoutSwap[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `attr:${K}`]?: OrbLayoutSwapAttributes[K] } & { [K in keyof OrbLayoutSwap & keyof OrbLayoutSwapAttributes as `prop:${K}`]?: OrbLayoutSwap[K] };
         "orb-loading": OrbLoading;
         "orb-markdown": Omit<OrbMarkdown, keyof OrbMarkdownAttributes> & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes]?: OrbMarkdown[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `attr:${K}`]?: OrbMarkdownAttributes[K] } & { [K in keyof OrbMarkdown & keyof OrbMarkdownAttributes as `prop:${K}`]?: OrbMarkdown[K] };
-        "orb-mask-input": OrbMaskInput;
+        "orb-mask-input": Omit<OrbMaskInput, keyof OrbMaskInputAttributes> & { [K in keyof OrbMaskInput & keyof OrbMaskInputAttributes]?: OrbMaskInput[K] } & { [K in keyof OrbMaskInput & keyof OrbMaskInputAttributes as `attr:${K}`]?: OrbMaskInputAttributes[K] } & { [K in keyof OrbMaskInput & keyof OrbMaskInputAttributes as `prop:${K}`]?: OrbMaskInput[K] };
         "orb-menu": Omit<OrbMenu, keyof OrbMenuAttributes> & { [K in keyof OrbMenu & keyof OrbMenuAttributes]?: OrbMenu[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `attr:${K}`]?: OrbMenuAttributes[K] } & { [K in keyof OrbMenu & keyof OrbMenuAttributes as `prop:${K}`]?: OrbMenu[K] };
         "orb-menubar": Omit<OrbMenubar, keyof OrbMenubarAttributes> & { [K in keyof OrbMenubar & keyof OrbMenubarAttributes]?: OrbMenubar[K] } & { [K in keyof OrbMenubar & keyof OrbMenubarAttributes as `attr:${K}`]?: OrbMenubarAttributes[K] } & { [K in keyof OrbMenubar & keyof OrbMenubarAttributes as `prop:${K}`]?: OrbMenubar[K] };
         "orb-mesh": Omit<OrbMesh, keyof OrbMeshAttributes> & { [K in keyof OrbMesh & keyof OrbMeshAttributes]?: OrbMesh[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `attr:${K}`]?: OrbMeshAttributes[K] } & { [K in keyof OrbMesh & keyof OrbMeshAttributes as `prop:${K}`]?: OrbMesh[K] };
@@ -5234,6 +5431,11 @@ declare module "@stencil/core" {
              * Renders markdown into the light DOM.
              */
             "orb-markdown": LocalJSX.IntrinsicElements["orb-markdown"] & JSXBase.HTMLAttributes<HTMLOrbMarkdownElement>;
+            /**
+             * Formats and restricts what the user types, such as a phone number or a date.
+             * It's the input inside an `orb-textbox`, so it has no border, label, or note
+             * of its own.
+             */
             "orb-mask-input": LocalJSX.IntrinsicElements["orb-mask-input"] & JSXBase.HTMLAttributes<HTMLOrbMaskInputElement>;
             /**
              * A list of actions or options, made of `orb-mi` items.

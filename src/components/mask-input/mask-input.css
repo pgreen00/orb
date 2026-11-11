@@ -1,3 +1,57 @@
+/**
+ * @prop --guide-color: Color of the unfilled rest of the mask and the placeholder
+ */
+
 :host {
   display: block;
+  min-width: 0;
+  cursor: text;
+  --guide-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-600));
+}
+
+:host([disabled]) {
+  cursor: default;
+}
+
+/* The guide and placeholder sit over the text, so they share its font and white space */
+.field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: pre;
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 1px;
+  min-height: 1lh;
+  outline: none;
+  cursor: inherit;
+}
+
+.guide,
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre;
+  color: var(--guide-color);
+}
+
+/* The typed part is laid out but invisible, so the guide lines up with the text */
+.typed {
+  color: transparent;
+}
+
+@media (forced-colors: active) {
+  .guide,
+  .placeholder {
+    color: GrayText;
+  }
 }

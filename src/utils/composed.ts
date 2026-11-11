@@ -25,6 +25,34 @@ export function composedContains(ancestor: Node, node: Node | null): boolean {
   return false;
 }
 
+/**
+ * The selection inside `root`, as character offsets from its start. Null when
+ * the selection is elsewhere. `getSelection()` alone reports the host for a
+ * selection in a shadow root, so this reads the composed ranges instead.
+ */
+export function selectionOffsets(root: HTMLElement): { start: number; end: number } | null {
+  const selection = window.getSelection();
+  if (!selection) return null;
+  const top = root.getRootNode();
+  const [range] = selection.getComposedRanges({
+    shadowRoots: top instanceof ShadowRoot ? [top] : [],
+  });
+  if (!range || !root.contains(range.startContainer) || !root.contains(range.endContainer)) {
+    return null;
+  }
+  return {
+    start: offsetWithin(root, range.startContainer, range.startOffset),
+    end: offsetWithin(root, range.endContainer, range.endOffset),
+  };
+}
+
+function offsetWithin(root: Node, node: Node, offset: number): number {
+  const range = document.createRange();
+  range.selectNodeContents(root);
+  range.setEnd(node, offset);
+  return range.toString().length;
+}
+
 /** Like `closest()`, but crosses slots and shadow roots. */
 export function composedClosest<T extends Element>(start: Element, selector: string): T | null {
   for (let current = composedParent(start); current; current = composedParent(current)) {

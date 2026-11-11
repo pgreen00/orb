@@ -244,6 +244,24 @@ For a placeholder, start with an empty option. With `required`, the browser won'
 - Focus the select and type `p`. **Platform** is selected without opening the list.
 - Focus the select, then click away without picking. No message shows. Submitting a form with it empty would show one.
 
+## Masked Inputs
+
+For text with a fixed format, such as a phone number, a date, or an amount, put an [`<orb-mask-input>`](../mask-input/) in the textbox. The mask adds the separators as the user types and drops characters that don't fit. The textbox still provides the label, the note, the border, and the validation message.
+
+::: live-code-demo
+
+```html
+<orb-textbox label="Phone" note="Formatted as you type">
+  <orb-mask-input mask="phone" name="phone" required></orb-mask-input>
+</orb-textbox>
+```
+
+:::
+
+**Manual test:**
+- Type `5551234567`. The text reads `(555) 123-4567` as you type.
+- Type a letter. It doesn't appear.
+
 ## Textareas
 
 A `textarea` grows as you type, up to `--textarea-max-height` (15em by default), and then scrolls. It has no resize handle.

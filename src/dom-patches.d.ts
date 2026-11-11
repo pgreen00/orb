@@ -12,3 +12,7 @@ interface Element {
   ariaLabelledByElements: readonly Element[];
   ariaDescribedByElements: readonly Element[];
 }
+
+interface Selection {
+  getComposedRanges(options?: { shadowRoots?: ShadowRoot[] }): StaticRange[];
+}

@@ -88,7 +88,8 @@ div[part="container"] {
 
 ::slotted(input),
 ::slotted(select),
-::slotted(textarea) {
+::slotted(textarea),
+::slotted(orb-mask-input) {
   font-family: inherit;
   font-size: 1em;
   font-weight: var(--orb-font-light);
@@ -113,7 +114,8 @@ div[part="container"] {
 }
 
 ::slotted(select),
-::slotted(input) {
+::slotted(input),
+::slotted(orb-mask-input) {
   min-width: 0;
 }
 
