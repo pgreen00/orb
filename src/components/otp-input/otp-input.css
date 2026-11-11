@@ -1,3 +1,217 @@
+/**
+ * @prop --segment-size: Width and height of each segment
+ * @prop --segment-gap: Gap between segments. Not used by `contained`.
+ * @prop --segment-border-radius: Corner radius of each segment
+ * @prop --mask-char: Character shown for entered values with `mask`, and in empty segments with `with-mask`
+ */
+
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2em;
+  font-size: var(--orb-font-md);
+  color: var(--orb-text-color);
+  --segment-size: 2.5em;
+  --segment-gap: var(--orb-spacing-xs);
+  --segment-border-radius: var(--orb-radius-md);
+  --segment-border-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-700));
+  --segment-focus-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --segment-error-color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
+  --focus-bleed: 4px;
+}
+
+:host([size="xs"]) {
+  font-size: var(--orb-font-xs);
+}
+
+:host([size="sm"]) {
+  font-size: var(--orb-font-sm);
+}
+
+:host([size="md"]) {
+  font-size: var(--orb-font-md);
+}
+
+:host([size="lg"]) {
+  font-size: var(--orb-font-lg);
+}
+
+/* Codes read left to right whatever the page direction */
+.segments {
+  position: relative;
+  direction: ltr;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--segment-gap);
+  max-width: calc(100% + 2 * var(--focus-bleed));
+  /* The padding keeps the focus ring inside the scroll area. The negative margin cancels it out. */
+  padding: var(--focus-bleed);
+  margin: calc(-1 * var(--focus-bleed));
+  overflow-x: auto;
+  scrollbar-width: none;
+  cursor: text;
+}
+
+.segments::-webkit-scrollbar {
+  display: none;
+}
+
+/* The real input is off-screen but still focusable. It can't be 0x0, or Chromium drops characters typed over a selection. */
+.hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: var(--segment-size);
+  height: var(--segment-size);
+  border-radius: var(--segment-border-radius);
+  border: solid 2px var(--segment-border-color);
+  background-color: transparent;
+  color: inherit;
+  font-size: 1em;
+  font-weight: var(--orb-font-regular);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  outline: solid 2px transparent;
+  outline-offset: 2px;
+  transition: var(--orb-transition-x-fast) ease-in-out;
+  transition-property: border-color, background-color, outline-color;
+}
+
+.literal {
+  flex-shrink: 0;
+  color: light-dark(var(--orb-neutral-600), var(--orb-neutral-400));
+  white-space: pre;
+  user-select: none;
+}
+
+.caret {
+  position: absolute;
+  width: 1.5px;
+  height: 60%;
+  background-color: currentColor;
+  animation: caret-blink 1s step-end infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.masked::before,
+.mask-hint::before {
+  content: var(--mask-char, "•");
+}
+
+.mask-hint::before {
+  opacity: 0.35;
+}
+
+/* Appearance: outlined is the base style above */
+
+:host([appearance="filled"]) .segment {
+  background-color: light-dark(var(--orb-neutral-100), var(--orb-neutral-850));
+  border-color: transparent;
+}
+
+:host([appearance="filled-outlined"]) .segment {
+  background-color: light-dark(var(--orb-neutral-100), var(--orb-neutral-850));
+}
+
+:host([appearance="contained"]) .segments {
+  --focus-bleed: 0px;
+  gap: 0;
+  overflow: hidden;
+  border: solid 2px var(--segment-border-color);
+  border-radius: var(--segment-border-radius);
+}
+
+:host([appearance="contained"]) .segment {
+  border: none;
+  border-radius: 0;
+  outline-offset: -2px;
+}
+
+:host([appearance="contained"]) .segment + .segment,
+:host([appearance="contained"]) .literal + .segment {
+  border-left: solid 2px var(--segment-border-color);
+}
+
+:host(:state(user-invalid)) .segment {
+  border-color: var(--segment-error-color);
+}
+
+:host([appearance="contained"]:state(user-invalid)) .segments {
+  border-color: var(--segment-error-color);
+}
+
+/* Active and selected segments come last so the focus color wins over the error color */
+:host .segment.active,
+:host .segment.selected {
+  border-color: var(--segment-focus-color);
+  outline-color: var(--segment-focus-color);
+}
+
+:host(:state(disabled)) .segments {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Readonly has no active segment, so every segment rings while the field has focus */
+:host(:state(readonly)) .segments {
+  cursor: default;
+}
+
+:host(:state(readonly)) .segments:focus-within .segment {
+  outline-color: var(--segment-focus-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segment {
+    transition: none;
+  }
+
+  .caret {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .segment {
+    border-color: CanvasText;
+  }
+
+  .segment.active,
+  .segment.selected {
+    border-color: Highlight;
+    outline-color: Highlight;
+  }
+
+  .caret {
+    background-color: CanvasText;
+  }
+
+  .literal {
+    color: CanvasText;
+  }
 }

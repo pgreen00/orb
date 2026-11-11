@@ -13,6 +13,7 @@ import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetai
 import { Placement } from "@floating-ui/dom";
 import { MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
+import { OtpCase, OtpType } from "./components/otp-input/otp";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { PageChangeDetail } from "./components/pagination/pagination";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
@@ -28,6 +29,7 @@ export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetai
 export { Placement } from "@floating-ui/dom";
 export { MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
+export { OtpCase, OtpType } from "./components/otp-input/otp";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { PageChangeDetail } from "./components/pagination/pagination";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
@@ -911,7 +913,111 @@ export namespace Components {
          */
         "invalid": boolean;
     }
+    /**
+     * Collects a one-time passcode, PIN, or other fixed-length code, one character per segment.
+     */
     interface OrbOtpInput {
+        /**
+          * Visual style of the segments
+          * @default "outlined"
+         */
+        "appearance": | "outlined"
+    | "filled"
+    | "filled-outlined"
+    | "contained";
+        /**
+          * The `autocomplete` attribute of the input. Browsers offer SMS codes for `one-time-code`.
+          * @default "one-time-code"
+         */
+        "autocomplete": string;
+        /**
+          * Submits the form once every segment is filled. Cancel `orbComplete` to stop it.
+          * @default false
+         */
+        "autosubmit": boolean;
+        /**
+          * Case applied to letters as they're entered
+          * @default "preserve"
+         */
+        "case": OtpCase;
+        /**
+          * Clears the value and returns focus to the field
+         */
+        "clear": () => Promise<void>;
+        /**
+          * Value the form resets to. Defaults to the initial `value`.
+         */
+        "defaultValue"?: string;
+        /**
+          * Disables the control
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * Segment layout. Each `#` is a segment and any other character is a literal separator, so `###-###` shows two groups of three with a dash between them. Overrides `length`.
+          * @default ""
+         */
+        "format": string;
+        /**
+          * Label that shows above the segments
+         */
+        "label"?: string;
+        /**
+          * Number of segments. Ignored when `format` is set.
+          * @default 6
+         */
+        "length": number;
+        /**
+          * Shows the mask character instead of entered characters. The value is still available, and screen readers still announce the characters.
+          * @default false
+         */
+        "mask": boolean;
+        /**
+          * Additional info that shows below the segments
+         */
+        "note"?: string;
+        /**
+          * Shows the value without allowing edits. Still focusable and submitted with the form.
+          * @default false
+         */
+        "readonly": boolean;
+        /**
+          * Requires every segment to be filled before the form can be submitted
+          * @default false
+         */
+        "required": boolean;
+        /**
+          * Clears custom errors and the user interaction state, so validation styling is hidden until the user interacts with the control again.
+         */
+        "resetValidity": () => Promise<void>;
+        /**
+          * Selects all entered characters in the input
+         */
+        "select": () => Promise<void>;
+        /**
+          * Sets a custom validation error. Pass an empty string to clear it.
+         */
+        "setCustomValidity": (message: string) => Promise<void>;
+        /**
+          * Size of each segment
+          * @default "md"
+         */
+        "size": "xs" | "sm" | "md" | "lg";
+        /**
+          * Characters each segment accepts
+          * @default "numeric"
+         */
+        "type": OtpType;
+        /**
+          * The current value. Characters the `type` doesn't allow are dropped.
+          * @default ""
+         */
+        "value": string;
+        /**
+          * Shows the mask character in empty segments, like a password field does
+          * @default false
+         */
+        "withMask": boolean;
     }
     interface OrbOverlay {
         /**
@@ -1777,6 +1883,10 @@ export interface OrbMenubarCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbMenubarElement;
 }
+export interface OrbOtpInputCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbOtpInputElement;
+}
 export interface OrbOverlayCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbOverlayElement;
@@ -2236,7 +2346,23 @@ declare global {
         prototype: HTMLOrbNoteElement;
         new (): HTMLOrbNoteElement;
     };
+    interface HTMLOrbOtpInputElementEventMap {
+        "orbValueChange": string;
+        "orbComplete": string;
+        "orbClear": void;
+    }
+    /**
+     * Collects a one-time passcode, PIN, or other fixed-length code, one character per segment.
+     */
     interface HTMLOrbOtpInputElement extends Components.OrbOtpInput, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbOtpInputElementEventMap>(type: K, listener: (this: HTMLOrbOtpInputElement, ev: OrbOtpInputCustomEvent<HTMLOrbOtpInputElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbOtpInputElementEventMap>(type: K, listener: (this: HTMLOrbOtpInputElement, ev: OrbOtpInputCustomEvent<HTMLOrbOtpInputElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLOrbOtpInputElement: {
         prototype: HTMLOrbOtpInputElement;
@@ -3570,7 +3696,115 @@ declare namespace LocalJSX {
          */
         "invalid"?: boolean;
     }
+    /**
+     * Collects a one-time passcode, PIN, or other fixed-length code, one character per segment.
+     */
     interface OrbOtpInput {
+        /**
+          * Visual style of the segments
+          * @default "outlined"
+         */
+        "appearance"?: | "outlined"
+    | "filled"
+    | "filled-outlined"
+    | "contained";
+        /**
+          * The `autocomplete` attribute of the input. Browsers offer SMS codes for `one-time-code`.
+          * @default "one-time-code"
+         */
+        "autocomplete"?: string;
+        /**
+          * Submits the form once every segment is filled. Cancel `orbComplete` to stop it.
+          * @default false
+         */
+        "autosubmit"?: boolean;
+        /**
+          * Case applied to letters as they're entered
+          * @default "preserve"
+         */
+        "case"?: OtpCase;
+        /**
+          * Value the form resets to. Defaults to the initial `value`.
+         */
+        "defaultValue"?: string;
+        /**
+          * Disables the control
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        /**
+          * Segment layout. Each `#` is a segment and any other character is a literal separator, so `###-###` shows two groups of three with a dash between them. Overrides `length`.
+          * @default ""
+         */
+        "format"?: string;
+        /**
+          * Label that shows above the segments
+         */
+        "label"?: string;
+        /**
+          * Number of segments. Ignored when `format` is set.
+          * @default 6
+         */
+        "length"?: number;
+        /**
+          * Shows the mask character instead of entered characters. The value is still available, and screen readers still announce the characters.
+          * @default false
+         */
+        "mask"?: boolean;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
+        /**
+          * Additional info that shows below the segments
+         */
+        "note"?: string;
+        /**
+          * Emitted when `clear()` empties the field
+         */
+        "onOrbClear"?: (event: OrbOtpInputCustomEvent<void>) => void;
+        /**
+          * Emitted once when every segment is filled. Call `preventDefault()` to stop `autosubmit`.
+         */
+        "onOrbComplete"?: (event: OrbOtpInputCustomEvent<string>) => void;
+        /**
+          * Emits the value when the user enters or removes a character
+         */
+        "onOrbValueChange"?: (event: OrbOtpInputCustomEvent<string>) => void;
+        /**
+          * Shows the value without allowing edits. Still focusable and submitted with the form.
+          * @default false
+         */
+        "readonly"?: boolean;
+        /**
+          * Requires every segment to be filled before the form can be submitted
+          * @default false
+         */
+        "required"?: boolean;
+        /**
+          * Size of each segment
+          * @default "md"
+         */
+        "size"?: "xs" | "sm" | "md" | "lg";
+        /**
+          * Characters each segment accepts
+          * @default "numeric"
+         */
+        "type"?: OtpType;
+        /**
+          * The current value. Characters the `type` doesn't allow are dropped.
+          * @default ""
+         */
+        "value"?: string;
+        /**
+          * Shows the mask character in empty segments, like a password field does
+          * @default false
+         */
+        "withMask"?: boolean;
     }
     interface OrbOverlay {
         /**
@@ -4635,6 +4869,28 @@ declare namespace LocalJSX {
         "invalid": boolean;
         "for": string;
     }
+    interface OrbOtpInputAttributes {
+        "label": string;
+        "note": string;
+        "length": number;
+        "format": string;
+        "type": OtpType;
+        "case": OtpCase;
+        "mask": boolean;
+        "withMask": boolean;
+        "appearance": | "outlined"
+    | "filled"
+    | "filled-outlined"
+    | "contained";
+        "size": "xs" | "sm" | "md" | "lg";
+        "autocomplete": string;
+        "autosubmit": boolean;
+        "value": string;
+        "defaultValue": string;
+        "disabled": boolean;
+        "readonly": boolean;
+        "required": boolean;
+    }
     interface OrbOverlayAttributes {
         "manualHide": boolean;
         "open": boolean;
@@ -4875,7 +5131,7 @@ declare namespace LocalJSX {
         "orb-mi": Omit<OrbMi, keyof OrbMiAttributes> & { [K in keyof OrbMi & keyof OrbMiAttributes]?: OrbMi[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `attr:${K}`]?: OrbMiAttributes[K] } & { [K in keyof OrbMi & keyof OrbMiAttributes as `prop:${K}`]?: OrbMi[K] };
         "orb-midi": OrbMidi;
         "orb-note": Omit<OrbNote, keyof OrbNoteAttributes> & { [K in keyof OrbNote & keyof OrbNoteAttributes]?: OrbNote[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `attr:${K}`]?: OrbNoteAttributes[K] } & { [K in keyof OrbNote & keyof OrbNoteAttributes as `prop:${K}`]?: OrbNote[K] };
-        "orb-otp-input": OrbOtpInput;
+        "orb-otp-input": Omit<OrbOtpInput, keyof OrbOtpInputAttributes> & { [K in keyof OrbOtpInput & keyof OrbOtpInputAttributes]?: OrbOtpInput[K] } & { [K in keyof OrbOtpInput & keyof OrbOtpInputAttributes as `attr:${K}`]?: OrbOtpInputAttributes[K] } & { [K in keyof OrbOtpInput & keyof OrbOtpInputAttributes as `prop:${K}`]?: OrbOtpInput[K] };
         "orb-overlay": Omit<OrbOverlay, keyof OrbOverlayAttributes> & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes]?: OrbOverlay[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `attr:${K}`]?: OrbOverlayAttributes[K] } & { [K in keyof OrbOverlay & keyof OrbOverlayAttributes as `prop:${K}`]?: OrbOverlay[K] };
         "orb-pagination": Omit<OrbPagination, keyof OrbPaginationAttributes> & { [K in keyof OrbPagination & keyof OrbPaginationAttributes]?: OrbPagination[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `attr:${K}`]?: OrbPaginationAttributes[K] } & { [K in keyof OrbPagination & keyof OrbPaginationAttributes as `prop:${K}`]?: OrbPagination[K] };
         "orb-pill": Omit<OrbPill, keyof OrbPillAttributes> & { [K in keyof OrbPill & keyof OrbPillAttributes]?: OrbPill[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `attr:${K}`]?: OrbPillAttributes[K] } & { [K in keyof OrbPill & keyof OrbPillAttributes as `prop:${K}`]?: OrbPill[K] };
@@ -4994,6 +5250,9 @@ declare module "@stencil/core" {
             "orb-mi": LocalJSX.IntrinsicElements["orb-mi"] & JSXBase.HTMLAttributes<HTMLOrbMiElement>;
             "orb-midi": LocalJSX.IntrinsicElements["orb-midi"] & JSXBase.HTMLAttributes<HTMLOrbMidiElement>;
             "orb-note": LocalJSX.IntrinsicElements["orb-note"] & JSXBase.HTMLAttributes<HTMLOrbNoteElement>;
+            /**
+             * Collects a one-time passcode, PIN, or other fixed-length code, one character per segment.
+             */
             "orb-otp-input": LocalJSX.IntrinsicElements["orb-otp-input"] & JSXBase.HTMLAttributes<HTMLOrbOtpInputElement>;
             "orb-overlay": LocalJSX.IntrinsicElements["orb-overlay"] & JSXBase.HTMLAttributes<HTMLOrbOverlayElement>;
             /**
