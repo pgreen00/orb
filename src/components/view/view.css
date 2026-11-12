@@ -100,10 +100,6 @@ header.prominent {
   gap: var(--orb-spacing-lg);
   padding-block: var(--orb-spacing-3xl) var(--orb-spacing-2xl);
 
-  orb-toolbar {
-    align-items: flex-start;
-  }
-
   [role="heading"] {
     font-size: clamp(2rem, 1.5rem + 2.5cqi, 3.5rem);
     font-weight: var(--orb-font-regular);

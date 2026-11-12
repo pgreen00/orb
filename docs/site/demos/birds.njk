@@ -78,23 +78,6 @@ permalink: "/demos/birds/"
       color: light-dark(var(--orb-success-750), var(--orb-success-500));
     }
 
-    .site-nav {
-      display: flex;
-      gap: var(--orb-spacing-2xs);
-      margin-inline-start: var(--orb-spacing-lg);
-    }
-
-    .site-nav a {
-      padding: var(--orb-spacing-2xs) var(--orb-spacing-sm);
-      border-radius: var(--orb-radius-md);
-      color: light-dark(var(--orb-neutral-700), var(--orb-neutral-300));
-    }
-
-    .site-nav a[aria-current="page"] {
-      color: inherit;
-      font-weight: var(--orb-font-semi-bold);
-    }
-
     @media (width < 900px) {
       .site-nav {
         display: none;
@@ -206,10 +189,12 @@ permalink: "/demos/birds/"
         Feather & Fern
       </a>
       <nav class="site-nav" aria-label="Site">
-        <a href="#featured" aria-current="page">Field guide</a>
-        <a href="#sightings">Sightings</a>
-        <a href="#migration">Migration</a>
-        <a href="#feeding">Backyard birding</a>
+        <ul data-orb="nav">
+          <li><a href="#featured" aria-current="page">Field guide</a></li>
+          <li><a href="#sightings">Sightings</a></li>
+          <li><a href="#migration">Migration</a></li>
+          <li><a href="#feeding">Backyard birding</a></li>
+        </ul>
       </nav>
       <orb-button class="icon-only" fill="clear" slot="end" aria-label="Search">
         <iconify-icon width="1.5rem" height="1.5rem" icon="mdi:magnify" aria-hidden="true"></iconify-icon>
@@ -237,35 +222,38 @@ permalink: "/demos/birds/"
 
   <nav data-landmark="sidebar" aria-label="On this page">
     <p class="sidebar-heading">On this page</p>
-    <orb-tree>
-      <orb-ti label="Featured species" href="#featured"></orb-ti>
-      <orb-ti label="This week" href="#this-week"></orb-ti>
-      <orb-ti label="Recent sightings" href="#sightings"></orb-ti>
-      <orb-ti label="Identification" href="#identification"></orb-ti>
-      <orb-ti label="Migration calendar" href="#migration"></orb-ti>
-      <orb-ti label="Backyard birding" href="#feeding"></orb-ti>
-      <orb-ti label="Field notes" href="#field-notes"></orb-ti>
-      <orb-ti label="Conservation" href="#conservation"></orb-ti>
-      <orb-ti label="Glossary" href="#glossary"></orb-ti>
-      <orb-ti label="FAQ" href="#faq"></orb-ti>
-    </orb-tree>
+    <ul data-orb="vertical-nav">
+      <li><a href="#featured">Featured species</a></li>
+      <li><a href="#this-week">This week</a></li>
+      <li><a href="#sightings">Recent sightings</a></li>
+      <li><a href="#identification">Identification</a></li>
+      <li><a href="#migration">Migration calendar</a></li>
+      <li><a href="#feeding">Feeding birds</a></li>
+      <li><a href="#field-notes">Field notes</a></li>
+      <li><a href="#conservation">Conservation</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
     <p class="sidebar-heading">Regions</p>
-    <orb-tree>
-      <orb-ti label="Puget Sound" href="#featured"></orb-ti>
-      <orb-ti label="Olympic Peninsula" href="#featured"></orb-ti>
-      <orb-ti label="Cascade Range" href="#featured"></orb-ti>
-      <orb-ti label="Columbia Basin" href="#featured"></orb-ti>
-    </orb-tree>
+    <ul data-orb="vertical-nav">
+      <li><a href="#featured">Puget Sound</a></li>
+      <li><a href="#featured">Olympic Peninsula</a></li>
+      <li><a href="#featured">Cascade Range</a></li>
+      <li><a href="#featured">Columbia Basin</a></li>
+    </ul>
+  </nav>
+
+  <nav data-landmark="subheader" aria-label="Page navigation">
+    <orb-crumbs>
+      <a href="/demos/birds/">Home</a>
+      <a href="#featured">Field guide</a>
+      <span>Pacific Northwest</span>
+    </orb-crumbs>
   </nav>
 
   <main>
     <orb-view label="Birds of the Pacific Northwest" header="prominent" scrollable="false" fade>
       <div slot="details">
-        <orb-crumbs>
-          <a href="/demos/birds/">Home</a>
-          <a href="#featured">Field guide</a>
-          <span>Pacific Northwest</span>
-        </orb-crumbs>
         <p class="lede" style="margin-block: var(--orb-spacing-md);">
           From rain-soaked old-growth to windswept tideflats, more than 400 species pass through Washington and Oregon each year. This guide covers the birds you're most likely to meet, and a few worth getting up early for.
         </p>
@@ -534,20 +522,23 @@ permalink: "/demos/birds/"
 
         <section id="faq">
           <h2>Frequently asked questions</h2>
-          <orb-stack space="xs" style="max-width: 46rem;">
+          <orb-card style="max-width: 46rem;">
             <orb-details summary="What binoculars should I buy first?">
               <p>Look for 8×42 binoculars. The 8× magnification is easy to hold steady, and 42mm lenses let in plenty of light for our cloudy days. Waterproofing isn't optional here.</p>
             </orb-details>
+            <orb-divider></orb-divider>
             <orb-details summary="I found a baby bird on the ground. What should I do?">
               <p>If it has feathers and hops, it's a fledgling, and its parents are nearby. Leave it be and keep pets away. If it's bare or injured, contact a licensed wildlife rehabilitator.</p>
             </orb-details>
+            <orb-divider></orb-divider>
             <orb-details summary="Why did the birds stop coming to my feeder?">
               <p>Usually a hawk has moved in, natural food has become plentiful, or the seed has gone stale. Clean your feeder, refresh the seed, and give it a couple of weeks.</p>
             </orb-details>
+            <orb-divider></orb-divider>
             <orb-details summary="Is it okay to use bird song apps in the field?">
               <p>Listening is fine. Playing calls to attract birds stresses them, especially in breeding season, and is banned in many parks.</p>
             </orb-details>
-          </orb-stack>
+          </orb-card>
         </section>
       </div>
 

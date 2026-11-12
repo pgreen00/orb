@@ -82,7 +82,7 @@ body {
   &>[data-landmark=subheader] {
     display: flex;
     align-items: center;
-    background-color: inherit;
+    background-color: var(--orb-secondary-background-color);
     flex-shrink: 0;
     grid-area: sub;
     position: sticky;
@@ -91,6 +91,7 @@ body {
     box-sizing: border-box;
     padding-inline: var(--orb-spacing-sm);
     height: var(--sub-height);
+    border-bottom: solid 1px var(--border-color);
   }
 
   &>main {
@@ -102,7 +103,7 @@ body {
   &>footer {
     display: flex;
     align-items: center;
-    background-color: inherit;
+    background-color: var(--orb-secondary-background-color);
     position: sticky;
     bottom: 0;
     grid-area: foot;
@@ -112,7 +113,6 @@ body {
     border-top: solid 1px var(--border-color);
     padding-inline: var(--orb-spacing-sm);
     height: var(--foot-height);
-    background-color: var(--orb-background-color);
   }
 
   @media (min-width: 768px) {
