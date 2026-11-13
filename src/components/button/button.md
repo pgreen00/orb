@@ -102,24 +102,18 @@ button.addEventListener('click', () => {
 
 ```html
 <orb-button id="dropdown-button" caret space-between fill="clear">Paragraph</orb-button>
-<orb-menu id="dropdown-menu" for="dropdown-button">
-  <orb-mi type="radio" checked>
-    <span>
-      <strong>Paragraph</strong><br/>
-      <small>Default text style</small>
-    </span>
-  </orb-mi>
-  <orb-mi type="radio">Heading 1</orb-mi>
-  <orb-mi type="radio">Heading 2</orb-mi>
-  <orb-mi type="radio">Heading 3</orb-mi>
-  <orb-mi type="radio">Heading 4</orb-mi>
-  <orb-mi type="radio">Heading 5</orb-mi>
-  <orb-mi type="radio">Heading 6</orb-mi>
+<orb-menu id="dropdown-menu" for="dropdown-button" mode="single">
+  <orb-mi checked>Paragraph</orb-mi>
+  <orb-mi>Heading 1</orb-mi>
+  <orb-mi>Heading 2</orb-mi>
+  <orb-mi>Heading 3</orb-mi>
+  <orb-mi>Heading 4</orb-mi>
+  <orb-mi>Heading 5</orb-mi>
+  <orb-mi>Heading 6</orb-mi>
 </orb-menu>
 ```
 
 ```javascript
-await customElements.whenDefined('orb-menu');
 const menu = document.querySelector('#dropdown-menu');
 const button = document.querySelector('#dropdown-button');
 menu.addEventListener('orbSelect', (e) => {

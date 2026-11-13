@@ -929,6 +929,11 @@ export namespace Components {
          */
         "label"?: string;
         /**
+          * - **actions**: A menu of commands. Items use their `type` to be checkable. - **single**: A listbox where one option is selected. Choosing an option   selects it and closes the menu. - **multi**: A listbox where any number of options are selected. Choosing   an option toggles it and keeps the menu open.
+          * @default "actions"
+         */
+        "mode": "actions" | "single" | "multi";
+        /**
           * Opens the menu and focuses the first or last item. Without `focus`, focus stays where it is.
          */
         "openFrom": (focus?: "first" | "last") => Promise<void>;
@@ -975,7 +980,7 @@ export namespace Components {
      */
     interface OrbMi {
         /**
-          * Whether a checkbox or radio item is checked
+          * Whether a checkbox or radio item is checked. In `single` and `multi` menus, whether the option is selected.
           * @default false
          */
         "checked": boolean;
@@ -985,7 +990,12 @@ export namespace Components {
          */
         "disabled": boolean;
         /**
-          * `checkbox` items toggle when chosen and keep the menu open. Choosing a `radio` item checks it and unchecks the other radio items with the same parent.
+          * The mode of the `orb-menu` this item is in. Set by the menu.
+          * @default "actions"
+         */
+        "menuMode": "actions" | "single" | "multi";
+        /**
+          * `checkbox` items toggle when chosen and keep the menu open. Choosing a `radio` item checks it and unchecks the other radio items with the same parent. Ignored in `single` and `multi` menus, where every item is a radio or checkbox item.
           * @default "normal"
          */
         "type": "normal" | "checkbox" | "radio";
@@ -3824,6 +3834,11 @@ declare namespace LocalJSX {
          */
         "label"?: string;
         /**
+          * - **actions**: A menu of commands. Items use their `type` to be checkable. - **single**: A listbox where one option is selected. Choosing an option   selects it and closes the menu. - **multi**: A listbox where any number of options are selected. Choosing   an option toggles it and keeps the menu open.
+          * @default "actions"
+         */
+        "mode"?: "actions" | "single" | "multi";
+        /**
           * Emitted when an item is chosen, from this menu or a submenu. Checkbox and radio items have already toggled. Call `preventDefault()` to keep the menu open.
          */
         "onOrbSelect"?: (event: OrbMenuCustomEvent<MenuSelectDetail>) => void;
@@ -3866,7 +3881,7 @@ declare namespace LocalJSX {
      */
     interface OrbMi {
         /**
-          * Whether a checkbox or radio item is checked
+          * Whether a checkbox or radio item is checked. In `single` and `multi` menus, whether the option is selected.
           * @default false
          */
         "checked"?: boolean;
@@ -3876,7 +3891,12 @@ declare namespace LocalJSX {
          */
         "disabled"?: boolean;
         /**
-          * `checkbox` items toggle when chosen and keep the menu open. Choosing a `radio` item checks it and unchecks the other radio items with the same parent.
+          * The mode of the `orb-menu` this item is in. Set by the menu.
+          * @default "actions"
+         */
+        "menuMode"?: "actions" | "single" | "multi";
+        /**
+          * `checkbox` items toggle when chosen and keep the menu open. Choosing a `radio` item checks it and unchecks the other radio items with the same parent. Ignored in `single` and `multi` menus, where every item is a radio or checkbox item.
           * @default "normal"
          */
         "type"?: "normal" | "checkbox" | "radio";
@@ -5060,6 +5080,7 @@ declare namespace LocalJSX {
     interface OrbMenuAttributes {
         "for": string;
         "showOn": "click" | "context-menu";
+        "mode": "actions" | "single" | "multi";
         "placement": Placement;
         "label": string;
     }
@@ -5081,6 +5102,7 @@ declare namespace LocalJSX {
         "value": string;
         "type": "normal" | "checkbox" | "radio";
         "checked": boolean;
+        "menuMode": "actions" | "single" | "multi";
         "disabled": boolean;
         "variant": "danger";
     }

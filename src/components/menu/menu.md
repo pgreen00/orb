@@ -7,6 +7,8 @@ sidebar_label: 'Menu'
 
 A menu is a list of actions. Put `<orb-mi>` items in an `<orb-menu>`, and set the menu's `for` to the id of the button that opens it. The button and the menu must be in the same document or shadow root. Choosing an item emits `orbSelect` with the item's `value`, then closes the menu.
 
+Set `mode` to `single` or `multi` to make the menu a list of options instead. See Single and Multiple Selection below.
+
 ::: live-code-demo
 
 ```html
@@ -188,6 +190,58 @@ menu.addEventListener("orbSelect", () => {
 - Click **Large**. **Medium** loses its checkmark, the menu closes, and the status updates.
 - Screen readers announce checkbox items as "checked" or "not checked", and radio items as one of a set.
 
+### Single and Multiple Selection
+
+Set `mode="single"` for a list where one option is selected, such as a sort order. Choosing an option selects it and closes the menu. Set `mode="multi"` for a list where several options can be selected, such as filters. Choosing an option toggles it, and the menu stays open.
+
+Both modes make the menu a listbox, and every item acts as a radio or checkbox item, so `type` is ignored. Set `checked` on the options that start selected. Set `label` when the button shows the selected value, so the menu keeps its name as the selection changes. Opening the menu from the keyboard focuses the selected option.
+
+Submenus, menubars, and `show-on="context-menu"` don't work with `single` or `multi`. The menu logs a warning to the console if you use them.
+
+::: live-code-demo
+
+```html
+<orb-button id="sort-button">Sort: Name</orb-button>
+<orb-menu id="sort-menu" for="sort-button" mode="single" label="Sort by">
+  <orb-mi value="name" checked>Name</orb-mi>
+  <orb-mi value="date">Date</orb-mi>
+  <orb-mi value="size">Size</orb-mi>
+</orb-menu>
+<orb-button id="filter-button">Filter</orb-button>
+<orb-menu id="filter-menu" for="filter-button" mode="multi" label="Filter by">
+  <orb-mi value="images" checked>Images</orb-mi>
+  <orb-mi value="video" checked>Video</orb-mi>
+  <orb-mi value="audio">Audio</orb-mi>
+</orb-menu>
+<p id="list-output" role="status" style="margin-top: 1rem;">Sorted by Name. Showing Images, Video.</p>
+```
+
+```javascript
+const output = document.querySelector("#list-output");
+const sortButton = document.querySelector("#sort-button");
+const sortMenu = document.querySelector("#sort-menu");
+const filterMenu = document.querySelector("#filter-menu");
+const chosen = (menu) => [...menu.querySelectorAll("orb-mi")]
+  .filter((item) => item.checked)
+  .map((item) => item.textContent.trim())
+  .join(", ");
+const update = () => {
+  sortButton.textContent = `Sort: ${chosen(sortMenu)}`;
+  output.textContent = `Sorted by ${chosen(sortMenu)}. Showing ${chosen(filterMenu)}.`;
+};
+sortMenu.addEventListener("orbSelect", update);
+filterMenu.addEventListener("orbSelect", update);
+```
+
+:::
+
+**Manual test:**
+- Click **Sort: Name**, then **Date**. The menu closes, the button reads `Sort: Date`, and the status updates. Only one option in the menu is checked.
+- Tab to the **Sort** button and press Down. **Date** is focused, since it's selected.
+- Click **Filter**, then click **Audio**. It gets a checkmark, the menu stays open, and the status updates.
+- Click **Images**. It loses its checkmark, and the menu stays open.
+- Screen readers announce the **Sort** menu as a list with one option selected, and the **Filter** menu as a list where several options can be selected.
+
 ### Disabled and Danger Items
 
 `disabled` items can still be focused with the arrow keys, so screen reader users know they exist, but they can't be chosen. `variant="danger"` marks destructive actions.
@@ -317,11 +371,11 @@ Without `for`, the menu shows in the page instead of opening from a button, such
 
 | Key | Action |
 | --- | --- |
-| Enter / Space / Down | On the button, opens the menu on its first item |
-| Up | On the button, opens the menu on its last item |
+| Enter / Space / Down | On the button, opens the menu on its first item. In `single` and `multi` menus, on the selected option |
+| Up | On the button, opens the menu on its last item. In `single` and `multi` menus, on the selected option |
 | Down / Up | Next or previous item, wrapping |
 | Home / End | First or last item |
-| Enter / Space | Chooses the item, or opens its submenu |
+| Enter / Space | Chooses the item, or opens its submenu. In `single` menus, selects the option and closes the menu. In `multi` menus, toggles the option and keeps the menu open |
 | Right | Opens the item's submenu. In a menubar's menu, moves to the next menu |
 | Left | Closes a submenu. In a menubar's menu, moves to the previous menu |
 | Escape | Closes the innermost menu and returns focus to the item or button that opened it |
@@ -332,11 +386,13 @@ Right and Left are swapped in right-to-left pages.
 
 ### Manual test checklist
 
-- [ ] Menus have the `menu` role with `aria-orientation="vertical"`. They're named by `label`, or by their button.
-- [ ] Items have the `menuitem`, `menuitemcheckbox`, or `menuitemradio` role, and checkable items have `aria-checked`.
+- [ ] Menus in `actions` mode have the `menu` role with `aria-orientation="vertical"`. Menus in `single` and `multi` modes have the `listbox` role, and `multi` menus also have `aria-multiselectable="true"`. All are named by `label`, or by their button.
+- [ ] Items in `actions` mode have the `menuitem`, `menuitemcheckbox`, or `menuitemradio` role, and checkable items have `aria-checked`. Items in `single` and `multi` modes have the `option` role and `aria-selected`, and no `aria-checked`.
+- [ ] Dividers in `single` and `multi` menus are hidden from screen readers, since listboxes can't contain separators.
 - [ ] Disabled items have `aria-disabled="true"` and stay reachable with the arrow keys.
-- [ ] A button or item that opens a menu has `aria-haspopup="menu"`, and `aria-expanded` that follows the menu's state.
+- [ ] A button or item that opens a menu has `aria-haspopup="menu"`, or `aria-haspopup="listbox"` in `single` and `multi` modes, and `aria-expanded` that follows the menu's state.
 - [ ] Opening a menu from the keyboard moves focus to its first item, and closing it from the keyboard returns focus to the button that opened it. With the mouse, focus doesn't move.
+- [ ] Opening a `single` or `multi` menu from the keyboard focuses its selected option, or the first item if none is selected.
 - [ ] Clicking items with the mouse never leaves a focus highlight behind.
 - [ ] Only one item in each menu is in the Tab order.
 - [ ] Focused items show a visible focus ring when using the keyboard.

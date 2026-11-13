@@ -14,7 +14,7 @@ import {
 import { autoUpdate, computePosition, flip, offset, Placement, shift, size } from "@floating-ui/dom";
 import { composedClosest, composedContains, deepActiveElement } from "../../utils/composed";
 import { usingKeyboard } from "../../utils/input-modality";
-import { findById, menuOf, ownItems, pointer, triggerOf } from "./menu-registry";
+import { findById, menuOf, ownElements, ownItems, pointer, triggerOf } from "./menu-registry";
 
 export interface MenuSelectDetail {
   /** The chosen `orb-mi` */
@@ -85,6 +85,15 @@ export class Menu {
   @Prop() showOn: "click" | "context-menu" = "click";
 
   /**
+   * - **actions**: A menu of commands. Items use their `type` to be checkable.
+   * - **single**: A listbox where one option is selected. Choosing an option
+   *   selects it and closes the menu.
+   * - **multi**: A listbox where any number of options are selected. Choosing
+   *   an option toggles it and keeps the menu open.
+   */
+  @Prop() mode: "actions" | "single" | "multi" = "actions";
+
+  /**
    * Where the menu opens. Defaults to below the trigger, or beside the item
    * for a submenu. It flips to the other side when there isn't room.
    */
@@ -119,6 +128,7 @@ export class Menu {
   componentDidLoad() {
     // The trigger may come after the menu in the document.
     if (this.for && !this.triggerEl) this.connectTrigger();
+    this.keepOneSelected();
     this.syncItems();
   }
 
@@ -133,13 +143,24 @@ export class Menu {
   onTriggerChange() {
     this.disconnectTrigger();
     this.connectTrigger();
+    this.syncItems();
   }
 
   @Watch("label")
+  @Watch("mode")
   syncRole() {
-    this.internals.role = "menu";
+    this.internals.role = this.listbox ? "listbox" : "menu";
+    this.internals.ariaMultiSelectable = this.mode === "multi" ? "true" : null;
     this.internals.ariaOrientation = "vertical";
     this.internals.ariaLabel = this.label || null;
+  }
+
+  /** Switching modes changes the trigger's popup role and which options are selected. */
+  @Watch("mode")
+  onModeChange() {
+    if (this.triggerEl && this.showOn === "click") this.triggerEl.ariaHasPopup = this.popupRole;
+    this.keepOneSelected();
+    this.syncItems();
   }
 
   /**
@@ -201,6 +222,27 @@ export class Menu {
     return getComputedStyle(this.el).direction === "rtl";
   }
 
+  /** Whether the menu is a `single` or `multi` listbox rather than a list of actions. */
+  private get listbox() {
+    return this.mode !== "actions";
+  }
+
+  private get popupRole(): "listbox" | "menu" {
+    return this.listbox ? "listbox" : "menu";
+  }
+
+  /** The type an item acts as. Items in `single` and `multi` menus act as radio and checkbox items. */
+  private typeOf(item: HTMLOrbMiElement): "normal" | "checkbox" | "radio" {
+    if (this.mode === "single") return "radio";
+    if (this.mode === "multi") return "checkbox";
+    return item.type;
+  }
+
+  /** The checked option that a listbox focuses when it opens. */
+  private get selectedItem() {
+    return this.listbox ? this.items.find((item) => item.checked) : undefined;
+  }
+
   // Trigger
 
   private connectTrigger() {
@@ -221,9 +263,9 @@ export class Menu {
     if (this.showOn === "context-menu") {
       this.listen(trigger, "contextmenu", this.onTriggerContextMenu);
     } else {
-      trigger.ariaHasPopup = "menu";
+      trigger.ariaHasPopup = this.popupRole;
       trigger.ariaExpanded = "false";
-      (trigger as any).ariaControlsElements = [this.el];
+      trigger.ariaControlsElements = [this.el];
       if (!this.label) this.el.ariaLabelledByElements = [trigger];
       this.listen(trigger, "click", this.onTriggerClick);
       // Items in menus and menubars handle their own keys.
@@ -399,17 +441,41 @@ export class Menu {
   // Items
 
   /**
-   * Keeps one item in the Tab order, and marks items when the menu has
-   * checkable items so their labels line up.
+   * Keeps one item in the Tab order, marks items when the menu has checkable
+   * items so their labels line up, and tells items which mode the menu is in.
    */
   private syncItems() {
     const items = this.items;
-    const current = items.find((item) => item.tabIndex === 0) ?? items[0];
-    const checkable = items.some((item) => item.type !== "normal");
+    const current = items.find((item) => item.tabIndex === 0) ?? this.selectedItem ?? items[0];
+    const checkable = items.some((item) => this.typeOf(item) !== "normal");
     items.forEach((item) => {
       item.tabIndex = item === current ? 0 : -1;
       item.toggleAttribute("data-checkable-menu", checkable);
+      item.menuMode = this.mode;
     });
+    // Listboxes can't contain separators, so dividers are hidden from screen readers.
+    ownElements(this.el, "ORB-DIVIDER").forEach((divider) => (divider.ariaHidden = this.listbox ? "true" : null));
+    this.warnIfUnsupported();
+  }
+
+  /** A single-select menu has one selection, so extra checked options are cleared. */
+  private keepOneSelected() {
+    if (this.mode !== "single") return;
+    this.items.filter((item) => item.checked).slice(1).forEach((item) => (item.checked = false));
+  }
+
+  /** Submenus, menubars, and context menus don't work in a listbox, so warn about them. */
+  private warnIfUnsupported() {
+    if (!this.listbox) return;
+    if (this.triggerEl && this.showOn === "context-menu") {
+      console.warn(`Menu mode "${this.mode}" doesn't support show-on="context-menu".`);
+    }
+    if (this.isSubmenu || this.menubar) {
+      console.warn(`Menu mode "${this.mode}" doesn't support submenus or menubars.`);
+    }
+    if (this.items.some((item) => menuOf.has(item))) {
+      console.warn(`Menu mode "${this.mode}" doesn't support items that open submenus.`);
+    }
   }
 
   /**
@@ -419,7 +485,7 @@ export class Menu {
   @Method()
   async focusItem(which: "first" | "last") {
     const items = this.items;
-    this.focus(which === "first" ? items[0] : items[items.length - 1]);
+    this.focus(this.selectedItem ?? (which === "first" ? items[0] : items[items.length - 1]));
   }
 
   private focus(item?: HTMLOrbMiElement, options?: FocusOptions) {
@@ -498,18 +564,25 @@ export class Menu {
     // Items that open submenus are handled by the submenu.
     if (item.disabled || menuOf.has(item)) return;
 
-    if (item.type === "checkbox") {
+    const type = this.typeOf(item);
+    if (type === "checkbox") {
       item.checked = !item.checked;
-    } else if (item.type === "radio") {
+    } else if (type === "radio") {
       item.checked = true;
-      Array.from(item.parentElement?.children ?? [])
-        .filter((other): other is HTMLOrbMiElement => other !== item && other.tagName === "ORB-MI")
-        .filter((other) => other.type === "radio")
+      // A single-select menu has one selection, so it clears every option.
+      const peers =
+        this.mode === "single"
+          ? this.items
+          : Array.from(item.parentElement?.children ?? []).filter(
+              (other): other is HTMLOrbMiElement => other.tagName === "ORB-MI",
+            );
+      peers
+        .filter((other) => other !== item && this.typeOf(other) === "radio")
         .forEach((other) => (other.checked = false));
     }
 
     const event = this.orbSelect.emit({ item, value: item.value, checked: item.checked });
-    if (!event.defaultPrevented && item.type !== "checkbox") this.closeChain();
+    if (!event.defaultPrevented && type !== "checkbox") this.closeChain();
   }
 
   @Listen("keydown")

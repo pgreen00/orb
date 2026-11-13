@@ -34,14 +34,19 @@ if (typeof window !== "undefined") {
   );
 }
 
-/** The `orb-mi` items that belong to `host`, skipping items of nested menus. */
-export function ownItems(host: HTMLElement): HTMLOrbMiElement[] {
-  const collect = (elements: Element[]): HTMLOrbMiElement[] =>
+/** The elements named `tag` that belong to `host`, skipping those of nested menus. */
+export function ownElements<T extends HTMLElement = HTMLElement>(host: HTMLElement, tag: string): T[] {
+  const collect = (elements: Element[]): T[] =>
     elements.flatMap((el) => {
       if (el instanceof HTMLSlotElement) return collect(el.assignedElements({ flatten: true }));
-      if (el.tagName === "ORB-MI") return [el as HTMLOrbMiElement];
+      if (el.tagName === tag) return [el as T];
       if (el.tagName === "ORB-MENU") return [];
       return collect(Array.from(el.children));
     });
   return collect(Array.from(host.children));
+}
+
+/** The `orb-mi` items that belong to `host`, skipping items of nested menus. */
+export function ownItems(host: HTMLElement): HTMLOrbMiElement[] {
+  return ownElements<HTMLOrbMiElement>(host, "ORB-MI");
 }
