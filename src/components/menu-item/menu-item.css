@@ -3,16 +3,18 @@
  */
 
 :host {
-  --highlight: light-dark(var(--orb-primary-100), color-mix(in srgb, var(--orb-primary-500) 30%, transparent));
+  --highlight-background: light-dark(var(--orb-neutral-150), var(--orb-neutral-850));
+  --highlight-color: light-dark(var(--orb-neutral-925), var(--orb-neutral-75));
   --muted: var(--orb-note-color);
+  --color: inherit;
   display: flex;
   align-items: center;
   gap: var(--orb-spacing-xs);
   box-sizing: border-box;
   min-height: 2rem;
-  padding: var(--orb-spacing-3xs) var(--orb-spacing-sm);
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-2xs);
   border-radius: var(--orb-radius-md);
-  color: inherit;
+  color: var(--color);
   cursor: default;
   outline: none;
   user-select: none;
@@ -29,7 +31,8 @@
 :host(:focus:not([data-bar-item])),
 :host(:focus-visible),
 :host([aria-expanded="true"]) {
-  background-color: var(--highlight);
+  background-color: var(--highlight-background);
+  color: var(--highlight-color);
 }
 
 :host(:focus-visible) {
@@ -38,8 +41,9 @@
 }
 
 :host([variant="danger"]) {
-  color: light-dark(var(--orb-danger-600), var(--orb-danger-250));
-  --highlight: light-dark(var(--orb-danger-75), color-mix(in srgb, var(--orb-danger-500) 30%, transparent));
+  --highlight-color: light-dark(var(--orb-danger-500), var(--orb-danger-250));
+  --color: var(--highlight-color);
+  --highlight-background: light-dark(var(--orb-danger-50), var(--orb-danger-800));
 }
 
 :host([disabled]) {
@@ -75,6 +79,7 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-inline-end: 6ch;
 }
 
 .details {

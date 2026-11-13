@@ -11,6 +11,7 @@ import {
 import { Color } from "../../utils/color";
 import { ReadyController } from "../../utils/ready-controller";
 import { toggleState } from "../../utils/custom-states";
+import { ChevronDownIcon } from "../../utils/icons";
 
 /**
  * Buttons represent actions the user can take, such as submitting a form, opening a dialog, or navigating to another page.
@@ -71,6 +72,12 @@ export class Button extends ReadyController {
 
   /** Will be used as the value if it has a name and is nested in a form */
   @Prop() value?: string | File | FormData;
+
+  /** If true, the button will have a caret */
+  @Prop() caret = false;
+
+  /** If true, the button's content will be spaced apart */
+  @Prop() spaceBetween = false;
 
   componentWillLoad() {
     this.internals.role = "button";
@@ -134,7 +141,10 @@ export class Button extends ReadyController {
             <orb-loading part="loading" />
           </Fragment>
         ) : (
-          <slot />
+          <Fragment>
+            <slot />
+            {this.caret && <ChevronDownIcon/>}
+          </Fragment>
         )}
         <slot name="badge" />
       </Host>

@@ -3,7 +3,7 @@ title: "OrbButton | <orb-button>"
 sidebar_label: "Button"
 ---
 
-## Usage
+## Examples
 
 ### Colors and Types
 
@@ -91,6 +91,39 @@ button.addEventListener('click', () => {
   setTimeout(() => {
     button.pending = false;
   }, 2000);
+});
+```
+
+:::
+
+### Caret
+
+::: live-code-demo
+
+```html
+<orb-button id="dropdown-button" caret space-between fill="clear">Paragraph</orb-button>
+<orb-menu id="dropdown-menu" for="dropdown-button">
+  <orb-mi type="radio" checked>
+    <span>
+      <strong>Paragraph</strong><br/>
+      <small>Default text style</small>
+    </span>
+  </orb-mi>
+  <orb-mi type="radio">Heading 1</orb-mi>
+  <orb-mi type="radio">Heading 2</orb-mi>
+  <orb-mi type="radio">Heading 3</orb-mi>
+  <orb-mi type="radio">Heading 4</orb-mi>
+  <orb-mi type="radio">Heading 5</orb-mi>
+  <orb-mi type="radio">Heading 6</orb-mi>
+</orb-menu>
+```
+
+```javascript
+await customElements.whenDefined('orb-menu');
+const menu = document.querySelector('#dropdown-menu');
+const button = document.querySelector('#dropdown-button');
+menu.addEventListener('orbSelect', (e) => {
+  button.textContent = e.detail.item.textContent;
 });
 ```
 

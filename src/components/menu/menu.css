@@ -5,7 +5,7 @@
  */
 
 :host {
-  --background: light-dark(var(--orb-neutral-50), var(--orb-neutral-875));
+  --background: light-dark(var(--orb-neutral-25), var(--orb-neutral-950));
   --color: var(--orb-text-color);
   --border: 1px solid light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
   display: flex;
@@ -44,7 +44,7 @@
 }
 
 ::slotted(orb-divider) {
-  margin-block: var(--orb-spacing-3xs);
+  --spacing: var(--orb-spacing-2xs);
 }
 
 @media (prefers-reduced-motion: reduce) {

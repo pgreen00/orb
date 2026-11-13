@@ -89,6 +89,11 @@ export namespace Components {
      */
     interface OrbButton {
         /**
+          * If true, the button will have a caret
+          * @default false
+         */
+        "caret": boolean;
+        /**
           * Predefined colors
          */
         "color"?: Color;
@@ -131,6 +136,11 @@ export namespace Components {
           * @default "md"
          */
         "size": "md" | "lg" | "sm" | "xs";
+        /**
+          * If true, the button's content will be spaced apart
+          * @default false
+         */
+        "spaceBetween": boolean;
         /**
           * Can set to submit or reset to participate in forms
          */
@@ -2956,6 +2966,11 @@ declare namespace LocalJSX {
      */
     interface OrbButton {
         /**
+          * If true, the button will have a caret
+          * @default false
+         */
+        "caret"?: boolean;
+        /**
           * Predefined colors
          */
         "color"?: Color;
@@ -3002,6 +3017,11 @@ declare namespace LocalJSX {
           * @default "md"
          */
         "size"?: "md" | "lg" | "sm" | "xs";
+        /**
+          * If true, the button's content will be spaced apart
+          * @default false
+         */
+        "spaceBetween"?: boolean;
         /**
           * Can set to submit or reset to participate in forms
          */
@@ -4877,6 +4897,8 @@ declare namespace LocalJSX {
         "radius": "default" | "circle" | "pill";
         "color": Color;
         "value": string | File | FormData;
+        "caret": boolean;
+        "spaceBetween": boolean;
     }
     interface OrbCalendarAttributes {
         "view": OrbCalendarView;
