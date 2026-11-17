@@ -13,6 +13,7 @@ import {
 } from "@stencil/core";
 import { selectionOffsets } from "../../utils/composed";
 import { toggleState } from "../../utils/custom-states";
+import { browserMessage, exposeFormProps } from "../../utils/form";
 import { usingKeyboard } from "../../utils/input-modality";
 import { onMasksChanged } from "../../utils/masks";
 import { applyEdit, diffEdit, offsetForRaw, rawIndexAt } from "./mask";
@@ -30,16 +31,6 @@ interface Snapshot {
 }
 
 const clamp = (offset: number, max: number) => Math.min(Math.max(offset, 0), max);
-
-/**
- * Browsers word their built-in messages in the user's language, so the
- * messages come from a probe input rather than from strings here.
- */
-function browserMessage(configure: (input: HTMLInputElement) => void): string {
-  const probe = document.createElement("input");
-  configure(probe);
-  return probe.validationMessage;
-}
 
 /**
  * Formats and restricts what the user types, such as a phone number or a date.
@@ -342,14 +333,7 @@ export class MaskInput {
     const internals = this.internals;
     this.labelledBy = [...(this.el.ariaLabelledByElements ?? [])];
     this.describedBy = [...(this.el.ariaDescribedByElements ?? [])];
-    Object.defineProperties(this.el, {
-      form: { configurable: true, get: () => internals.form },
-      labels: { configurable: true, get: () => internals.labels },
-      validity: { configurable: true, get: () => internals.validity },
-      validationMessage: { configurable: true, get: () => internals.validationMessage },
-      willValidate: { configurable: true, get: () => internals.willValidate },
-      checkValidity: { configurable: true, value: () => internals.checkValidity() },
-      reportValidity: { configurable: true, value: () => internals.reportValidity() },
+    exposeFormProps(this.el, internals, {
       selectionStart: { configurable: true, get: () => this.lastSelection.start },
       selectionEnd: { configurable: true, get: () => this.lastSelection.end },
       ariaLabelledByElements: {

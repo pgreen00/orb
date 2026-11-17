@@ -39,7 +39,7 @@ Not on the original list but included: making the editor a form field (0.9).
 | Editing engine | Keep the hand-rolled engine (`editing.ts`), where the live HTML is the document. No ProseMirror or similar. |
 | Storage format | Canonical HTML is the lossless format. Every other format (Markdown, DOCX, text, JSON) is import/export only and may lose information. JSON is derived, never the source of truth. |
 | Visual formatting | Inline styles for anything visual (alignment, indent, line height, colors, fonts), so saved HTML looks right outside the editor. `data-*` attributes only for meaning the editor alone uses (mentions, placeholders, comments, suggestions, page settings). |
-| Block-type controls | One dropdown (Paragraph, Heading 1–6, Quote, Code block) instead of separate buttons. |
+| Block-type controls | A "Text style" select (Paragraph, Heading 1–6). Quote and Code block are their own toolbar toggles, so the select only holds text styles. |
 | `orb-popover` / `orb-menu` | May be modified as needed (0.7). |
 | Task lists | `<input type="checkbox">` inside the list item. |
 | Outline and comments sidebar | Built into the editor, behind props. |
@@ -55,7 +55,7 @@ Not on the original list but included: making the editor a form field (0.9).
 | Modes | `edit`, `suggest`, `comment`, `view`, `preview`. |
 | Lossy export (Markdown, text) | Suggestions are left out by default (`suggestions: "reject"`). HTML keeps everything. |
 | Pasted fonts | Fonts not in the `fonts` prop are dropped when pasting. |
-| Inline code shortcut | None. The backtick auto-format rule and the toolbar cover it. |
+| Inline code shortcut | None. The backtick auto-format rule (2.2) covers it. There's no toolbar button for inline code. |
 | Form field | Yes, in Phase 0 (0.9). |
 
 ## Conventions
@@ -75,7 +75,7 @@ Not on the original list but included: making the editor a form field (0.9).
 | Phase | Contents | Estimate (1 developer) |
 |---|---|---|
 | 0. Groundwork | Module split, schema, cleanup step, command list, toolbar, `spellcheck`, undo rework, non-editable pieces and caret popups, link popover, form field, test helpers | 4.5–6.5w |
-| 1. Input and blocks | Keyboard handling, block-type dropdown and h1–h6, quotes, separators, code, indent, line height, lists and task lists | 4–6w |
+| 1. Input and blocks | Keyboard handling, text style select and h1–h6, quotes, separators, code, indent, line height, lists and task lists | 4–6w |
 | 2. Inline styling and typing shortcuts | Fonts and colors, GFM auto-formatting and Markdown paste, special characters and emoji | 2.5–3.5w |
 | 3. Structured content | Tables, media, outline and TOC | 5–8w |
 | 4. Inline objects | `/` commands, mentions, tags, emoji shortcodes, placeholders, templates | 2.5–3.5w |
@@ -421,7 +421,7 @@ export function matches(ev: KeyboardEvent, s: Shortcut) {
  * listed are still available from shortcuts, the menubar and the `/` menu.
  */
 @Prop() toolbar =
-  "undo redo | blockType | bold italic underline strike code | fontFamily fontSize color background | " +
+  "undo redo | blockType | quote code | bold italic underline strike | fontFamily fontSize color background | " +
   "bulletList orderedList taskList outdent indent | align lineHeight | link media table separator specialCharacter | clearFormatting";
 
 const parseToolbar = (spec: string) =>
@@ -1150,16 +1150,16 @@ private handleBeforeInput = (event: InputEvent) => {
 - **Tab escape** (outside full screen only; see 5.1): Escape with no popup open sets `tabLeaves = true` until the next key. Tab then moves focus out instead of being handled. Tab is only taken over inside lists, tables and code blocks, so it never traps focus (WCAG 2.1.2). The help dialog explains this.
 - **Android:** rely on `beforeinput`, not `keydown`, for Enter and Backspace. On Android, `keydown` often reports `key: "Unidentified"`.
 
-### 1.2 Block-type dropdown and h1–h6
+### 1.2 Text style select and h1–h6
 
-- **Types:** `BlockType = "p" | "h1" | … | "h6"`. `blockType()` returns the shared type, or `null` when the selection mixes types.
-- **One `blockType` select command** replaces the three heading and paragraph buttons. Options: Paragraph, Heading 1–6, Quote, Code block. Quote and Code block call their own toggles (1.3, 1.5).
+- **Types:** `BlockType = "p" | "h1" | … | "h6" | "pre"`. `blockType()` returns the shared type, or `null` when the selection mixes types.
+- **One `blockType` select command**, labeled Text style, replaces the three heading and paragraph buttons. Options: Paragraph and Heading 1–6. Quote and code block have their own toggles (1.3, 1.5), so the select doesn't offer them. Setting a paragraph or heading keeps any quote around the block.
 - **CSS:** h3–h6 sizes go in `content.css`.
 
 ### 1.3 Block quotes
 
 - **HTML:** `<blockquote><p>…</p></blockquote>`. `BLOCKQUOTE` moves from text blocks to containers, so a quote can hold several paragraphs.
-- **`toggleQuote(root, range)`:**
+- **`setQuote(root, range, on)`**, called by the `quote` toolbar toggle:
   - if every selected block is already in the same quote, lift those blocks out, splitting the quote around them;
   - otherwise, wrap the selected blocks' outermost ancestors under a shared parent in a new `blockquote`.
 - **`quote` behavior:**
@@ -1173,7 +1173,8 @@ private handleBeforeInput = (event: InputEvent) => {
 
 ### 1.5 Code
 
-- **Inline:** add a `code` mark and toolbar toggle. Clear formatting removes it.
+- **Inline:** the `code` mark stays in the schema for pasted content and code blocks. There's no toolbar toggle for inline code. Clear formatting removes it.
+- **Toolbar:** the `code` toggle makes the caret's block a code block. Clicking it again turns the block back into a paragraph, and the `code` inside it is unwrapped so it doesn't become inline code.
 - **HTML for blocks:** `<pre><code class="language-ts">…</code></pre>`, the form markdown-it produces. Inside `pre`, cleanup turns `<br>` into `\n` and unwraps all formatting.
 - **`codeBlock` behavior:**
   - **Enter** inserts `\n`. When the caret is at the very end, a second `\n` is added so the new empty line shows; cleanup removes that extra newline from output.
@@ -1182,7 +1183,7 @@ private handleBeforeInput = (event: InputEvent) => {
   - **Backspace** at the start of an empty block turns it into a paragraph.
   - **Paste** inside is always plain text.
   - **Formatting commands** are disabled inside.
-- **Language picker:** a toolbar dropdown shown while the caret is in a code block. The languages come from a `code-languages` prop.
+- **Language picker:** the `codeLanguage` select, shown in the toolbar only while the caret is in a code block. The languages come from the `codeLanguages` property, set as a property rather than an attribute.
 - **Syntax highlighting (`editing/code.ts`)** uses the CSS Custom Highlight API, so the content itself never changes and undo, the caret and the stored HTML aren't affected:
 
   ```ts
@@ -1413,7 +1414,7 @@ export const SPACE_RULES: BlockRule[] = [
   { match: /^[-*+]$/, apply: (root, b) => toggleList(root, startOf(b), "ul") },
   { match: /^(\d+)[.)]$/, apply: (root, b, m) => setListStart(toggleList(root, startOf(b), "ol"), +m[1]) },
   { match: /^(?:[-*+] )?\[( |x)\]$/i, apply: (root, b, m) => makeTask(root, b, m[1] !== " ") },
-  { match: /^>$/, apply: (root, b) => toggleQuote(root, startOf(b)) },
+  { match: /^>$/, apply: (root, b) => setQuote(root, startOf(b), true) },
 ];
 
 export const ENTER_RULES: BlockRule[] = [
@@ -1964,7 +1965,7 @@ private onSentinelFocus = (at: "start" | "end") => {
 | Edit | Undo, Redo, Select all |
 | View | Outline, Comments, Word count, Show suggestions, Full screen, HTML source |
 | Insert | Image, Video, Table, Separator, Page break, Special character, Emoji, Parameter, TOC |
-| Format | Text ▸, Block type ▸, Align ▸, Line height ▸, Lists ▸, Clear formatting |
+| Format | Text ▸, Text style ▸, Quote, Code block, Align ▸, Line height ▸, Lists ▸, Clear formatting |
 | Table | Shown while in a table |
 | Tools | Word count, Spellcheck (toggle) |
 | Help | Keyboard shortcuts |

@@ -20,6 +20,7 @@ import {
   shift,
   size,
 } from "@floating-ui/dom";
+import { Anchor, toVirtualAnchor, VirtualAnchor } from "./anchor";
 
 
 @Component({
@@ -36,11 +37,11 @@ export class Popover {
 
   private triggerEl?: HTMLElement
 
-  private anchorPoint?: DOMRect
+  private anchor?: VirtualAnchor;
 
   private get referenceEl() {
-    return this.triggerEl ?? {
-      getBoundingClientRect: () => this.anchorPoint ?? new DOMRect(0, 0)
+    return this.anchor ?? this.triggerEl ?? {
+      getBoundingClientRect: () => new DOMRect(0, 0)
     }
   }
 
@@ -52,6 +53,9 @@ export class Popover {
 
   /** Removes the trigger's listeners */
   private listeners?: AbortController;
+
+  /** Removes the listeners that close a popover without a trigger */
+  private dismissal?: AbortController;
 
   /** A pending hover open or close */
   private hoverTimer?: ReturnType<typeof setTimeout>;
@@ -128,7 +132,7 @@ export class Popover {
   connectedCallback() {
     this.triggerEl = this.findExternalTrigger() as HTMLElement
     if (!this.triggerEl) {
-      console.warn("Popover trigger not found: ", this.for)
+      if (this.for) console.warn("Popover trigger not found: ", this.for);
       return;
     }
     this.triggerEl.ariaHasPopup ??= 'dialog'
@@ -155,6 +159,7 @@ export class Popover {
   disconnectedCallback() {
     this.listeners?.abort();
     this.listeners = undefined;
+    this.dismissal?.abort();
     clearTimeout(this.hoverTimer);
   }
 
@@ -162,6 +167,7 @@ export class Popover {
   async handleOpenChange(open: boolean) {
     if (open) {
       this.orbPresentStart.emit();
+      if (!this.triggerEl) this.listenForDismiss();
       await this.init?.();
       await this.setPosition();
       this.startPositioning();
@@ -172,6 +178,7 @@ export class Popover {
       ).finished;
       this.orbPresentEnd.emit();
     } else {
+      this.dismissal?.abort();
       this.orbDismissStart.emit();
       await this.el.animate(
         { opacity: [1, 0] },
@@ -179,6 +186,7 @@ export class Popover {
       ).finished;
       this.el.hidePopover();
       this.cleanup?.();
+      this.anchor = undefined;
       await this.destroy?.();
       this.orbDismissEnd.emit({
         role: this.role,
@@ -190,13 +198,11 @@ export class Popover {
   }
 
   /**
-   * Opens the popover. Without a trigger, it opens at `event`'s pointer
-   * position. Calling it again while open moves the popover to the new
-   * position, such as for a second right-click on a context menu.
+   * Opens the popover. Pass a pointer event, or anything with `getBoundingClientRect`, such as a Range, to open it there. Calling it again while open moves it.
    */
   @Method()
-  async show({ clientX, clientY, }: MouseEvent) {
-    this.anchorPoint = new DOMRect(clientX, clientY)
+  async show(at?: Anchor) {
+    this.anchor = at ? toVirtualAnchor(at) : undefined;
     if (!this.open) {
       this.open = true;
       return;
@@ -249,7 +255,9 @@ export class Popover {
       // Keyboard-invoked (Menu key / Shift+F10) reports 0,0 → fall back to the trigger
       const fromKeyboard = e.clientX === 0 && e.clientY === 0;
       const rect = triggerEl.getBoundingClientRect();
-      this.anchorPoint = fromKeyboard ? new DOMRect(rect.left, rect.bottom) : new DOMRect(e.clientX, e.clientY);
+      this.anchor = toVirtualAnchor(fromKeyboard ? { clientX: rect.left, clientY: rect.bottom } : e);
+      // An open menu moves to the new spot, since positioning only follows the anchor when it starts
+      if (this.open) this.startPositioning();
       this.setOpen(triggerEl, true);
     }, { signal });
 
@@ -305,6 +313,23 @@ export class Popover {
       escapable = false;
       clearTimeout(this.hoverTimer);
       this.request(triggerEl, false);
+    }, { signal });
+  }
+
+  /**
+   * Without a trigger, a press outside the popover or Escape closes it.
+   */
+  private listenForDismiss() {
+    this.dismissal?.abort();
+    this.dismissal = new AbortController();
+    const { signal } = this.dismissal;
+    // The press that opened it may still be bubbling up to the document, so it's ignored
+    const openedAt = performance.now();
+    document.addEventListener('pointerdown', (e) => {
+      if (e.timeStamp >= openedAt && !this.isInside(e, this.el)) this.open = false;
+    }, { signal });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.open = false;
     }, { signal });
   }
 

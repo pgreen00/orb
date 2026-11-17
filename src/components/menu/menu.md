@@ -471,6 +471,23 @@ Without `for`, the menu shows in the page instead of opening from a button, such
 - The menu shows in the page, with no box or shadow.
 - Tab to it. One item takes focus, and Up and Down move between items.
 
+### Driven by an Input
+
+Call `attachInput()` with an input to let it drive the menu while focus stays in the input. Up and Down highlight an item, Enter chooses the highlighted item, and Escape closes the menu. The input gets `aria-activedescendant`, `aria-expanded`, and `aria-controls` for the menu, and the items act as options until you call `attachInput(null)`.
+
+`show()` takes the same anchors as [orb-popover](../popover/): a pointer event, or an object with `getBoundingClientRect`, such as a Range at a caret. Set `contextElement` on that object to the scrolling element that contains it. The menu needs a `for` trigger to open, since an inline menu isn't a popup.
+
+```javascript
+const menu = document.querySelector("#command-menu");
+menu.attachInput(document.querySelector("#command-input"));
+
+// Opens the menu at the caret, and follows the editor when it scrolls
+menu.show({
+  getBoundingClientRect: () => range.getBoundingClientRect(),
+  contextElement: editor,
+});
+```
+
 ## Accessibility
 
 ### Keyboard

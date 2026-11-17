@@ -114,6 +114,100 @@ export const ImageIcon = (props: any) =>
     <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />,
   ]);
 
+export const MoreIcon = (props: any) =>
+  Icon(props, [<circle cx="12" cy="12" r="1" />, <circle cx="19" cy="12" r="1" />, <circle cx="5" cy="12" r="1" />]);
+
+export const CodeIcon = (props: any) =>
+  Icon(props, [<polyline points="16 18 22 12 16 6" />, <polyline points="8 6 2 12 8 18" />]);
+
+export const QuoteIcon = (props: any) =>
+  Icon(props, [
+    <path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" />,
+    <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" />,
+  ]);
+
+export const SeparatorIcon = (props: any) => Icon(props, [<path d="M5 12h14" />]);
+
+export const IndentIcon = (props: any) =>
+  Icon(props, [
+    <polyline points="3 8 7 12 3 16" />,
+    <line x1="21" x2="11" y1="6" y2="6" />,
+    <line x1="21" x2="11" y1="12" y2="12" />,
+    <line x1="21" x2="11" y1="18" y2="18" />,
+  ]);
+
+export const OutdentIcon = (props: any) =>
+  Icon(props, [
+    <polyline points="7 8 3 12 7 16" />,
+    <line x1="21" x2="11" y1="6" y2="6" />,
+    <line x1="21" x2="11" y1="12" y2="12" />,
+    <line x1="21" x2="11" y1="18" y2="18" />,
+  ]);
+
+export const LineHeightIcon = (props: any) =>
+  Icon(props, [
+    <line x1="3" x2="21" y1="4" y2="4" />,
+    <line x1="3" x2="21" y1="20" y2="20" />,
+    <line x1="12" x2="12" y1="8" y2="16" />,
+    <polyline points="9 10 12 7 15 10" />,
+    <polyline points="9 14 12 17 15 14" />,
+  ]);
+
+export const TaskListIcon = (props: any) =>
+  Icon(props, [
+    <path d="m3 17 2 2 4-4" />,
+    <path d="m3 7 2 2 4-4" />,
+    <path d="M13 6h8" />,
+    <path d="M13 12h8" />,
+    <path d="M13 18h8" />,
+  ]);
+
+export const BlockTypeIcon = (props: any) =>
+  Icon(props, [
+    <polyline points="4 7 4 4 20 4 20 7" />,
+    <line x1="9" x2="15" y1="20" y2="20" />,
+    <line x1="12" x2="12" y1="4" y2="20" />,
+  ]);
+
+export const ListStyleIcon = (props: any) =>
+  Icon(props, [
+    <line x1="9" x2="21" y1="6" y2="6" />,
+    <line x1="9" x2="21" y1="12" y2="12" />,
+    <line x1="9" x2="21" y1="18" y2="18" />,
+    <circle cx="4" cy="6" r="1.5" fill="currentColor" />,
+    <circle cx="4" cy="12" r="1.5" fill="currentColor" />,
+    <circle cx="4" cy="18" r="1.5" fill="currentColor" />,
+  ]);
+
+export const CodeLanguageIcon = (props: any) =>
+  Icon(props, [<polyline points="4 17 10 11 4 5" />, <line x1="12" x2="20" y1="19" y2="19" />]);
+
+export const FontFamilyIcon = (props: any) =>
+  Icon(props, [<path d="M4 20 9 6l5 14" />, <path d="M6.2 15h5.6" />, <path d="M16 12h5" />, <path d="M18.5 9v9" />]);
+
+export const FontSizeIcon = (props: any) =>
+  Icon(props, [<path d="m3 16 4-9 4 9" />, <path d="M4.5 13h5" />, <path d="M17 14V7" />, <path d="m14 10 3-3 3 3" />]);
+
+export const ColorIcon = (props: any) =>
+  Icon(props, [<path d="M4 20h16" />, <path d="m6 16 6-12 6 12" />, <path d="M8 12h8" />]);
+
+export const BackgroundIcon = (props: any) =>
+  Icon(props, [
+    <path d="m9 11-6 6v3h9l3-3" />,
+    <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />,
+  ]);
+
+export const SpecialCharacterIcon = (props: any) =>
+  Icon(props, [<path d="M3 20h5.5c-1.6-1.2-3-3.4-3-7a7.5 7.5 0 1 1 15 0c0 3.6-1.4 5.8-3 7H21" />]);
+
+export const EmojiIcon = (props: any) =>
+  Icon(props, [
+    <circle cx="12" cy="12" r="10" />,
+    <path d="M8 14s1.5 2 4 2 4-2 4-2" />,
+    <line x1="9" x2="9.01" y1="9" y2="9" />,
+    <line x1="15" x2="15.01" y1="9" y2="9" />,
+  ]);
+
 export const ClearFormattingIcon = (props: any) =>
   Icon(props, [
     <path d="M4 7V4h16v3" />,

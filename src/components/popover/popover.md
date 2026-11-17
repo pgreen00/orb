@@ -9,6 +9,8 @@ Set `for` to the id of the element that opens the popover. The trigger and the p
 
 For a list of actions, use [orb-menu](../menu/) instead. It handles the keyboard and focus the way menus need.
 
+`show()` opens the popover at a pointer event, or at any object with `getBoundingClientRect`, such as a Range at a caret. Set `contextElement` on that object to the scrolling element that contains it, so the popover follows the scroll. Without `for`, the popover has no trigger, so a press outside it or Escape closes it.
+
 ::: live-code-demo
 
 ```html

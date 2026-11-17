@@ -13,10 +13,12 @@ import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetai
 import { MaskDefinition } from "./components/mask-input/mask";
 import { Placement } from "@floating-ui/dom";
 import { MenuSearchDetail, MenuSelectDetail } from "./components/menu/menu";
+import { Anchor } from "./components/popover/anchor";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
 import { OtpCase, OtpType } from "./components/otp-input/otp";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { PageChangeDetail } from "./components/pagination/pagination";
+import { FontOption } from "./components/rich-text/ui/defaults";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
@@ -30,10 +32,12 @@ export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetai
 export { MaskDefinition } from "./components/mask-input/mask";
 export { Placement } from "@floating-ui/dom";
 export { MenuSearchDetail, MenuSelectDetail } from "./components/menu/menu";
+export { Anchor } from "./components/popover/anchor";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
 export { OtpCase, OtpType } from "./components/otp-input/otp";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { PageChangeDetail } from "./components/pagination/pagination";
+export { FontOption } from "./components/rich-text/ui/defaults";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { TabCloseDetail } from "./components/tab-button/tab-button";
@@ -913,6 +917,10 @@ export namespace Components {
      */
     interface OrbMenu {
         /**
+          * Lets another element, such as a text input in a rich-text editor, drive the menu while focus stays in it. Up and Down highlight items, Enter chooses the highlighted one, and Escape closes the menu. Pass `null` to detach.
+         */
+        "attachInput": (el: HTMLElement | null) => Promise<void>;
+        /**
           * Focuses the first or last item, or the selected option. In a menu with `search`, focuses the search field and highlights that item instead.
          */
         "focusItem": (which: "first" | "last") => Promise<void>;
@@ -952,9 +960,9 @@ export namespace Components {
          */
         "searchLabel": string;
         /**
-          * Opens the menu. Pass the event from a right-click to open it at the pointer. Calling it again while open moves it to the new spot.
+          * Opens the menu. Pass a pointer event, or anything with `getBoundingClientRect`, such as a Range, to open it there. Calling it again while open moves it to the new spot.
          */
-        "show": (event?: MouseEvent) => Promise<void>;
+        "show": (at?: Anchor) => Promise<void>;
         /**
           * - **click**: Opens when the trigger is clicked, or pressed with Enter,   Space, or Down. - **context-menu**: Opens where the trigger is right-clicked, or with the   context menu key or Shift+F10.
           * @default "click"
@@ -1345,9 +1353,9 @@ export namespace Components {
          */
         "placement"?: Placement;
         /**
-          * Opens the popover. Without a trigger, it opens at `event`'s pointer position. Calling it again while open moves the popover to the new position, such as for a second right-click on a context menu.
+          * Opens the popover. Pass a pointer event, or anything with `getBoundingClientRect`, such as a Range, to open it there. Calling it again while open moves it.
          */
-        "show": ({ clientX, clientY, }: MouseEvent) => Promise<void>;
+        "show": (at?: Anchor) => Promise<void>;
         /**
           * - **click**: Popover will show on left click or tap on mobile. - **context-menu**: Popover will show on right click or press on mobile. - **hover**: Popover will show on hover or tap on mobile. Clicking the   trigger or the content doesn't dismiss it. It closes when the pointer   leaves, or on a click outside.
           * @default "click"
@@ -1479,36 +1487,124 @@ export namespace Components {
          */
         "sync": boolean;
     }
+    /**
+     * A rich text editor that's also a form field. The form gets its content as
+     * HTML, under the element's `name` attribute.
+     */
     interface OrbRichText {
+        /**
+          * Removes all content. The undo history starts over.
+         */
         "clear": () => Promise<void>;
         /**
+          * The languages offered for code blocks. Set it as a property. A language the highlighter doesn't know is offered, but its code isn't colored.
+          * @default [...DEFAULT_LANGUAGES]
+         */
+        "codeLanguages": string[];
+        /**
+          * The swatches in the color pickers. Set it as a property.
+          * @default [   "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#ffffff",   "#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6fa8dc", "#8e7cc3", "#c27ba0", ]
+         */
+        "colors": string[];
+        /**
+          * The content a form reset returns to. Defaults to the initial `value`.
+         */
+        "defaultValue"?: string;
+        /**
+          * Disables the editor. It isn't submitted with the form.
           * @default false
          */
         "disabled": boolean;
+        /**
+          * The font sizes in points that the size picker offers, separated by spaces
+          * @default "8 9 10 11 12 14 18 24 30 36 48"
+         */
+        "fontSizes": string;
+        /**
+          * The fonts the font picker offers. Set it as a property. "Default" is always offered first, and removes the font.
+          * @default [   { label: "Arial", value: "Arial, sans-serif" },   { label: "Georgia", value: "Georgia, serif" },   { label: "Times New Roman", value: '"Times New Roman", serif' },   { label: "Courier New", value: '"Courier New", monospace' },   { label: "Verdana", value: "Verdana, sans-serif" },   { label: "Trebuchet MS", value: '"Trebuchet MS", sans-serif' }, ]
+         */
+        "fonts": FontOption[];
+        /**
+          * The content as canonical HTML, the form of the saved value
+         */
         "getContent": () => Promise<string>;
+        /**
+          * The content as plain text, with a line per block
+         */
         "getText": () => Promise<string>;
         /**
+          * Text above the editor
+         */
+        "label"?: string;
+        /**
+          * Renders plain text that looks like Markdown when it's pasted, such as a heading, a list or **bold**. When off, such text pastes as it is.
+          * @default true
+         */
+        "markdownPaste": boolean;
+        /**
+          * The largest height of the writing area, after which it scrolls
           * @default "500px"
          */
         "maxHeight": string;
         /**
+          * The smallest height of the writing area
           * @default "200px"
          */
         "minHeight": string;
         /**
+          * Informational message below the editor
+         */
+        "note"?: string;
+        /**
+          * Shown while the editor is empty
           * @default "Start typing..."
          */
         "placeholder": string;
         /**
+          * Shows the content without allowing edits. Still focusable and submitted with the form.
           * @default false
          */
         "readonly": boolean;
+        /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready": Promise<unknown>;
+        /**
+          * Requires content before the form can be submitted
+          * @default false
+         */
+        "required": boolean;
+        /**
+          * Clears custom errors and the user interaction state, so validation styling is hidden until the user interacts with the editor again.
+         */
+        "resetValidity": () => Promise<void>;
+        /**
+          * Replaces the content with `html`, which is cleaned before it's shown. The undo history starts over, and no `input` event fires.
+         */
         "setContent": (html: string) => Promise<void>;
         /**
+          * Sets a custom validation error. Pass an empty string to clear it.
+         */
+        "setCustomValidity": (message: string) => Promise<void>;
+        /**
+          * Shows the word and character counts below the editor
           * @default true
          */
         "showWordCount": boolean;
         /**
+          * Underlines misspelled words, using the browser's spell checker
+          * @default true
+         */
+        "spellcheck": boolean;
+        /**
+          * The toolbar's controls, in order. `|` separates groups. Commands not listed are still available from keyboard shortcuts. Groups that don't fit move into a More menu.
+          * @default DEFAULT_TOOLBAR
+         */
+        "toolbar": string;
+        /**
+          * The content, as HTML. It updates as the user edits: right after commands like Bold, and after each pause in typing. `getContent()` is always current.
           * @default ""
          */
         "value": string;
@@ -2646,6 +2742,10 @@ declare global {
         "orbEditorFocus": FocusEvent;
         "orbEditorBlur": FocusEvent;
     }
+    /**
+     * A rich text editor that's also a form field. The form gets its content as
+     * HTML, under the element's `name` attribute.
+     */
     interface HTMLOrbRichTextElement extends Components.OrbRichText, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbRichTextElementEventMap>(type: K, listener: (this: HTMLOrbRichTextElement, ev: OrbRichTextCustomEvent<HTMLOrbRichTextElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
@@ -4457,35 +4557,120 @@ declare namespace LocalJSX {
          */
         "sync"?: boolean;
     }
+    /**
+     * A rich text editor that's also a form field. The form gets its content as
+     * HTML, under the element's `name` attribute.
+     */
     interface OrbRichText {
         /**
+          * The languages offered for code blocks. Set it as a property. A language the highlighter doesn't know is offered, but its code isn't colored.
+          * @default [...DEFAULT_LANGUAGES]
+         */
+        "codeLanguages"?: string[];
+        /**
+          * The swatches in the color pickers. Set it as a property.
+          * @default [   "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#ffffff",   "#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6fa8dc", "#8e7cc3", "#c27ba0", ]
+         */
+        "colors"?: string[];
+        /**
+          * The content a form reset returns to. Defaults to the initial `value`.
+         */
+        "defaultValue"?: string;
+        /**
+          * Disables the editor. It isn't submitted with the form.
           * @default false
          */
         "disabled"?: boolean;
         /**
+          * The font sizes in points that the size picker offers, separated by spaces
+          * @default "8 9 10 11 12 14 18 24 30 36 48"
+         */
+        "fontSizes"?: string;
+        /**
+          * The fonts the font picker offers. Set it as a property. "Default" is always offered first, and removes the font.
+          * @default [   { label: "Arial", value: "Arial, sans-serif" },   { label: "Georgia", value: "Georgia, serif" },   { label: "Times New Roman", value: '"Times New Roman", serif' },   { label: "Courier New", value: '"Courier New", monospace' },   { label: "Verdana", value: "Verdana, sans-serif" },   { label: "Trebuchet MS", value: '"Trebuchet MS", sans-serif' }, ]
+         */
+        "fonts"?: FontOption[];
+        /**
+          * The `id` of a `<form>` element to associate this element with.
+         */
+        "form"?: string;
+        /**
+          * Text above the editor
+         */
+        "label"?: string;
+        /**
+          * Renders plain text that looks like Markdown when it's pasted, such as a heading, a list or **bold**. When off, such text pastes as it is.
+          * @default true
+         */
+        "markdownPaste"?: boolean;
+        /**
+          * The largest height of the writing area, after which it scrolls
           * @default "500px"
          */
         "maxHeight"?: string;
         /**
+          * The smallest height of the writing area
           * @default "200px"
          */
         "minHeight"?: string;
+        /**
+          * The name of the element, used when submitting an HTML form.
+         */
+        "name"?: string;
+        /**
+          * Informational message below the editor
+         */
+        "note"?: string;
+        /**
+          * Emits when the content area loses focus, including to the toolbar
+         */
         "onOrbEditorBlur"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
+        /**
+          * Emits after each change, with the saved HTML and text. Both are computed only when read.
+         */
         "onOrbEditorChange"?: (event: OrbRichTextCustomEvent<EditorChangeEvent>) => void;
+        /**
+          * Emits when the content area gains focus
+         */
         "onOrbEditorFocus"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
         /**
+          * Shown while the editor is empty
           * @default "Start typing..."
          */
         "placeholder"?: string;
         /**
+          * Shows the content without allowing edits. Still focusable and submitted with the form.
           * @default false
          */
         "readonly"?: boolean;
         /**
+          * A promise that resolves when the component has completed it's initial render
+          * @default new Promise((res) => (this.#resolve = res))
+         */
+        "ready"?: Promise<unknown>;
+        /**
+          * Requires content before the form can be submitted
+          * @default false
+         */
+        "required"?: boolean;
+        /**
+          * Shows the word and character counts below the editor
           * @default true
          */
         "showWordCount"?: boolean;
         /**
+          * Underlines misspelled words, using the browser's spell checker
+          * @default true
+         */
+        "spellcheck"?: boolean;
+        /**
+          * The toolbar's controls, in order. `|` separates groups. Commands not listed are still available from keyboard shortcuts. Groups that don't fit move into a More menu.
+          * @default DEFAULT_TOOLBAR
+         */
+        "toolbar"?: string;
+        /**
+          * The content, as HTML. It updates as the user edits: right after commands like Bold, and after each pause in typing. `getContent()` is always current.
           * @default ""
          */
         "value"?: string;
@@ -5252,13 +5437,21 @@ declare namespace LocalJSX {
         "sync": boolean;
     }
     interface OrbRichTextAttributes {
+        "label": string;
+        "note": string;
         "placeholder": string;
         "value": string;
+        "defaultValue": string;
+        "required": boolean;
         "disabled": boolean;
         "readonly": boolean;
         "minHeight": string;
         "maxHeight": string;
         "showWordCount": boolean;
+        "spellcheck": boolean;
+        "toolbar": string;
+        "fontSizes": string;
+        "markdownPaste": boolean;
     }
     interface OrbRowDetailsAttributes {
         "expanded": boolean;
@@ -5560,6 +5753,10 @@ declare module "@stencil/core" {
              * Displays a date as a localized phrase relative to now, such as "3 hours ago" or "in 2 days". Localization is handled by `Intl.RelativeTimeFormat`.
              */
             "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;
+            /**
+             * A rich text editor that's also a form field. The form gets its content as
+             * HTML, under the element's `name` attribute.
+             */
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**
              * Content that a row of an `orb-grid` shows and hides. Put anything inside: text, a form, a chart, or another grid.

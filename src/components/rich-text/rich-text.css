@@ -1,13 +1,25 @@
 /**
  * @prop --editor-border-color: Border around the editor and between its sections
  * @prop --editor-focus-color: Border and focus ring color while the editor has focus, and link color
+ * @prop --editor-invalid-color: Border color after a failed validation
  * @prop --editor-bg: Background of the writing area
  * @prop --editor-toolbar-bg: Background of the toolbar and footer
  * @prop --editor-text-color: Text color
  * @prop --editor-muted-color: Placeholder and blockquote text color
  * @prop --editor-footer-color: Word count text color
  * @prop --editor-button-active: Background of a pressed toolbar button, such as Bold while bold text is selected
+ * @prop --editor-picker-hover-bg: Hovered background of a picker cell, tab or button, in the special characters, emoji and color pickers
  * @prop --editor-border-radius: Corner radius of the editor
+ * @prop --editor-line-height: Line height of the writing area
+ * @prop --editor-code-bg: Background of code blocks and inline code
+ * @prop --editor-code-keyword: Color of keywords in code
+ * @prop --editor-code-string: Color of strings in code
+ * @prop --editor-code-comment: Color of comments in code
+ * @prop --editor-code-function: Color of function names in code
+ * @prop --editor-code-number: Color of numbers and constants in code
+ * @prop --editor-code-type: Color of types, classes and built-ins in code
+ * @prop --editor-code-property: Color of properties, tags and variables in code
+ * @prop --editor-code-operator: Color of operators and punctuation in code
  */
 
 :host {
@@ -15,6 +27,7 @@
   font-family: inherit;
   --editor-border-color: light-dark(var(--orb-neutral-500), var(--orb-neutral-700));
   --editor-focus-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --editor-invalid-color: light-dark(var(--orb-danger-400), var(--orb-danger-300));
   --editor-bg: transparent;
   --editor-toolbar-bg: light-dark(var(--orb-neutral-100), var(--orb-neutral-875));
   --editor-text-color: var(--orb-text-color);
@@ -26,20 +39,39 @@
     var(--orb-primary-100),
     color-mix(in srgb, var(--orb-primary-500) 30%, transparent)
   );
+  --editor-picker-hover-bg: light-dark(var(--orb-neutral-200), var(--orb-neutral-800));
   --editor-border-radius: var(--orb-radius-md);
+  --editor-line-height: 1.6;
+  --editor-code-bg: light-dark(var(--orb-neutral-100), var(--orb-neutral-900));
+  --editor-code-keyword: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+  --editor-code-string: light-dark(var(--orb-success-750), var(--orb-success-500));
+  --editor-code-comment: var(--editor-muted-color);
+  --editor-code-function: light-dark(var(--orb-warning-950), var(--orb-warning-500));
+  --editor-code-number: light-dark(var(--orb-danger-500), var(--orb-danger-400));
+  --editor-code-type: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+  --editor-code-property: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+  --editor-code-operator: var(--editor-text-color);
+  color: var(--editor-text-color);
+}
+
+/* The border wraps the editor only, not the label or note, as in orb-textbox. */
+.shell {
   border: 2px solid var(--editor-border-color);
   border-radius: var(--editor-border-radius);
   background: var(--editor-bg);
-  color: var(--editor-text-color);
   overflow: hidden;
   transition: border-color var(--orb-transition-fast) ease-in-out;
 }
 
-:host(:focus-within) {
+:host(:focus-within) .shell {
   border-color: var(--editor-focus-color);
 }
 
-:host(.editor-disabled) {
+:host(:state(user-invalid)) .shell {
+  border-color: var(--editor-invalid-color);
+}
+
+:host(:state(disabled)) .shell {
   opacity: 0.5;
   pointer-events: none;
 }
@@ -50,7 +82,7 @@
 
 .editor-toolbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--orb-spacing-xs);
   padding: var(--orb-spacing-xs);
@@ -69,6 +101,12 @@
   width: var(--height);
 }
 
+/* A select shows its icon and a caret, so it's wider than the square buttons. */
+.editor-toolbar orb-button.select {
+  width: auto;
+  --padding-inline: var(--orb-spacing-xs);
+}
+
 .editor-toolbar orb-button svg {
   width: 1.125rem;
   height: 1.125rem;
@@ -78,6 +116,19 @@
   --background: var(--editor-button-active);
   --hover-background: var(--editor-button-active);
   --color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+}
+
+/* Under the icon, like the underline in Google Docs' text color. The button is position: relative. */
+.color-bar {
+  position: absolute;
+  bottom: var(--orb-spacing-3xs);
+  left: 50%;
+  width: 1rem;
+  height: 3px;
+  transform: translateX(-50%);
+  border-radius: var(--orb-radius-sm);
+  background: var(--color-bar, transparent);
+  pointer-events: none;
 }
 
 orb-tooltip kbd {
@@ -99,7 +150,9 @@ orb-tooltip kbd::after {
   padding: var(--orb-spacing-md);
   color: var(--editor-text-color);
   font-size: var(--orb-font-md);
-  line-height: 1.6;
+  line-height: var(--editor-line-height);
+  /* Spaces are kept as typed, so the saved HTML doesn't fill with &nbsp; */
+  white-space: pre-wrap;
   overflow-y: auto;
   overflow-wrap: break-word;
   outline: none;
@@ -126,8 +179,149 @@ orb-tooltip kbd::after {
   margin: 0.83em 0;
 }
 
-.editor-content p {
+.editor-content h3 {
+  font-size: 1.17em;
+  font-weight: var(--orb-font-bold);
   margin: 1em 0;
+}
+
+.editor-content h4 {
+  font-size: 1em;
+  font-weight: var(--orb-font-bold);
+  margin: 1.33em 0;
+}
+
+.editor-content h5 {
+  font-size: 0.83em;
+  font-weight: var(--orb-font-bold);
+  margin: 1.67em 0;
+}
+
+.editor-content h6 {
+  font-size: 0.67em;
+  font-weight: var(--orb-font-bold);
+  margin: 2.33em 0;
+}
+
+/* Enter starts a new line at the regular line height, so paragraphs don't add a gap */
+.editor-content p {
+  margin: 0;
+}
+
+.editor-content pre {
+  margin: 1em 0;
+  padding: var(--orb-spacing-sm);
+  background: var(--editor-code-bg);
+  border-radius: var(--orb-radius-md);
+  font-family: var(--orb-font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.editor-content code {
+  font-family: var(--orb-font-mono, ui-monospace, monospace);
+}
+
+.editor-content :not(pre) > code {
+  padding: 0 0.25em;
+  background: var(--editor-code-bg);
+  border-radius: var(--orb-radius-sm, 0.25em);
+}
+
+.editor-content hr {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 2px solid var(--orb-divider-color);
+}
+
+.editor-content input[type="checkbox"] {
+  margin: 0 0.5em 0 0;
+  accent-color: var(--editor-focus-color);
+  vertical-align: middle;
+}
+
+::highlight(orb-code-keyword),
+::highlight(orb-code-atrule),
+::highlight(orb-code-important) {
+  color: var(--editor-code-keyword);
+}
+
+::highlight(orb-code-string),
+::highlight(orb-code-char),
+::highlight(orb-code-attr-value),
+::highlight(orb-code-regex),
+::highlight(orb-code-template-string) {
+  color: var(--editor-code-string);
+}
+
+::highlight(orb-code-comment),
+::highlight(orb-code-prolog),
+::highlight(orb-code-doctype),
+::highlight(orb-code-cdata) {
+  color: var(--editor-code-comment);
+}
+
+::highlight(orb-code-function) {
+  color: var(--editor-code-function);
+}
+
+::highlight(orb-code-number),
+::highlight(orb-code-boolean),
+::highlight(orb-code-constant) {
+  color: var(--editor-code-number);
+}
+
+::highlight(orb-code-class-name),
+::highlight(orb-code-builtin) {
+  color: var(--editor-code-type);
+}
+
+::highlight(orb-code-property),
+::highlight(orb-code-tag),
+::highlight(orb-code-attr-name),
+::highlight(orb-code-variable),
+::highlight(orb-code-symbol),
+::highlight(orb-code-selector) {
+  color: var(--editor-code-property);
+}
+
+::highlight(orb-code-operator),
+::highlight(orb-code-punctuation),
+::highlight(orb-code-entity),
+::highlight(orb-code-url) {
+  color: var(--editor-code-operator);
+}
+
+.help {
+  display: grid;
+  gap: var(--orb-spacing-sm);
+  padding: var(--orb-spacing-md);
+}
+
+.help h2 {
+  margin: 0;
+  font-size: var(--orb-font-lg, 1.25em);
+}
+
+.help dl {
+  display: grid;
+  gap: var(--orb-spacing-xs);
+  margin: 0;
+}
+
+.help-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--orb-spacing-md);
+}
+
+.help-row dd {
+  margin: 0;
+}
+
+.help kbd {
+  font-family: inherit;
 }
 
 .editor-content p:first-child {
@@ -145,7 +339,7 @@ orb-tooltip kbd::after {
 }
 
 .editor-content li {
-  margin: 0.5em 0;
+  margin: 0;
 }
 
 .editor-content a {
@@ -159,6 +353,11 @@ orb-tooltip kbd::after {
   height: auto;
   margin: 1em 0;
   border-radius: var(--orb-radius-md);
+}
+
+.editor-content [data-selected] {
+  outline: 2px solid var(--editor-focus-color);
+  outline-offset: 2px;
 }
 
 .editor-content blockquote {
@@ -182,6 +381,175 @@ orb-tooltip kbd::after {
   user-select: none;
 }
 
+.link-panel {
+  display: grid;
+  gap: var(--orb-spacing-sm);
+  min-width: 16rem;
+  padding: var(--orb-spacing-sm);
+}
+
+.link-field {
+  width: 100%;
+}
+
+.link-url {
+  overflow-wrap: anywhere;
+  color: var(--editor-muted-color);
+}
+
+.link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--orb-spacing-xs);
+}
+
+/* The picker draws its own frame, so the popover around it adds none */
+.picker-popover {
+  --padding: 0;
+  --border: none;
+}
+
+.picker {
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--orb-spacing-sm);
+  width: 18rem;
+  padding: var(--orb-spacing-sm);
+  border: 2px solid var(--editor-border-color);
+  border-radius: var(--editor-border-radius);
+  background: var(--editor-toolbar-bg);
+  color: var(--editor-text-color);
+  font-family: inherit;
+}
+
+.picker [hidden] {
+  display: none;
+}
+
+.picker-tabs {
+  display: flex;
+  gap: var(--orb-spacing-3xs);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.picker-tab {
+  flex: none;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 var(--orb-spacing-xs);
+  border: none;
+  border-radius: var(--orb-radius-md);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--orb-font-sm);
+  cursor: pointer;
+}
+
+.picker-tab:hover,
+.picker-cell:hover,
+.picker-default:hover {
+  background: var(--editor-picker-hover-bg);
+}
+
+.picker-tab[aria-pressed="true"] {
+  background: var(--editor-button-active);
+  color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+}
+
+/* Each row is the 8-column grid, so the grid's rows can keep their ARIA roles. */
+.picker-grid {
+  display: grid;
+  gap: var(--orb-spacing-3xs);
+}
+
+.picker-row {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: var(--orb-spacing-3xs);
+}
+
+.picker-cell {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  border-radius: var(--orb-radius-md);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.swatch {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid var(--editor-border-color);
+  border-radius: var(--orb-radius-sm);
+  cursor: pointer;
+}
+
+.swatch[aria-pressed="true"] {
+  outline: 2px solid var(--editor-focus-color);
+  outline-offset: 1px;
+}
+
+.picker-tab:focus-visible,
+.picker-cell:focus-visible,
+.swatch:focus-visible,
+.picker-default:focus-visible {
+  outline: 2px solid var(--editor-focus-color);
+  outline-offset: -2px;
+}
+
+.picker-section-label {
+  font-size: var(--orb-font-xs);
+  color: var(--editor-muted-color);
+}
+
+.picker-default {
+  display: block;
+  width: 100%;
+  padding: var(--orb-spacing-xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-md);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--orb-font-sm);
+  cursor: pointer;
+}
+
+.picker-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.picker-custom input[type="color"] {
+  width: 2.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.picker-empty {
+  padding: var(--orb-spacing-md) 0;
+  color: var(--editor-muted-color);
+  font-size: var(--orb-font-sm);
+  text-align: center;
+}
+
 @media (forced-colors: active) {
   .editor-toolbar orb-button.pressed {
     outline: 2px solid Highlight;
@@ -195,7 +563,7 @@ orb-tooltip kbd::after {
     display: none;
   }
 
-  :host {
+  .shell {
     border: none;
   }
 

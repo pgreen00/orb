@@ -16,6 +16,7 @@ import { composedClosest, composedContains, deepActiveElement } from "../../util
 import { toggleState } from "../../utils/custom-states";
 import { CloseIcon, SearchIcon } from "../../utils/icons";
 import { usingKeyboard } from "../../utils/input-modality";
+import { Anchor, toVirtualAnchor, VirtualAnchor } from "../popover/anchor";
 import { findById, menuOf, ownElements, ownItems, pointer, triggerOf } from "./menu-registry";
 
 export interface MenuSelectDetail {
@@ -80,7 +81,8 @@ export class Menu {
   private triggerEl?: HTMLElement;
   private listEl?: HTMLElement;
   private inputEl?: HTMLInputElement;
-  private anchorPoint?: DOMRect;
+  private inputListeners?: AbortController;
+  private anchor?: VirtualAnchor;
   private pendingFocus?: "first" | "last";
   private disposers: (() => void)[] = [];
   private stopPositioning?: () => void;
@@ -101,6 +103,8 @@ export class Menu {
   @State() open = false;
   @State() hasFooter = false;
   @State() fullscreen = false;
+  /** The element that drives the menu while focus stays in it, set by `attachInput` */
+  @State() attachedEl?: HTMLElement;
 
   /**
    * Id of the element that opens the menu, in the same document or shadow
@@ -242,12 +246,13 @@ export class Menu {
   }
 
   /**
-   * Opens the menu. Pass the event from a right-click to open it at the
-   * pointer. Calling it again while open moves it to the new spot.
+   * Opens the menu. Pass a pointer event, or anything with `getBoundingClientRect`,
+   * such as a Range, to open it there. Calling it again while open moves it to
+   * the new spot.
    */
   @Method()
-  async show(event?: MouseEvent) {
-    if (event) this.anchorPoint = new DOMRect(event.clientX, event.clientY);
+  async show(at?: Anchor) {
+    this.anchor = at ? toVirtualAnchor(at) : undefined;
     if (this.open) {
       this.startPositioning();
       return;
@@ -314,9 +319,9 @@ export class Menu {
     return this.mode !== "actions";
   }
 
-  /** The role of the list. Search needs a listbox, which the search field's highlight points into. */
+  /** The role of the list. Search and an attached input need a listbox, which the highlight points into. */
   private get listRole(): "listbox" | "menu" {
-    return this.search || this.listbox ? "listbox" : "menu";
+    return this.search || this.listbox || this.attachedEl ? "listbox" : "menu";
   }
 
   /** The role the trigger reports for the popup */
@@ -409,9 +414,9 @@ export class Menu {
     // The context menu key and Shift+F10 report 0,0, so open at the trigger.
     if (ev.clientX === 0 && ev.clientY === 0) {
       const rect = trigger.getBoundingClientRect();
-      this.anchorPoint = new DOMRect(rect.left, rect.bottom);
+      this.anchor = toVirtualAnchor({ clientX: rect.left, clientY: rect.bottom });
     } else {
-      this.anchorPoint = new DOMRect(ev.clientX, ev.clientY);
+      this.anchor = toVirtualAnchor(ev);
     }
     if (this.open) this.startPositioning();
     else this.openFrom(usingKeyboard() ? "first" : undefined);
@@ -422,6 +427,7 @@ export class Menu {
   @Watch("open")
   async onOpenChange(open: boolean) {
     if (this.triggerEl && this.showOn === "click") this.triggerEl.ariaExpanded = String(open);
+    this.syncAttached();
     if (open) {
       if (!this.el.isConnected || !this.el.popover) return;
       this.fullscreen = this.search && this.fullscreenQuery.matches;
@@ -453,7 +459,7 @@ export class Menu {
       document.removeEventListener("keydown", this.onDocumentKeyDown);
       this.stopPositioning?.();
       this.stopPositioning = undefined;
-      if (this.showOn !== "context-menu") this.anchorPoint = undefined;
+      if (this.showOn !== "context-menu") this.anchor = undefined;
       this.resetSearch();
       const fading = this.el.matches(":popover-open") ? this.fade(false) : Promise.resolve(true);
       fading.then((done) => {
@@ -542,14 +548,13 @@ export class Menu {
   // Positioning
 
   private get reference() {
-    const point = this.anchorPoint;
-    return point ? { getBoundingClientRect: () => point } : this.triggerEl!;
+    return this.anchor ?? this.triggerEl!;
   }
 
   private startPositioning() {
     this.stopPositioning?.();
     this.stopPositioning = undefined;
-    if (this.fullscreen || (!this.triggerEl && !this.anchorPoint)) return;
+    if (this.fullscreen || (!this.triggerEl && !this.anchor)) return;
     this.stopPositioning = autoUpdate(this.reference, this.el, () => this.position());
   }
 
@@ -573,7 +578,7 @@ export class Menu {
   };
 
   private async position() {
-    if (!this.triggerEl && !this.anchorPoint) return;
+    if (!this.triggerEl && !this.anchor) return;
     const submenu = this.isSubmenu;
     const placement: Placement =
       this.placement ?? (submenu ? (this.rtl ? "left-start" : "right-start") : "bottom-start");
@@ -582,7 +587,7 @@ export class Menu {
       strategy: "fixed",
       middleware: [
         // Lines a submenu's first item up with the item that opened it.
-        offset(submenu ? { mainAxis: 2, crossAxis: -5 } : this.anchorPoint ? 2 : 4),
+        offset(submenu ? { mainAxis: 2, crossAxis: -5 } : this.anchor ? 2 : 4),
         flip(),
         shift({ padding: 4 }),
         size({
@@ -668,6 +673,8 @@ export class Menu {
    * focus stays where it is.
    */
   private focusFrom(which?: "first" | "last") {
+    // An attached input keeps focus, so opening the menu doesn't take it
+    if (this.attachedEl) return;
     if (this.search) {
       if (which || !this.fullscreen) this.focusSearch(which);
     } else if (which) {
@@ -696,6 +703,7 @@ export class Menu {
     item?.setAttribute("data-active", source);
     if (item && source === "keyboard") item.scrollIntoView({ block: "nearest" });
     if (this.inputEl) this.inputEl.ariaActiveDescendantElement = item ?? null;
+    this.syncAttached();
   }
 
   private focus(item?: HTMLOrbMiElement, options?: FocusOptions) {
@@ -848,6 +856,52 @@ export class Menu {
     // Tells `orbSearch` listeners that filtering over, so they can reset their own filter.
     if (hadQuery) this.orbSearch.emit({ query: "" });
   }
+
+  /**
+   * Lets another element, such as a text input in a rich-text editor, drive the
+   * menu while focus stays in it. Up and Down highlight items, Enter chooses the
+   * highlighted one, and Escape closes the menu. Pass `null` to detach.
+   */
+  @Method()
+  async attachInput(el: HTMLElement | null) {
+    this.detachInput();
+    if (!el) return;
+    this.attachedEl = el;
+    this.inputListeners = new AbortController();
+    el.addEventListener("keydown", this.onAttachedKeyDown, { signal: this.inputListeners.signal });
+    this.syncItems();
+    this.syncRole();
+    this.syncAttached();
+  }
+
+  /** Stops driving from the attached input, and clears the ARIA the menu set on it. */
+  private detachInput() {
+    const el = this.attachedEl;
+    if (!el) return;
+    this.inputListeners?.abort();
+    this.inputListeners = undefined;
+    this.setActive(undefined);
+    el.ariaExpanded = null;
+    el.ariaActiveDescendantElement = null;
+    el.ariaControlsElements = null;
+    this.attachedEl = undefined;
+    this.syncItems();
+    this.syncRole();
+  }
+
+  /** Keeps the attached input's ARIA in step with the menu's open state and highlight. */
+  private syncAttached() {
+    const el = this.attachedEl;
+    if (!el) return;
+    el.ariaExpanded = String(this.open);
+    el.ariaActiveDescendantElement = this.open ? (this.activeItem ?? null) : null;
+    el.ariaControlsElements = this.open ? [this.el] : null;
+  }
+
+  /** While the menu is open, its arrow keys and Enter act on the attached input's keys. */
+  private onAttachedKeyDown = (ev: KeyboardEvent) => {
+    if (this.open) this.onSearchKeyDown(ev);
+  };
 
   @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
