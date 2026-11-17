@@ -1,7 +1,7 @@
 @use "sass:meta";
 
 :root {
-  font-size: clamp(18px, 16px + 0.2273vw, 20px);
+  font-size: clamp(17px, 15.4px + 0.43vmin, 20px);
   line-height: 1.75;
   font-weight: var(--orb-font-regular);
   -webkit-tap-highlight-color: transparent;

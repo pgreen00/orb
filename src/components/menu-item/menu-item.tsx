@@ -48,6 +48,12 @@ export class MenuItem {
   @Prop() menuMode: "actions" | "single" | "multi" = "actions";
 
   /**
+   * Whether the item is in a listbox, where it's an option. Set by the menu.
+   * @internal
+   */
+  @Prop() listbox = false;
+
+  /**
    * Keeps the item focusable but stops it from being chosen
    */
   @Prop({ reflect: true }) disabled = false;
@@ -72,13 +78,15 @@ export class MenuItem {
   @Watch("checked")
   @Watch("disabled")
   @Watch("menuMode")
+  @Watch("listbox")
   sync() {
-    const listbox = this.menuMode !== "actions";
     const roles = { normal: "menuitem", checkbox: "menuitemcheckbox", radio: "menuitemradio" };
-    this.internals.role = listbox ? "option" : (roles[this.itemType] ?? "menuitem");
-    // Options report selection with aria-selected, and menu items with aria-checked.
-    this.internals.ariaSelected = listbox ? String(this.checked) : null;
-    this.internals.ariaChecked = listbox || this.itemType === "normal" ? null : String(this.checked);
+    this.internals.role = this.listbox ? "option" : (roles[this.itemType] ?? "menuitem");
+    // Options in single and multi menus report selection with aria-selected. Other
+    // options and menu items report checkable state with aria-checked.
+    this.internals.ariaSelected = this.menuMode !== "actions" ? String(this.checked) : null;
+    this.internals.ariaChecked =
+      this.menuMode === "actions" && this.itemType !== "normal" ? String(this.checked) : null;
     this.internals.ariaDisabled = this.disabled ? "true" : null;
   }
 

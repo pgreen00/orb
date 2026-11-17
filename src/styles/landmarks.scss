@@ -17,6 +17,11 @@ html {
   &.orb-theme-dark {
     color-scheme: dark;
   }
+
+  &:has(:is(orb-menu:state(fullscreen), orb-overlay[open])) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
 }
 
 body {

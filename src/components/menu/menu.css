@@ -8,48 +8,155 @@
   --background: light-dark(var(--orb-neutral-25), var(--orb-neutral-950));
   --color: var(--orb-text-color);
   --border: 1px solid light-dark(var(--orb-neutral-300), var(--orb-neutral-750));
+  --inset: 0px;
+  container-name: orb-menu;
   display: flex;
   flex-direction: column;
-  gap: 1px;
   box-sizing: border-box;
   min-width: 10rem;
 }
 
 /* A menu with a trigger is a popover in the top layer. The browser's own
-   popover styles are replaced, since the menu positions itself. */
+   popover styles are replaced, since the menu positions itself. The parts
+   inside it are inset from its edges. */
 :host([popover]) {
+  --inset: var(--orb-spacing-2xs);
   position: fixed;
   inset: auto;
   margin: 0;
-  max-width: calc(100vw - 8px);
-  padding: var(--orb-spacing-2xs);
-  overflow: auto;
+  overflow: hidden;
   border: var(--border);
   border-radius: var(--orb-radius-md);
   background: var(--background);
   color: var(--color);
   box-shadow: var(--orb-shadow-lg);
   font-family: inherit;
-  transition: opacity var(--orb-transition-fast) ease-out;
 }
 
 :host([popover]:not(:popover-open)) {
   display: none;
 }
 
-@starting-style {
-  :host([popover]:popover-open) {
-    opacity: 0;
-  }
+.mobile-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  box-sizing: border-box;
+  min-height: 3rem;
+  padding: 0 var(--orb-spacing-sm);
+}
+
+.mobile-bar .title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--orb-font-semi-bold);
+}
+
+.search {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  padding: var(--inset) calc(var(--inset) + var(--orb-spacing-2xs));
+}
+
+.search-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--orb-note-color);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--orb-note-color);
+}
+
+/* Items scroll here, between the search field and the footer */
+.list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1px;
+  box-sizing: border-box;
+  min-height: 0;
+  padding: var(--inset);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.footer {
+  flex: none;
+  box-sizing: border-box;
+  padding: var(--inset) calc(var(--inset) + var(--orb-spacing-2xs));
+}
+
+[hidden] {
+  display: none !important;
 }
 
 ::slotted(orb-divider) {
   --spacing: var(--orb-spacing-2xs);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :host([popover]) {
-    transition: none;
+::slotted(orb-divider[data-search-hidden]) {
+  display: none;
+}
+
+/* On small touch screens, a menu with search fills the screen. */
+:host(:state(fullscreen)) {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:host(:state(fullscreen))::backdrop {
+  background-color: var(--background);
+}
+
+:host(:state(fullscreen)) .mobile-bar orb-button {
+  flex: none;
+  margin-left: auto;
+}
+
+:host(:state(fullscreen)) .mobile-bar orb-button orb-icon {
+  --size: var(--orb-icon-size-md);
+}
+
+:host(:state(fullscreen)) .mobile-bar orb-button orb-icon::part(icon) {
+  font-size: var(--orb-icon-size-md);
+}
+
+:host(:state(fullscreen)) .search input {
+  font-size: max(16px, 1em);
+}
+
+/* Items read `--item-size` with a style query, as orb-button reads the mode
+   that orb-button-group sets. */
+@media (max-width: 767px) and (pointer: coarse) {
+  :host {
+    --item-size: large;
   }
 }
 

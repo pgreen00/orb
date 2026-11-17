@@ -34,7 +34,10 @@ if (typeof window !== "undefined") {
   );
 }
 
-/** The elements named `tag` that belong to `host`, skipping those of nested menus. */
+/**
+ * The elements named `tag` that belong to `host`, skipping those of nested menus
+ * and those in named slots, such as a footer.
+ */
 export function ownElements<T extends HTMLElement = HTMLElement>(host: HTMLElement, tag: string): T[] {
   const collect = (elements: Element[]): T[] =>
     elements.flatMap((el) => {
@@ -43,7 +46,7 @@ export function ownElements<T extends HTMLElement = HTMLElement>(host: HTMLEleme
       if (el.tagName === "ORB-MENU") return [];
       return collect(Array.from(el.children));
     });
-  return collect(Array.from(host.children));
+  return collect(Array.from(host.children).filter((el) => !el.slot));
 }
 
 /** The `orb-mi` items that belong to `host`, skipping items of nested menus. */

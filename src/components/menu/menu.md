@@ -7,7 +7,9 @@ sidebar_label: 'Menu'
 
 A menu is a list of actions. Put `<orb-mi>` items in an `<orb-menu>`, and set the menu's `for` to the id of the button that opens it. The button and the menu must be in the same document or shadow root. Choosing an item emits `orbSelect` with the item's `value`, then closes the menu.
 
-Set `mode` to `single` or `multi` to make the menu a list of options instead. See Single and Multiple Selection below.
+Set `mode` to `single` or `multi` to make the menu a list of options instead. See Single and Multiple Selection below. Set `search` to add a search field. See Search below.
+
+Menus scroll inside `::part(list)`, so style padding and scrolling there rather than on the host.
 
 ::: live-code-demo
 
@@ -242,6 +244,110 @@ filterMenu.addEventListener("orbSelect", update);
 - Click **Images**. It loses its checkmark, and the menu stays open.
 - Screen readers announce the **Sort** menu as a list with one option selected, and the **Filter** menu as a list where several options can be selected.
 
+### Search
+
+Set `search` to add a search field above the items. Typing filters them by label, and the first match is highlighted, so Enter chooses it. Arrow keys move the highlight through the matches, and focus stays in the search field. Set `search-label` to name the field. `search` works in every `mode`. In `actions` mode it makes a command palette.
+
+Put controls at the end of the search field in the `search-end` slot, such as a filter menu. Put content below the items in the `footer` slot, such as a button. Items with the `hidden` attribute are removed from the list, and the keyboard skips them.
+
+On a small touch screen, a menu with `search` fills the screen, with the search field above the items. The search field doesn't take focus when the menu opens, so the keyboard stays closed until someone taps it and people can tap the items directly. Items are larger on small touch screens. Menus without `search` stay anchored to their button.
+
+::: live-code-demo
+
+```html
+<orb-button id="model-button">Haiku 5.5</orb-button>
+<orb-menu id="model-menu" for="model-button" mode="single" search search-label="Search a model" label="Model">
+  <button id="filter-button" slot="search-end" type="button">All ▾</button>
+  <orb-menu id="filter-menu" slot="search-end" for="filter-button" mode="single" label="Provider">
+    <orb-mi value="all" checked>All</orb-mi>
+    <orb-mi value="anthropic">Anthropic</orb-mi>
+    <orb-mi value="other">Other</orb-mi>
+  </orb-menu>
+  <orb-mi value="haiku" data-provider="anthropic" checked>Haiku 5.5</orb-mi>
+  <orb-mi value="sonnet" data-provider="anthropic">Sonnet 5.5</orb-mi>
+  <orb-mi value="opus" data-provider="anthropic">Opus 5.5</orb-mi>
+  <orb-mi value="mistral" data-provider="other">Mistral Small</orb-mi>
+  <orb-mi value="kimi" data-provider="other">Kimi K3</orb-mi>
+  <button slot="footer" type="button" id="default-button">Set as default</button>
+</orb-menu>
+<p id="model-output" role="status" style="margin-top: 1rem;">Model: Haiku 5.5</p>
+```
+
+```javascript
+const model = document.querySelector("#model-menu");
+const modelButton = document.querySelector("#model-button");
+const filterButton = document.querySelector("#filter-button");
+const output = document.querySelector("#model-output");
+
+model.addEventListener("orbSelect", (event) => {
+  // Choices in the filter menu bubble up here too, so ignore them.
+  if (event.target !== model) return;
+  const name = event.detail.item.textContent.trim();
+  modelButton.textContent = name;
+  output.textContent = `Model: ${name}`;
+});
+
+document.querySelector("#filter-menu").addEventListener("orbSelect", (event) => {
+  const provider = event.detail.value;
+  filterButton.textContent = `${event.detail.item.textContent.trim()} ▾`;
+  model.querySelectorAll(":scope > orb-mi").forEach((item) => {
+    item.hidden = provider !== "all" && item.dataset.provider !== provider;
+  });
+});
+
+document.querySelector("#default-button").addEventListener("click", () => {
+  const name = model.querySelector("orb-mi[checked]").textContent.trim();
+  output.textContent = `Default set to ${name}`;
+});
+```
+
+:::
+
+**Manual test:**
+- Click **Haiku 5.5**. The search field is focused, and **Haiku 5.5** is highlighted.
+- Type `son`. Only **Sonnet 5.5** shows, and it's highlighted. Press Enter. The menu closes and the button reads **Sonnet 5.5**.
+- Open the menu and press Down. The highlight moves through the visible models only.
+- Hover over a model. It's highlighted, and typing still goes to the search field.
+- Click **All ▾** and choose **Anthropic**. The filter menu closes, the main menu stays open, and only the Anthropic models show.
+- Open **All ▾**, then press Escape. Only the filter closes.
+- Click **Set as default**. The status reads `Default set to` the selected model.
+- Press Tab from the search field. In Chrome, focus moves to **All ▾**, then to **Set as default**. In Safari, Tab leaves the menu instead, so Safari users can't reach the controls in `search-end` or `footer` with the keyboard.
+- On a phone-sized touch screen, the menu fills the screen with the search field above the items. The search field isn't focused, and the keyboard is closed. Tapping an item chooses it. The items are easy to tap. The close button closes the menu.
+
+### Custom Filtering
+
+The built-in filter matches the item's label. To filter some other way, such as by prefix or by a server response, call `preventDefault()` on `orbSearch` and set `hidden` on the items yourself. `orbSearch` also fires with an empty query when the menu closes, so reset your filter there.
+
+::: live-code-demo
+
+```html
+<orb-button id="fruit-button">Fruit</orb-button>
+<orb-menu id="fruit-menu" for="fruit-button" search search-label="Search fruit">
+  <orb-mi value="apple">Apple</orb-mi>
+  <orb-mi value="apricot">Apricot</orb-mi>
+  <orb-mi value="banana">Banana</orb-mi>
+  <orb-mi value="cherry">Cherry</orb-mi>
+</orb-menu>
+```
+
+```javascript
+const menu = document.querySelector("#fruit-menu");
+menu.addEventListener("orbSearch", (event) => {
+  event.preventDefault();
+  const query = event.detail.query.trim().toLowerCase();
+  menu.querySelectorAll(":scope > orb-mi").forEach((item) => {
+    item.hidden = !item.textContent.trim().toLowerCase().startsWith(query);
+  });
+});
+```
+
+:::
+
+**Manual test:**
+- Type `ap`. Only **Apple** and **Apricot** show.
+- Type `zz`. No items show.
+- Close the menu and open it again. All four items show.
+
 ### Disabled and Danger Items
 
 `disabled` items can still be focused with the arrow keys, so screen reader users know they exist, but they can't be chosen. `variant="danger"` marks destructive actions.
@@ -380,19 +486,24 @@ Without `for`, the menu shows in the page instead of opening from a button, such
 | Left | Closes a submenu. In a menubar's menu, moves to the previous menu |
 | Escape | Closes the innermost menu and returns focus to the item or button that opened it |
 | Letters | Moves to the next item starting with the typed text |
-| Tab | Leaves the menu and closes every open menu |
+| Typing | In a menu with `search`, filters the items and highlights the first match |
+| Down / Up | In a menu with `search`, highlights the next or previous match, wrapping |
+| Enter | In a menu with `search`, chooses the highlighted item |
+| Tab | Moves through the controls in a menu with `search` and its footer, then leaves the menu. Closes every menu that focus leaves |
 
 Right and Left are swapped in right-to-left pages.
 
 ### Manual test checklist
 
-- [ ] Menus in `actions` mode have the `menu` role with `aria-orientation="vertical"`. Menus in `single` and `multi` modes have the `listbox` role, and `multi` menus also have `aria-multiselectable="true"`. All are named by `label`, or by their button.
-- [ ] Items in `actions` mode have the `menuitem`, `menuitemcheckbox`, or `menuitemradio` role, and checkable items have `aria-checked`. Items in `single` and `multi` modes have the `option` role and `aria-selected`, and no `aria-checked`.
-- [ ] Dividers in `single` and `multi` menus are hidden from screen readers, since listboxes can't contain separators.
+- [ ] The list has the `menu` role in `actions` mode, and the `listbox` role in `single`, `multi`, or `search` menus, with `aria-orientation="vertical"`. `multi` lists have `aria-multiselectable="true"`. The list is named by `label`, or by its button.
+- [ ] Items in `actions` mode have the `menuitem`, `menuitemcheckbox`, or `menuitemradio` role, and checkable items have `aria-checked`. Items in `single`, `multi`, or `search` menus have the `option` role. Items in `single` and `multi` menus have `aria-selected`, and no `aria-checked`.
+- [ ] A menu with `search` or a footer is a `dialog`, named by `label` or by its button. Its search field is a `searchbox`, and `aria-activedescendant` follows the highlighted item. A menu with `search` in full screen has `aria-modal="true"`.
+- [ ] Dividers in listbox menus are hidden from screen readers, since listboxes can't contain separators.
 - [ ] Disabled items have `aria-disabled="true"` and stay reachable with the arrow keys.
-- [ ] A button or item that opens a menu has `aria-haspopup="menu"`, or `aria-haspopup="listbox"` in `single` and `multi` modes, and `aria-expanded` that follows the menu's state.
+- [ ] A button that opens a menu has `aria-haspopup` matching the popup: `menu`, `listbox` in `single` and `multi` modes, or `dialog` with `search` or a footer. Its `aria-expanded` follows the menu's state. The button has no `aria-controls`.
+- [ ] Items that open submenus have `aria-haspopup="menu"` and an `aria-expanded` that follows the submenu's state.
 - [ ] Opening a menu from the keyboard moves focus to its first item, and closing it from the keyboard returns focus to the button that opened it. With the mouse, focus doesn't move.
-- [ ] Opening a `single` or `multi` menu from the keyboard focuses its selected option, or the first item if none is selected.
+- [ ] Opening a menu with `search` focuses the search field. Opening a `single` or `multi` menu from the keyboard focuses its selected option, or the first item if none is selected.
 - [ ] Clicking items with the mouse never leaves a focus highlight behind.
 - [ ] Only one item in each menu is in the Tab order.
 - [ ] Focused items show a visible focus ring when using the keyboard.

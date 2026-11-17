@@ -13,6 +13,8 @@ import {
 } from "@stencil/core";
 import { autoUpdate, computePosition, flip, offset, Placement, shift, size } from "@floating-ui/dom";
 import { composedClosest, composedContains, deepActiveElement } from "../../utils/composed";
+import { toggleState } from "../../utils/custom-states";
+import { CloseIcon, SearchIcon } from "../../utils/icons";
 import { usingKeyboard } from "../../utils/input-modality";
 import { findById, menuOf, ownElements, ownItems, pointer, triggerOf } from "./menu-registry";
 
@@ -25,11 +27,18 @@ export interface MenuSelectDetail {
   checked: boolean;
 }
 
+export interface MenuSearchDetail {
+  /** The text in the search field */
+  query: string;
+}
+
 const TYPEAHEAD_RESET_MS = 500;
 /** How long the pointer rests on an item before its submenu opens */
 const SUBMENU_OPEN_MS = 100;
 /** How long a submenu stays open after the pointer moves to another item */
 const SUBMENU_CLOSE_MS = 300;
+/** Menus with `search` fill the screen on small touch screens */
+const FULLSCREEN_QUERY = "(max-width: 767px) and (pointer: coarse)";
 
 /** The text of an item's label, without its icon or details. */
 function labelOf(item: HTMLElement) {
@@ -42,10 +51,22 @@ function labelOf(item: HTMLElement) {
     .toLowerCase();
 }
 
+/** Whether a slot has any elements assigned to it. */
+const hasContent = (ev: Event) => (ev.target as HTMLSlotElement).assignedElements().length > 0;
+
 /**
  * A list of actions or options, made of `orb-mi` items.
  *
  * @slot - `orb-mi` items, `orb-divider`s, and submenus
+ * @slot search-end - Controls at the end of the search field, such as a filter menu
+ * @slot footer - Content below the items, such as a button
+ *
+ * @part mobile-bar - The title and close button, shown when the menu fills the screen
+ * @part close-button - The close button in the mobile bar
+ * @part search - The row with the search field
+ * @part search-input - The search field
+ * @part list - The scrolling items, which have the menu or listbox role
+ * @part footer - The footer, shown when it has content
  */
 @Component({
   tag: "orb-menu",
@@ -57,6 +78,8 @@ export class Menu {
   @Element() el!: HTMLOrbMenuElement;
 
   private triggerEl?: HTMLElement;
+  private listEl?: HTMLElement;
+  private inputEl?: HTMLInputElement;
   private anchorPoint?: DOMRect;
   private pendingFocus?: "first" | "last";
   private disposers: (() => void)[] = [];
@@ -66,9 +89,18 @@ export class Menu {
   private openTimer?: ReturnType<typeof setTimeout>;
   private closeTimer?: ReturnType<typeof setTimeout>;
   private hoveredItem?: HTMLOrbMiElement;
+  private fadeAnimation?: Animation;
+  /** The highlighted result of a search, which keeps focus in the search field */
+  private activeItem?: HTMLOrbMiElement;
+  /** The search text, and whether `orbSearch` replaced the built-in filter */
+  private query = "";
+  private customFilter = false;
+  private fullscreenQuery = matchMedia(FULLSCREEN_QUERY);
   private observer = new MutationObserver(() => this.syncItems());
 
   @State() open = false;
+  @State() hasFooter = false;
+  @State() fullscreen = false;
 
   /**
    * Id of the element that opens the menu, in the same document or shadow
@@ -105,6 +137,25 @@ export class Menu {
   @Prop() label?: string;
 
   /**
+   * Shows a search field above the items that filters them by label. Typing
+   * highlights the first match, and Enter chooses it. On small touch screens
+   * the menu fills the screen.
+   */
+  @Prop() search = false;
+
+  /**
+   * The search field's accessible name and placeholder
+   */
+  @Prop() searchLabel = "Search";
+
+  /**
+   * Emitted when the search text changes. The built-in filter hides items
+   * whose label doesn't contain the text. Call `preventDefault()` to filter
+   * yourself, such as by setting `hidden` on items.
+   */
+  @Event({ cancelable: true }) orbSearch: EventEmitter<MenuSearchDetail>;
+
+  /**
    * Emitted when an item is chosen, from this menu or a submenu. Checkbox and
    * radio items have already toggled. Call `preventDefault()` to keep the menu
    * open.
@@ -120,8 +171,9 @@ export class Menu {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["type", "disabled", "id"],
+      attributeFilter: ["type", "disabled", "id", "hidden"],
     });
+    this.fullscreenQuery.addEventListener("change", this.onFullscreenQueryChange);
     this.connectTrigger();
   }
 
@@ -130,10 +182,12 @@ export class Menu {
     if (this.for && !this.triggerEl) this.connectTrigger();
     this.keepOneSelected();
     this.syncItems();
+    this.syncRole();
   }
 
   disconnectedCallback() {
     this.observer.disconnect();
+    this.fullscreenQuery.removeEventListener("change", this.onFullscreenQueryChange);
     this.disconnectTrigger();
     this.open = false;
   }
@@ -146,20 +200,44 @@ export class Menu {
     this.syncItems();
   }
 
+  /**
+   * Names the list and gives the menu its role. The list has the menu or
+   * listbox role. A menu with a footer or search is a dialog, which holds the
+   * list and those controls.
+   */
   @Watch("label")
   @Watch("mode")
+  @Watch("search")
+  @Watch("hasFooter")
+  @Watch("fullscreen")
   syncRole() {
-    this.internals.role = this.listbox ? "listbox" : "menu";
-    this.internals.ariaMultiSelectable = this.mode === "multi" ? "true" : null;
-    this.internals.ariaOrientation = "vertical";
-    this.internals.ariaLabel = this.label || null;
+    const dialog = !!this.triggerEl && this.popupRole === "dialog";
+    this.internals.role = dialog ? "dialog" : null;
+    this.internals.ariaModal = dialog && this.fullscreen ? "true" : null;
+    this.internals.ariaLabel = dialog ? this.label || null : null;
+    this.el.ariaLabelledByElements = dialog && !this.label && this.triggerEl ? [this.triggerEl] : null;
+
+    if (this.listEl) {
+      this.listEl.ariaLabelledByElements = this.label || !this.triggerEl ? null : [this.triggerEl];
+    }
+    if (this.triggerEl && this.showOn === "click") this.triggerEl.ariaHasPopup = this.popupRole;
   }
 
-  /** Switching modes changes the trigger's popup role and which options are selected. */
+  @Watch("fullscreen")
+  onFullscreenChange(fullscreen: boolean) {
+    toggleState(this.internals.states, "fullscreen", fullscreen);
+  }
+
+  /** Switching modes changes which options are selected. */
   @Watch("mode")
   onModeChange() {
-    if (this.triggerEl && this.showOn === "click") this.triggerEl.ariaHasPopup = this.popupRole;
     this.keepOneSelected();
+    this.syncItems();
+  }
+
+  @Watch("search")
+  onSearchChange() {
+    this.resetSearch();
     this.syncItems();
   }
 
@@ -193,16 +271,20 @@ export class Menu {
   @Method()
   async openFrom(focus?: "first" | "last") {
     if (this.open) {
-      if (focus) this.focusItem(focus);
+      this.focusFrom(focus);
       return;
     }
     this.pendingFocus = focus;
     this.open = true;
   }
 
-  /** The menu whose item opens this one, if this is a submenu */
+  /**
+   * The menu whose item opens this one, if this is a submenu. Popups from
+   * other controls, such as a filter in the search field, aren't submenus.
+   */
   private get parentMenu(): HTMLOrbMenuElement | null {
-    return this.triggerEl ? composedClosest<HTMLOrbMenuElement>(this.triggerEl, "orb-menu") : null;
+    if (this.triggerEl?.tagName !== "ORB-MI") return null;
+    return composedClosest<HTMLOrbMenuElement>(this.triggerEl, "orb-menu");
   }
 
   /** The menubar this menu opens from, if any */
@@ -218,6 +300,11 @@ export class Menu {
     return ownItems(this.el);
   }
 
+  /** Items that can be reached with the keyboard, which excludes hidden and filtered-out items. */
+  private get navigableItems() {
+    return this.items.filter((item) => !item.hidden && !item.hasAttribute("data-search-hidden"));
+  }
+
   private get rtl() {
     return getComputedStyle(this.el).direction === "rtl";
   }
@@ -227,8 +314,14 @@ export class Menu {
     return this.mode !== "actions";
   }
 
-  private get popupRole(): "listbox" | "menu" {
-    return this.listbox ? "listbox" : "menu";
+  /** The role of the list. Search needs a listbox, which the search field's highlight points into. */
+  private get listRole(): "listbox" | "menu" {
+    return this.search || this.listbox ? "listbox" : "menu";
+  }
+
+  /** The role the trigger reports for the popup */
+  private get popupRole(): "dialog" | "listbox" | "menu" {
+    return this.search || this.hasFooter ? "dialog" : this.listRole;
   }
 
   /** The type an item acts as. Items in `single` and `multi` menus act as radio and checkbox items. */
@@ -240,12 +333,17 @@ export class Menu {
 
   /** The checked option that a listbox focuses when it opens. */
   private get selectedItem() {
-    return this.listbox ? this.items.find((item) => item.checked) : undefined;
+    return this.listbox ? this.navigableItems.find((item) => item.checked) : undefined;
   }
 
   // Trigger
 
   private connectTrigger() {
+    this.bindTrigger();
+    this.syncRole();
+  }
+
+  private bindTrigger() {
     if (!this.for) {
       this.el.removeAttribute("popover");
       return;
@@ -263,17 +361,14 @@ export class Menu {
     if (this.showOn === "context-menu") {
       this.listen(trigger, "contextmenu", this.onTriggerContextMenu);
     } else {
-      trigger.ariaHasPopup = this.popupRole;
       trigger.ariaExpanded = "false";
-      trigger.ariaControlsElements = [this.el];
-      if (!this.label) this.el.ariaLabelledByElements = [trigger];
       this.listen(trigger, "click", this.onTriggerClick);
-      // Items in menus and menubars handle their own keys.
-      if (!composedClosest(trigger, "orb-menu, orb-menubar")) {
-        this.listen(trigger, "keydown", this.onTriggerKeyDown);
-      }
+      // Items in menus and menubars handle their own keys. Other controls in
+      // a menu, such as a filter button, open their menu with the arrow keys.
+      const isItem = trigger.tagName === "ORB-MI" && !!composedClosest(trigger, "orb-menu, orb-menubar");
+      if (!isItem) this.listen(trigger, "keydown", this.onTriggerKeyDown);
     }
-    trigger.toggleAttribute("data-submenu", trigger.tagName === "ORB-MI" && this.isSubmenu);
+    trigger.toggleAttribute("data-submenu", this.isSubmenu);
   }
 
   private disconnectTrigger() {
@@ -329,20 +424,28 @@ export class Menu {
     if (this.triggerEl && this.showOn === "click") this.triggerEl.ariaExpanded = String(open);
     if (open) {
       if (!this.el.isConnected || !this.el.popover) return;
-      // Measured while hidden, so it doesn't flash in the wrong spot.
-      this.el.style.visibility = "hidden";
-      this.el.showPopover();
-      await this.position();
-      this.el.style.visibility = "";
-      this.startPositioning();
+      this.fullscreen = this.search && this.fullscreenQuery.matches;
+      if (this.fullscreen) {
+        // Full-screen menus don't use the position they'd measure for an anchor.
+        this.clearPlacement();
+        this.showPopoverOnce();
+      } else {
+        // Measured while hidden, so it doesn't flash in the wrong spot.
+        this.el.style.visibility = "hidden";
+        this.showPopoverOnce();
+        await this.position();
+        this.el.style.visibility = "";
+        this.startPositioning();
+      }
+      this.fade(true);
       document.addEventListener("pointerdown", this.onDocumentPointerDown, true);
       document.addEventListener("keydown", this.onDocumentKeyDown);
-      if (this.pendingFocus) this.focusItem(this.pendingFocus);
+      this.focusFrom(this.pendingFocus);
       this.pendingFocus = undefined;
     } else {
       clearTimeout(this.openTimer);
       clearTimeout(this.closeTimer);
-      this.items.forEach((item) => menuOf.get(item)?.hide());
+      this.el.querySelectorAll<HTMLOrbMenuElement>("orb-menu").forEach((menu) => menu.hide());
       // Returns focus to the trigger if it was in the menu, such as after
       // Escape or choosing an item with the keyboard.
       if (composedContains(this.el, deepActiveElement())) this.triggerEl?.focus();
@@ -350,9 +453,30 @@ export class Menu {
       document.removeEventListener("keydown", this.onDocumentKeyDown);
       this.stopPositioning?.();
       this.stopPositioning = undefined;
-      if (this.el.matches(":popover-open")) this.el.hidePopover();
       if (this.showOn !== "context-menu") this.anchorPoint = undefined;
+      this.resetSearch();
+      const fading = this.el.matches(":popover-open") ? this.fade(false) : Promise.resolve(true);
+      fading.then((done) => {
+        // Reopening during the fade cancels it, so the menu stays open.
+        if (!done) return;
+        if (this.el.matches(":popover-open")) this.el.hidePopover();
+        this.fullscreen = false;
+      });
     }
+  }
+
+  /** A reopened menu may still be showing while it fades out. */
+  private showPopoverOnce() {
+    if (!this.el.matches(":popover-open")) this.el.showPopover();
+  }
+
+  /** Fades the menu in or out, as `orb-popover` does. Resolves false if another fade cancels it. */
+  private fade(show: boolean): Promise<boolean> {
+    this.fadeAnimation?.cancel();
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const keyframes = show ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }];
+    this.fadeAnimation = this.el.animate(keyframes, { duration: reduce ? 0 : 150, easing: "ease-in-out" });
+    return this.fadeAnimation.finished.then(() => true, () => false);
   }
 
   /** Whether the event happened in this menu, its trigger, or one of its submenus. */
@@ -377,13 +501,14 @@ export class Menu {
 
   /** Escape closes the innermost open menu, even when focus is on the trigger. */
   private onDocumentKeyDown = (ev: KeyboardEvent) => {
-    if (ev.key !== "Escape" || ev.defaultPrevented || this.hasOpenSubmenu()) return;
+    if (ev.key !== "Escape" || ev.defaultPrevented || this.hasOpenPopup()) return;
     ev.preventDefault();
     this.open = false;
   };
 
-  private hasOpenSubmenu() {
-    return this.items.some((item) => menuOf.get(item)?.matches(":popover-open"));
+  /** Whether a submenu or another popup opened from inside this menu is open. */
+  private hasOpenPopup() {
+    return Array.from(this.el.querySelectorAll("orb-menu")).some((menu) => menu.matches(":popover-open"));
   }
 
   /** Closes this menu and every menu above it. */
@@ -400,6 +525,20 @@ export class Menu {
     if (parent?.matches(":popover-open")) parent.hide().then(() => this.closeParents(parent));
   }
 
+  /**
+   * After Tab, closes this menu and each menu above it that focus has left.
+   * Stops at the first menu that still holds focus.
+   */
+  private closeLeftBehind() {
+    const focus = deepActiveElement();
+    for (let menu: HTMLOrbMenuElement | null = this.el; menu && !composedContains(menu, focus); ) {
+      const trigger = triggerOf.get(menu);
+      const parent = trigger ? composedClosest<HTMLOrbMenuElement>(trigger, "orb-menu") : null;
+      menu.hide();
+      menu = parent;
+    }
+  }
+
   // Positioning
 
   private get reference() {
@@ -409,9 +548,29 @@ export class Menu {
 
   private startPositioning() {
     this.stopPositioning?.();
-    if (!this.triggerEl && !this.anchorPoint) return;
+    this.stopPositioning = undefined;
+    if (this.fullscreen || (!this.triggerEl && !this.anchorPoint)) return;
     this.stopPositioning = autoUpdate(this.reference, this.el, () => this.position());
   }
+
+  private clearPlacement() {
+    this.el.style.left = "";
+    this.el.style.top = "";
+    this.el.style.maxHeight = "";
+  }
+
+  /** Full screen when a search menu opens on a small touch screen, and anchored otherwise. */
+  private onFullscreenQueryChange = () => {
+    if (!this.open) return;
+    this.fullscreen = this.search && this.fullscreenQuery.matches;
+    if (this.fullscreen) {
+      this.stopPositioning?.();
+      this.stopPositioning = undefined;
+      this.clearPlacement();
+    } else {
+      this.startPositioning();
+    }
+  };
 
   private async position() {
     if (!this.triggerEl && !this.anchorPoint) return;
@@ -442,19 +601,24 @@ export class Menu {
 
   /**
    * Keeps one item in the Tab order, marks items when the menu has checkable
-   * items so their labels line up, and tells items which mode the menu is in.
+   * items so their labels line up, and tells items which mode and role the
+   * menu uses. In a menu with search, the search field is the tab stop instead.
    */
   private syncItems() {
     const items = this.items;
-    const current = items.find((item) => item.tabIndex === 0) ?? this.selectedItem ?? items[0];
+    const navigable = this.navigableItems;
+    const current = navigable.find((item) => item.tabIndex === 0) ?? this.selectedItem ?? navigable[0];
     const checkable = items.some((item) => this.typeOf(item) !== "normal");
+    const isListbox = this.listRole === "listbox";
     items.forEach((item) => {
-      item.tabIndex = item === current ? 0 : -1;
+      item.tabIndex = !this.search && item === current ? 0 : -1;
       item.toggleAttribute("data-checkable-menu", checkable);
       item.menuMode = this.mode;
+      item.listbox = isListbox;
     });
     // Listboxes can't contain separators, so dividers are hidden from screen readers.
-    ownElements(this.el, "ORB-DIVIDER").forEach((divider) => (divider.ariaHidden = this.listbox ? "true" : null));
+    ownElements(this.el, "ORB-DIVIDER").forEach((divider) => (divider.ariaHidden = isListbox ? "true" : null));
+    this.applyFilter();
     this.warnIfUnsupported();
   }
 
@@ -464,28 +628,74 @@ export class Menu {
     this.items.filter((item) => item.checked).slice(1).forEach((item) => (item.checked = false));
   }
 
-  /** Submenus, menubars, and context menus don't work in a listbox, so warn about them. */
+  /** Hides the items and dividers that don't match the search text, unless `orbSearch` filters. */
+  private applyFilter() {
+    const query = this.query.trim().toLowerCase();
+    const filtering = !!query && !this.customFilter;
+    this.items.forEach((item) =>
+      item.toggleAttribute("data-search-hidden", filtering && !labelOf(item).includes(query)),
+    );
+    ownElements(this.el, "ORB-DIVIDER").forEach((divider) => divider.toggleAttribute("data-search-hidden", filtering));
+  }
+
+  /** Submenus, menubars, and context menus don't work in a listbox or with search, so warn about them. */
   private warnIfUnsupported() {
-    if (!this.listbox) return;
-    if (this.triggerEl && this.showOn === "context-menu") {
+    const name = this.listbox ? `Menu mode "${this.mode}"` : "A menu with search";
+    if (this.listbox && this.triggerEl && this.showOn === "context-menu") {
       console.warn(`Menu mode "${this.mode}" doesn't support show-on="context-menu".`);
     }
-    if (this.isSubmenu || this.menubar) {
-      console.warn(`Menu mode "${this.mode}" doesn't support submenus or menubars.`);
+    if ((this.listbox || this.search) && (this.isSubmenu || this.menubar)) {
+      console.warn(`${name} doesn't support submenus or menubars.`);
     }
-    if (this.items.some((item) => menuOf.has(item))) {
-      console.warn(`Menu mode "${this.mode}" doesn't support items that open submenus.`);
+    if ((this.listbox || this.search) && this.items.some((item) => menuOf.has(item))) {
+      console.warn(`${name} doesn't support items that open submenus.`);
     }
   }
 
   /**
-   * Focuses the first or last item.
-   * @internal
+   * Focuses the first or last item, or the selected option. In a menu with
+   * `search`, focuses the search field and highlights that item instead.
    */
   @Method()
   async focusItem(which: "first" | "last") {
-    const items = this.items;
-    this.focus(this.selectedItem ?? (which === "first" ? items[0] : items[items.length - 1]));
+    this.focusFrom(which);
+  }
+
+  /**
+   * Focuses the search field in a menu with `search`, which takes focus when the
+   * menu opens, except full screen, where the keyboard would cover the list. Otherwise
+   * focuses the selected option, or the first or last item. Without `which`,
+   * focus stays where it is.
+   */
+  private focusFrom(which?: "first" | "last") {
+    if (this.search) {
+      if (which || !this.fullscreen) this.focusSearch(which);
+    } else if (which) {
+      this.focus(this.selectedItem ?? this.edgeItem(which));
+    }
+  }
+
+  private focusSearch(which?: "first" | "last") {
+    this.inputEl?.focus();
+    const target = this.selectedItem ?? (which ? this.edgeItem(which) : undefined);
+    this.setActive(target, which ? "keyboard" : "pointer");
+  }
+
+  private edgeItem(which: "first" | "last") {
+    const items = this.navigableItems;
+    return which === "first" ? items[0] : items[items.length - 1];
+  }
+
+  /**
+   * Highlights an item in a menu with search. Focus stays in the search field,
+   * which points at the highlighted item with `aria-activedescendant`.
+   */
+  private setActive(item?: HTMLOrbMiElement, source: "keyboard" | "pointer" = "keyboard") {
+    this.activeItem?.removeAttribute("data-active");
+    this.activeItem = item;
+    item?.setAttribute("data-active", source);
+    if (item && source === "keyboard") item.scrollIntoView({ block: "nearest" });
+    if (this.inputEl) this.inputEl.ariaActiveDescendantElement = item ?? null;
   }
 
   private focus(item?: HTMLOrbMiElement, options?: FocusOptions) {
@@ -501,11 +711,13 @@ export class Menu {
 
   /**
    * Stops a click from focusing the item, so mouse users don't see a focus
-   * highlight left behind after the pointer moves on.
+   * highlight left behind after the pointer moves on. In a menu with search,
+   * a press keeps focus in the search field.
    */
   @Listen("mousedown", { passive: false })
   onMouseDown(ev: MouseEvent) {
-    if (this.ownItem(ev.target)) ev.preventDefault();
+    const keepFocus = this.search ? !ev.composedPath().includes(this.inputEl!) : !!this.ownItem(ev.target);
+    if (keepFocus) ev.preventDefault();
   }
 
   @Listen("click")
@@ -524,9 +736,10 @@ export class Menu {
 
   /**
    * Hovering an item opens its submenu after a short pause, and closes the
-   * submenus of other items once the pointer settles. It also moves focus to
-   * the item if focus is already in the menu, so hover and focus don't
-   * highlight different items.
+   * submenus of other items once the pointer settles. Hover also highlights
+   * the item: in a menu with search, the highlight moves while focus stays in
+   * the search field. Otherwise focus moves to the item if it's already on an
+   * item, so hover and focus don't highlight different items.
    */
   @Listen("mousemove")
   onMouseMove(ev: MouseEvent) {
@@ -548,8 +761,13 @@ export class Menu {
       }
     }, SUBMENU_CLOSE_MS);
 
+    if (this.search) {
+      this.setActive(item, "pointer");
+      return;
+    }
+    // Focus follows the pointer only when it's on an item, so hovering doesn't pull it out of a footer control.
     const active = deepActiveElement();
-    if (active !== item && composedContains(this.el, active)) {
+    if (active !== item && active?.tagName === "ORB-MI" && composedContains(this.el, active)) {
       this.focus(item, { preventScroll: true });
     }
   }
@@ -585,11 +803,62 @@ export class Menu {
     if (!event.defaultPrevented && type !== "checkbox") this.closeChain();
   }
 
+  /** The search text changed, so filter the items, unless `orbSearch` handles it. */
+  private onSearchInput = () => {
+    this.query = this.inputEl?.value ?? "";
+    this.customFilter = this.orbSearch.emit({ query: this.query }).defaultPrevented;
+    this.applyFilter();
+    // The top match is highlighted, so Enter chooses it.
+    this.setActive(this.query.trim() ? this.navigableItems[0] : this.selectedItem, "keyboard");
+  };
+
+  /** Arrow keys move the highlight, and Enter chooses it. Other keys edit the text. */
+  private onSearchKeyDown = (ev: KeyboardEvent) => {
+    const items = this.navigableItems;
+    const index = this.activeItem ? items.indexOf(this.activeItem) : -1;
+    switch (ev.key) {
+      case "ArrowDown":
+      case "ArrowUp": {
+        ev.preventDefault();
+        if (!items.length) return;
+        const step = ev.key === "ArrowDown" ? 1 : -1;
+        const next =
+          index < 0
+            ? items[step > 0 ? 0 : items.length - 1]
+            : items[(index + step + items.length) % items.length];
+        this.setActive(next, "keyboard");
+        return;
+      }
+      case "Enter":
+        // A search field isn't part of a form, so Enter never submits one.
+        ev.preventDefault();
+        if (this.activeItem && !ev.isComposing) this.activate(this.activeItem);
+        return;
+    }
+  };
+
+  /** Clears the search text and highlight, so the next open starts fresh. */
+  private resetSearch() {
+    const hadQuery = this.query !== "";
+    this.query = "";
+    if (this.inputEl) this.inputEl.value = "";
+    this.customFilter = false;
+    this.applyFilter();
+    this.setActive(undefined);
+    // Tells `orbSearch` listeners that filtering over, so they can reset their own filter.
+    if (hadQuery) this.orbSearch.emit({ query: "" });
+  }
+
   @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
+    // Lets focus move on, then closes the menus that focus has left.
+    if (ev.key === "Tab") {
+      setTimeout(() => this.closeLeftBehind());
+      return;
+    }
     const item = this.ownItem(ev.target);
     if (!item) return;
-    const items = this.items;
+    const items = this.navigableItems;
     const index = items.indexOf(item);
     const submenu = menuOf.get(item);
     const forward = this.rtl ? "ArrowLeft" : "ArrowRight";
@@ -624,10 +893,6 @@ export class Menu {
         if (!this.el.popover) return;
         handled();
         this.open = false;
-        return;
-      case "Tab":
-        // Lets focus move on, then closes the menus.
-        setTimeout(() => this.closeChain());
         return;
     }
 
@@ -672,7 +937,54 @@ export class Menu {
   render() {
     return (
       <Host>
-        <slot />
+        {this.fullscreen && (
+          <div part="mobile-bar" class="mobile-bar">
+            {this.label && <span class="title">{this.label}</span>}
+            <orb-button
+              part="close-button"
+              class="icon-only"
+              fill="clear"
+              aria-label="Close"
+              onClick={() => this.hide()}
+            >
+              <CloseIcon aria-hidden="true" />
+            </orb-button>
+          </div>
+        )}
+        {this.search && (
+          <div part="search" class="search">
+            <SearchIcon class="search-icon" aria-hidden="true" />
+            <input
+              part="search-input"
+              ref={(el) => (this.inputEl = el)}
+              type="search"
+              aria-label={this.searchLabel}
+              placeholder={this.searchLabel}
+              autoComplete="off"
+              spellcheck={false}
+              inputMode="search"
+              onInput={this.onSearchInput}
+              onKeyDown={this.onSearchKeyDown}
+              enterkeyhint="enter"
+            />
+            <slot name="search-end" />
+          </div>
+        )}
+        <div
+          part="list"
+          id="list"
+          class="list"
+          ref={(el) => (this.listEl = el)}
+          role={this.listRole}
+          aria-orientation="vertical"
+          aria-multiselectable={this.mode === "multi" ? "true" : undefined}
+          aria-label={this.label}
+        >
+          <slot />
+        </div>
+        <div part="footer" class="footer" hidden={!this.hasFooter}>
+          <slot name="footer" onSlotchange={(e) => (this.hasFooter = hasContent(e))} />
+        </div>
       </Host>
     );
   }

@@ -24,18 +24,20 @@
   font-weight: var(--orb-font-semi-bold);
 }
 
-/* One highlight for hover, keyboard focus, and an open submenu. Menubar
-   items stay on the page and keep focus after a click, so they only
-   highlight for keyboard focus. */
+/* One highlight for hover, keyboard focus, the active result of a search, and
+   an open submenu. Menubar items stay on the page and keep focus after a click,
+   so they only highlight for keyboard focus. */
 :host(:hover),
 :host(:focus:not([data-bar-item])),
 :host(:focus-visible),
+:host([data-active]),
 :host([aria-expanded="true"]) {
   background-color: var(--highlight-background);
   color: var(--highlight-color);
 }
 
-:host(:focus-visible) {
+:host(:focus-visible),
+:host([data-active="keyboard"]) {
   outline: 2px solid var(--orb-primary-300);
   outline-offset: -2px;
 }
@@ -49,6 +51,12 @@
 :host([disabled]) {
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* Hidden by the `hidden` attribute, or by a search that doesn't match the item */
+:host([hidden]),
+:host([data-search-hidden]) {
+  display: none;
 }
 
 /* The checkmark column only takes space in menus with checkable items, so
@@ -119,10 +127,36 @@
   display: none;
 }
 
+
+/* Menus on small touch screens set --item-size, which makes items easier to tap. */
+@container style(--item-size: large) {
+  :host {
+    min-height: 3rem;
+    padding: var(--orb-spacing-sm) var(--orb-spacing-sm);
+    font-size: var(--orb-font-lg);
+  }
+
+  .checkmark,
+  .checkmark svg,
+  .submenu-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* Separates items on touch screens, so a menu doesn't read as plain text. The
+     last item, and an item with a highlight, have no line. Menubar items sit
+     side by side. */
+  :host(:not(:last-of-type):not(:hover):not(:focus):not([data-active]):not([aria-expanded="true"]):not([data-bar-item])) {
+    border-bottom: 1px solid var(--orb-divider-color);
+    border-radius: 0;
+  }
+}
+
 @media (forced-colors: active) {
   :host(:hover),
   :host(:focus:not([data-bar-item])),
   :host(:focus-visible),
+  :host([data-active]),
   :host([aria-expanded="true"]) {
     background-color: Highlight;
     color: HighlightText;

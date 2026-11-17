@@ -6,7 +6,7 @@
 - block quotes
 - special characters and emojis
 - tables
-- em
+- seperators
 - media?
 - advanced list functionality 
 - templates

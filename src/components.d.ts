@@ -12,7 +12,7 @@ import { CardLayout } from "./components/card/card";
 import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 import { MaskDefinition } from "./components/mask-input/mask";
 import { Placement } from "@floating-ui/dom";
-import { MenuSelectDetail } from "./components/menu/menu";
+import { MenuSearchDetail, MenuSelectDetail } from "./components/menu/menu";
 import { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
 import { OtpCase, OtpType } from "./components/otp-input/otp";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
@@ -29,7 +29,7 @@ export { CardLayout } from "./components/card/card";
 export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 export { MaskDefinition } from "./components/mask-input/mask";
 export { Placement } from "@floating-ui/dom";
-export { MenuSelectDetail } from "./components/menu/menu";
+export { MenuSearchDetail, MenuSelectDetail } from "./components/menu/menu";
 export { MenuSelectDetail as MenuSelectDetail1 } from "./components/menu/menu";
 export { OtpCase, OtpType } from "./components/otp-input/otp";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
@@ -913,7 +913,7 @@ export namespace Components {
      */
     interface OrbMenu {
         /**
-          * Focuses the first or last item.
+          * Focuses the first or last item, or the selected option. In a menu with `search`, focuses the search field and highlights that item instead.
          */
         "focusItem": (which: "first" | "last") => Promise<void>;
         /**
@@ -941,6 +941,16 @@ export namespace Components {
           * Where the menu opens. Defaults to below the trigger, or beside the item for a submenu. It flips to the other side when there isn't room.
          */
         "placement"?: Placement;
+        /**
+          * Shows a search field above the items that filters them by label. Typing highlights the first match, and Enter chooses it. On small touch screens the menu fills the screen.
+          * @default false
+         */
+        "search": boolean;
+        /**
+          * The search field's accessible name and placeholder
+          * @default "Search"
+         */
+        "searchLabel": string;
         /**
           * Opens the menu. Pass the event from a right-click to open it at the pointer. Calling it again while open moves it to the new spot.
          */
@@ -989,6 +999,11 @@ export namespace Components {
           * @default false
          */
         "disabled": boolean;
+        /**
+          * Whether the item is in a listbox, where it's an option. Set by the menu.
+          * @default false
+         */
+        "listbox": boolean;
         /**
           * The mode of the `orb-menu` this item is in. Set by the menu.
           * @default "actions"
@@ -2404,6 +2419,7 @@ declare global {
         new (): HTMLOrbMaskInputElement;
     };
     interface HTMLOrbMenuElementEventMap {
+        "orbSearch": MenuSearchDetail;
         "orbSelect": MenuSelectDetail;
     }
     /**
@@ -3839,6 +3855,10 @@ declare namespace LocalJSX {
          */
         "mode"?: "actions" | "single" | "multi";
         /**
+          * Emitted when the search text changes. The built-in filter hides items whose label doesn't contain the text. Call `preventDefault()` to filter yourself, such as by setting `hidden` on items.
+         */
+        "onOrbSearch"?: (event: OrbMenuCustomEvent<MenuSearchDetail>) => void;
+        /**
           * Emitted when an item is chosen, from this menu or a submenu. Checkbox and radio items have already toggled. Call `preventDefault()` to keep the menu open.
          */
         "onOrbSelect"?: (event: OrbMenuCustomEvent<MenuSelectDetail>) => void;
@@ -3846,6 +3866,16 @@ declare namespace LocalJSX {
           * Where the menu opens. Defaults to below the trigger, or beside the item for a submenu. It flips to the other side when there isn't room.
          */
         "placement"?: Placement;
+        /**
+          * Shows a search field above the items that filters them by label. Typing highlights the first match, and Enter chooses it. On small touch screens the menu fills the screen.
+          * @default false
+         */
+        "search"?: boolean;
+        /**
+          * The search field's accessible name and placeholder
+          * @default "Search"
+         */
+        "searchLabel"?: string;
         /**
           * - **click**: Opens when the trigger is clicked, or pressed with Enter,   Space, or Down. - **context-menu**: Opens where the trigger is right-clicked, or with the   context menu key or Shift+F10.
           * @default "click"
@@ -3890,6 +3920,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "disabled"?: boolean;
+        /**
+          * Whether the item is in a listbox, where it's an option. Set by the menu.
+          * @default false
+         */
+        "listbox"?: boolean;
         /**
           * The mode of the `orb-menu` this item is in. Set by the menu.
           * @default "actions"
@@ -5083,6 +5118,8 @@ declare namespace LocalJSX {
         "mode": "actions" | "single" | "multi";
         "placement": Placement;
         "label": string;
+        "search": boolean;
+        "searchLabel": string;
     }
     interface OrbMenubarAttributes {
         "label": string;
@@ -5103,6 +5140,7 @@ declare namespace LocalJSX {
         "type": "normal" | "checkbox" | "radio";
         "checked": boolean;
         "menuMode": "actions" | "single" | "multi";
+        "listbox": boolean;
         "disabled": boolean;
         "variant": "danger";
     }

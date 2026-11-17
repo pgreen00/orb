@@ -72,6 +72,35 @@ export async function start(root = document.body) {
 }
 
 start().then(() => document.body.classList.add("orb-hydrated"));
+
+const root = document.documentElement;
+const vv = window.visualViewport;
+let frame = null;
+
+const update = () => {
+  frame = null;
+  const s = root.style;
+
+  s.setProperty('--vv-width', vv.width + 'px');
+  s.setProperty('--vv-height', vv.height + 'px');
+  s.setProperty('--vv-offset-top', vv.offsetTop + 'px');
+  s.setProperty('--vv-offset-left', vv.offsetLeft + 'px');
+  s.setProperty('--vv-scale', vv.scale);
+  s.setProperty(
+    '--vv-keyboard-inset',
+    Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 'px'
+  );
+};
+
+const schedule = () => {
+  if (frame === null) frame = requestAnimationFrame(update);
+};
+
+vv.addEventListener('resize', schedule);
+vv.addEventListener('scroll', schedule);
+window.addEventListener('orientationchange', schedule);
+
+update();
 `;
 
 /**
