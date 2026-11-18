@@ -7,6 +7,14 @@ import {
   BoldIcon,
   ClearFormattingIcon,
   BlockTypeIcon,
+  TableColumnsIcon,
+  TableDeleteIcon,
+  TableHeaderIcon,
+  TableIcon,
+  TableRowsIcon,
+  TemplatesIcon,
+  ParamIcon,
+  TocIcon,
   CodeIcon,
   CodeLanguageIcon,
   ColorIcon,
@@ -45,9 +53,12 @@ import {
   wrapLooseText,
 } from "./blocks";
 import { languageOf } from "./code";
+import { addColumnAt, addRowAt, closestCell, deleteColumnOf, deleteRowOf, deleteTableOf, hasHeaderRow, insertTable, inTable, tableOf, toggleHeaderRow } from "./tables";
+import { insertToc } from "./outline";
+import { paramNode } from "./params";
 import type { EditorHost } from "./host";
 import type { InlineStyleProp } from "./schema";
-import { clearFormatting, insertFormattedText, inlineStyleValue, isMarkActive, MarkName, setInlineStyle, toggleMark } from "./inline";
+import { clearFormatting, insertFormattedText, insertNodeAt, inlineStyleValue, isMarkActive, MarkName, setInlineStyle, toggleMark } from "./inline";
 import {
   indentItems,
   inTaskList,
@@ -87,8 +98,11 @@ export interface Command {
   id: string;
   label: string;
   icon?: (props?: any) => any;
-  /** A button, a toggle that shows a pressed state, a select that shows its current option, or a color control that shows its current color */
-  control?: "button" | "toggle" | "select" | "color";
+  /**
+   * A button, a toggle that shows a pressed state, a select that shows its current option, a color control
+   * that shows its current color, or a menu of actions, which keeps no value and runs the chosen option
+   */
+  control?: "button" | "toggle" | "select" | "color" | "menu";
   shortcuts?: Shortcut[];
   /** Options for select controls */
   options?: (host: EditorHost) => Option[];
@@ -98,6 +112,8 @@ export interface Command {
   available?: (ctx: CommandContext) => boolean;
   /** Doesn't apply inside a code block, such as bold or a list */
   noCode?: boolean;
+  /** Doesn't apply inside a table cell, where blocks would break the table's rows and cells */
+  noTable?: boolean;
   /** The `inputType` of the `input` event the command fires. Defaults to insertReplacementText. */
   inputType?: string;
   /** Changes content and returns the range to select. Returns null when nothing changed, such as for a command that opens UI. */
@@ -117,7 +133,8 @@ export const DEFAULT_TOOLBAR =
   "undo redo | blockType | quote code | bold italic underline strike | fontFamily fontSize color background | " +
   "bulletList orderedList taskList | outdent indent listStyle | " +
   "justifyLeft justifyCenter justifyRight justifyFull lineHeight | " +
-  "link media separator specialCharacter emoji | clearFormatting codeLanguage";
+  "link media table toc param separator specialCharacter emoji | " +
+  "tableRows tableColumns tableHeader tableDelete | clearFormatting codeLanguage | templates";
 
 /** Each group of command ids in a toolbar spec. Unknown ids are dropped. */
 export function parseToolbar(spec: string): string[][] {
@@ -201,6 +218,7 @@ function headingShortcut(id: string, label: string, tag: BlockType, digit: strin
   define({
     id,
     label,
+    noTable: true,
     shortcuts: [{ key: digit, alt: true }],
     run: ({ root, range }) => {
       const next = blockType(root, range) === tag ? "p" : tag;
@@ -218,6 +236,7 @@ function listCommand(id: string, label: string, icon: any, type: ListType, input
     control: "toggle",
     inputType,
     noCode: true,
+    noTable: true,
     shortcuts: [{ key: digit, shift: true }],
     state: ({ root, range }) => listType(root, range) === type,
     run: ({ root, range }) => toggleList(root, wrapLooseText(root, range), type),
@@ -374,6 +393,7 @@ define({
   label: "Insert image",
   icon: ImageIcon,
   noCode: true,
+  noTable: true,
   run: ({ host, range }) => {
     host.pickImage(range);
     return null;
@@ -385,6 +405,7 @@ define({
   label: "Text style",
   icon: BlockTypeIcon,
   control: "select",
+  noTable: true,
   options: () => BLOCK_OPTIONS,
   state: ({ root, range }) => blockType(root, range),
   run: ({ root, range, value }) => {
@@ -398,6 +419,7 @@ define({
   label: "Code block",
   icon: CodeIcon,
   control: "toggle",
+  noTable: true,
   state: ({ root, range }) => blockType(root, range) === "pre",
   run: ({ root, range }) => {
     const next = blockType(root, range) === "pre" ? "p" : "pre";
@@ -411,6 +433,7 @@ define({
   icon: QuoteIcon,
   control: "toggle",
   noCode: true,
+  noTable: true,
   state: ({ root, range }) => inQuote(root, range),
   run: ({ root, range }) => {
     const on = !inQuote(root, range);
@@ -435,6 +458,7 @@ define({
   icon: TaskListIcon,
   control: "toggle",
   noCode: true,
+  noTable: true,
   shortcuts: [{ key: "9", shift: true }],
   state: ({ root, range }) => inTaskList(root, range),
   run: ({ root, range }) => toggleTaskList(root, wrapLooseText(root, range)),
@@ -499,6 +523,7 @@ define({
   icon: SeparatorIcon,
   inputType: "insertHorizontalRule",
   noCode: true,
+  noTable: true,
   run: ({ root, range }) => insertSeparator(root, range),
 });
 
@@ -521,6 +546,122 @@ define({
     if (value) code.className = `language-${value}`;
     else code.removeAttribute("class");
     return range;
+  },
+});
+
+define({
+  id: "param",
+  label: "Placeholder",
+  icon: ParamIcon,
+  control: "select",
+  noCode: true,
+  available: ({ host }) => host.params.length > 0,
+  options: (host) => host.params.map((param) => ({ value: param.key, label: param.label })),
+  run: ({ host, root, range, value }) => {
+    const param = host.params.find((each) => each.key === value);
+    if (!param) return null;
+    return insertNodeAt(wrapLooseText(root, range), paramNode(param.key, param.label));
+  },
+});
+
+define({
+  id: "templates",
+  label: "Templates",
+  icon: TemplatesIcon,
+  run: ({ host }) => {
+    host.openTemplates();
+    return null;
+  },
+});
+
+define({
+  id: "toc",
+  label: "Table of contents",
+  icon: TocIcon,
+  noCode: true,
+  noTable: true,
+  // One table of contents is enough, so it's offered only while there isn't one
+  available: ({ root }) => !root.querySelector("nav[data-toc]"),
+  run: ({ root, range }) => insertToc(root, range),
+});
+
+/** Table commands. They show only while the caret is in a table. */
+const inTableNow = ({ root, range }: CommandContext) => inTable(root, range);
+
+define({
+  id: "table",
+  label: "Insert table",
+  icon: TableIcon,
+  noTable: true,
+  run: ({ host, root, range, value }) => {
+    // Without a size, the table picker chooses one. Its value is "rows x columns", such as 3x4.
+    if (value === undefined) {
+      host.openPicker("table", range);
+      return null;
+    }
+    const [rows, cols] = value.split("x").map(Number);
+    if (!rows || !cols) return null;
+    return insertTable(root, wrapLooseText(root, range), rows, cols);
+  },
+});
+
+define({
+  id: "tableRows",
+  label: "Rows",
+  icon: TableRowsIcon,
+  control: "menu",
+  available: inTableNow,
+  options: () => [
+    { value: "above", label: "Insert row above" },
+    { value: "below", label: "Insert row below" },
+    { value: "delete", label: "Delete row" },
+  ],
+  run: ({ root, range, value }) => {
+    const cell = closestCell(root, range);
+    if (!cell || !value) return null;
+    return value === "delete" ? deleteRowOf(cell) : addRowAt(cell, value as "above" | "below");
+  },
+});
+
+define({
+  id: "tableColumns",
+  label: "Columns",
+  icon: TableColumnsIcon,
+  control: "menu",
+  available: inTableNow,
+  options: () => [
+    { value: "left", label: "Insert column left" },
+    { value: "right", label: "Insert column right" },
+    { value: "delete", label: "Delete column" },
+  ],
+  run: ({ root, range, value }) => {
+    const cell = closestCell(root, range);
+    if (!cell || !value) return null;
+    return value === "delete" ? deleteColumnOf(cell) : addColumnAt(cell, value as "left" | "right");
+  },
+});
+
+define({
+  id: "tableHeader",
+  label: "Header row",
+  icon: TableHeaderIcon,
+  control: "toggle",
+  available: inTableNow,
+  state: ({ root, range }) => {
+    const cell = closestCell(root, range);
+    return !!cell && hasHeaderRow(tableOf(cell));
+  },
+  run: ({ root, range }) => toggleHeaderRow(root, range),
+});
+
+define({
+  id: "tableDelete",
+  label: "Delete table",
+  icon: TableDeleteIcon,
+  available: inTableNow,
+  run: ({ root, range }) => {
+    const cell = closestCell(root, range);
+    return cell ? deleteTableOf(tableOf(cell)) : null;
   },
 });
 

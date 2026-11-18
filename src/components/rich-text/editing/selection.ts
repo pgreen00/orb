@@ -24,12 +24,42 @@ export function settleCaret(root: HTMLElement, range: Range): Range {
   return settled;
 }
 
-/** The non-editable piece, such as an image or rule, that `node` is or is inside of */
-export function pieceAt(node: Node, root: HTMLElement): HTMLElement | null {
-  for (let n: Node | null = node; n && n !== root; n = n.parentNode) {
-    if (isElement(n) && isAtom(n)) return n as HTMLElement;
+/**
+ * A caret left in an empty text node, such as after a command removes its `/`
+ * text, isn't drawn by Safari until something is typed. It moves to the element
+ * that holds the node, where a caret from Enter sits.
+ */
+export function settleEmptyText(range: Range): Range {
+  const node = range.startContainer;
+  // An empty block holds only its placeholder break. The caret goes before it, not after.
+  if (range.collapsed && range.startOffset === 1 && node.childNodes.length === 1 && node.firstChild!.nodeName === "BR") {
+    const settled = document.createRange();
+    settled.setStart(node, 0);
+    settled.collapse(true);
+    return settled;
   }
-  return null;
+  if (!range.collapsed || node.nodeType !== Node.TEXT_NODE || node.nodeValue !== "" || !node.parentNode) return range;
+  const parent = node.parentNode;
+  const settled = document.createRange();
+  settled.setStart(parent, Array.prototype.indexOf.call(parent.childNodes, node));
+  settled.collapse(true);
+  parent.removeChild(node);
+  // A block with nothing in it has no height, so neither it nor a caret in it is drawn
+  if (!parent.firstChild && isElement(parent) && parent.matches(TEXT_BLOCK_SELECTOR)) parent.appendChild(document.createElement("br"));
+  return settled;
+}
+
+/**
+ * The non-editable piece that `node` is in: the outermost, so a figure counts
+ * rather than the image in it. A figure's caption is typed in, so it isn't a piece.
+ */
+export function pieceAt(node: Node, root: HTMLElement): HTMLElement | null {
+  if ((isElement(node) ? node : node.parentElement)?.closest("figcaption")) return null;
+  let piece: HTMLElement | null = null;
+  for (let n: Node | null = node; n && n !== root; n = n.parentNode) {
+    if (isElement(n) && isAtom(n)) piece = n as HTMLElement;
+  }
+  return piece;
 }
 
 /**

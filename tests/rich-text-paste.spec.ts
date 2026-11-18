@@ -16,7 +16,7 @@ test.describe("orb-rich-text paste", () => {
     await editor(page, "<p><br></p>");
     await pastePlain(page, "# Title\n\n- one\n- two\n\n**bold** text");
     await expect.poll(() => content(page)).toBe(
-      "<h1>Title</h1><ul><li>one</li><li>two</li></ul><p><strong>bold</strong> text</p>",
+      '<h1 id="title">Title</h1><ul><li>one</li><li>two</li></ul><p><strong>bold</strong> text</p>',
     );
   });
 

@@ -34,6 +34,13 @@ export function hasContent(node: Node) {
     : false;
 }
 
+/** A table cell with a line break as its placeholder, so it has a height and the caret can go in it */
+export function emptyCell(doc: Document, tag: "td" | "th"): HTMLElement {
+  const cell = doc.createElement(tag);
+  cell.append(doc.createElement("br"));
+  return cell;
+}
+
 export function rename(el: HTMLElement, tag: string, replaced: Map<Node, Node>) {
   const next = document.createElement(tag);
   for (const attr of Array.from(el.attributes)) next.setAttribute(attr.name, attr.value);

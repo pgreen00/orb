@@ -6,6 +6,7 @@
  * @prop --editor-toolbar-bg: Background of the toolbar and footer
  * @prop --editor-text-color: Text color
  * @prop --editor-muted-color: Placeholder and blockquote text color
+ * @prop --editor-caption-color: Text color of figure captions
  * @prop --editor-footer-color: Word count text color
  * @prop --editor-button-active: Background of a pressed toolbar button, such as Bold while bold text is selected
  * @prop --editor-picker-hover-bg: Hovered background of a picker cell, tab or button, in the special characters, emoji and color pickers
@@ -20,6 +21,7 @@
  * @prop --editor-code-type: Color of types, classes and built-ins in code
  * @prop --editor-code-property: Color of properties, tags and variables in code
  * @prop --editor-code-operator: Color of operators and punctuation in code
+ * @prop --editor-outline-width: Width of the outline panel beside the editor
  */
 
 :host {
@@ -32,6 +34,7 @@
   --editor-toolbar-bg: light-dark(var(--orb-neutral-100), var(--orb-neutral-875));
   --editor-text-color: var(--orb-text-color);
   --editor-muted-color: var(--orb-note-color);
+  --editor-caption-color: var(--editor-muted-color);
   /* neutral-700 is just under 4.5:1 on the toolbar background, so the footer is a shade darker. */
   --editor-footer-color: light-dark(var(--orb-neutral-800), var(--orb-neutral-400));
 
@@ -404,20 +407,13 @@ orb-tooltip kbd::after {
 }
 
 /* The picker draws its own frame, so the popover around it adds none */
-.picker-popover {
-  --padding: 0;
-  --border: none;
-}
 
 .picker {
   box-sizing: border-box;
   display: grid;
   gap: var(--orb-spacing-sm);
   width: 18rem;
-  padding: var(--orb-spacing-sm);
-  border: 2px solid var(--editor-border-color);
-  border-radius: var(--editor-border-radius);
-  background: var(--editor-toolbar-bg);
+  /* The popover around a picker draws the frame and padding, as it does for menus */
   color: var(--editor-text-color);
   font-family: inherit;
 }
@@ -570,4 +566,246 @@ orb-tooltip kbd::after {
   .editor-content {
     padding: 0;
   }
+
+  .outline {
+    display: none;
+  }
+}
+
+/* Inline objects: mentions, tags and placeholders are pills that the caret steps over. A placeholder with no key in `params` gets the invalid color. */
+.editor-content [data-mention],
+.editor-content [data-tag],
+.editor-content [data-param] {
+  padding: 0 0.3em;
+  border-radius: var(--orb-radius-sm);
+  background: var(--editor-button-active);
+  white-space: nowrap;
+}
+
+.editor-content [data-unknown] {
+  background: transparent;
+  color: var(--editor-invalid-color);
+  outline: 1px dashed var(--editor-invalid-color);
+}
+
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: var(--orb-spacing-md);
+}
+
+/* Tables */
+
+/* The menus open at the pointer or caret, so their anchors only need to take no space. Not position: fixed,
+   which stops Safari from drawing the caret in the editor. */
+.table-menu-anchor {
+  position: absolute;
+  inline-size: 0;
+  block-size: 0;
+  pointer-events: none;
+}
+
+.editor-content table {
+  border-collapse: collapse;
+  inline-size: 100%;
+  margin: 1em 0;
+}
+
+.editor-content th,
+.editor-content td {
+  padding: var(--orb-spacing-xs);
+  border: 1px solid var(--editor-border-color);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.editor-content th {
+  background: var(--editor-toolbar-bg);
+  font-weight: 600;
+}
+
+/* The table size picker's cells are small squares. The ones up to the chosen size are highlighted. */
+.picker-cell.table-cell {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  aspect-ratio: auto;
+  border: 1px solid var(--editor-border-color);
+}
+
+.picker-cell.table-cell.is-on {
+  background: var(--editor-button-active);
+}
+
+/* Outline and table of contents */
+
+/* The outline sits beside the writing area. Without it, the editor takes the full width. */
+.editor-body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--orb-spacing-md);
+}
+
+.editor-body > .shell {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.outline {
+  box-sizing: border-box;
+  inline-size: var(--editor-outline-width, 14rem);
+  max-block-size: 100%;
+  overflow: auto;
+  color: var(--editor-text-color);
+  font-size: var(--orb-font-sm);
+}
+
+/* Each level is a list nested in the item above, so the indent comes from the nesting */
+.outline ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outline ol ol {
+  padding-inline-start: var(--orb-spacing-sm);
+}
+
+.outline button {
+  display: block;
+  inline-size: 100%;
+  margin: 0;
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-xs);
+  border: none;
+  border-radius: var(--editor-border-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.outline button:hover {
+  background: var(--editor-picker-hover-bg);
+}
+
+.outline button[aria-current="location"] {
+  background: var(--editor-button-active);
+  font-weight: 600;
+}
+
+.outline button:focus-visible {
+  outline: 2px solid var(--editor-focus-color);
+  outline-offset: -2px;
+}
+
+nav[data-toc] {
+  margin: 1em 0;
+  padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  border-inline-start: 3px solid var(--editor-border-color);
+}
+
+nav[data-toc] ol {
+  margin: 0;
+  padding-inline-start: 1.5em;
+}
+
+/* Media */
+
+/* Figures are centered unless their alignment says otherwise. Each one is positioned, so its handle and cover sit on it. */
+.editor-content figure {
+  position: relative;
+  margin: 1em 0;
+  text-align: center;
+}
+
+/* Inline, so text-align on the figure positions the picture. Overrides the bare img rule above. */
+.editor-content figure img,
+.editor-content figure video,
+.editor-content figure iframe {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0;
+  vertical-align: top;
+}
+
+.editor-content figure iframe {
+  width: min(100%, 40rem);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+
+.editor-content figcaption {
+  margin-top: 0.5em;
+  color: var(--editor-caption-color);
+  font-size: var(--orb-font-sm);
+}
+
+/* Covers an embed's iframe until its figure is selected, so clicks select the figure */
+.media-cover {
+  position: absolute;
+  inset: 0;
+}
+
+.media-handle {
+  position: absolute;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border: 2px solid var(--editor-toolbar-bg);
+  border-radius: 50%;
+  background: var(--editor-focus-color);
+  transform: translate(-50%, -50%);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.media-popover {
+  inline-size: 16rem;
+}
+
+.media-field,
+.media-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-sm);
+  font-size: var(--orb-font-sm);
+}
+
+.media-field input[type="text"] {
+  flex: 1;
+  min-inline-size: 0;
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.media-align,
+.media-actions {
+  display: flex;
+  gap: var(--orb-spacing-xs);
+}
+
+.media-popover button {
+  flex: 1;
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--orb-font-sm);
+  cursor: pointer;
+}
+
+.media-popover button:hover {
+  background: var(--editor-picker-hover-bg);
+}
+
+.media-popover button[aria-pressed="true"] {
+  background: var(--editor-button-active);
 }

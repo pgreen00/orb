@@ -171,7 +171,8 @@ export class Popover {
       await this.init?.();
       await this.setPosition();
       this.startPositioning();
-      this.el.showPopover();
+      // Already shown when it's opened again while fading out
+      if (!this.el.matches(":popover-open")) this.el.showPopover();
       await this.el.animate(
         { opacity: [0, 1] },
         { duration: 150, easing: "ease-in-out" },
@@ -184,6 +185,12 @@ export class Popover {
         { opacity: [1, 0] },
         { duration: 150, easing: "ease-in-out" },
       ).finished;
+      // Opened again while fading out: the new open keeps it, so it isn't hidden
+      if (this.open) {
+        this.role = undefined;
+        this.data = undefined;
+        return;
+      }
       this.el.hidePopover();
       this.cleanup?.();
       this.anchor = undefined;

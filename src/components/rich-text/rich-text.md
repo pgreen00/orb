@@ -4,7 +4,9 @@ sidebar_label: 'Rich Text Editor'
 wide: true
 ---
 
-## Usage
+## Examples
+
+### Usage
 
 A rich text editor for formatted content. Its value is HTML, which is always cleaned to the editor's own schema, so what's saved is safe to display. Read it with `getContent()` or the `value` property, and read plain text with `getText()`.
 
@@ -28,7 +30,7 @@ Set `label` and `note` as text, or slot your own content into the `label` and `n
 
 :::
 
-## Blocks
+### Blocks
 
 The text style select sets the selected blocks to a paragraph or a heading, Heading 1 to 6. The quote button wraps the selected blocks in a quote, and the code button makes them a code block. Quotes can hold several paragraphs, and a quoted heading stays a heading inside the quote.
 
@@ -52,7 +54,7 @@ Indent and outdent step a paragraph or heading in by 2em at a time, up to eight 
 
 :::
 
-### Code blocks
+#### Code blocks
 
 A code block holds its text as plain text, with no formatting inside. Its language comes from a `language-…` class, which the code language select sets. That select appears only while the caret is in a code block, at the end of the toolbar, so in a narrow editor it's under **More formatting**. The languages offered are the `codeLanguages` property (set it as a property, not an attribute). Languages the highlighter doesn't know are offered but not colored.
 
@@ -64,6 +66,7 @@ console.log(total);</code></pre>'></orb-rich-text>
 ```
 
 ```javascript
+await customElements.whenDefined("orb-rich-text");
 // Only these languages appear in the language picker.
 document.querySelector("#code-demo").codeLanguages = ["javascript", "typescript", "python", "css", "json"];
 ```
@@ -74,7 +77,7 @@ Code is colored with the CSS Custom Highlight API, after a short pause in typing
 
 Formatting commands don't apply inside a code block. The code button turns the block back into a paragraph.
 
-## Lists and tasks
+### Lists and tasks
 
 Lists nest. Tab nests an item under the item before it, and Shift+Tab brings it back out. Items after a nested item stay in its sublist, so their order doesn't change.
 
@@ -115,7 +118,7 @@ show();
 
 :::
 
-## Text styles
+### Text styles
 
 The font and size selects set the font of the selected text. The color and background controls open a palette of swatches. **Default** removes the color, and **Custom…** takes any other color. The text color and background controls show their current color under the icon. With nothing selected, the choice applies to the text typed next, and is dropped when the caret moves.
 
@@ -136,6 +139,7 @@ The `fonts` prop lists the fonts the font select offers, as `{ label, value }` o
 ```
 
 ```javascript
+await customElements.whenDefined("orb-rich-text");
 const editor = document.querySelector("#brand-demo");
 editor.fonts = [
   { label: "Serif", value: "Georgia, serif" },
@@ -147,7 +151,7 @@ editor.colors = ["#1d4ed8", "#15803d", "#b91c1c", "#6b21a8", "#000000", "#ffffff
 
 :::
 
-## Markdown shortcuts
+### Markdown shortcuts
 
 Typing Markdown turns into formatting as you type. Each rule runs when the character that completes its syntax is typed.
 
@@ -178,9 +182,9 @@ Backspace right after a rule undoes it, and brings back the typed text. Undo doe
 
 :::
 
-## Symbols and emoji
+### Symbols and emoji
 
-The special characters control opens a grid of symbols, grouped by category, with a search field. The emoji control opens the same kind of picker, with emoji grouped by kind. Each has a **Recently used** row, kept in this browser. A picked character takes the formats set for the text typed next. The emoji data loads the first time the picker opens, and skin tones aren't offered.
+The special characters control opens a grid of symbols, grouped by category, with a search field. The emoji control opens the same kind of picker, with emoji grouped by kind. Each has a **Recently used** row, kept in this browser. A picked character takes the formats set for the text typed next. The emoji data loads the first time the picker opens, and skin tones aren't offered. Clicking the button again closes its picker.
 
 ::: live-code-demo
 
@@ -190,11 +194,92 @@ The special characters control opens a grid of symbols, grouped by category, wit
 
 :::
 
-## Toolbar
+### Tables
+
+The table button opens a size grid. It starts at four by four and grows toward its edge, up to ten by ten. Pick a size to insert a table with a header row. Cells hold text and line breaks, not paragraphs.
+
+While the caret is in a table, the table controls show in the toolbar: rows and columns (insert above or below, insert to either side, or delete), the header row toggle, and delete table. The same commands are in the right-click menu on a cell.
+
+::: live-code-demo
+
+```html
+<orb-rich-text label="Table" toolbar="table tableRows tableColumns tableHeader tableDelete" value='<table><thead><tr><th>Item</th><th>Qty</th></tr></thead><tbody><tr><td>Pens</td><td>12</td></tr><tr><td>Paper</td><td>4</td></tr></tbody></table>'></orb-rich-text>
+```
+
+:::
+
+Tab and Shift+Tab move between cells, and Tab in the last cell adds a row. Enter adds a line break in the cell. Up and Down move to the same column in the row above or below. Backspace and Delete never merge cells.
+
+Tables have limits in this version. Cells can't be merged, and several cells can't be selected together. Dragging a column edge to resize it isn't supported yet. Block commands, such as headings, quotes, lists and code blocks, don't apply inside a cell.
+
+### Images, video and embeds
+
+Pictures and videos are figures: non-editable blocks with an editable caption. Click one to select it. A popover then offers alt text, a caption, alignment, Replace and Remove. Pictures can be resized by dragging the handle at their corner.
+
+Files come in from the image button, from paste (a screenshot, for example) and from drag and drop. `mediaAccept` limits the types, as the accept attribute does. The default is `image/*`. `upload` sends each file somewhere: it's given the file and returns the URL to save. Without it, files are embedded as data URLs. A file that's still uploading shows as a preview. If the upload fails, its figure is removed and `orbUploadError` fires.
+
+A YouTube or Vimeo link pasted alone on an empty line becomes a video. `embedProviders` sets the sites that can be embedded. Set it as a property. Saved embeds keep only the provider and the video ID.
+
+::: live-code-demo
+
+```html
+<orb-rich-text label="Figure" value='<figure style="text-align: center"><img alt="A sample image" width="200" src="data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27200%27%20height=%2780%27%3E%3Crect%20width=%27200%27%20height=%2780%27%20rx=%2710%27%20fill=%27%23cfe3ff%27/%3E%3Ctext%20x=%2716%27%20y=%2748%27%20font-family=%27sans-serif%27%20font-size=%2720%27%3EA%20sample%20image%3C/text%3E%3C/svg%3E"><figcaption>A captioned picture. Click the picture to change its alt text or alignment.</figcaption></figure><p>Text after the figure.</p>'></orb-rich-text>
+```
+
+:::
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="upload-demo" label="Uploads" placeholder="Paste or drop an image here…"></orb-rich-text>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+// Each file is sent here. The URL it resolves to is what gets saved.
+document.querySelector("#upload-demo").upload = (file) =>
+  new Promise((resolve) => setTimeout(() => resolve(`https://cdn.example.com/${encodeURIComponent(file.name)}`), 800));
+```
+
+:::
+
+::: live-code-demo
+
+```html
+<orb-rich-text label="Video" value='<p>A video, embedded from its link:</p><figure data-embed="youtube"><iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" allowfullscreen loading="lazy"></iframe></figure>'></orb-rich-text>
+```
+
+:::
+
+### Outline and contents
+
+Each heading gets an `id` from its text, so it can be linked to. Repeated headings get `-2`, `-3` and so on. The saved HTML keeps these ids.
+
+The `outline` prop shows a panel that lists the headings. The panel highlights the section you're in as you scroll, and clicking a heading moves the caret there.
+
+::: live-code-demo
+
+```html
+<orb-rich-text outline label="Outline" value='<h1>Introduction</h1><p>What this guide covers.</p><h2>Setup</h2><p>Install the package.</p><h3>Requirements</h3><p>Node 20 or later.</p><h2>Usage</h2><p>Add the element to a page.</p>'></orb-rich-text>
+```
+
+:::
+
+The table of contents control inserts a list of the headings as links. It follows the headings as they change, and undo reverts a heading change and its contents together. A document has one table of contents, so the control is offered only when there isn't one.
+
+::: live-code-demo
+
+```html
+<orb-rich-text label="Contents" toolbar="toc undo" value='<h1>Introduction</h1><p>Place the caret on a new line, then press the contents button.</p><h2>Setup</h2><p>Install the package.</p>'></orb-rich-text>
+```
+
+:::
+
+### Toolbar
 
 The `toolbar` prop lists the controls in order. Separate groups with `|`. A group that doesn't fit the width moves into a **More formatting** menu, where a select becomes a submenu. The default toolbar is long, so on a typical window some of its groups, such as the code language select, are under More formatting. Commands that aren't listed are still available from their keyboard shortcuts.
 
-Command ids: `undo`, `redo`, `blockType`, `quote`, `code`, `bold`, `italic`, `underline`, `strike`, `fontFamily`, `fontSize`, `color`, `background`, `clearFormatting`, `link`, `media`, `bulletList`, `orderedList`, `taskList`, `indent`, `outdent`, `listStyle`, `justifyLeft`, `justifyCenter`, `justifyRight`, `justifyFull`, `lineHeight`, `separator`, `specialCharacter`, `emoji`, `codeLanguage`.
+Command ids: `undo`, `redo`, `blockType`, `quote`, `code`, `bold`, `italic`, `underline`, `strike`, `fontFamily`, `fontSize`, `color`, `background`, `clearFormatting`, `link`, `media`, `bulletList`, `orderedList`, `taskList`, `indent`, `outdent`, `listStyle`, `justifyLeft`, `justifyCenter`, `justifyRight`, `justifyFull`, `lineHeight`, `separator`, `specialCharacter`, `emoji`, `table`, `toc`, `tableRows`, `tableColumns`, `tableHeader`, `tableDelete`, `codeLanguage`.
 
 `listStyle` shows only in a list, and `codeLanguage` only in a code block.
 
@@ -214,7 +299,155 @@ Command ids: `undo`, `redo`, `blockType`, `quote`, `code`, `bold`, `italic`, `un
 
 :::
 
-## Forms
+### Menus while typing
+
+Typing some characters opens a menu of items. The menu narrows as you type. Up and Down highlight an item, and Enter chooses it. Escape closes the menu and leaves the typed text as it is.
+
+| Type | Menu | Choosing inserts |
+|---|---|---|
+| `/` at the start of a line | Commands, matched on their names and common words, such as "h2" or "todo" | Runs the command, and the `/` text is removed |
+| `:` and two letters | Emoji shortcodes, such as `:grinning:` | The emoji |
+| `@` | Mentions, from the `mentions` lookup | A mention |
+| `#` | Tags, from the `tags` lookup, and **Create #name** | A tag |
+| `{{` | Placeholders, from the `params` prop | A placeholder |
+
+`@`, `#`, `:` and `{{` open a menu only after a space or at the start of a line, so `10:30` and an email address don't. In a table cell, the `/` menu leaves out the commands that don't apply there.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="menus-demo" label="Menus while typing" placeholder="Type /, @, #, {{ or : and two letters…"></orb-rich-text>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+const editor = document.querySelector("#menus-demo");
+const people = [
+  { id: "ada", label: "Ada Lovelace" },
+  { id: "alan", label: "Alan Turing" },
+];
+editor.mentions = (query) => people.filter((person) => person.label.toLowerCase().includes(query.toLowerCase()));
+editor.tags = (query) => ["design", "release"].filter((tag) => tag.includes(query.toLowerCase())).map((tag) => ({ id: tag, label: tag }));
+editor.params = [
+  { key: "customer.name", label: "Customer name" },
+  { key: "order.number", label: "Order number" },
+];
+```
+
+:::
+
+**Manual test:**
+- Click an empty line and type `/quo`. **Quote** is the only item. Press Enter, and the line becomes a quote.
+- Type `/` and press Escape. The menu closes, and the `/` stays.
+- Type `#` on its own. The tag list opens. Type `@`, and the people list opens. Type `{{`, and the placeholders open.
+- Type `10:30`. No menu opens. Type `:gri`. The emoji menu opens, and Enter with **:grinning:** highlighted inserts 😀.
+
+### Mentions and tags
+
+`mentions` and `tags` are functions, set as properties. Each is called with the text typed after `@` or `#`, and returns the matches, or a promise of them. They're called after a short pause in typing. The `#` menu also offers **Create #name** for a tag that doesn't exist yet.
+
+A mention is saved as `<span data-mention="ada">`, and a tag as `<span data-tag="design">`. Each is one piece, so Backspace removes all of it. Choosing a mention emits `orbMention`, with the `id` and `label` of the person.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="people-demo" label="Mentions and tags" placeholder="Type @ to mention someone, or # for a tag…"></orb-rich-text>
+<p id="people-output" role="status"></p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+const people = [
+  { id: "ada", label: "Ada Lovelace" },
+  { id: "alan", label: "Alan Turing" },
+  { id: "grace", label: "Grace Hopper" },
+];
+const tags = ["design", "release", "research"];
+const editor = document.querySelector("#people-demo");
+const output = document.querySelector("#people-output");
+
+editor.mentions = (query) => people.filter((person) => person.label.toLowerCase().includes(query.toLowerCase()));
+editor.tags = (query) =>
+  tags.filter((tag) => tag.includes(query.toLowerCase())).map((tag) => ({ id: tag, label: tag }));
+editor.addEventListener("orbMention", (event) => (output.textContent = `Mentioned ${event.detail.label}`));
+```
+
+:::
+
+**Manual test:**
+- Type `@al`. **Alan Turing** is the only match. Press Enter, and it's inserted. The text below the editor names the person.
+- Type `#re` and choose **release**. Then type `#new` and choose **Create #new**.
+- Type an email address, such as `ada@example.com`. No menu opens.
+
+### Placeholders and templates
+
+#### Placeholders
+
+`params` lists the placeholders a document can use. Each has a `key`, a `label` and an optional `sample` value. A placeholder is non-editable text showing its label, such as **Customer name**. Insert one from the **Placeholder** control in the toolbar, or by typing `{{`.
+
+`getParams()` returns the keys used in the document, in order, without repeats. `fill(values)` returns the document's HTML with each placeholder replaced by its value, as text. A placeholder with no value in `values` is left as it is.
+
+A placeholder whose key isn't in `params` is shown with a warning color. It's still saved, so a document keeps its placeholders when the list changes.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="letter-demo" label="Letter" toolbar="bold italic | param | undo redo" value='<p>Dear <span data-param="customer.name">Customer name</span>,</p><p>Your order <span data-param="order.number">Order number</span> left our warehouse on <span data-param="ship.date">Ship date</span>.</p>'></orb-rich-text>
+<p>
+  <orb-button id="letter-list" fill="outline">List placeholders</orb-button>
+  <orb-button id="letter-fill" fill="outline">Fill with samples</orb-button>
+</p>
+<p id="letter-output" role="status" style="font-family: monospace; white-space: pre-wrap;"></p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+const editor = document.querySelector("#letter-demo");
+const output = document.querySelector("#letter-output");
+editor.params = [
+  { key: "customer.name", label: "Customer name", sample: "Ada Lovelace" },
+  { key: "order.number", label: "Order number", sample: "A-1042" },
+  { key: "ship.date", label: "Ship date", sample: "18 November" },
+];
+document.querySelector("#letter-list").addEventListener("click", async () => (output.textContent = (await editor.getParams()).join(", ")));
+document.querySelector("#letter-fill").addEventListener("click", async () => {
+  const values = Object.fromEntries(editor.params.map((param) => [param.key, param.sample]));
+  output.textContent = await editor.fill(values);
+});
+```
+
+:::
+
+**Manual test:**
+- Click the end of the first line and type `{{cus`. **Customer name** is the only item. Press Enter, and the placeholder is inserted.
+- Click **List placeholders**. It lists `customer.name, order.number, ship.date`.
+- Click **Fill with samples**. The output is the letter with each placeholder replaced by its sample, as HTML.
+
+#### Templates
+
+`templates` lists the templates that the **Templates** control offers, under **New from template**. Each has an `id`, a `label`, an optional `description`, and `html`, or a `load` function that returns the HTML when the template is chosen. Choosing one replaces the whole document as one undo step. `applyTemplate(id, "insert")` inserts the template at the caret instead. Templates can contain placeholders.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="template-demo" label="Templates" toolbar="templates | undo redo" value="<p>Draft text, which a template replaces.</p>"></orb-rich-text>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+document.querySelector("#template-demo").templates = [
+  { id: "thanks", label: "Thank you", description: "A short note after an order.", html: "<h2>Thank you</h2><p>We appreciate your order.</p>" },
+  { id: "shipped", label: "Shipped", description: "Tells a customer their order has left.", html: "<h2>Your order has shipped</h2><p>It should arrive within three working days.</p>" },
+];
+```
+
+:::
+
+**Manual test:**
+- Click **Templates**. **New from template** lists both templates with their descriptions.
+- Choose **Use template** on **Shipped**. The document is replaced. Press Ctrl+Z, and the draft text comes back.
+
+### Forms
 
 The editor submits its HTML under its `name`. It also validates `required`, and can show a custom error.
 
@@ -260,9 +493,11 @@ form.addEventListener("submit", (event) => {
 
 :::
 
-## Content
+### Content
 
-Pasted content is cleaned on the way in. Bold, italic, underline and strikethrough set by Word or Google Docs styles become the matching formatting, so Google Docs' bold wrapper doesn't make the whole paste bold. Word's paragraph-based lists become real lists, nested by level. Scripts, styles, unknown elements and unsafe links are removed. Colors, fonts and font sizes on text are kept when they're valid CSS. Other styles are dropped. Pasting into a code block always inserts plain text. Plain text that reads as Markdown, such as a heading, a list or **bold** text, is rendered when it's pasted. Set `markdown-paste` to `false` to paste it as it is.
+Pasted content is cleaned on the way in. Bold, italic, underline and strikethrough set by Word or Google Docs styles become the matching formatting, so Google Docs' bold wrapper doesn't make the whole paste bold. Word's paragraph-based lists become real lists, nested by level. Scripts, styles, unknown elements and unsafe links are removed. Colors, fonts and font sizes on text are kept when they're valid CSS. Other styles are dropped. Pasting into a code block always inserts plain text. Plain text that reads as Markdown, such as a heading, a list or **bold** text, is rendered when it's pasted. Set `markdown-paste` to `false` to paste it as it is. Pasted tables keep their rows and cells. A cell that spans columns or rows is split into single cells, and paragraphs in a cell become lines in it.
+
+Files pasted or dropped on the editor become figures, and a picture pasted inside a paragraph moves into a figure of its own.
 
 Images are non-editable pieces that the caret can't go into. Click one to select it. Delete or Backspace then removes it, and the selection outline is never saved.
 
@@ -312,8 +547,6 @@ document.querySelector("#load-unsafe").addEventListener("click", async () => {
 ```
 
 :::
-
-## Examples
 
 ### Setting content from code
 
@@ -367,7 +600,7 @@ editor.addEventListener("orbEditorChange", (event) => {
 
 :::
 
-## Keyboard
+### Keyboard
 
 Shortcuts use Ctrl, or ⌘ on Apple devices.
 
@@ -393,10 +626,13 @@ Shortcuts use Ctrl, or ⌘ on Apple devices.
 | Backspace right after a checkbox or image | Removes it |
 | Delete at the end of a block | Joins the block after it |
 | Backspace or Delete with a selected image or rule | Removes it |
+| Tab, Shift+Tab (in a table) | Next or previous cell. Tab in the last cell adds a row. |
 | Tab, Shift+Tab (in a list or code block) | Indent or outdent the items or lines. Elsewhere Tab moves focus. |
 | Escape, then Tab | Leaves a list or code block instead of indenting. The next key goes back to normal. |
 | Up, Down (in a code block, at its first or last line) | Moves to a new paragraph before or after the block, if there isn't one |
 | Backspace right after a Markdown rule | Undoes the rule, which brings back the typed text |
+| Up, Down (in a table cell, at its first or last line) | Moves to the same column in the row above or below, if there is one |
+| Backspace or Delete at a cell's edge | Does nothing, so cells never merge |
 
 With no text selected, a bold, italic or underline shortcut, or a color or font from the toolbar, applies to the text typed next. It's dropped when the caret moves.
 
@@ -423,7 +659,18 @@ With no text selected, a bold, italic or underline shortcut, or a color or font 
 - Paste a line of Markdown, such as `- one`, from a text file. It becomes a list.
 - Open special characters, search for "euro", and insert €. Open emoji, insert one, and check it's in **Recently used** when you open the picker again.
 
-## Accessibility
+**Manual test, tables, media and outline:**
+- Click the table button and move over the size grid. It grows toward the pointer. Pick a size and check the header row.
+- Press Tab in the last cell. A row is added, and the caret moves to its first cell.
+- Put the caret in a cell, press Enter, and type. The text goes on a new line in the same cell.
+- Right-click a cell. The table menu opens at the pointer. Choose **Insert row above**.
+- Click a picture. The popover opens. Change its alt text and turn on its caption.
+- Drag the corner handle of a picture. It keeps its proportions and sets its width when you let go.
+- Paste a YouTube link alone on an empty line. The line becomes a video.
+- Turn on the outline. Scroll the editor, and the current heading is highlighted in the panel.
+- Insert the table of contents, then change a heading. The contents update, and undo reverts both.
+
+### Accessibility
 
 - The content area is a `textbox` with `aria-multiline`. Its name comes from the host's `aria-label`, then the slotted label, the `label` prop, a `<label for>` that points at the editor, and finally "Rich text editor".
 - The `note` prop is the description, by reference. A slotted note is copied as text, since a description can't refer to content outside the shadow root. The host's `aria-description`, when set, takes precedence over both.
@@ -435,4 +682,7 @@ With no text selected, a bold, italic or underline shortcut, or a color or font 
 - The editor doesn't change focus when toolbar controls are clicked with the mouse, so the selection is kept.
 - Tab leaves a list or code block after Escape, so keyboard users never get stuck. The shortcut list explains this.
 - Spellcheck is on by default. Set `spellcheck="false"` to turn it off.
+- The table size grid is a group of buttons, each named for its size, such as "2 by 3 table". Arrow keys move through it, and focus shows the size it would insert.
+- The outline is a `nav` of buttons, and the current section is marked with `aria-current`.
+- While a `/`, `@`, `#`, `:` or `{{` menu is open, focus stays in the text. Up and Down move through its items, which are announced through `aria-activedescendant`.
 - Still to check: a manual pass with VoiceOver and NVDA, which the automated tests can't cover.

@@ -3,6 +3,7 @@ import { blockOrder, insertBreak, joinBackward, joinForward, splitBlock } from "
 import { indentItems, outdentItem, outdentItems } from "./lists";
 import { closestBlock } from "./selection";
 import { isInlineAtom } from "./schema";
+import { tabCell, verticalCell } from "./tables";
 
 /** What the user did, as the editor sees it. The component maps input events to these. */
 export type Key =
@@ -225,8 +226,22 @@ const heading: Behavior = {
   },
 };
 
+/** A table cell holds lines rather than paragraphs, and cells never merge, so Backspace and Delete stop at their edges. */
+const tableCell: Behavior = {
+  selector: "td, th",
+  on: {
+    enter: (_cell, range, root) => insertBreak(root, range),
+    tab: (cell) => tabCell(cell as HTMLTableCellElement, 1),
+    shiftTab: (cell) => tabCell(cell as HTMLTableCellElement, -1),
+    backspaceAtStart: () => null,
+    deleteAtEnd: () => null,
+    arrowUpAtStart: (cell, range) => verticalCell(cell as HTMLTableCellElement, range, -1),
+    arrowDownAtEnd: (cell, range) => verticalCell(cell as HTMLTableCellElement, range, 1),
+  },
+};
+
 /** Most specific first. The walk from the caret takes the first behavior that acts. */
-const BEHAVIORS: Behavior[] = [codeBlock, taskItem, listItem, quote, heading];
+const BEHAVIORS: Behavior[] = [tableCell, codeBlock, taskItem, listItem, quote, heading];
 
 /** What each key does when no behavior takes it */
 const DEFAULTS: Partial<Record<Key, (root: HTMLElement, range: Range) => Range | null>> = {

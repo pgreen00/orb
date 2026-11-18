@@ -1,5 +1,6 @@
 import type { PendingFormats } from "./inline";
 import type { FontOption } from "../ui/defaults";
+import type { ParamDef } from "./params";
 
 export interface ApplyOptions {
   /** The `inputType` of the `input` event. Defaults to insertReplacementText. */
@@ -29,6 +30,8 @@ export interface EditorHost {
   readonly fontSizeList: string[];
   /** The swatches in the color pickers */
   readonly colors: string[];
+  /** The placeholders the document can hold */
+  readonly params: ParamDef[];
   /** The selection to edit: the live one, the last one, or the end */
   takeRange(): Range;
   /** Focuses the editor and selects `range`, unless the editor already has focus */
@@ -45,6 +48,8 @@ export interface EditorHost {
   showHelp(): void;
   /** Opens the picker for a command, such as a color or a special character. The choice runs the command again with its value. */
   openPicker(id: string, range: Range): void;
+  /** Opens the templates picker */
+  openTemplates(): void;
   /** Recomputes the toolbar states, such as after a pending format changes */
   update(): void;
 }

@@ -1,9 +1,12 @@
-import { isBlock } from "./dom";
+import { emptyCell, isBlock } from "./dom";
 import { specOf, STYLE_CHECKS, StyleProp } from "./schema";
 
-/** Elements removed with their content, rather than unwrapped. */
+/**
+ * Elements removed with their content, rather than unwrapped. An iframe isn't
+ * here: the schema keeps only the embed providers' iframes, by their src.
+ */
 const REMOVED_TAGS =
-  "script, style, meta, link, title, head, iframe, frame, object, embed, template, noscript, svg, math, form, button, select, textarea";
+  "script, style, meta, link, title, head, frame, object, embed, template, noscript, svg, math, form, button, select, textarea";
 
 /** Spaces, tabs and line breaks. Non-breaking spaces stay, since they're kept on purpose. */
 const COLLAPSIBLE = /[ \t\r\n\f]+/g;
@@ -35,6 +38,7 @@ export function sanitize(html: string): DocumentFragment {
   // Bold, italic, underline and strikethrough set by style become the tags they mean,
   // before the styles are dropped.
   body.querySelectorAll<HTMLElement>("[style]").forEach(styleToTags);
+  body.querySelectorAll<HTMLTableElement>("table").forEach(splitSpans);
 
   cleanTree(body);
   collapseWhitespace(body);
@@ -43,8 +47,40 @@ export function sanitize(html: string): DocumentFragment {
   return fragment;
 }
 
+/**
+ * Merged cells aren't supported, so a cell that spans columns or rows becomes
+ * one cell with empty cells in the space it covered. Columns are split first,
+ * so each row's cells line up with their columns before the rows are split.
+ */
+function splitSpans(table: HTMLTableElement) {
+  const doc = table.ownerDocument;
+  const rows = Array.from(table.rows);
+  for (const row of rows) {
+    for (const cell of Array.from(row.cells)) {
+      const span = Number(cell.getAttribute("colspan")) || 1;
+      cell.removeAttribute("colspan");
+      let anchor: Element = cell;
+      for (let k = 1; k < span; k++) {
+        const extra = emptyCell(doc, cell.tagName.toLowerCase() as "td" | "th");
+        anchor.after(extra);
+        anchor = extra;
+      }
+    }
+  }
+  rows.forEach((row, r) => {
+    for (const cell of Array.from(row.cells)) {
+      const span = Number(cell.getAttribute("rowspan")) || 1;
+      cell.removeAttribute("rowspan");
+      for (let k = 1; k < span && rows[r + k]; k++) {
+        const below = rows[r + k];
+        below.insertBefore(emptyCell(doc, cell.tagName.toLowerCase() as "td" | "th"), below.cells[cell.cellIndex] ?? null);
+      }
+    }
+  });
+}
+
 /** Attributes the editor adds while it runs. They're kept when the editor's own content is cleaned, and never when outside HTML is. */
-const RUNTIME_ATTRS = ["contenteditable", "data-orb-trailing", "data-orb-break", "data-selected", "tabindex"];
+const RUNTIME_ATTRS = ["contenteditable", "data-orb-trailing", "data-orb-break", "data-selected", "data-unknown", "tabindex"];
 
 /** Cleans every element under `root`, deepest first, so an element is renamed or unwrapped after its children. */
 export function cleanTree(root: ParentNode, replaced = new Map<Node, Node>(), runtime = false) {
@@ -85,8 +121,8 @@ export function cleanElement(el: Element, replaced = new Map<Node, Node>(), runt
       if (value !== null) next.setAttribute(name, value);
     }
   }
-  // An image without a usable source has nothing to show.
-  if (spec.tag === "IMG" && !next.hasAttribute("src")) {
+  // Media without a usable source has nothing to show.
+  if (["IMG", "VIDEO", "IFRAME"].includes(spec.tag) && !next.hasAttribute("src")) {
     el.remove();
     return;
   }

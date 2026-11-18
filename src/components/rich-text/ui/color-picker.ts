@@ -10,18 +10,20 @@ function normalizeColor(value: string) {
 /**
  * Moves focus through a grid of buttons with the arrow, Home and End keys. Only the
  * focused cell has tabIndex 0, so the grid is one Tab stop. `grid` must be the element
- * that holds the cells, and the listener is added once per grid.
+ * that holds the cells, and the listener is added once per grid. `columns` can be a
+ * function for a grid whose width changes.
  */
-export function addGridKeys(grid: HTMLElement, selector: string, columns: number) {
+export function addGridKeys(grid: HTMLElement, selector: string, columns: number | (() => number)) {
   grid.addEventListener("keydown", (event) => {
     const cells = [...grid.querySelectorAll<HTMLElement>(selector)];
     const current = cells.indexOf(event.target as HTMLElement);
     if (current < 0) return;
+    const width = typeof columns === "function" ? columns() : columns;
     const steps: Record<string, number> = {
       ArrowLeft: current - 1,
       ArrowRight: current + 1,
-      ArrowUp: current - columns,
-      ArrowDown: current + columns,
+      ArrowUp: current - width,
+      ArrowDown: current + width,
       Home: 0,
       End: cells.length - 1,
     };

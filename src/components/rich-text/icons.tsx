@@ -126,6 +126,51 @@ export const QuoteIcon = (props: any) =>
     <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" />,
   ]);
 
+export const ParamIcon = (props: any) =>
+  Icon(props, [
+    <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" />,
+    <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" />,
+  ]);
+
+export const TemplatesIcon = (props: any) =>
+  Icon(props, [
+    <rect width="18" height="7" x="3" y="3" rx="1" />,
+    <rect width="9" height="7" x="3" y="14" rx="1" />,
+    <rect width="5" height="7" x="16" y="14" rx="1" />,
+  ]);
+
+export const TocIcon = (props: any) =>
+  Icon(props, [
+    <line x1="3" x2="11" y1="6" y2="6" />,
+    <line x1="7" x2="15" y1="12" y2="12" />,
+    <line x1="11" x2="21" y1="18" y2="18" />,
+  ]);
+
+export const TableIcon = (props: any) =>
+  Icon(props, [
+    <rect width="18" height="18" x="3" y="3" rx="2" />,
+    <path d="M3 9h18" />,
+    <path d="M3 15h18" />,
+    <path d="M9 3v18" />,
+    <path d="M15 3v18" />,
+  ]);
+
+export const TableRowsIcon = (props: any) =>
+  Icon(props, [<rect width="18" height="18" x="3" y="3" rx="2" />, <path d="M3 9h18" />, <path d="M3 15h18" />]);
+
+export const TableColumnsIcon = (props: any) =>
+  Icon(props, [<rect width="18" height="18" x="3" y="3" rx="2" />, <path d="M9 3v18" />, <path d="M15 3v18" />]);
+
+export const TableHeaderIcon = (props: any) =>
+  Icon(props, [<rect width="18" height="18" x="3" y="3" rx="2" />, <path d="M3 9h18" />, <path d="M3 3v6h18" />]);
+
+export const TableDeleteIcon = (props: any) =>
+  Icon(props, [
+    <path d="M3 6h18" />,
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />,
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />,
+  ]);
+
 export const SeparatorIcon = (props: any) => Icon(props, [<path d="M5 12h14" />]);
 
 export const IndentIcon = (props: any) =>

@@ -19,6 +19,10 @@ import { OtpCase, OtpType } from "./components/otp-input/otp";
 import { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 import { PageChangeDetail } from "./components/pagination/pagination";
 import { FontOption } from "./components/rich-text/ui/defaults";
+import { EmbedProvider } from "./components/rich-text/convert/embed";
+import { TriggerItem } from "./components/rich-text/editing/triggers";
+import { ParamDef } from "./components/rich-text/editing/params";
+import { TemplateInfo } from "./components/rich-text/editing/templates";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
@@ -38,6 +42,10 @@ export { OtpCase, OtpType } from "./components/otp-input/otp";
 export { OverlayData as OverlayData1 } from "./components/overlay/overlay";
 export { PageChangeDetail } from "./components/pagination/pagination";
 export { FontOption } from "./components/rich-text/ui/defaults";
+export { EmbedProvider } from "./components/rich-text/convert/embed";
+export { TriggerItem } from "./components/rich-text/editing/triggers";
+export { ParamDef } from "./components/rich-text/editing/params";
+export { TemplateInfo } from "./components/rich-text/editing/templates";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { TabCloseDetail } from "./components/tab-button/tab-button";
@@ -1488,10 +1496,13 @@ export namespace Components {
         "sync": boolean;
     }
     /**
-     * A rich text editor that's also a form field. The form gets its content as
-     * HTML, under the element's `name` attribute.
+     * A rich text editor that's also a form field. The form gets its content as HTML, under the element's `name` attribute.
      */
     interface OrbRichText {
+        /**
+          * Replaces the document with a template, or inserts it at the caret. Either is one undo step. Unlike `setContent`, it doesn't start a new undo history.
+         */
+        "applyTemplate": (id: string, how?: "replace" | "insert") => Promise<void>;
         /**
           * Removes all content. The undo history starts over.
          */
@@ -1516,6 +1527,15 @@ export namespace Components {
          */
         "disabled": boolean;
         /**
+          * The sites whose videos can be embedded by link. Set it as a property.
+          * @default [YOUTUBE, VIMEO]
+         */
+        "embedProviders": EmbedProvider[];
+        /**
+          * The document's HTML with each placeholder replaced by its value, as text. Placeholders with no value stay as they are.
+         */
+        "fill": (values: Record<string, string>) => Promise<string>;
+        /**
           * The font sizes in points that the size picker offers, separated by spaces
           * @default "8 9 10 11 12 14 18 24 30 36 48"
          */
@@ -1529,6 +1549,10 @@ export namespace Components {
           * The content as canonical HTML, the form of the saved value
          */
         "getContent": () => Promise<string>;
+        /**
+          * The placeholders in the document, by key, in order and without repeats
+         */
+        "getParams": () => Promise<string[]>;
         /**
           * The content as plain text, with a line per block
          */
@@ -1548,6 +1572,15 @@ export namespace Components {
          */
         "maxHeight": string;
         /**
+          * The file types the media button, drops and pastes accept, as the accept attribute does
+          * @default "image/*"
+         */
+        "mediaAccept": string;
+        /**
+          * Looks up people for `@`. Set it as a property. Its items are shown in a menu while the user types.
+         */
+        "mentions"?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
+        /**
           * The smallest height of the writing area
           * @default "200px"
          */
@@ -1556,6 +1589,16 @@ export namespace Components {
           * Informational message below the editor
          */
         "note"?: string;
+        /**
+          * Shows a panel listing the document's headings, which jumps to each one
+          * @default false
+         */
+        "outline": boolean;
+        /**
+          * Placeholders that can be inserted with `{{` or the placeholder control. Set it as a property.
+          * @default []
+         */
+        "params": ParamDef[];
         /**
           * Shown while the editor is empty
           * @default "Start typing..."
@@ -1599,10 +1642,23 @@ export namespace Components {
          */
         "spellcheck": boolean;
         /**
+          * Looks up existing tags for `#`. Set it as a property. Typing a new name also offers to create that tag.
+         */
+        "tags"?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
+        /**
+          * Templates the templates picker offers. Set it as a property.
+          * @default []
+         */
+        "templates": TemplateInfo[];
+        /**
           * The toolbar's controls, in order. `|` separates groups. Commands not listed are still available from keyboard shortcuts. Groups that don't fit move into a More menu.
           * @default DEFAULT_TOOLBAR
          */
         "toolbar": string;
+        /**
+          * Uploads a file and returns its URL. Without it, pictures and videos are embedded as data URLs.
+         */
+        "upload"?: (file: File) => Promise<string>;
         /**
           * The content, as HTML. It updates as the user edits: right after commands like Bold, and after each pause in typing. `getContent()` is always current.
           * @default ""
@@ -2741,10 +2797,11 @@ declare global {
         "orbEditorChange": EditorChangeEvent;
         "orbEditorFocus": FocusEvent;
         "orbEditorBlur": FocusEvent;
+        "orbUploadError": { file: File; error: unknown };
+        "orbMention": { id: string; label: string };
     }
     /**
-     * A rich text editor that's also a form field. The form gets its content as
-     * HTML, under the element's `name` attribute.
+     * A rich text editor that's also a form field. The form gets its content as HTML, under the element's `name` attribute.
      */
     interface HTMLOrbRichTextElement extends Components.OrbRichText, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbRichTextElementEventMap>(type: K, listener: (this: HTMLOrbRichTextElement, ev: OrbRichTextCustomEvent<HTMLOrbRichTextElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -4558,8 +4615,7 @@ declare namespace LocalJSX {
         "sync"?: boolean;
     }
     /**
-     * A rich text editor that's also a form field. The form gets its content as
-     * HTML, under the element's `name` attribute.
+     * A rich text editor that's also a form field. The form gets its content as HTML, under the element's `name` attribute.
      */
     interface OrbRichText {
         /**
@@ -4581,6 +4637,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "disabled"?: boolean;
+        /**
+          * The sites whose videos can be embedded by link. Set it as a property.
+          * @default [YOUTUBE, VIMEO]
+         */
+        "embedProviders"?: EmbedProvider[];
         /**
           * The font sizes in points that the size picker offers, separated by spaces
           * @default "8 9 10 11 12 14 18 24 30 36 48"
@@ -4610,6 +4671,15 @@ declare namespace LocalJSX {
          */
         "maxHeight"?: string;
         /**
+          * The file types the media button, drops and pastes accept, as the accept attribute does
+          * @default "image/*"
+         */
+        "mediaAccept"?: string;
+        /**
+          * Looks up people for `@`. Set it as a property. Its items are shown in a menu while the user types.
+         */
+        "mentions"?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
+        /**
           * The smallest height of the writing area
           * @default "200px"
          */
@@ -4634,6 +4704,24 @@ declare namespace LocalJSX {
           * Emits when the content area gains focus
          */
         "onOrbEditorFocus"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
+        /**
+          * Emits when a mention is chosen from the `@` menu
+         */
+        "onOrbMention"?: (event: OrbRichTextCustomEvent<{ id: string; label: string }>) => void;
+        /**
+          * Emits when a file can't be uploaded or inserted. Its figure is removed.
+         */
+        "onOrbUploadError"?: (event: OrbRichTextCustomEvent<{ file: File; error: unknown }>) => void;
+        /**
+          * Shows a panel listing the document's headings, which jumps to each one
+          * @default false
+         */
+        "outline"?: boolean;
+        /**
+          * Placeholders that can be inserted with `{{` or the placeholder control. Set it as a property.
+          * @default []
+         */
+        "params"?: ParamDef[];
         /**
           * Shown while the editor is empty
           * @default "Start typing..."
@@ -4665,10 +4753,23 @@ declare namespace LocalJSX {
          */
         "spellcheck"?: boolean;
         /**
+          * Looks up existing tags for `#`. Set it as a property. Typing a new name also offers to create that tag.
+         */
+        "tags"?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
+        /**
+          * Templates the templates picker offers. Set it as a property.
+          * @default []
+         */
+        "templates"?: TemplateInfo[];
+        /**
           * The toolbar's controls, in order. `|` separates groups. Commands not listed are still available from keyboard shortcuts. Groups that don't fit move into a More menu.
           * @default DEFAULT_TOOLBAR
          */
         "toolbar"?: string;
+        /**
+          * Uploads a file and returns its URL. Without it, pictures and videos are embedded as data URLs.
+         */
+        "upload"?: (file: File) => Promise<string>;
         /**
           * The content, as HTML. It updates as the user edits: right after commands like Bold, and after each pause in typing. `getContent()` is always current.
           * @default ""
@@ -5452,6 +5553,8 @@ declare namespace LocalJSX {
         "toolbar": string;
         "fontSizes": string;
         "markdownPaste": boolean;
+        "mediaAccept": string;
+        "outline": boolean;
     }
     interface OrbRowDetailsAttributes {
         "expanded": boolean;
@@ -5754,8 +5857,7 @@ declare module "@stencil/core" {
              */
             "orb-relative-time": LocalJSX.IntrinsicElements["orb-relative-time"] & JSXBase.HTMLAttributes<HTMLOrbRelativeTimeElement>;
             /**
-             * A rich text editor that's also a form field. The form gets its content as
-             * HTML, under the element's `name` attribute.
+             * A rich text editor that's also a form field. The form gets its content as HTML, under the element's `name` attribute.
              */
             "orb-rich-text": LocalJSX.IntrinsicElements["orb-rich-text"] & JSXBase.HTMLAttributes<HTMLOrbRichTextElement>;
             /**

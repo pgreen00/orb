@@ -4,6 +4,8 @@ export interface EmojiEntry {
   label: string;
   group: number;
   tags: string[];
+  /** Names typed between colons, such as `smile` for :smile: */
+  shortcodes: string[];
 }
 
 /** The category tabs. Group 2 (skin tones) has no tab, and its entries are left out. */
@@ -21,10 +23,19 @@ export const EMOJI_GROUPS: { id: number; label: string; icon: string }[] = [
 
 let emoji: Promise<EmojiEntry[]> | undefined;
 
-/** Loads the emoji data on first use. Skin tone variants stay nested in their base entries, so only base entries are kept. */
+/**
+ * Loads the emoji data on first use, with the shortcodes joined in by hexcode.
+ * Skin tone variants stay nested in their base entries, so only base entries are kept.
+ */
 export const loadEmoji = () =>
-  (emoji ??= import("emojibase-data/en/compact.json").then((m) =>
-    m.default.flatMap(({ unicode, label, group, tags = [] }) =>
-      group === undefined || group === 2 ? [] : [{ emoji: unicode, label, group, tags }],
-    ),
-  ));
+  (emoji ??= Promise.all([
+    import("emojibase-data/en/compact.json"),
+    import("emojibase-data/en/shortcodes/emojibase.json"),
+  ]).then(([compact, shortcodes]) => {
+    const names = shortcodes.default as Record<string, string | string[]>;
+    return compact.default.flatMap(({ unicode, label, group, tags = [], hexcode }) =>
+      group === undefined || group === 2
+        ? []
+        : [{ emoji: unicode, label, group, tags, shortcodes: [names[hexcode] ?? []].flat() }],
+    );
+  }));

@@ -11,13 +11,13 @@ test.describe("orb-rich-text typing rules", () => {
   test("# and a space make a heading, and ## a second-level one", async ({ page }) => {
     await typingArea(page);
     await page.keyboard.type("# Title");
-    expect(await content(page)).toBe("<h1>Title</h1>");
+    expect(await content(page)).toBe('<h1 id="title">Title</h1>');
   });
 
   test("## and a space make a second-level heading", async ({ page }) => {
     await typingArea(page);
     await page.keyboard.type("## Section");
-    expect(await content(page)).toBe("<h2>Section</h2>");
+    expect(await content(page)).toBe('<h2 id="section">Section</h2>');
   });
 
   test("- and a space make a bulleted list", async ({ page }) => {

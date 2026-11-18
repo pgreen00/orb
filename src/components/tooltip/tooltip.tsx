@@ -129,13 +129,13 @@ export class Tooltip {
       this.el.showPopover();
       await this.el.animate(
         { opacity: [0, 1] },
-        { duration: 150, easing: "ease-in-out" },
+        { duration: 75, easing: "ease-in-out" },
       ).finished;
     } else {
       this.cleanup();
       await this.el.animate(
         { opacity: [1, 0] },
-        { duration: 150, easing: "ease-in-out" },
+        { duration: 75, easing: "ease-in-out" },
       ).finished;
       this.el.hidePopover();
     }

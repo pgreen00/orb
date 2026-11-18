@@ -132,7 +132,7 @@ test.describe("orb-rich-text keyboard", () => {
     await editor(page, "<h2>Title</h2>");
     await placeCaret(page, "Title", 5);
     await page.keyboard.press("Enter");
-    expect(await content(page)).toBe("<h2>Title</h2><p><br></p>");
+    expect(await content(page)).toBe('<h2 id="title">Title</h2><p><br></p>');
   });
 
   test("Shift+Enter inserts a line break in the same block", async ({ page }) => {
@@ -277,7 +277,7 @@ test.describe("orb-rich-text keyboard", () => {
     await editor(page, "<p>Text</p>");
     await focusEditor(page);
     await page.keyboard.press(`${await modKey(page)}+/`);
-    const overlay = page.locator("orb-rich-text orb-overlay");
+    const overlay = page.locator("orb-rich-text orb-overlay").filter({ hasText: "Keyboard shortcuts" });
     await expect(overlay).toHaveJSProperty("open", true);
     await expect(overlay.getByText("Keyboard shortcuts").first()).toBeVisible();
     await page.keyboard.press("Escape");

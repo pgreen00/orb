@@ -18,6 +18,7 @@ export type StyleProp =
   | "margin-inline-start"
   | "line-height"
   | "list-style-type"
+  | "width"
   | InlineStyleProp;
 
 /** Styles set on a span, which the font and color controls use */
@@ -54,14 +55,36 @@ export function isSafeUrl(url: string) {
   }
 }
 
-const safeHref = (value: string) => (isSafeUrl(value) ? value : null);
+/** A link to a heading in the document. Allowed explicitly, since a page's protocol may not count as a web address. */
+const safeHref = (value: string) => (isSafeUrl(value) || /^#[A-Za-z][\w-]*$/.test(value) ? value : null);
 /** The value as the browser parses and saves it, or null when it isn't valid for the property */
 const parsedBy = (prop: string) => (value: string) => {
   const style = document.createElement("span").style;
   style.setProperty(prop, value);
   return style.getPropertyValue(prop) || null;
 };
-const safeSrc = (value: string) => (/^https?:|^data:image\//i.test(value) ? value : null);
+// A blob: preview is shown while a file uploads, and is never saved (see serialize)
+const safeSrc = (value: string) => (/^https?:|^data:(image|video)\/|^blob:/i.test(value) ? value : null);
+/**
+ * Embeds are only from the providers the schema names. The src is rebuilt from
+ * the video ID, so a pasted URL's other parts, such as its query, are dropped.
+ */
+const EMBED_SOURCES: [RegExp, (id: string) => string][] = [
+  [/^https:\/\/(?:www\.)?(?:youtube-nocookie|youtube)\.com\/embed\/([\w-]+)/, (id) => `https://www.youtube-nocookie.com/embed/${id}`],
+  [/^https:\/\/player\.vimeo\.com\/video\/([0-9]+)/, (id) => `https://player.vimeo.com/video/${id}`],
+];
+const safeEmbedSrc = (value: string) => {
+  for (const [pattern, build] of EMBED_SOURCES) {
+    const match = pattern.exec(value);
+    if (match) return build(match[1]);
+  }
+  return null;
+};
+const safeWidth = (value: string) => (/^\d{1,4}$/.test(value) ? value : null);
+/** The id or key of a mention, tag or placeholder. Anything with spaces or markup is dropped. */
+const safeKey = (value: string) => (/^[^\s<>"']{1,200}$/.test(value) ? value : null);
+/** A heading id, as the editor makes it. Anything else is dropped, so a pasted id can't collide with the editor's. */
+const safeId = (value: string) => (/^[A-Za-z][\w-]*$/.test(value) ? value : null);
 const asIs = (value: string) => value;
 const safeStart = (value: string) => (/^\d+$/.test(value) ? value : null);
 /** The class a code block carries for its language, such as language-typescript */
@@ -80,6 +103,7 @@ export const STYLE_CHECKS: Record<StyleProp, (value: string) => string | null> =
   "margin-inline-start": indentStep,
   "line-height": (value) => (/^\d(\.\d+)?$/.test(value) && +value >= 1 && +value <= 3 ? value : null),
   "list-style-type": (value) => (LIST_STYLES.includes(value.toLowerCase()) ? value.toLowerCase() : null),
+  width: (value) => (/^\d+(\.\d+)?%$/.test(value) && +value.slice(0, -1) > 0 && +value.slice(0, -1) <= 100 ? value : null),
   color: parsedBy("color"),
   "background-color": parsedBy("background-color"),
   "font-family": parsedBy("font-family"),
@@ -91,16 +115,49 @@ const INLINE_STYLES: StyleProp[] = ["color", "background-color", "font-family", 
 
 export const NODES: NodeSpec[] = [
   { name: "paragraph", tag: "P", kind: "text-block", aliases: ["DIV"], styles: BLOCK_STYLES },
+  // Headings keep their id, which the outline and table of contents link to
   ...[1, 2, 3, 4, 5, 6].map(
-    (n): NodeSpec => ({ name: `heading${n}`, tag: `H${n}`, kind: "text-block", styles: BLOCK_STYLES }),
+    (n): NodeSpec => ({
+      name: `heading${n}`,
+      tag: `H${n}`,
+      kind: "text-block",
+      styles: BLOCK_STYLES,
+      attrs: { id: safeId },
+    }),
   ),
   { name: "codeBlock", tag: "PRE", kind: "text-block" },
   { name: "listItem", tag: "LI", kind: "text-block", styles: ["text-align", "line-height", "list-style-type"] },
   { name: "blockquote", tag: "BLOCKQUOTE", kind: "container" },
   { name: "bulletList", tag: "UL", kind: "container", styles: ["list-style-type"] },
   { name: "orderedList", tag: "OL", kind: "container", styles: ["list-style-type"], attrs: { start: safeStart } },
+  // Cells hold text like paragraphs. Spans are split away when pasted, so no span attributes are kept.
+  { name: "table", tag: "TABLE", kind: "container" },
+  { name: "tableColumnGroup", tag: "COLGROUP", kind: "container" },
+  { name: "tableColumn", tag: "COL", kind: "container", styles: ["width"] },
+  { name: "tableHead", tag: "THEAD", kind: "container" },
+  { name: "tableBody", tag: "TBODY", kind: "container" },
+  { name: "tableRow", tag: "TR", kind: "container" },
+  { name: "tableHeaderCell", tag: "TH", kind: "text-block", styles: ["text-align"] },
+  { name: "tableCell", tag: "TD", kind: "text-block", styles: ["text-align"] },
   { name: "separator", tag: "HR", kind: "atom-block" },
-  { name: "image", tag: "IMG", kind: "atom-inline", attrs: { src: safeSrc, alt: asIs } },
+  // A figure holds one picture, video or embed, with an editable caption. It's a non-editable piece.
+  { name: "figure", tag: "FIGURE", kind: "atom-block", styles: ["text-align"], attrs: { "data-embed": (v) => (v === "youtube" || v === "vimeo" ? v : null) } },
+  { name: "figcaption", tag: "FIGCAPTION", kind: "text-block" },
+  { name: "video", tag: "VIDEO", kind: "atom-inline", attrs: { src: safeSrc, controls: () => "" } },
+  {
+    name: "embed",
+    tag: "IFRAME",
+    kind: "atom-inline",
+    attrs: {
+      src: safeEmbedSrc,
+      sandbox: () => "allow-scripts allow-same-origin allow-presentation",
+      allowfullscreen: () => "",
+      loading: () => "lazy",
+    },
+  },
+  // The table of contents. Its links point at heading ids, which are only ever set by the editor.
+  { name: "toc", tag: "NAV", kind: "atom-block", match: (el) => el.hasAttribute("data-toc"), attrs: { "data-toc": () => "" } },
+  { name: "image", tag: "IMG", kind: "atom-inline", attrs: { src: safeSrc, alt: asIs, width: safeWidth } },
   { name: "lineBreak", tag: "BR", kind: "atom-inline" },
   { name: "bold", tag: "STRONG", kind: "mark", aliases: ["B"] },
   { name: "italic", tag: "EM", kind: "mark", aliases: ["I"] },
@@ -110,6 +167,10 @@ export const NODES: NodeSpec[] = [
   { name: "subscript", tag: "SUB", kind: "mark" },
   { name: "superscript", tag: "SUP", kind: "mark" },
   { name: "link", tag: "A", kind: "mark", attrs: { href: safeHref } },
+  // Inline objects are pieces the caret steps over. They come before the style span, which matches any span.
+  { name: "mention", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-mention"), attrs: { "data-mention": safeKey } },
+  { name: "tag", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-tag"), attrs: { "data-tag": safeKey } },
+  { name: "param", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-param"), attrs: { "data-param": safeKey } },
   { name: "textStyle", tag: "SPAN", kind: "style", styles: INLINE_STYLES },
   {
     name: "checkbox",

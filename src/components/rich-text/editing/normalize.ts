@@ -1,5 +1,5 @@
 import { cleanElement, cleanTree } from "./sanitize";
-import { isBlank, isBlock, isElement, isTaskItem, isText } from "./dom";
+import { emptyCell, isBlank, isBlock, isElement, isTaskItem, isText } from "./dom";
 import { keep, restore, closestBlock, Boundaries } from "./selection";
 import { FORMAT_SELECTOR, isAtom, isFormat, isInlineAtom, specOf, TEXT_BLOCK_SELECTOR } from "./schema";
 
@@ -26,6 +26,7 @@ export function normalize(root: Container, { output = false } = {}) {
   unwrapBlocksInText(root);
   fixLists(root);
   fixQuotes(root);
+  fixTables(root);
   wrapLooseRuns(root);
   ensureEditableAround(root);
   markPieces(root);
@@ -35,6 +36,8 @@ export function normalize(root: Container, { output = false } = {}) {
   dropEmptyInline(root);
   root.normalize();
   if (output) {
+    stripCaretMarks(root);
+    root.normalize();
     root.querySelectorAll<HTMLElement>(TEXT_BLOCK_SELECTOR).forEach((block) => {
       if (!block.querySelector(TEXT_BLOCK_SELECTOR)) rebuildInline(block);
     });
@@ -43,6 +46,14 @@ export function normalize(root: Container, { output = false } = {}) {
     unwrapBreakOnlyMarks(root);
     dropTrailingBreaks(root);
   }
+}
+
+/** The zero-width spaces that hold a caret on a new line aren't content, so they're removed when saving */
+function stripCaretMarks(root: Container) {
+  const walker = root.ownerDocument.createTreeWalker(root as Node, NodeFilter.SHOW_TEXT);
+  const texts: Text[] = [];
+  while (walker.nextNode()) texts.push(walker.currentNode as Text);
+  for (const text of texts) if (text.data.includes("\u200b")) text.data = text.data.replace(/\u200b/g, "");
 }
 
 /** A format that holds only a line break is where typing goes. It isn't content, so it's not saved. */
@@ -68,6 +79,9 @@ function dropTrailingBreaks(root: Container) {
  */
 export function serialize(root: HTMLElement): { html: string; text: string } {
   const copy = root.cloneNode(true) as HTMLElement;
+  // The embed cover and the resize handle are only shown while editing
+  copy.querySelectorAll(".media-cover, .media-handle").forEach((el) => el.remove());
+
   normalize(copy, { output: true });
   return { html: copy.innerHTML, text: plainText(copy) };
 }
@@ -104,6 +118,8 @@ export function markPieces(root: Container) {
   for (const el of Array.from(root.querySelectorAll("*"))) {
     if (isAtom(el)) el.setAttribute("contenteditable", "false");
   }
+  // A figure is a piece, but its caption is typed in
+  for (const caption of Array.from(root.querySelectorAll("figcaption"))) caption.setAttribute("contenteditable", "true");
   for (const box of Array.from(root.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))) {
     box.tabIndex = -1;
   }
@@ -185,6 +201,52 @@ function wrapRuns(parent: Node, wanted: (node: ChildNode) => boolean, make: () =
     else flush();
   }
   flush();
+}
+
+/**
+ * A table holds rows in sections, a row holds cells, and every row has as many
+ * cells as the widest. Blocks in a cell become lines, a table nested in a cell
+ * becomes its text, and a table with no rows goes.
+ */
+function fixTables(root: Container) {
+  const doc = root.ownerDocument;
+  for (const nested of Array.from(root.querySelectorAll("td table, th table"))) {
+    const lines = Array.from((nested as HTMLTableElement).rows).map((row) =>
+      Array.from(row.cells).map((cell) => cell.textContent ?? "").join(" "),
+    );
+    const text = doc.createDocumentFragment();
+    lines.forEach((line, i) => {
+      if (i) text.append(doc.createElement("br"));
+      text.append(doc.createTextNode(line));
+    });
+    nested.replaceWith(text);
+  }
+  for (const table of Array.from(root.querySelectorAll<HTMLTableElement>("table"))) {
+    wrapRuns(table, (n) => !(isElement(n) && ["COLGROUP", "THEAD", "TBODY"].includes(n.tagName)), () => doc.createElement("tbody"));
+    for (const section of Array.from(table.querySelectorAll(":scope > thead, :scope > tbody"))) {
+      wrapRuns(section, (n) => !(isElement(n) && n.tagName === "TR"), () => doc.createElement("tr"));
+    }
+    const rows = Array.from(table.rows);
+    for (const row of rows) {
+      const tag = row.parentElement?.tagName === "THEAD" ? "th" : "td";
+      wrapRuns(row, (n) => !(isElement(n) && (n.tagName === "TD" || n.tagName === "TH")), () => doc.createElement(tag));
+    }
+    for (const cell of Array.from(table.querySelectorAll<HTMLElement>("td, th"))) {
+      let block: Element | undefined;
+      while ((block = Array.from(cell.children).find(isBlock))) {
+        block.replaceWith(...Array.from(block.childNodes), ...(block.nextSibling ? [doc.createElement("br")] : []));
+      }
+    }
+    const width = Math.max(0, ...rows.map((row) => row.cells.length));
+    if (!width) {
+      table.remove();
+      continue;
+    }
+    for (const row of rows) {
+      const tag = row.parentElement?.tagName === "THEAD" ? "th" : "td";
+      while (row.cells.length < width) row.append(emptyCell(doc, tag));
+    }
+  }
 }
 
 /** Blockquotes hold blocks, so loose text inside one is wrapped in a paragraph */
@@ -292,6 +354,7 @@ function stripRuntime(root: Container) {
   root.querySelectorAll('input[type="checkbox"]').forEach((el) => el.removeAttribute("tabindex"));
   root.querySelectorAll("[contenteditable]").forEach((el) => el.removeAttribute("contenteditable"));
   root.querySelectorAll("[data-selected]").forEach((el) => el.removeAttribute("data-selected"));
+  root.querySelectorAll("[data-unknown]").forEach((el) => el.removeAttribute("data-unknown"));
 }
 
 /**

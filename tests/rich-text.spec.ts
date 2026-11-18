@@ -25,7 +25,7 @@ test.describe("orb-rich-text", () => {
   test("keeps the schema's elements and drops unknown ones", async ({ page }) => {
     await editor(page, "<section><h1>Title</h1><b>bold</b><font>x</font></section>");
     // <section> and <font> are unwrapped. The loose text after the heading becomes a paragraph.
-    expect(await content(page)).toBe("<h1>Title</h1><p><strong>bold</strong>x</p>");
+    expect(await content(page)).toBe('<h1 id="title">Title</h1><p><strong>bold</strong>x</p>');
   });
 
   test("saves the same HTML however nested formats were written", async ({ page }) => {
@@ -90,7 +90,7 @@ test.describe("orb-rich-text", () => {
     await editor(page, "<p>Title</p>");
     await selectText(page, "Title");
     await choose(page, "blockType", "Heading 1");
-    expect(await content(page)).toBe("<h1>Title</h1>");
+    expect(await content(page)).toBe('<h1 id="title">Title</h1>');
     await selectText(page, "Title");
     await choose(page, "blockType", "Paragraph");
     expect(await content(page)).toBe("<p>Title</p>");

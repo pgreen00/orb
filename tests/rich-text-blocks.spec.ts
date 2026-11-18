@@ -8,7 +8,7 @@ test.describe("orb-rich-text blocks", () => {
     await editor(page, "<p>Title</p>");
     await selectText(page, "Title");
     await choose(page, "blockType", "Heading 3");
-    expect(await content(page)).toBe("<h3>Title</h3>");
+    expect(await content(page)).toBe('<h3 id="title">Title</h3>');
 
     await selectText(page, "Title");
     await choose(page, "blockType", "Paragraph");
@@ -101,7 +101,7 @@ test.describe("orb-rich-text blocks", () => {
     await page.locator("orb-rich-text .editor-content").focus();
     const mod = await modKey(page);
     await page.keyboard.press(`${mod}+Alt+3`);
-    expect(await content(page)).toBe("<h3>Title</h3>");
+    expect(await content(page)).toBe('<h3 id="title">Title</h3>');
 
     await page.keyboard.press(`${mod}+Alt+3`);
     expect(await content(page)).toBe("<p>Title</p>");
@@ -111,6 +111,6 @@ test.describe("orb-rich-text blocks", () => {
     await editor(page, "<blockquote><p>Quote</p></blockquote>");
     await selectText(page, "Quote");
     await choose(page, "blockType", "Heading 4");
-    expect(await content(page)).toBe("<blockquote><h4>Quote</h4></blockquote>");
+    expect(await content(page)).toBe('<blockquote><h4 id="quote">Quote</h4></blockquote>');
   });
 });

@@ -23,6 +23,33 @@ import { atBlockEnd, atBlockStart, atomAfter, atomBefore, handleKey } from "./ed
 import type { ApplyOptions, EditorHost } from "./editing/host";
 import type { Key } from "./editing/input";
 import { toggleTask } from "./editing/lists";
+import { closestCell } from "./editing/tables";
+import { emojiTrigger, findTrigger, mentionTrigger, paramTrigger, slashTrigger, tagTrigger } from "./editing/triggers";
+import type { Trigger, TriggerItem, TriggerMatch } from "./editing/triggers";
+import { fillParams, markUnknownParams, paramKeysIn } from "./editing/params";
+import type { ParamDef } from "./editing/params";
+import type { TemplateInfo } from "./editing/templates";
+import { loadEmoji } from "./ui/emoji";
+import { createTablePicker } from "./ui/table-picker";
+import { assignHeadingIds, goToHeading, headingForLink, headingsOf, refreshToc } from "./editing/outline";
+import {
+  createEmbedFigure,
+  insertFigure,
+  insertMediaFile,
+  isAccepted,
+  setAltText,
+  setCaption,
+  setEmbedCover,
+  setMediaAlign,
+  setMediaWidth,
+  splitImagesOut,
+} from "./editing/media";
+import { DEFAULT_EMBED_PROVIDERS, embedFromText } from "./convert/embed";
+import type { EmbedProvider } from "./convert/embed";
+import { attachResize } from "./ui/media-resize";
+import { createMediaPopover } from "./ui/media-popover";
+import { createOutlinePanel, observeHeadings } from "./ui/outline-panel";
+import type { OutlinePanel } from "./ui/outline-panel";
 import {
   closestLink,
   insertFormattedText,
@@ -45,6 +72,7 @@ import {
   pieceAt,
   selectRange,
   settleCaret,
+  settleEmptyText,
 } from "./editing/selection";
 import { MoreIcon } from "./icons";
 import { createColorPicker } from "./ui/color-picker";
@@ -73,6 +101,8 @@ function idOf(el: HTMLElement) {
 const TYPING_UNDO_MS = 500;
 /** How long typing pauses before code blocks are colored again */
 const HIGHLIGHT_MS = 150;
+/** How long typing pauses before a lookup, such as mentions, is asked for its items */
+const TRIGGER_PAUSE_MS = 150;
 /** The input events that are keys, handled by the editing behaviors */
 /**
  * Safari reports some Enter presses as a line break, and a line break is only
@@ -95,8 +125,7 @@ export interface EditorChangeEvent {
 }
 
 /**
- * A rich text editor that's also a form field. The form gets its content as
- * HTML, under the element's `name` attribute.
+ * A rich text editor that's also a form field. The form gets its content as HTML, under the element's `name` attribute.
  *
  * @slot label - The label, instead of the `label` prop
  * @slot note - The note, instead of the `note` prop
@@ -186,6 +215,30 @@ export class RichText extends ReadyController implements EditorHost {
    */
   @Prop() markdownPaste = true;
 
+  /** Uploads a file and returns its URL. Without it, pictures and videos are embedded as data URLs. */
+  @Prop() upload?: (file: File) => Promise<string>;
+
+  /** The file types the media button, drops and pastes accept, as the accept attribute does */
+  @Prop() mediaAccept = "image/*";
+
+  /** The sites whose videos can be embedded by link. Set it as a property. */
+  @Prop() embedProviders: EmbedProvider[] = DEFAULT_EMBED_PROVIDERS;
+
+  /** Shows a panel listing the document's headings, which jumps to each one */
+  @Prop({ reflect: true }) outline = false;
+
+  /** Looks up people for `@`. Set it as a property. Its items are shown in a menu while the user types. */
+  @Prop() mentions?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
+
+  /** Looks up existing tags for `#`. Set it as a property. Typing a new name also offers to create that tag. */
+  @Prop() tags?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
+
+  /** Placeholders that can be inserted with `{{` or the placeholder control. Set it as a property. */
+  @Prop() params: ParamDef[] = [];
+
+  /** Templates the templates picker offers. Set it as a property. */
+  @Prop() templates: TemplateInfo[] = [];
+
   @State() isFocused = false;
   @State() wordCount = 0;
   @State() characterCount = 0;
@@ -205,6 +258,10 @@ export class RichText extends ReadyController implements EditorHost {
   @State() linkMode: "edit" | "view" | null = null;
   /** Whether the link popover asks for the link's text too, for a new link with nothing selected */
   @State() linkTextEdit = false;
+  /** Whether the templates picker is open */
+  @State() templatesOpen = false;
+  /** The items of the open trigger menu */
+  @State() triggerItems: TriggerItem[] = [];
 
   /** Emits after each change, with the saved HTML and text. Both are computed only when read. */
   @Event() orbEditorChange: EventEmitter<EditorChangeEvent>;
@@ -214,6 +271,12 @@ export class RichText extends ReadyController implements EditorHost {
 
   /** Emits when the content area loses focus, including to the toolbar */
   @Event() orbEditorBlur: EventEmitter<FocusEvent>;
+
+  /** Emits when a file can't be uploaded or inserted. Its figure is removed. */
+  @Event() orbUploadError: EventEmitter<{ file: File; error: unknown }>;
+
+  /** Emits when a mention is chosen from the `@` menu */
+  @Event() orbMention: EventEmitter<{ id: string; label: string }>;
 
   /** Formats for the next text typed at a collapsed caret */
   readonly pending = new PendingFormats();
@@ -268,6 +331,29 @@ export class RichText extends ReadyController implements EditorHost {
   /** The command a picker was opened for, and the range its choice goes to */
   private pickerId = "";
   private pickerRange: Range | null = null;
+  /** Whether the picker is open or opening */
+  private pickerShown = false;
+  private tableMenuEl?: HTMLOrbMenuElement;
+  private outlinePanel?: OutlinePanel;
+  private outlineSlotEl?: HTMLElement;
+  private disconnectHeadings?: () => void;
+  private mediaPopEl?: HTMLOrbPopoverElement;
+  private mediaSlotEl?: HTMLElement;
+  /** The figure that's selected, and what's attached to it while it is */
+  private mediaFigure: HTMLElement | null = null;
+  /** Whether the media popover is open or opening. Its `:popover-open` state lags a close by its fade-out. */
+  private mediaOpen = false;
+  private detachMedia?: () => void;
+  /** The figure a Replace picks a file for */
+  private replaceFigure: HTMLElement | null = null;
+  /** The trigger the caret is in, while its menu is open or waiting for items */
+  private triggerMatch: TriggerMatch | null = null;
+  /** The trigger the user pressed Escape on. It stays closed until the caret leaves it. */
+  private triggerDismissed: { block: HTMLElement; at: number; trigger: string } | null = null;
+  private triggerMenuEl?: HTMLOrbMenuElement;
+  private triggerTimer?: ReturnType<typeof setTimeout>;
+  /** Each lookup gets a number, so an answer that comes back late is ignored */
+  private triggerRequest = 0;
   /** Where a Markdown rule left the caret. Backspace there undoes the rule. */
   private lastRule: Point | null = null;
 
@@ -293,6 +379,8 @@ export class RichText extends ReadyController implements EditorHost {
     if (this.editorRef) removeBrowserBreaks(this.editorRef);
     const range = this.editorRef && getRange(this.editorRef);
     this.markSelectedPiece(range);
+    this.syncMediaSelection();
+    this.updateTriggers();
     // A rule's undo only applies while the caret is where the rule left it
     if (this.lastRule && !(range?.collapsed && samePoint(toPoint(this.editorRef, range.startContainer, range.startOffset), this.lastRule))) {
       this.lastRule = null;
@@ -367,6 +455,11 @@ export class RichText extends ReadyController implements EditorHost {
     this.syncValidity();
   }
 
+  @Watch("params")
+  onParamsChange() {
+    this.refreshParams();
+  }
+
   @Watch("disabled")
   onDisabledChange() {
     this.syncValue();
@@ -385,6 +478,11 @@ export class RichText extends ReadyController implements EditorHost {
 
   componentDidLoad() {
     super.componentDidLoad();
+    this.outlinePanel = createOutlinePanel({
+      onSelect: (heading) => this.focusAt(goToHeading(this.editorRef, heading)),
+    });
+    this.outlineSlotEl?.append(this.outlinePanel.el);
+    this.triggerMenuEl?.attachInput(this.editorRef);
     this.history = new History(this.editorRef);
     // Stencil's JSX types don't include onBeforeInput.
     this.editorRef.addEventListener("beforeinput", this.handleBeforeInput);
@@ -408,6 +506,8 @@ export class RichText extends ReadyController implements EditorHost {
   disconnectedCallback() {
     clearTimeout(this.typingTimer);
     clearTimeout(this.highlightTimer);
+    this.disconnectHeadings?.();
+    this.detachMedia?.();
     if (this.editorRef) clearHighlights(this.editorRef);
     this.formListeners?.abort();
     this.attributeObs?.disconnect();
@@ -535,7 +635,8 @@ export class RichText extends ReadyController implements EditorHost {
     const before = this.editorRef.innerHTML;
     const result = edit(target);
     if (!result) return false;
-    const fixed = normalizeAround(this.editorRef, result);
+    // A caret on the editor itself, between blocks, isn't drawn, so it moves into a block first
+    const fixed = settleEmptyText(normalizeAround(this.editorRef, settleCaret(this.editorRef, result)));
     selectRange(fixed, { redraw: true });
     // Again after the next layout, in case Safari measured the caret before
     // the change was laid out.
@@ -588,6 +689,7 @@ export class RichText extends ReadyController implements EditorHost {
     const command = COMMANDS.get(id);
     if (!command || !this.editable) return;
     if (command.noCode && closestCodeBlock(this.editorRef, this.takeRange())) return;
+    if (command.noTable && closestCell(this.editorRef, this.takeRange())) return;
     this.apply((target) => command.run({ host: this, root: this.editorRef, range: target, value }), {
       inputType: command.inputType,
       range,
@@ -596,6 +698,11 @@ export class RichText extends ReadyController implements EditorHost {
 
   /** Opens a picker at the caret. A color or special character is chosen there, and runs the command again with it. */
   openPicker(id: string, range: Range) {
+    // The picker's own button toggles it. Its press doesn't close it (see keepPickerOpen), so the click does.
+    if (this.pickerShown && this.pickerId === id) {
+      this.pickerPopEl?.hide();
+      return;
+    }
     this.pickerId = id;
     this.pickerRange = range.cloneRange();
     const current = this.states[id];
@@ -606,13 +713,30 @@ export class RichText extends ReadyController implements EditorHost {
             current: typeof current === "string" && current ? current : null,
             onPick: (value) => this.pickFromPicker(value ?? ""),
           })
-        : createSymbolPicker({
-            mode: id === "emoji" ? "emoji" : "characters",
-            onPick: (text) => this.pickFromPicker(text),
-          });
+        : id === "table"
+          ? createTablePicker({ onPick: (value) => this.pickFromPicker(value) })
+          : createSymbolPicker({
+              mode: id === "emoji" ? "emoji" : "characters",
+              onPick: (text) => this.pickFromPicker(text),
+            });
     this.pickerSlot?.replaceChildren(picker);
     this.pickerPopEl?.show(caretAnchor(range, this.editorRef));
   }
+
+  /**
+   * The picker closes on a press outside it. A press on its own button doesn't
+   * reach that, so the click can toggle the picker instead.
+   */
+  private keepPickerOpen = (ev: PointerEvent) => {
+    if (this.pickerShown && (ev.target as Element).closest?.(`#action-${this.pickerId}`)) ev.stopPropagation();
+  };
+
+  /** Right-clicking a table cell opens the table's commands at the pointer */
+  private handleContextMenu = (event: MouseEvent) => {
+    if (!this.editable || !closestCell(this.editorRef, this.takeRange())) return;
+    event.preventDefault();
+    this.tableMenuEl?.show(event);
+  };
 
   /** A value chosen in a picker runs its command on the range the picker opened at */
   private pickFromPicker(value: string) {
@@ -717,6 +841,8 @@ export class RichText extends ReadyController implements EditorHost {
     const fragment = sanitize(html);
     normalize(fragment);
     this.editorRef.replaceChildren(fragment);
+    this.refreshOutline();
+    this.refreshParams();
     this.history?.reset();
     this.afterChange(false);
     this.lastChangeValue = this.value;
@@ -725,7 +851,10 @@ export class RichText extends ReadyController implements EditorHost {
   /** Runs after each change: a command, undo, redo, or new content. */
   private afterChange(record: boolean) {
     this.cached = undefined;
+    this.refreshOutline();
+    this.refreshParams();
     if (record) this.history?.record();
+    this.updateTriggers();
     this.updateWordCount();
     this.emitChange();
     this.updateStates();
@@ -733,8 +862,261 @@ export class RichText extends ReadyController implements EditorHost {
     this.scheduleHighlight();
   }
 
+  /** The menus that open as the user types, in the order they're tried */
+  private triggers(inTable: boolean): Trigger[] {
+    return [
+      slashTrigger({ inTable }),
+      paramTrigger(this.params),
+      emojiTrigger(loadEmoji),
+      mentionTrigger(this.mentions),
+      tagTrigger(this.tags),
+    ];
+  }
+
+  /** Whether the trigger menu is open with items to choose from */
+  private triggerOpen() {
+    return !!this.triggerMatch && this.triggerItems.length > 0;
+  }
+
+  /** Opens, updates or closes the trigger menu for where the caret is */
+  private updateTriggers() {
+    if (!this.editorRef) return;
+    const caret = getRange(this.editorRef);
+    const inTable = !!caret && !!closestCell(this.editorRef, caret);
+    const match = caret ? findTrigger(this.editorRef, caret, this.triggers(inTable)) : null;
+    const dismissed = this.triggerDismissed;
+    const isDismissed = !!match && !!dismissed && dismissed.block === match.block && dismissed.at === match.at && dismissed.trigger === match.trigger.text;
+    // Once the caret leaves the dismissed trigger, it opens again the next time it's typed
+    if (!isDismissed) this.triggerDismissed = null;
+    if (!match || isDismissed) {
+      this.closeTriggers();
+      return;
+    }
+    const current = this.triggerMatch;
+    if (current && current.block === match.block && current.at === match.at && current.trigger.text === match.trigger.text && current.query === match.query) {
+      return;
+    }
+    this.triggerMatch = match;
+    clearTimeout(this.triggerTimer);
+    const request = ++this.triggerRequest;
+    const show = (items: TriggerItem[]) => {
+      if (request !== this.triggerRequest) return;
+      this.triggerItems = items;
+      if (items.length) this.triggerMenuEl?.show(caretAnchor(match.range, this.editorRef));
+      else this.triggerMenuEl?.hide();
+    };
+    const fetch = () => {
+      const result = match.trigger.items(match.query);
+      if (result instanceof Promise) result.then(show, () => show([]));
+      else show(result);
+    };
+    if (match.trigger.async) this.triggerTimer = setTimeout(fetch, TRIGGER_PAUSE_MS);
+    else fetch();
+  }
+
+  private closeTriggers() {
+    clearTimeout(this.triggerTimer);
+    this.triggerRequest++;
+    this.triggerMatch = null;
+    if (this.triggerItems.length) this.triggerItems = [];
+    this.triggerMenuEl?.hide();
+  }
+
+  /** Escape closes the menu and leaves the typed text. The menu stays closed for this trigger. */
+  private dismissTrigger() {
+    const match = this.triggerMatch;
+    if (match) this.triggerDismissed = { block: match.block, at: match.at, trigger: match.trigger.text };
+    this.closeTriggers();
+  }
+
+  /** Chooses an item from the trigger menu: its text is replaced, or the command it names runs */
+  private chooseTriggerItem(id: string) {
+    const match = this.triggerMatch;
+    const item = this.triggerItems.find((each) => each.id === id);
+    this.closeTriggers();
+    if (!match || !item) return;
+    this.apply((range) => match.trigger.choose(item, this.editorRef, range), {
+      range: match.range,
+      inputType: "insertText",
+    });
+    if (match.trigger.command) this.runCommand(item.id);
+    else if (match.trigger.text === "@") this.orbMention.emit({ id: item.id, label: item.label });
+  }
+
+  /** Placeholders with no key in `params` get a warning style, until they're in the list */
+  private refreshParams() {
+    if (this.editorRef) markUnknownParams(this.editorRef, this.params.map((param) => param.key));
+  }
+
+  /** The placeholders in the document, by key, in order and without repeats */
+  @Method()
+  async getParams(): Promise<string[]> {
+    return paramKeysIn(this.editorRef);
+  }
+
+  /** The document's HTML with each placeholder replaced by its value, as text. Placeholders with no value stay as they are. */
+  @Method()
+  async fill(values: Record<string, string>): Promise<string> {
+    return fillParams(this.output().html, values);
+  }
+
+  /**
+   * Replaces the document with a template, or inserts it at the caret. Either is
+   * one undo step. Unlike `setContent`, it doesn't start a new undo history.
+   */
+  @Method()
+  async applyTemplate(id: string, how: "replace" | "insert" = "replace") {
+    const template = this.templates.find((each) => each.id === id);
+    if (!template || !this.editable) return;
+    const html = template.html ?? (await template.load?.()) ?? "";
+    const fragment = sanitize(html);
+    normalize(fragment);
+    markPieces(fragment);
+    this.apply((range) => {
+      if (how === "insert") return insertFragment(this.editorRef, range, fragment);
+      this.editorRef.replaceChildren(fragment);
+      const caret = document.createRange();
+      caret.setStart(this.editorRef.firstChild ?? this.editorRef, 0);
+      caret.collapse(true);
+      return caret;
+    });
+  }
+
+  openTemplates() {
+    this.templatesOpen = true;
+  }
+
+  private pickTemplate(id: string) {
+    this.templatesOpen = false;
+    void this.applyTemplate(id);
+  }
+
+  /** Keeps heading ids, the table of contents and the outline in step with the content */
+  private refreshOutline() {
+    if (!this.editorRef) return;
+    assignHeadingIds(this.editorRef);
+    refreshToc(this.editorRef);
+    const headings = headingsOf(this.editorRef);
+    this.outlinePanel?.update(headings);
+    this.disconnectHeadings?.();
+    this.disconnectHeadings = this.outlinePanel
+      ? observeHeadings(this.editorRef, headings, (heading) => this.outlinePanel?.setCurrent(heading))
+      : undefined;
+  }
+
+  /** Shows a selected figure's popover, resize handle and, for an embed, its controls. Only one figure is selected at a time. */
+  private syncMediaSelection() {
+    const figure = this.editorRef?.querySelector<HTMLElement>("figure[data-selected]") ?? null;
+    if (figure === this.mediaFigure) {
+      // A press outside the popover closes it, so it's shown again while the figure stays selected
+      if (figure && !this.mediaOpen) this.showMediaPopover(figure);
+      return;
+    }
+    this.detachMedia?.();
+    this.detachMedia = undefined;
+    if (this.mediaFigure) setEmbedCover(this.mediaFigure, true);
+    this.mediaPopEl?.hide();
+    this.mediaFigure = figure;
+    if (!figure) return;
+    setEmbedCover(figure, false);
+    if (figure.querySelector("img")) {
+      this.detachMedia = attachResize(figure, {
+        onEnd: (width) => {
+          this.apply((range) => {
+            setMediaWidth(figure, width);
+            return range;
+          });
+          // The drag's press closed the popover, so it's shown again
+          this.syncMediaSelection();
+        },
+      });
+    }
+    this.showMediaPopover(figure);
+  }
+
+  /** The popover for a selected figure: its alt text, caption, alignment, and Replace or Remove */
+  private showMediaPopover(figure: HTMLElement) {
+    this.mediaSlotEl?.replaceChildren(
+      createMediaPopover({
+        alt: figure.querySelector("img")?.getAttribute("alt") ?? "",
+        caption: !!figure.querySelector(":scope > figcaption"),
+        align: (figure.style.textAlign || "center") as "left" | "center" | "right",
+        onAlt: (alt) =>
+          this.apply((range) => {
+            setAltText(figure, alt);
+            return range;
+          }),
+        onCaption: (on) =>
+          this.apply((range) => {
+            setCaption(figure, on);
+            return range;
+          }),
+        onAlign: (align) =>
+          this.apply((range) => {
+            setMediaAlign(figure, align);
+            return range;
+          }),
+        onReplace: () => {
+          this.replaceFigure = figure;
+          this.fileInputRef.click();
+        },
+        onRemove: () => this.apply(() => removePiece(figure), { inputType: "deleteContentBackward" }),
+      }),
+    );
+    this.mediaPopEl?.show({ getBoundingClientRect: () => figure.getBoundingClientRect() });
+  }
+
+  /**
+   * Inserts files as figures at the range, one after another. Files can't go
+   * into a table cell, since a figure is a block.
+   */
+  private insertFiles(files: File[], range: Range) {
+    if (!this.editable || closestCell(this.editorRef, range)) return;
+    let at = range;
+    let inserted = false;
+    for (const file of files.filter((f) => isAccepted(f, this.mediaAccept))) {
+      inserted = true;
+      at = insertMediaFile(this.editorRef, at, file, {
+        upload: this.upload,
+        // The figure was removed outside the editor's edits, so the saved content is refreshed without an undo step
+        onError: (failed, error) => {
+          this.orbUploadError.emit({ file: failed, error });
+          this.afterChange(false);
+        },
+        onDone: () => this.afterChange(true),
+      });
+    }
+    if (!inserted) return;
+    selectRange(at);
+    this.afterChange(true);
+    this.dispatchInput("insertFromDrop");
+  }
+
+  /** Pasting a video link on an empty line turns the line into the video */
+  private insertVideo(range: Range, embed: { provider: EmbedProvider; id: string }) {
+    const block = closestBlock(range.startContainer, this.editorRef);
+    this.apply(
+      () => {
+        const at = document.createRange();
+        at.setStartBefore(block);
+        at.collapse(true);
+        block.remove();
+        return insertFigure(this.editorRef, at, createEmbedFigure(embed.provider, embed.id));
+      },
+      { inputType: "insertFromPaste", range },
+    );
+  }
+
+  /** An empty paragraph, where a pasted video link can go */
+  private isEmptyLine(range: Range) {
+    const block = closestBlock(range.startContainer, this.editorRef);
+    return block !== this.editorRef && block.tagName === "P" && !block.textContent?.trim() && !block.querySelector("img");
+  }
+
   /** The content as it's saved. Cached until the next change. */
   private output() {
+    // Saved content has its heading ids and table of contents, even while a pause in typing is still pending
+    if (!this.cached) this.refreshOutline();
     this.cached ??= serialize(this.editorRef);
     return this.cached;
   }
@@ -763,6 +1145,7 @@ export class RichText extends ReadyController implements EditorHost {
     this.emitChange();
     this.syncValidity();
     this.saveTypingLater();
+    this.updateTriggers();
     this.scheduleHighlight();
     this.dispatchInput(inputType, data);
   }
@@ -777,6 +1160,7 @@ export class RichText extends ReadyController implements EditorHost {
     if (this.typingTimer === undefined) return;
     clearTimeout(this.typingTimer);
     this.typingTimer = undefined;
+    this.refreshOutline();
     this.history?.record();
     this.syncValue();
   }
@@ -897,12 +1281,22 @@ export class RichText extends ReadyController implements EditorHost {
       if (this.editable) setTimeout(() => this.apply(() => toggleTask(box)));
       return;
     }
+    // A link in the table of contents goes to its heading
+    const link = (event.target as Element).closest?.("nav[data-toc] a");
+    if (link) {
+      event.preventDefault();
+      const heading = headingForLink(this.editorRef, link);
+      if (heading) this.focusAt(goToHeading(this.editorRef, heading));
+      return;
+    }
     const piece = pieceAt(event.target as Node, this.editorRef);
     if (!piece) return;
     const range = document.createRange();
     range.selectNode(piece);
     selectRange(range);
     piece.setAttribute("data-selected", "");
+    // The press closed a selected figure's popover, and a click on it doesn't change the selection, so it's shown here
+    this.syncMediaSelection();
   };
 
   /** Only a selection that covers a piece marks it. A collapsed caret clears the mark. */
@@ -924,6 +1318,19 @@ export class RichText extends ReadyController implements EditorHost {
       return;
     }
     if (!this.editable) return;
+    // While the trigger menu is open, it takes these keys. Escape closes it and leaves the text.
+    if (this.triggerOpen()) {
+      if (event.key === "Escape") {
+        this.dismissTrigger();
+        return;
+      }
+      if (event.key === "Enter" || event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        // The menu chooses the item the arrow keys highlighted. With none highlighted, Enter takes the first.
+        if (event.key === "Enter" && !this.editorRef.ariaActiveDescendantElement) this.chooseTriggerItem(this.triggerItems[0].id);
+        return;
+      }
+    }
     const selected = this.editorRef.querySelector<HTMLElement>("[data-selected]");
     if (selected && (event.key === "Backspace" || event.key === "Delete")) {
       event.preventDefault();
@@ -1000,7 +1407,19 @@ export class RichText extends ReadyController implements EditorHost {
     // HTML is cleaned of scripts, styles, and unsafe links. Plain text is
     // inserted as text, so markup in it is never parsed. A code block takes plain text only.
     const range = this.takeRange();
+    // Copied files, such as screenshots, become figures
+    const files = Array.from(event.clipboardData?.files ?? []);
+    if (files.length) {
+      this.insertFiles(files, range);
+      return;
+    }
     const inCode = !!closestCodeBlock(this.editorRef, range);
+    // A bare video link on an empty line becomes the video
+    const embed = !html && text && !inCode ? embedFromText(text, this.embedProviders) : null;
+    if (embed && this.isEmptyLine(range)) {
+      this.insertVideo(range, embed);
+      return;
+    }
     // Plain text that reads as Markdown is rendered, then cleaned like HTML
     if (!html && text && this.markdownPaste && !inCode && looksLikeMarkdown(text)) {
       void markdownToHtml(text).then((rendered) => this.insertPasted(sanitize(rendered), range));
@@ -1012,8 +1431,34 @@ export class RichText extends ReadyController implements EditorHost {
 
   private insertPasted(fragment: DocumentFragment, range: Range) {
     if (!fragment.childNodes.length) return;
+    splitImagesOut(fragment);
     markPieces(fragment);
     this.apply((target) => insertFragment(this.editorRef, target, fragment), { inputType: "insertFromPaste", range });
+  }
+
+  /** Files dragged over the editor can be dropped on it */
+  private handleDragOver = (event: DragEvent) => {
+    if (this.editable && event.dataTransfer?.types.includes("Files")) event.preventDefault();
+  };
+
+  /** Dropped files go where the pointer is */
+  private handleDrop = (event: DragEvent) => {
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (!this.editable || !files.length) return;
+    event.preventDefault();
+    this.insertFiles(files, this.caretAt(event.clientX, event.clientY));
+  };
+
+  /** The caret at a point on screen, within the editor. The selection is used when the point isn't in text. */
+  private caretAt(x: number, y: number): Range {
+    const pos = (document as any).caretPositionFromPoint?.(x, y, { shadowRoots: [this.el.shadowRoot] });
+    if (pos && this.editorRef.contains(pos.offsetNode)) {
+      const range = document.createRange();
+      range.setStart(pos.offsetNode, pos.offset);
+      range.collapse(true);
+      return range;
+    }
+    return this.takeRange();
   }
 
   private handleFocus = (event: FocusEvent) => {
@@ -1028,25 +1473,22 @@ export class RichText extends ReadyController implements EditorHost {
 
   private handleImageUpload(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = Array.from(input.files ?? []);
     input.value = "";
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
-      return;
+    const range = this.imageRange;
+    const target = this.replaceFigure;
+    this.imageRange = null;
+    this.replaceFigure = null;
+    if (target) {
+      // The new file takes the old figure's place
+      const at = document.createRange();
+      at.selectNode(target);
+      at.collapse(true);
+      target.remove();
+      this.insertFiles(files, at);
+    } else if (range) {
+      this.insertFiles(files, range);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = document.createElement("img");
-      img.src = String(reader.result);
-      img.alt = file.name;
-      const range = this.imageRange;
-      this.imageRange = null;
-      if (range) this.apply((r) => insertNodeAt(wrapLooseText(this.editorRef, r), img), { range });
-    };
-    reader.readAsDataURL(file);
   }
 
   /** The link popover, which opens at the caret. It edits a link, or shows one the caret is in. */
@@ -1295,7 +1737,9 @@ export class RichText extends ReadyController implements EditorHost {
     const shown = groups.slice(0, this.fitCount);
     const overflow = groups.slice(this.fitCount).flat();
     const isToggle = (id: string) => COMMANDS.get(id)?.control === "toggle";
-    const isSelect = (id: string) => COMMANDS.get(id)?.control === "select";
+    // A menu of actions opens from a button, like a select, but keeps no value to show
+    const isMenu = (id: string) => COMMANDS.get(id)?.control === "menu";
+    const isSelect = (id: string) => COMMANDS.get(id)?.control === "select" || isMenu(id);
     const shortcutOf = (id: string) => COMMANDS.get(id)?.shortcuts?.[0];
     const selects = shown.flat().filter(isSelect);
 
@@ -1319,6 +1763,8 @@ export class RichText extends ReadyController implements EditorHost {
           )}
         </slot>
 
+        <div class="editor-body">
+          <div class="outline-slot" hidden={!this.outline} ref={(el) => (this.outlineSlotEl = el)}></div>
         <div class="shell" part="shell">
           <div
             class="editor-toolbar"
@@ -1329,6 +1775,7 @@ export class RichText extends ReadyController implements EditorHost {
             // Pressing a button with the mouse doesn't take focus from the editor,
             // so its selection stays put.
             onMouseDown={(ev) => ev.preventDefault()}
+            onPointerDown={this.keepPickerOpen}
             onKeyDown={this.handleToolbarKeys}
           >
             {shown.map((group) => (
@@ -1342,7 +1789,7 @@ export class RichText extends ReadyController implements EditorHost {
                       caret
                       class="select"
                       disabled={!this.editable}
-                      aria-label={`${COMMANDS.get(id)!.label}: ${this.labelOf(id)}`}
+                      aria-label={isMenu(id) ? COMMANDS.get(id)!.label : `${COMMANDS.get(id)!.label}: ${this.labelOf(id)}`}
                     >
                       {COMMANDS.get(id)!.icon?.()}
                     </orb-button>
@@ -1383,6 +1830,10 @@ export class RichText extends ReadyController implements EditorHost {
               onInput={this.handleInput}
               onKeyDown={this.handleKeyDown}
               onClick={this.handleContentClick}
+              onContextMenu={this.handleContextMenu}
+              onPointerDown={() => this.closeTriggers()}
+              onDragOver={this.handleDragOver}
+              onDrop={this.handleDrop}
               onPaste={this.handlePaste}
               onFocus={this.handleFocus}
               onBlur={this.handleBlur}
@@ -1409,6 +1860,22 @@ export class RichText extends ReadyController implements EditorHost {
             </div>
           )}
         </div>
+          {/* The trigger menu opens at the caret. Its zero-size anchor makes it a popover, as the table menu's is.
+              It sits here because these children never change: moving an open popover closes it, and the toolbar's
+              changing controls would move siblings at the root. Next to the text area, Safari stops drawing the caret. */}
+          <span id="trigger-anchor" class="table-menu-anchor" aria-hidden="true"></span>
+          <orb-menu
+            for="trigger-anchor"
+            mode="actions"
+            label={this.triggerMatch?.trigger.label ?? "Suggestions"}
+            ref={(el) => (this.triggerMenuEl = el)}
+            onOrbSelect={(ev) => this.chooseTriggerItem(ev.detail.value)}
+          >
+            {this.triggerItems.map((item) => (
+              <orb-mi value={item.id}>{item.label}</orb-mi>
+            ))}
+          </orb-menu>
+        </div>
 
         <slot name="note" ref={(el) => (this.noteSlot = el)} onSlotchange={this.onSlotChange}>
           {this.note && (
@@ -1422,7 +1889,7 @@ export class RichText extends ReadyController implements EditorHost {
         )}
 
         {shown.flat().map((id) => (
-          <orb-tooltip for={`action-${id}`} type="label" placement="top">
+          <orb-tooltip key={`tooltip-${id}`} for={`action-${id}`} type="label" placement="top">
             {COMMANDS.get(id)!.label}
             {/* Drawn by CSS with empty alt text, so it isn't part of the button's
                 name. Screen readers get it from aria-keyshortcuts instead. */}
@@ -1432,8 +1899,9 @@ export class RichText extends ReadyController implements EditorHost {
 
         {selects.map((id) => (
           <orb-menu
+            key={`menu-${id}`}
             for={`action-${id}`}
-            mode="single"
+            mode={isMenu(id) ? "actions" : "single"}
             label={COMMANDS.get(id)!.label}
             onOrbSelect={(ev) => this.runCommand(id, ev.detail.value)}
           >
@@ -1445,6 +1913,28 @@ export class RichText extends ReadyController implements EditorHost {
           </orb-menu>
         ))}
 
+
+        {/* A zero-size anchor makes the menu a popover, which opens at the pointer. It's hidden until then. */}
+        <span key="table-menu-anchor" id="table-menu-anchor" class="table-menu-anchor" aria-hidden="true"></span>
+        <orb-menu
+          key="table-menu"
+          for="table-menu-anchor"
+          ref={(el) => (this.tableMenuEl = el)}
+          label="Table"
+          onOrbSelect={(ev) => this.runOverflow(ev.detail.value)}
+        >
+          <orb-mi value="tableRows:above">Insert row above</orb-mi>
+          <orb-mi value="tableRows:below">Insert row below</orb-mi>
+          <orb-mi value="tableRows:delete">Delete row</orb-mi>
+          <orb-mi value="tableColumns:left">Insert column left</orb-mi>
+          <orb-mi value="tableColumns:right">Insert column right</orb-mi>
+          <orb-mi value="tableColumns:delete">Delete column</orb-mi>
+          <orb-mi value="tableHeader" type="checkbox" checked={this.states.tableHeader === true}>
+            Header row
+          </orb-mi>
+          <orb-mi value="tableDelete">Delete table</orb-mi>
+        </orb-menu>
+
         {overflow.length > 0 && (
           <orb-menu for="action-more" label="More formatting" onOrbSelect={(ev) => this.runOverflow(ev.detail.value)}>
             {overflow.flatMap((id) => {
@@ -1453,7 +1943,7 @@ export class RichText extends ReadyController implements EditorHost {
               if (isSelect(id)) {
                 return [
                   <orb-mi id={`sub-${id}`}>{command.label}</orb-mi>,
-                  <orb-menu for={`sub-${id}`} mode="single" label={command.label}>
+                  <orb-menu for={`sub-${id}`} mode={isMenu(id) ? "actions" : "single"} label={command.label}>
                     {command.options!(this).map((option) => (
                       <orb-mi value={`${id}:${option.value}`} checked={option.value === this.states[id]}>
                         {option.label}
@@ -1475,7 +1965,7 @@ export class RichText extends ReadyController implements EditorHost {
           </orb-menu>
         )}
 
-        <orb-overlay open={this.helpOpen} size="sm" onOrbDismiss={() => (this.helpOpen = false)}>
+        <orb-overlay key="help" open={this.helpOpen} size="sm" onOrbDismiss={() => (this.helpOpen = false)}>
           <div class="help">
             <h2>Keyboard shortcuts</h2>
             <dl>
@@ -1495,8 +1985,14 @@ export class RichText extends ReadyController implements EditorHost {
         </orb-overlay>
 
         <orb-popover
+          key="link-popover"
           class="link-popover"
           ref={(el) => (this.linkPopEl = el)}
+          // A reopen while closing doesn't end the close, so the closing state is cleared here
+          onOrbPresentStart={() => {
+            this.linkClosing = false;
+            this.linkWanted = false;
+          }}
           onOrbPresentEnd={() => {
             this.linkShown = true;
             if (this.linkMode === "edit") this.linkInput.focus();
@@ -1558,18 +2054,48 @@ export class RichText extends ReadyController implements EditorHost {
         </orb-popover>
 
         <orb-popover
+          key="picker-popover"
           class="picker-popover"
+          placement="bottom-start"
           ref={(el) => (this.pickerPopEl = el)}
+          onOrbPresentStart={() => (this.pickerShown = true)}
           onOrbPresentEnd={() => this.pickerSlot?.querySelector<HTMLElement>("input, button")?.focus()}
+          onOrbDismissStart={() => (this.pickerShown = false)}
           onOrbDismissEnd={() => this.finishPicker()}
         >
           <div ref={(el) => (this.pickerSlot = el)}></div>
         </orb-popover>
 
+        <orb-overlay key="templates" open={this.templatesOpen} size="md" onOrbDismiss={() => (this.templatesOpen = false)}>
+          <h2>New from template</h2>
+          <div class="template-grid">
+            {this.templates.map((template) => (
+              <orb-card layout="stacked">
+                <span slot="header">{template.label}</span>
+                {template.description}
+                <orb-button slot="footer" size="sm" onClick={() => this.pickTemplate(template.id)}>
+                  Use template
+                </orb-button>
+              </orb-card>
+            ))}
+          </div>
+        </orb-overlay>
+
+        <orb-popover
+          key="media-popover"
+          class="media-popover-host"
+          ref={(el) => (this.mediaPopEl = el)}
+          onOrbPresentStart={() => (this.mediaOpen = true)}
+          onOrbDismissStart={() => (this.mediaOpen = false)}
+        >
+          <div ref={(el) => (this.mediaSlotEl = el)}></div>
+        </orb-popover>
+
         <input
           ref={(el) => (this.fileInputRef = el)}
           type="file"
-          accept="image/*"
+          accept={this.mediaAccept}
+          multiple
           style={{ display: "none" }}
           onChange={(ev) => this.handleImageUpload(ev)}
         />

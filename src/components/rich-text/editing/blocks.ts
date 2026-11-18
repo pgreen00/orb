@@ -44,9 +44,12 @@ export function blocksIn(root: HTMLElement, range: Range): HTMLElement[] {
   );
 }
 
-/** Text blocks and separators in document order, for moving between blocks */
+/**
+ * Text blocks and separators in document order, for moving between blocks. The
+ * table of contents is left out, since its items aren't text to join to.
+ */
 export function blockOrder(root: HTMLElement): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>(`${TEXT_BLOCK_SELECTOR}, hr`));
+  return Array.from(root.querySelectorAll<HTMLElement>(`${TEXT_BLOCK_SELECTOR}, hr`)).filter((el) => !el.closest("[data-toc]"));
 }
 
 /** The code block around the caret, if there is one */
@@ -166,6 +169,9 @@ export function changeIndent(root: HTMLElement, range: Range, delta: 1 | -1): Ra
   return restore(saved, root) ?? range;
 }
 
+/** A zero-width space that holds a caret where nothing else can. It's never saved. */
+export const CARET_MARK = "\u200b";
+
 /** Text or a piece, which a line break alone isn't */
 export const hasVisible = (node: Element | DocumentFragment) => !!node.textContent || !!node.querySelector("img, hr, input");
 
@@ -231,8 +237,21 @@ export function insertBreak(root: HTMLElement, range: Range): Range {
   // Marked, so the editor keeps it rather than treating it as a browser's break
   br.setAttribute("data-orb-break", "");
   range.insertNode(br);
+  // A caret right after a break at the end of a block is drawn in front of it, and
+  // an empty text node isn't a caret position. A zero-width space holds the new line's
+  // caret, and cleanup removes it when saving.
+  const block = closestBlock(br, root);
+  const after = document.createRange();
+  after.setStartAfter(br);
+  after.setEnd(block, block.childNodes.length);
   const caret = document.createRange();
-  caret.setStartAfter(br);
+  if (hasVisible(after.cloneContents())) {
+    caret.setStartAfter(br);
+  } else {
+    const line = document.createTextNode(CARET_MARK);
+    br.after(line);
+    caret.setStart(line, 1);
+  }
   caret.collapse(true);
   return caret;
 }
@@ -296,16 +315,34 @@ export function joinForward(root: HTMLElement, range: Range): Range | null {
   return joinInto(block, next);
 }
 
-/** Deletes a selection that spans blocks. The blocks it covers go, and what's left of the last one joins the first. */
+const isCell = (el: Element) => el.tagName === "TD" || el.tagName === "TH";
+
+/**
+ * Deletes a selection that spans blocks. The blocks it covers go, and what's left of the last one joins the first.
+ * Cells never join, so a table keeps its shape.
+ */
 export function deleteAcross(root: HTMLElement, range: Range): Range {
   const first = closestBlock(range.startContainer, root);
   const last = closestBlock(range.endContainer, root);
   range.deleteContents();
-  if (first !== last && first !== root && last !== root && last.isConnected) {
+  // deleteContents leaves empty text nodes, which aren't caret positions. The live range moves off them as they go.
+  for (const block of [first, last]) {
+    if (block === root) continue;
+    for (const child of Array.from(block.childNodes)) if (child.nodeType === Node.TEXT_NODE && !child.nodeValue) child.remove();
+  }
+  // A selection of whole blocks leaves the range on their parent, which isn't a caret
+  // position either. The caret goes to the end of the first block, where the two parts join.
+  let caret = range;
+  if (first !== root && first.isConnected && !first.contains(range.startContainer)) {
+    caret = document.createRange();
+    caret.setStart(first, first.childNodes.length);
+    caret.collapse(true);
+  }
+  if (first !== last && first !== root && last !== root && last.isConnected && !isCell(first) && !isCell(last)) {
     first.append(...Array.from(last.childNodes));
     removeBlock(last);
   }
-  return range;
+  return caret;
 }
 
 /** Puts a rule in place of the caret's block, with a paragraph after it to keep typing in. */
@@ -379,11 +416,21 @@ function endOf(node: Node): Range {
  * Inserts pasted content at the range. If it has blocks, such as paragraphs,
  * the block around the caret is split so they aren't nested inside it.
  */
+/** A cell holds lines, so blocks in pasted content become their text, with a line break after each */
+function flattenBlocks(fragment: DocumentFragment) {
+  let block: HTMLElement | undefined;
+  while ((block = Array.from(fragment.childNodes).find(isBlock))) {
+    block.replaceWith(...Array.from(block.childNodes), fragment.ownerDocument.createElement("br"));
+  }
+}
+
 export function insertFragment(root: HTMLElement, range: Range, fragment: DocumentFragment): Range {
   range.deleteContents();
+  const inCell = !!closestIn(range.startContainer, root, ["TD", "TH"]);
+  if (inCell) flattenBlocks(fragment);
   const last = fragment.lastChild;
   if (!last) return range;
-  const block = Array.from(fragment.childNodes).some(isBlock)
+  const block = !inCell && Array.from(fragment.childNodes).some(isBlock)
     ? closestIn(range.startContainer, root, TEXT_BLOCK_TAGS)
     : null;
   if (block) {
