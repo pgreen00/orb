@@ -1,0 +1,788 @@
+---
+layout: false
+permalink: "/demos/channel/"
+---
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/orb.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Channel test page | Orb</title>
+  <script type="module">
+    const t = localStorage.getItem('orb__theme') || 'system'
+    const el = document.documentElement
+    el.classList.toggle('orb-theme-light', t === 'light')
+    el.classList.toggle('orb-theme-dark', t === 'dark')
+  </script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/build/orb.css" />
+  <script type="module" src="/build/loader.js"></script>
+  <style>
+    .page {
+      display: flex;
+      flex-direction: column;
+      gap: var(--orb-spacing-lg);
+      max-width: 90rem;
+      margin-inline: auto;
+      padding: var(--orb-spacing-lg);
+    }
+
+    .settings {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--orb-spacing-md);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 36rem), 1fr));
+      gap: var(--orb-spacing-lg);
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--orb-spacing-sm);
+      min-width: 0;
+      padding: var(--orb-spacing-md);
+      border: 1px solid var(--orb-divider-color);
+      border-radius: var(--orb-radius-lg);
+    }
+
+    .card h2 {
+      font-size: var(--orb-font-lg);
+    }
+
+    .card p,
+    .card li {
+      color: var(--orb-note-color);
+      font-size: var(--orb-font-sm);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--orb-spacing-sm);
+    }
+
+    .row label {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--orb-spacing-2xs);
+      font-size: var(--orb-font-sm);
+    }
+
+    .slot orb-channel {
+      display: flex;
+      block-size: 750px;
+    }
+
+    .readout {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .try {
+      margin: 0;
+      padding-inline-start: var(--orb-spacing-md);
+    }
+
+    .log {
+      display: flex;
+      flex-direction: column;
+      gap: var(--orb-spacing-sm);
+    }
+
+    .log ol {
+      display: flex;
+      flex-direction: column;
+      gap: var(--orb-spacing-2xs);
+      max-block-size: 24rem;
+      margin: 0;
+      padding: var(--orb-spacing-sm);
+      overflow-y: auto;
+      border: 1px solid var(--orb-divider-color);
+      border-radius: var(--orb-radius-md);
+      list-style: none;
+      font-family: var(--orb-font-mono, ui-monospace, monospace);
+      font-size: var(--orb-font-xs);
+    }
+
+    .log li[data-kind="cancel"] {
+      color: var(--orb-danger-500);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header>
+      <h1>Channel test page</h1>
+      <p>
+        Every feature of <code>orb-channel</code>, in one place. Each card is a conversation with a checklist of things to try.
+        Simulate buttons add messages the way a server would. Every event the channels emit is written to the log at the bottom.
+      </p>
+      <div class="settings">
+        <label><input type="checkbox" id="cancel-short"> Cancel sends under 5 characters</label>
+        <label><input type="checkbox" id="keep-edit"> Keep the editor open on save</label>
+        <label><input type="checkbox" id="keep-deleted"> Keep deleted messages</label>
+        <span>Reads seen: <span id="read-count">0</span></span>
+      </div>
+      <div class="row">
+        <button type="button" data-reset-all>Reset all</button>
+      </div>
+    </header>
+
+    <section class="cards">
+
+      <!-- 1. Direct chat -->
+      <article class="card" data-card="direct">
+        <h2>1. Direct chat</h2>
+        <p>Messages, markdown, HTML, reactions, mentions, links, an attachment, and echo.</p>
+        <div class="row">
+          <label>Point of view
+            <select data-attr="pov">
+              <option value="ada">Ada</option>
+              <option value="grace">Grace</option>
+            </select>
+          </label>
+          <label>Kind
+            <select data-attr="kind">
+              <option value="">default</option>
+              <option value="direct">direct</option>
+              <option value="group">group</option>
+              <option value="open">open</option>
+            </select>
+          </label>
+          <label>Echo
+            <select data-attr="echo" data-tri>
+              <option value="default">default</option>
+              <option value="on">on</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+          <label>Names
+            <select data-attr="show-names" data-tri>
+              <option value="default">default</option>
+              <option value="on">on</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+          <label>Avatars
+            <select data-attr="avatars" data-tri>
+              <option value="default">default</option>
+              <option value="on">on</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="direct-grace">Grace sends a message</button>
+          <button type="button" data-simulate="direct-reaction">Grace reacts 👍 to Ada's last message</button>
+          <button type="button" data-simulate="direct-link">Grace sends a link</button>
+          <button type="button" data-reset="direct">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="direct"></div>
+        <ul class="try">
+          <li>Type a message and press Enter. It appears as Ada, because echo is on.</li>
+          <li>Press Shift+Enter to add a line without sending.</li>
+          <li>Right-click a message (or press and hold it on a touch screen). Try the reactions, Reply, Copy, Edit and Delete on Ada's messages, and Report on Grace's.</li>
+          <li>Click the 🎉 reaction to toggle yours. Then switch the point of view to Grace.</li>
+          <li>Type <code>@Ada</code> or follow the link. The mention is highlighted for Ada only.</li>
+          <li>Set Kind to <code>group</code> and see names and avatars appear.</li>
+        </ul>
+      </article>
+
+      <!-- 2. Group chat -->
+      <article class="card" data-card="group">
+        <h2>2. Group chat</h2>
+        <p>Names, grouping, date dividers, an unread divider, and attachments on the composer.</p>
+        <div class="row">
+          <label>Point of view
+            <select data-attr="pov">
+              <option value="ada">Ada</option>
+              <option value="grace">Grace</option>
+              <option value="lin">Lin</option>
+            </select>
+          </label>
+          <label>Kind
+            <select data-attr="kind">
+              <option value="">default</option>
+              <option value="direct">direct</option>
+              <option value="group">group</option>
+              <option value="open">open</option>
+            </select>
+          </label>
+          <label>Group within
+            <select data-attr="group-within">
+              <option value="">default</option>
+              <option value="0">0 (off)</option>
+              <option value="1m">1m</option>
+              <option value="5m">5m</option>
+            </select>
+          </label>
+          <label>Date dividers
+            <select data-attr="date-dividers" data-tri>
+              <option value="default">default</option>
+              <option value="on">on</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="group-lin">Lin sends a message</button>
+          <button type="button" data-simulate="group-unread">Mark unread from the last message</button>
+          <button type="button" data-simulate="group-tomorrow">Grace sends one tomorrow</button>
+          <button type="button" data-reset="group">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="group"></div>
+        <ul class="try">
+          <li>Messages from the same sender within 5 minutes are grouped. Set Group within to 1m and watch the groups split.</li>
+          <li>Click "Mark unread from the last message". The readout's unread count rises with each new message from someone else.</li>
+          <li>Click "Grace sends one tomorrow". A date divider appears.</li>
+          <li>Attach a file with the paperclip, then send. Only images and PDFs are accepted.</li>
+        </ul>
+      </article>
+
+      <!-- 3. Open channel -->
+      <article class="card" data-card="open">
+        <h2>3. Open channel</h2>
+        <p>A header with a label and description, a long list to scroll, and the composer methods.</p>
+        <div class="row">
+          <label>Kind
+            <select data-attr="kind">
+              <option value="">default</option>
+              <option value="direct">direct</option>
+              <option value="group">group</option>
+              <option value="open">open</option>
+            </select>
+          </label>
+          <label>Header
+            <select data-attr="show-header" data-tri>
+              <option value="default">default (shown)</option>
+              <option value="on">shown</option>
+              <option value="off">hidden</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="open-batch">Add 20 messages</button>
+          <button type="button" data-simulate="open-jump">Jump to the first message</button>
+          <button type="button" data-simulate="open-focus">Focus the composer</button>
+          <button type="button" data-simulate="open-send">Send from code with send()</button>
+          <button type="button" data-reset="open">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="open"></div>
+        <ul class="try">
+          <li>Scroll to the top, then click "Add 20 messages". The list stays where you are.</li>
+          <li>Scroll to the bottom. New messages keep it there.</li>
+          <li>"Jump to the first message" scrolls to it. Tab and the arrow keys move between messages.</li>
+          <li>Hide the header, then show it again.</li>
+        </ul>
+      </article>
+
+      <!-- 4. Moderation -->
+      <article class="card" data-card="moderation">
+        <h2>4. Comments and moderation</h2>
+        <p>Hidden, removed and pending messages, an ignored participant, and moderator buttons.</p>
+        <div class="row">
+          <label>Point of view
+            <select data-attr="pov">
+              <option value="mod">Mod (moderator)</option>
+              <option value="ada">Ada</option>
+              <option value="grace">Grace</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="moderation-troll">Troll posts</button>
+          <button type="button" data-simulate="moderation-pending">Grace posts a pending comment</button>
+          <button type="button" data-reset="moderation">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="moderation"></div>
+        <ul class="try">
+          <li>As Mod, right-click a message. Try Pin, Hide, Remove and Mute. Pin and Hide also change the message.</li>
+          <li>Click "Show anyway" on the hidden comment and on Troll's comment.</li>
+          <li>Switch the point of view to Grace. The moderator buttons disappear, and the removed comment says so.</li>
+          <li>Press Ctrl or ⌘+Enter to send. Enter adds a line.</li>
+        </ul>
+      </article>
+
+      <!-- 5. Rich composer -->
+      <article class="card" data-card="rich">
+        <h2>5. Rich composer and commands</h2>
+        <p>The rich editor, with its formatting toolbar, mentions and commands.</p>
+        <div class="row">
+          <label>Point of view
+            <select data-attr="pov">
+              <option value="ada">Ada</option>
+              <option value="grace">Grace</option>
+              <option value="lin">Lin</option>
+            </select>
+          </label>
+          <label>Echo
+            <select data-attr="echo" data-tri>
+              <option value="default">default</option>
+              <option value="on">on</option>
+              <option value="off">off</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="rich-send">Send from code with send()</button>
+          <button type="button" data-reset="rich">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="rich"></div>
+        <ul class="try">
+          <li>Type <code>/</code> at the start of a line. Pick Summarize, type some text, then press Enter.</li>
+          <li>Type <code>@</code> and pick a person. Check the log for the mentions.</li>
+          <li>Click Aa to show the toolbar, and make some text bold. Click Aa again to hide it.</li>
+          <li>Press Enter on an empty box. Nothing is sent.</li>
+        </ul>
+      </article>
+
+      <!-- 6. Slow mode and mute -->
+      <article class="card" data-card="limits">
+        <h2>6. Slow mode and mute</h2>
+        <p>Slow mode holds back each message. A muted point of view can't write.</p>
+        <div class="row">
+          <label>Slow mode
+            <select data-attr="slow-mode">
+              <option value="">off</option>
+              <option value="5s">5 seconds</option>
+              <option value="15s">15 seconds</option>
+              <option value="1m">1 minute</option>
+            </select>
+          </label>
+          <label>Point of view
+            <select data-attr="pov">
+              <option value="ada">Ada</option>
+              <option value="grace">Grace</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-mute="ada">Mute or unmute Ada</button>
+          <button type="button" data-reset="limits">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="limits"></div>
+        <ul class="try">
+          <li>Set slow mode to 15 seconds. Send a message, then try again. The countdown shows until you can send.</li>
+          <li>Click "Mute or unmute Ada". The composer is disabled, and says why.</li>
+          <li>Switch the point of view to Grace. Slow mode and mute don't apply to Grace's own messages.</li>
+        </ul>
+      </article>
+
+      <!-- 7. Plain composer, files and form -->
+      <article class="card" data-card="plain">
+        <h2>7. Plain composer, files and form</h2>
+        <p>Attachments, composer buttons, a 200-character limit, and the channel inside a form.</p>
+        <div class="row">
+          <label>Send on
+            <select data-attr="send-on" data-on="orb-channel-composer">
+              <option value="">default</option>
+              <option value="enter">Enter</option>
+              <option value="mod-enter">Ctrl or ⌘+Enter</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-formdata>Show the form data</button>
+          <button type="button" data-reset="plain">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="plain"></div>
+        <ul class="try">
+          <li>Attach a file, or drag one onto the box, or paste an image. The attached files show above the box.</li>
+          <li>Click the GIF and poll buttons. The log shows which one was clicked.</li>
+          <li>Type past 200 characters. The box stops at 200.</li>
+          <li>Click "Show the form data" after you've typed something. The draft is in the form, under <code>body</code>.</li>
+        </ul>
+      </article>
+
+      <!-- 8. Empty state, no header -->
+      <article class="card" data-card="bare">
+        <h2>8. Empty state, no header</h2>
+        <p>An empty channel with the header hidden.</p>
+        <div class="row">
+          <button type="button" data-simulate="bare-ada">Ada writes the first message</button>
+          <button type="button" data-reset="bare">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="bare"></div>
+        <ul class="try">
+          <li>The empty text shows until the first message.</li>
+          <li>Send a message. Once there's one, the empty text goes away.</li>
+        </ul>
+      </article>
+
+    </section>
+
+    <section class="log">
+      <div class="row">
+        <h2>Event log</h2>
+        <button type="button" data-clear-log>Clear</button>
+      </div>
+      <ol id="log" aria-live="polite"></ol>
+    </section>
+  </main>
+
+  <!-- The channels. Each one is cloned into its card, so Reset rebuilds it. -->
+
+  <template id="tpl-direct">
+    <orb-channel id="chan-direct" label="Grace" pov="ada" echo>
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace" accent="#7c3aed"></orb-channel-participant>
+      <orb-channel-message id="d1" from="grace" ts="2025-06-01T09:14:00Z">Did the compiler change land?</orb-channel-message>
+      <orb-channel-message id="d2" from="ada" ts="2025-06-01T09:15:00Z"><script type="text/markdown">Yep, merged this morning. The notes are in **the wiki**.</script></orb-channel-message>
+      <orb-channel-message id="d3" from="grace" ts="2025-06-01T09:16:00Z">Nice work!<orb-channel-reaction emoji="🎉" by="ada"></orb-channel-reaction></orb-channel-message>
+      <orb-channel-message id="d4" from="grace" ts="2025-06-02T08:00:00Z">The spec is at https://example.com/spec. @Ada can you check the numbers?</orb-channel-message>
+      <orb-channel-message id="d5" from="grace" ts="2025-06-02T08:02:00Z">The screenshot from this morning:<orb-channel-attachment href="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" name="screenshot.gif" type="image/gif"></orb-channel-attachment></orb-channel-message>
+      <orb-channel-message id="d6" from="ada" ts="2025-06-02T08:05:00Z"><script type="text/html"><p>Also, <strong>this</strong> one is <em>HTML</em>, with a <a href="javascript:alert(1)">bad link</a> that gets removed.</p></script></orb-channel-message>
+      <orb-channel-composer name="direct" placeholder="Message Grace"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-group">
+    <orb-channel id="chan-group" label="Design team" kind="group" pov="ada" echo>
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace" accent="#7c3aed"></orb-channel-participant>
+      <orb-channel-participant id="lin" name="Lin"></orb-channel-participant>
+      <orb-channel-message id="g1" from="grace" ts="2025-06-01T09:00:00Z">Morning, everyone.</orb-channel-message>
+      <orb-channel-message id="g2" from="grace" ts="2025-06-01T09:01:00Z">Two more things from yesterday.</orb-channel-message>
+      <orb-channel-message id="g3" from="ada" ts="2025-06-01T09:02:00Z">Go ahead.</orb-channel-message>
+      <orb-channel-message id="g4" from="lin" ts="2025-06-01T09:20:00Z">The new icons are in the library.</orb-channel-message>
+      <orb-channel-divider type="unread"></orb-channel-divider>
+      <orb-channel-message id="g5" from="grace" ts="2025-06-01T09:21:00Z">Looks good to me.</orb-channel-message>
+      <orb-channel-message id="g6" from="lin" ts="2025-06-01T09:21:30Z">Shall I ship it?</orb-channel-message>
+      <orb-channel-message id="g7" from="ada" ts="2025-06-02T10:00:00Z">Shipped. Thanks, all.</orb-channel-message>
+      <orb-channel-composer name="team" placeholder="Message the team" attachments="image/*,.pdf"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-open">
+    <orb-channel id="chan-open" kind="open" label="#release-notes" description="Release news and changelog" pov="u1" echo>
+      <orb-channel-participant id="u1" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="u2" name="Grace"></orb-channel-participant>
+      <orb-channel-participant id="u3" name="Lin"></orb-channel-participant>
+      <orb-channel-message id="open-first" from="u2" ts="2025-06-01T09:00:00Z">Release 2.0 is out!</orb-channel-message>
+      <orb-channel-message from="u3" ts="2025-06-01T09:01:00Z">Congrats, team.</orb-channel-message>
+      <orb-channel-message from="u1" ts="2025-06-01T09:02:00Z">The changelog is in the docs.</orb-channel-message>
+      <orb-channel-message from="u2" ts="2025-06-01T09:03:00Z">Found a typo in the migration guide.</orb-channel-message>
+      <orb-channel-message from="u3" ts="2025-06-01T09:04:00Z">Fixed in the next patch.</orb-channel-message>
+      <orb-channel-message from="u1" ts="2025-06-01T09:05:00Z">Thanks for reporting it.</orb-channel-message>
+      <orb-channel-composer name="open" placeholder="Message #release-notes"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-moderation">
+    <orb-channel id="chan-moderation" label="Comments" pov="mod" echo>
+      <orb-channel-participant id="mod" name="Mod" moderator></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace"></orb-channel-participant>
+      <orb-channel-participant id="sam" name="Sam"></orb-channel-participant>
+      <orb-channel-participant id="troll" name="Troll" ignored></orb-channel-participant>
+      <orb-channel-message id="c1" from="sam" ts="2025-06-01T09:00:00Z" moderation="hidden" moderation-reason="Hidden for low score">Not a great take, honestly.</orb-channel-message>
+      <orb-channel-message id="c2" from="grace" ts="2025-06-01T09:02:00Z" moderation="removed">This was removed.</orb-channel-message>
+      <orb-channel-message id="c3" from="sam" ts="2025-06-01T09:04:00Z">A fair point, though. Let's see the data.</orb-channel-message>
+      <orb-channel-message id="c4" from="troll" ts="2025-06-01T09:05:00Z">Buy cheap followers here!</orb-channel-message>
+      <orb-channel-message id="c5" from="mod" ts="2025-06-01T09:06:00Z" pinned>Comments are open. Be kind.</orb-channel-message>
+      <orb-channel-composer name="comment" send-on="mod-enter" placeholder="Comment (Ctrl or ⌘+Enter to send)"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-rich">
+    <orb-channel id="chan-rich" label="Writing" pov="ada" echo>
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace"></orb-channel-participant>
+      <orb-channel-participant id="lin" name="Lin"></orb-channel-participant>
+      <orb-channel-message id="r1" from="grace" ts="2025-06-01T09:00:00Z">Can you draft the release notes?</orb-channel-message>
+      <orb-channel-composer name="rich" editor="rich" toolbar="toggle" placeholder="Write with formatting, @mentions and / commands">
+        <orb-channel-command name="summarize" description="Summarize the channel" args="prompt"></orb-channel-command>
+        <orb-channel-command name="translate" description="Translate the last message" args="language"></orb-channel-command>
+        <orb-channel-command name="poll" description="Start a poll" args="question"></orb-channel-command>
+      </orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-limits">
+    <orb-channel id="chan-limits" label="Team chat" pov="ada" slow-mode="15s" echo>
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace"></orb-channel-participant>
+      <orb-channel-message id="l1" from="grace" ts="2025-06-01T09:00:00Z">Slow mode is on for this channel.</orb-channel-message>
+      <orb-channel-composer name="limits" placeholder="Type a message"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-plain">
+    <form id="plain-form">
+      <orb-channel id="chan-plain" label="Support" pov="ada" echo>
+        <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+        <orb-channel-participant id="grace" name="Grace"></orb-channel-participant>
+        <orb-channel-message id="p1" from="grace" ts="2025-06-01T09:00:00Z">How can I help?</orb-channel-message>
+        <orb-channel-composer name="body" placeholder="Plain text, 200 characters" max-length="200" attachments="image/*,.pdf">
+          <orb-channel-action name="gif" label="Add a GIF"></orb-channel-action>
+          <orb-channel-action name="poll" label="Start a poll">
+            <svg slot="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+          </orb-channel-action>
+        </orb-channel-composer>
+      </orb-channel>
+    </form>
+  </template>
+
+  <template id="tpl-bare">
+    <orb-channel id="chan-bare" pov="ada" show-header="false" empty="Nothing here yet" echo>
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-composer name="bare" placeholder="Say something"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <script type="module">
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+    /** The channel in a card, by the card's name */
+    const channelOf = (name) => $(`[data-card="${name}"] orb-channel`);
+    /** The card a channel is in */
+    const nameOf = (channel) => channel.closest("[data-card]")?.dataset.card ?? channel.id;
+
+    // Builds a card's channel from its template, so Reset can rebuild it
+    function mount(name) {
+      const card = $(`[data-card="${name}"]`);
+      $(`[data-slot="${name}"]`, card).replaceChildren($(`#tpl-${name}`).content.cloneNode(true));
+      syncControls(card);
+    }
+
+    // The controls show the channel's attributes, and change them when used
+    function syncControls(card) {
+      for (const control of $$("[data-attr]", card)) {
+        const target = targetOf(control, card);
+        if (!target) continue;
+        const attr = control.dataset.attr;
+        const value = target.getAttribute(attr);
+        if ("tri" in control.dataset) control.value = value === null ? "default" : value === "false" ? "off" : "on";
+        else control.value = value ?? "";
+      }
+    }
+
+    function targetOf(control, card) {
+      const channel = $("orb-channel", card);
+      return control.dataset.on ? channel?.querySelector(control.dataset.on) : channel;
+    }
+
+    document.addEventListener("change", (event) => {
+      const control = event.target.closest?.("[data-attr]");
+      if (!control) return;
+      const card = control.closest("[data-card]");
+      const target = targetOf(control, card);
+      if (!target) return;
+      const attr = control.dataset.attr;
+      if ("tri" in control.dataset) {
+        if (control.value === "default") target.removeAttribute(attr);
+        else target.setAttribute(attr, control.value === "on" ? "" : "false");
+      } else if (control.value) target.setAttribute(attr, control.value);
+      else target.removeAttribute(attr);
+      record(`${card.dataset.card}: ${attr} = ${control.value}`);
+    });
+
+    // A message added the way a server would add one, before the composer
+    function say(channel, from, text, attrs = {}) {
+      const el = document.createElement("orb-channel-message");
+      el.id = `sim-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      el.setAttribute("from", from);
+      el.setAttribute("ts", new Date().toISOString());
+      for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+      el.textContent = text;
+      const composer = channel.querySelector(":scope > orb-channel-composer");
+      if (composer) composer.before(el);
+      else channel.append(el);
+      return el;
+    }
+
+    /** The last message in a channel from someone */
+    const lastFrom = (channel, from) => [...channel.querySelectorAll(`:scope > orb-channel-message[from="${from}"]`)].at(-1);
+
+    const simulations = {
+      "direct-grace": (channel) => say(channel, "grace", "Are you around for a quick call?"),
+      "direct-reaction": (channel) => {
+        const message = lastFrom(channel, "ada");
+        // Grace reacts to Ada's last message
+        const reaction = document.createElement("orb-channel-reaction");
+        reaction.setAttribute("emoji", "👍");
+        reaction.setAttribute("by", "grace");
+        message?.append(reaction);
+      },
+      "direct-link": (channel) => say(channel, "grace", "Here's the link again: https://example.com/spec"),
+      "group-lin": (channel) => say(channel, "lin", "Sounds good to me."),
+      "group-unread": (channel) => {
+        const last = channel.querySelector(":scope > orb-channel-message:last-of-type") ?? channel.querySelector(":scope > orb-channel-message");
+        const divider = document.createElement("orb-channel-divider");
+        divider.setAttribute("type", "unread");
+        last?.before(divider);
+      },
+      "group-tomorrow": (channel) =>
+        say(channel, "grace", "Good morning again.", { ts: new Date(Date.now() + 86400000).toISOString() }),
+      "open-batch": (channel) => {
+        for (let i = 1; i <= 20; i++) say(channel, i % 2 ? "u2" : "u3", `Message ${i} of the batch.`);
+      },
+      "open-jump": (channel) => channel.scrollToMessage("open-first", { behavior: "smooth" }),
+      "open-focus": (channel) => channel.focusComposer(),
+      "open-send": (channel) => channel.send("Sent from code with send()"),
+      "moderation-troll": (channel) => say(channel, "troll", "Free money at example.com!"),
+      "moderation-pending": (channel) => say(channel, "grace", "Waiting for a moderator to approve this.", { moderation: "pending" }),
+      "rich-send": (channel) => channel.send("Sent from code with send()"),
+      "bare-ada": (channel) => say(channel, "ada", "The first message."),
+    };
+
+    // The log: every event the channels emit
+    const log = $("#log");
+    function record(text, kind = "") {
+      const item = document.createElement("li");
+      item.textContent = `${new Date().toLocaleTimeString()}  ${text}`;
+      if (kind) item.dataset.kind = kind;
+      log.prepend(item);
+      while (log.children.length > 300) log.lastElementChild.remove();
+    }
+
+    const preview = (node) => (node?.textContent ?? "").trim().slice(0, 40) || node?.id || "(message)";
+
+    /** The app's answers. Each one changes the DOM, or cancels the event. */
+    document.addEventListener("orbSend", (event) => {
+      const detail = event.detail;
+      const name = nameOf(event.target);
+      if ($("#cancel-short").checked && !detail.files.length && detail.text.trim().length < 5) {
+        event.preventDefault();
+        record(`${name}  orbSend canceled, too short: "${detail.text}"`, "cancel");
+        return;
+      }
+      record(`${name}  orbSend ${JSON.stringify({
+        text: detail.text,
+        format: detail.format,
+        mentions: detail.mentions,
+        command: detail.command,
+        files: detail.files.map((file) => file.name),
+      })}`);
+    });
+
+    document.addEventListener("orbReact", (event) => {
+      const { message, emoji, on } = event.detail;
+      const channel = event.target;
+      const mine = message.querySelector(`orb-channel-reaction[emoji="${emoji}"][by="${channel.pov}"]`);
+      if (on && !mine) {
+        const reaction = document.createElement("orb-channel-reaction");
+        reaction.setAttribute("emoji", emoji);
+        reaction.setAttribute("by", channel.pov);
+        message.append(reaction);
+      }
+      if (!on) mine?.remove();
+      record(`${nameOf(channel)}  orbReact ${emoji} ${on ? "on" : "off"} on "${preview(message)}"`);
+    });
+
+    document.addEventListener("orbEdit", (event) => {
+      record(`${nameOf(event.target)}  orbEdit on "${preview(event.detail.message)}"`);
+    });
+
+    document.addEventListener("orbEditCommit", (event) => {
+      const { message, text } = event.detail;
+      if ($("#keep-edit").checked) {
+        event.preventDefault();
+        record(`${nameOf(event.target)}  orbEditCommit canceled, the editor stays open`, "cancel");
+        return;
+      }
+      // Replaces the text but keeps the reactions and attachments
+      for (const node of [...message.childNodes]) if (node.nodeType === Node.TEXT_NODE) node.remove();
+      message.prepend(text);
+      message.setAttribute("edited", "");
+      record(`${nameOf(event.target)}  orbEditCommit "${text}"`);
+    });
+
+    document.addEventListener("orbDelete", (event) => {
+      const message = event.detail.message;
+      if ($("#keep-deleted").checked) {
+        event.preventDefault();
+        record(`${nameOf(event.target)}  orbDelete canceled, the message stays`, "cancel");
+        return;
+      }
+      message.remove();
+      record(`${nameOf(event.target)}  orbDelete "${preview(message)}"`);
+    });
+
+    document.addEventListener("orbReply", (event) => {
+      record(`${nameOf(event.target)}  orbReply to "${preview(event.detail.message)}"`);
+    });
+
+    document.addEventListener("orbReport", (event) => {
+      record(`${nameOf(event.target)}  orbReport "${preview(event.detail.message)}"`, "cancel");
+    });
+
+    document.addEventListener("orbModerate", (event) => {
+      const { action, message, participant } = event.detail;
+      if (action === "hide") {
+        message.setAttribute("moderation", "hidden");
+        message.setAttribute("moderation-reason", "Hidden by a moderator");
+      }
+      if (action === "remove") message.setAttribute("moderation", "removed");
+      if (action === "pin") message.setAttribute("pinned", "");
+      if (action === "unpin") message.removeAttribute("pinned");
+      if (action === "mute" && participant) participant.setAttribute("muted", "");
+      record(`${nameOf(event.target)}  orbModerate ${action} on "${preview(message)}"`);
+    });
+
+    document.addEventListener("orbAction", (event) => {
+      record(`${nameOf(event.target)}  orbAction ${event.detail.name}`);
+    });
+
+    let reads = 0;
+    document.addEventListener("orbRead", () => ($("#read-count").textContent = String(++reads)));
+
+    // The readouts, updated as the channels change
+    setInterval(() => {
+      for (const card of $$("[data-card]")) {
+        const channel = $("orb-channel", card);
+        const readout = $("[data-readout]", card);
+        if (!channel || !readout) continue;
+        const messages = channel.querySelectorAll(":scope > orb-channel-message").length;
+        readout.textContent = `${messages} message${messages === 1 ? "" : "s"} · unread ${channel.unread ?? 0}`;
+      }
+    }, 300);
+
+    // Buttons
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      if (button.dataset.simulate) {
+        const channel = channelOf(button.dataset.simulate.split("-")[0]);
+        simulations[button.dataset.simulate]?.(channel);
+        record(`simulated: ${button.textContent.trim()}`);
+      } else if (button.dataset.reset) {
+        mount(button.dataset.reset);
+        record(`reset ${button.dataset.reset}`);
+      } else if ("resetAll" in button.dataset) {
+        for (const name of ["direct", "group", "open", "moderation", "rich", "limits", "plain", "bare"]) mount(name);
+        record("reset all");
+      } else if (button.dataset.mute) {
+        const participant = channelOf("limits").querySelector(`orb-channel-participant#${button.dataset.mute}`);
+        participant.toggleAttribute("muted");
+        record(`${button.dataset.mute} is ${participant.hasAttribute("muted") ? "muted" : "unmuted"}`);
+      } else if ("formdata" in button.dataset) {
+        const form = $("#plain-form");
+        record(`form data: ${JSON.stringify(Object.fromEntries(new FormData(form)))}`);
+      } else if ("clearLog" in button.dataset) {
+        log.replaceChildren();
+      }
+    });
+
+    for (const name of ["direct", "group", "open", "moderation", "rich", "limits", "plain", "bare"]) mount(name);
+  </script>
+</body>
+
+</html>

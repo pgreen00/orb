@@ -22,6 +22,14 @@ export function mentionNode(id: string, name: string): HTMLElement {
   return span;
 }
 
+/** A command the host offers, shown as /Name. It's one piece, and the text typed after it is arguments. */
+export function commandNode(id: string, name: string): HTMLElement {
+  const span = document.createElement("span");
+  span.setAttribute("data-command", id);
+  span.textContent = `/${name}`;
+  return span;
+}
+
 /** A tag, shown as #name */
 export function tagNode(id: string, name: string): HTMLElement {
   const span = document.createElement("span");

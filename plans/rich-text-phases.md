@@ -380,8 +380,7 @@ export interface Command {
   /** Pressed state, or the current value. "mixed" when the selection has several. */
   state?: (ctx: CommandContext) => boolean | string | null;
   enabled?: (ctx: CommandContext) => boolean;
-  /** Listed in the "/" menu, with extra search words */
-  slash?: { keywords?: string[] };
+
   /** The `inputType` of the `input` event the command fires (0.9). Defaults to insertReplacementText. */
   inputType?: string;
   /** Changes content and returns the range to select. UI-only commands return nothing. */
@@ -1704,7 +1703,7 @@ The editor calls `triggerMenu.attachInput(this.editorRef)` and `triggerMenu.show
 
 | Trigger | Items | Inserts |
 |---|---|---|
-| `/` | Commands with `slash` set, matched on label and keywords | Runs the command after removing `/query` |
+| `/` | Items from the host's `commands` lookup (0.2 of `channel-phases.md`). Without it, `/` is a plain character. | A command chip, such as `<span data-command="id">/Label</span>`, then `orbCommand` |
 | `@` | `mentions?: (query: string) => Promise<MentionItem[]>` | `<span data-mention="id">@Label</span>`, then emits `orbMention` |
 | `#` | `tags?: (query: string) => Promise<TagItem[]>`, plus a "Create #query" item | `<span data-tag="id">#label</span>` |
 | `:` | Emoji data, matched on shortcode (needs at least 2 characters) | The emoji character |

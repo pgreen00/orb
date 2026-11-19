@@ -24,7 +24,7 @@ import type { ApplyOptions, EditorHost } from "./editing/host";
 import type { Key } from "./editing/input";
 import { toggleTask } from "./editing/lists";
 import { closestCell } from "./editing/tables";
-import { emojiTrigger, findTrigger, mentionTrigger, paramTrigger, slashTrigger, tagTrigger } from "./editing/triggers";
+import { commandTrigger, emojiTrigger, findTrigger, mentionTrigger, paramTrigger, tagTrigger } from "./editing/triggers";
 import type { Trigger, TriggerItem, TriggerMatch } from "./editing/triggers";
 import type { ExportFormat, ImportFormat, JsonNode } from "./convert/export";
 
@@ -85,6 +85,7 @@ import { createColorPicker } from "./ui/color-picker";
 import { DEFAULT_FONTS, DEFAULT_FONT_SIZES, DEFAULT_PALETTE, FontOption } from "./ui/defaults";
 import { createSymbolPicker } from "./ui/symbol-picker";
 import { shortcutText, ToolbarButton } from "./ui/toolbar";
+import { adoptChatStyles } from "../../utils/chat-styles";
 
 /** The text of the elements in a slot, or null when nothing is slotted */
 function textOf(slot?: HTMLSlotElement): string | null {
@@ -141,15 +142,22 @@ export interface EditorChangeEvent {
   isEmpty: boolean;
 }
 
+
 /**
  * A rich text editor that's also a form field. The form gets its content as HTML, under the element's `name` attribute.
  *
  * @slot label - The label, instead of the `label` prop
  * @slot note - The note, instead of the `note` prop
+ * @slot top-start - Content in the row above the toolbar, at the start, such as attachments
+ * @slot top-end - Content in the row above the toolbar, at the end
+ * @slot bottom-start - Content in the row below the writing area, at the start, such as an attach button
+ * @slot bottom-end - Content in the row below the writing area, at the end, such as a send button
  *
  * @part shell - The bordered editor: toolbar, content and footer
+ * @part top - The row of `top-start` and `top-end` content
  * @part toolbar - The row of formatting controls
  * @part content - The writing area
+ * @part bottom - The row of `bottom-start` and `bottom-end` content
  * @part footer - The word and character counts
  */
 @Component({
@@ -189,14 +197,14 @@ export class RichText extends ReadyController implements EditorHost {
   /** Shows the content without allowing edits. Still focusable and submitted with the form. */
   @Prop({ reflect: true }) readonly = false;
 
-  /** The smallest height of the writing area */
-  @Prop() minHeight = "200px";
+  /** The smallest height of the writing area. Defaults to one line in the compact variant, and 200px otherwise. */
+  @Prop() minHeight?: string;
 
   /** The largest height of the writing area, after which it scrolls */
   @Prop() maxHeight = "500px";
 
-  /** Shows the word and character counts below the editor */
-  @Prop({ mutable: true }) showWordCount = true;
+  /** Shows the word and character counts below the editor. Defaults to on, except in the compact variant. */
+  @Prop({ mutable: true }) showWordCount?: boolean;
 
   /** Underlines misspelled words, using the browser's spell checker */
   @Prop() spellcheck = true;
@@ -265,8 +273,26 @@ export class RichText extends ReadyController implements EditorHost {
   /** `view` is read-only, like `readonly`, but says so in the mode */
   @Prop({ reflect: true }) mode: "edit" | "view" = "edit";
 
-  /** Where the formatting controls appear */
-  @Prop() toolbarPlacement: "top" | "none" = "top";
+  /** Where the formatting controls appear. `bottom` puts them below the writing area, above the bottom row. */
+  @Prop() toolbarPlacement: "top" | "bottom" | "none" = "top";
+
+  /**
+   * `compact` is for composing a message: a shorter writing area with less padding, chat typography,
+   * no menubar, and no word count by default.
+   */
+  @Prop({ reflect: true }) variant: "document" | "compact" = "document";
+
+  /**
+   * What Enter does. `submit` emits `orbSubmit` instead of starting a new paragraph. Enter in a code block and
+   * Shift+Enter still add a line, and Ctrl or ⌘+Enter always submits.
+   */
+  @Prop() enterAction: "paragraph" | "submit" = "paragraph";
+
+  /**
+   * Looks up the commands `/` offers. Set it as a property. Choosing one inserts it, and emits `orbCommand`.
+   * Without it, `/` is just a character.
+   */
+  @Prop() commands?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
 
   /** The title used for downloads and printing */
   @Prop() docTitle = "Untitled";
@@ -297,6 +323,8 @@ export class RichText extends ReadyController implements EditorHost {
   /** The HTML source view is showing, in place of the editor */
   @State() htmlSource = false;
   @State() sourceText = "";
+  /** Whether the top and bottom rows have content slotted into them */
+  @State() utilityRows = { top: false, bottom: false };
 
   /** Emits after each change, with the saved HTML and text. Both are computed only when read. */
   @Event() orbEditorChange: EventEmitter<EditorChangeEvent>;
@@ -315,6 +343,15 @@ export class RichText extends ReadyController implements EditorHost {
 
   /** Emits when a mention is chosen from the `@` menu */
   @Event() orbMention: EventEmitter<{ id: string; label: string }>;
+
+  /** Emits when a command is chosen from the `/` menu */
+  @Event() orbCommand: EventEmitter<{ id: string; label: string }>;
+
+  /**
+   * Emits when Enter submits, with the content. Unless a listener cancels it, the editor is cleared.
+   * Empty content doesn't submit.
+   */
+  @Event({ cancelable: true }) orbSubmit: EventEmitter<EditorChangeEvent>;
 
   /** Formats for the next text typed at a collapsed caret */
   readonly pending = new PendingFormats();
@@ -521,7 +558,9 @@ export class RichText extends ReadyController implements EditorHost {
       shell.removeAttribute("popover");
       this.el.style.removeProperty("--editor-placeholder-height");
       this.viewportListeners?.abort();
+
       this.el.scrollIntoView({ block: "nearest" });
+
     }
     // The shell's children change with full screen, so the editor can be moved on the next render. It's restored after that.
     this.pendingSelection = keep(range);
@@ -560,6 +599,7 @@ export class RichText extends ReadyController implements EditorHost {
 
   componentDidLoad() {
     super.componentDidLoad();
+    adoptChatStyles(this.el.shadowRoot!);
     if (this.fullscreen) this.onFullscreenChange(true);
     this.outlinePanel = createOutlinePanel({
       onSelect: (heading) => this.focusAt(goToHeading(this.editorRef, heading)),
@@ -679,6 +719,15 @@ export class RichText extends ReadyController implements EditorHost {
   @Method()
   async clear(): Promise<void> {
     this.replaceContent("");
+  }
+
+  /**
+   * Submits the content, as Enter does when `enter-action` is `submit`. Emits
+   * `orbSubmit`, and clears the editor unless a listener cancels it.
+   */
+  @Method()
+  async submit(): Promise<void> {
+    this.submitContent();
   }
 
   /** Sets a custom validation error. Pass an empty string to clear it. */
@@ -963,9 +1012,9 @@ export class RichText extends ReadyController implements EditorHost {
   }
 
   /** The menus that open as the user types, in the order they're tried */
-  private triggers(inTable: boolean): Trigger[] {
+  private triggers(): Trigger[] {
     return [
-      slashTrigger({ inTable }),
+      ...(this.commands ? [commandTrigger(this.commands)] : []),
       paramTrigger(this.params),
       emojiTrigger(loadEmoji),
       mentionTrigger(this.mentions),
@@ -982,8 +1031,7 @@ export class RichText extends ReadyController implements EditorHost {
   private updateTriggers() {
     if (!this.editorRef) return;
     const caret = getRange(this.editorRef);
-    const inTable = !!caret && !!closestCell(this.editorRef, caret);
-    const match = caret ? findTrigger(this.editorRef, caret, this.triggers(inTable)) : null;
+    const match = caret ? findTrigger(this.editorRef, caret, this.triggers()) : null;
     const dismissed = this.triggerDismissed;
     const isDismissed = !!match && !!dismissed && dismissed.block === match.block && dismissed.at === match.at && dismissed.trigger === match.trigger.text;
     // Once the caret leaves the dismissed trigger, it opens again the next time it's typed
@@ -1029,7 +1077,7 @@ export class RichText extends ReadyController implements EditorHost {
     this.closeTriggers();
   }
 
-  /** Chooses an item from the trigger menu: its text is replaced, or the command it names runs */
+  /** Chooses an item from the trigger menu: its text is replaced, and a command or mention is reported by its event */
   private chooseTriggerItem(id: string) {
     const match = this.triggerMatch;
     const item = this.triggerItems.find((each) => each.id === id);
@@ -1039,8 +1087,43 @@ export class RichText extends ReadyController implements EditorHost {
       range: match.range,
       inputType: "insertText",
     });
-    if (match.trigger.command) this.runCommand(item.id);
+    if (match.trigger.command) this.orbCommand.emit({ id: item.id, label: item.label });
     else if (match.trigger.text === "@") this.orbMention.emit({ id: item.id, label: item.label });
+  }
+
+  /**
+   * Emits `orbSubmit` with the content, unless it's empty. The editor is cleared
+   * after, unless a listener cancels the event, such as when sending failed.
+   */
+  private submitContent() {
+    if (!this.editable) return;
+    const { html, text } = this.output();
+    if (!text.trim()) return;
+    const event = this.orbSubmit.emit({ html, text, isEmpty: false });
+    if (!event.defaultPrevented) this.replaceContent("");
+  }
+
+  private inCodeBlock() {
+    const range = getRange(this.editorRef);
+    return !!range && !!closestCodeBlock(this.editorRef, range);
+  }
+
+  /** Whether the row of utility content above or below the writing area has anything in it */
+  private onUtilityChange = () => {
+    const has = (position: "top" | "bottom") => !!this.el.querySelector(`:scope > [slot^="${position}-"]`);
+    this.utilityRows = { top: has("top"), bottom: has("bottom") };
+  };
+
+  /** A row for content slotted above or below the writing area. It's always rendered, so its slots are assigned. */
+  private renderUtility(position: "top" | "bottom") {
+    return (
+      <div class="utility" part={position} hidden={!this.utilityRows[position]}>
+        <slot name={`${position}-start`} onSlotchange={this.onUtilityChange} />
+        <span class="row-end">
+          <slot name={`${position}-end`} onSlotchange={this.onUtilityChange} />
+        </span>
+      </div>
+    );
   }
 
   /** Placeholders with no key in `params` get a warning style, until they're in the list */
@@ -1213,8 +1296,13 @@ export class RichText extends ReadyController implements EditorHost {
     selectRange(range, { redraw: true });
   }
 
+  /** The word count shows unless `showWordCount` says otherwise, and the compact variant doesn't show it by default */
+  private get wordCountShown() {
+    return this.showWordCount ?? this.variant === "document";
+  }
+
   private get showMenubar() {
-    return this.menubar === "always" || (this.menubar === "fullscreen" && this.fullscreen);
+    return this.variant !== "compact" && (this.menubar === "always" || (this.menubar === "fullscreen" && this.fullscreen));
   }
 
   /** The menubar's items. A value that names a command runs it; the others are actions of the editor. */
@@ -1263,7 +1351,7 @@ export class RichText extends ReadyController implements EditorHost {
           {item("fullscreen", this.fullscreen ? "Exit full screen" : "Full screen")}
           {item("source", this.htmlSource ? "Show editor" : "HTML source")}
           {item("outline", this.outline ? "Hide outline" : "Show outline")}
-          {item("wordCount", this.showWordCount ? "Hide word count" : "Show word count")}
+          {item("wordCount", this.wordCountShown ? "Hide word count" : "Show word count")}
         </orb-menu>
 
         <orb-menu for="bar-insert" label="Insert">
@@ -1322,7 +1410,7 @@ export class RichText extends ReadyController implements EditorHost {
         this.outline = !this.outline;
         return;
       case "wordCount":
-        this.showWordCount = !this.showWordCount;
+        this.showWordCount = !this.wordCountShown;
         return;
       case "print":
         void this.print();
@@ -1718,6 +1806,12 @@ export class RichText extends ReadyController implements EditorHost {
       this.runCommand(command.id);
       return;
     }
+    // Ctrl or ⌘+Enter sends from anywhere, including a code block
+    if (this.enterAction === "submit" && event.key === "Enter" && (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      this.submitContent();
+      return;
+    }
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     // Backspace and Delete are handled here, since browsers don't send beforeinput when there's nothing to delete before the caret.
     if (event.key === "Backspace" || event.key === "Delete") {
@@ -1732,6 +1826,12 @@ export class RichText extends ReadyController implements EditorHost {
     // Enter is handled here, rather than from beforeinput, since browsers differ in what
     // they insert for it. Preventing the keydown stops the browser from inserting anything.
     if (event.key === "Enter") {
+      // In submit mode, Enter sends, except in a code block, where it adds a line, as Shift+Enter does everywhere
+      if (this.enterAction === "submit" && !event.shiftKey && !this.inCodeBlock()) {
+        event.preventDefault();
+        this.submitContent();
+        return;
+      }
       event.preventDefault();
       const key: Key = event.shiftKey ? "shiftEnter" : "enter";
       let ruled = false;
@@ -2106,44 +2206,13 @@ export class RichText extends ReadyController implements EditorHost {
     const isMenu = (id: string) => COMMANDS.get(id)?.control === "menu";
     const isSelect = (id: string) => COMMANDS.get(id)?.control === "select" || isMenu(id);
     const shortcutOf = (id: string) => COMMANDS.get(id)?.shortcuts?.[0];
-    const selects = shown.flat().filter(isSelect);
-
-    return (
-      <Host
-        class={{
-          "editor-container": true,
-          "editor-focused": this.isFocused,
-          "editor-readonly": this.readonly,
-        }}
-      >
-        <slot
-          name="label"
-          ref={(el) => (this.labelSlot = el)}
-          onSlotchange={this.onSlotChange}
-        >
-          {this.label && (
-            <orb-label required={this.required}>
-              {this.label}
-            </orb-label>
-          )}
-        </slot>
-
-        <div class="editor-body">
-          <div class="outline-slot" hidden={!this.outline} ref={(el) => (this.outlineSlotEl = el)}></div>
-        <div
-          class="shell"
-          part="shell"
-          ref={(el) => (this.shellEl = el)}
-          role={this.fullscreen ? "dialog" : undefined}
-          aria-modal={this.fullscreen ? "true" : undefined}
-          aria-label={this.fullscreen ? "Editor" : undefined}
-          onKeyDown={this.onShellKeyDown}
-        >
-          {this.fullscreen && <span tabindex={0} class="sentinel" onFocus={() => this.onSentinelFocus("start")} />}
-          {this.showMenubar && this.renderMenubar()}
-          {this.toolbarPlacement === "top" && (
+    // The toolbar's tooltips and menus need its buttons as triggers. Without the toolbar, a menu would stay in the flow.
+    const toolbarRendered = this.toolbarPlacement !== "none";
+    const selects = toolbarRendered ? shown.flat().filter(isSelect) : [];
+    // Built only when shown, above or below the writing area. Building it on every render, shown or not, moved the page on full screen exit.
+    const renderToolbar = () => (
           <div
-            class="editor-toolbar"
+            class={{ "editor-toolbar": true, bottom: this.toolbarPlacement === "bottom" }}
             part="toolbar"
             role="toolbar"
             aria-label="Formatting"
@@ -2194,13 +2263,49 @@ export class RichText extends ReadyController implements EditorHost {
               </orb-button>
             )}
           </div>
+    );
+
+    return (
+      <Host
+        class={{
+          "editor-container": true,
+          "editor-focused": this.isFocused,
+          "editor-readonly": this.readonly,
+        }}
+      >
+        <slot
+          name="label"
+          ref={(el) => (this.labelSlot = el)}
+          onSlotchange={this.onSlotChange}
+        >
+          {this.label && (
+            <orb-label required={this.required}>
+              {this.label}
+            </orb-label>
           )}
+        </slot>
+
+        <div class="editor-body">
+          <div class="outline-slot" hidden={!this.outline} ref={(el) => (this.outlineSlotEl = el)}></div>
+        <div
+          class="shell"
+          part="shell"
+          ref={(el) => (this.shellEl = el)}
+          role={this.fullscreen ? "dialog" : undefined}
+          aria-modal={this.fullscreen ? "true" : undefined}
+          aria-label={this.fullscreen ? "Editor" : undefined}
+          onKeyDown={this.onShellKeyDown}
+        >
+          {this.fullscreen && <span tabindex={0} class="sentinel" onFocus={() => this.onSentinelFocus("start")} />}
+          {this.showMenubar && this.renderMenubar()}
+          {this.renderUtility("top")}
+          {this.toolbarPlacement === "top" && renderToolbar()}
 
           <div class="editor-content-wrapper" hidden={this.htmlSource}>
             <div
               tabindex={this.isDisabled ? -1 : 0}
               ref={(el) => (this.editorRef = el)}
-              class="editor-content"
+              class={{ "editor-content": true, "chat-content": this.variant === "compact" }}
               part="content"
               contenteditable={this.editable}
               spellcheck={this.spellcheck}
@@ -2223,11 +2328,14 @@ export class RichText extends ReadyController implements EditorHost {
               aria-placeholder={this.placeholder}
               data-placeholder={this.placeholder}
               style={{
-                minHeight: this.minHeight,
+                minHeight: this.minHeight ?? (this.variant === "compact" ? "1lh" : "200px"),
                 maxHeight: this.maxHeight,
               }}
             ></div>
           </div>
+
+          {this.toolbarPlacement === "bottom" && renderToolbar()}
+          {this.renderUtility("bottom")}
 
           {this.htmlSource && (
             <textarea
@@ -2240,7 +2348,7 @@ export class RichText extends ReadyController implements EditorHost {
             ></textarea>
           )}
 
-          {this.showWordCount && (
+          {this.wordCountShown && (
             <div class="editor-footer" part="footer">
               <span class="word-count">
                 Words: {this.wordCount} | Characters: {this.characterCount}
@@ -2284,7 +2392,7 @@ export class RichText extends ReadyController implements EditorHost {
           </orb-note>
         )}
 
-        {shown.flat().map((id) => (
+        {toolbarRendered && shown.flat().map((id) => (
           <orb-tooltip key={`tooltip-${id}`} for={`action-${id}`} type="label" placement="top">
             {COMMANDS.get(id)!.label}
             {/* Drawn by CSS with empty alt text, so it isn't part of the button's
@@ -2331,7 +2439,7 @@ export class RichText extends ReadyController implements EditorHost {
           <orb-mi value="tableDelete">Delete table</orb-mi>
         </orb-menu>
 
-        {overflow.length > 0 && (
+        {toolbarRendered && overflow.length > 0 && (
           <orb-menu for="action-more" label="More formatting" onOrbSelect={(ev) => this.runOverflow(ev.detail.value)}>
             {overflow.flatMap((id) => {
               const command = COMMANDS.get(id)!;

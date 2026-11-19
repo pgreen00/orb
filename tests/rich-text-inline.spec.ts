@@ -14,26 +14,43 @@ const menuItem = (page: Page, label: string) =>
 
 const MENTIONS = `(query) => [{ id: "ada", label: "Ada Lovelace" }, { id: "alan", label: "Alan Turing" }].filter((p) => p.label.toLowerCase().includes(query.toLowerCase()))`;
 
+const COMMANDS = `(query) => [{ id: "summarize", label: "Summarize" }, { id: "image", label: "Image" }].filter((c) => c.label.toLowerCase().includes(query.toLowerCase()))`;
+
 test.describe("orb-rich-text inline objects", () => {
-  test("/ opens the commands, and Enter runs the one chosen", async ({ page }) => {
+  test("/ offers the host's commands, and Enter inserts the one chosen and reports it", async ({ page }) => {
     await editor(page, "<p><br></p>");
-    await typeInEditor(page, "/quo");
-    await expect(menuItem(page, "Quote")).toHaveCount(1);
+    await page.locator("orb-rich-text").evaluate((el: any, fn) => (el.commands = eval(fn)), COMMANDS);
+    await page.locator("orb-rich-text").evaluate((el) =>
+      el.addEventListener("orbCommand", (ev: any) => ((window as any).command = ev.detail.id), { once: true }),
+    );
+    await typeInEditor(page, "/sum");
+    await expect(menuItem(page, "Summarize")).toHaveCount(1);
     await page.keyboard.press("Enter");
-    expect(await content(page)).toContain("<blockquote>");
-    expect(await content(page)).not.toContain("/quo");
+    await expect.poll(() => page.evaluate(() => (window as any).command)).toBe("summarize");
+    expect(await content(page)).toContain('<span data-command="summarize">/Summarize</span>');
+    expect(await content(page)).not.toContain("/sum");
+  });
+
+  test("/ is a plain character when the host has no commands", async ({ page }) => {
+    await editor(page, "<p><br></p>");
+    await typeInEditor(page, "/sum");
+    await page.waitForTimeout(300);
+    await expect(page.locator("orb-rich-text orb-mi:visible")).toHaveCount(0);
+    expect(await content(page)).toBe("<p>/sum</p>");
   });
 
   test("/ only opens at the start of a block", async ({ page }) => {
     await editor(page, "<p>Text</p>");
-    await typeInEditor(page, " /quo");
+    await page.locator("orb-rich-text").evaluate((el: any, fn) => (el.commands = eval(fn)), COMMANDS);
+    await typeInEditor(page, " /sum");
     await expect(page.locator("orb-rich-text orb-mi:visible")).toHaveCount(0);
   });
 
   test("Escape closes the menu and leaves the typed text", async ({ page }) => {
     await editor(page, "<p><br></p>");
+    await page.locator("orb-rich-text").evaluate((el: any, fn) => (el.commands = eval(fn)), COMMANDS);
     await typeInEditor(page, "/");
-    await expect(menuItem(page, "Quote")).toHaveCount(1);
+    await expect(menuItem(page, "Summarize")).toHaveCount(1);
     await page.keyboard.press("Escape");
     await expect(page.locator("orb-rich-text orb-mi:visible")).toHaveCount(0);
     expect(await content(page)).toBe("<p>/</p>");
@@ -99,15 +116,14 @@ test.describe("orb-rich-text inline objects", () => {
     expect(await content(page)).toBe('<p>Hix <span data-tag="research">#research</span></p>');
   });
 
-  test("a slash command leaves the caret on its block, not in an empty text node", async ({ page }) => {
+  test("a command leaves the caret after its chip, so arguments can be typed", async ({ page }) => {
     await editor(page, "<p><br></p>");
-    await typeInEditor(page, "/para");
+    await page.locator("orb-rich-text").evaluate((el: any, fn) => (el.commands = eval(fn)), COMMANDS);
+    await typeInEditor(page, "/sum");
+    await expect(menuItem(page, "Summarize")).toHaveCount(1);
     await page.keyboard.press("Enter");
-    const caret = await page.locator("orb-rich-text").evaluate((host: any) => {
-      const [range] = (document.getSelection() as any).getComposedRanges({ shadowRoots: [host.shadowRoot] });
-      return range.startContainer.nodeName;
-    });
-    expect(caret).toBe("P");
+    await page.keyboard.type("now");
+    expect(await content(page)).toBe('<p><span data-command="summarize">/Summarize</span> now</p>');
   });
 
   test("deleting a selection of whole blocks leaves an empty paragraph with the caret in it", async ({ page }) => {

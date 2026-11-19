@@ -305,13 +305,15 @@ Typing some characters opens a menu of items. The menu narrows as you type. Up a
 
 | Type | Menu | Choosing inserts |
 |---|---|---|
-| `/` at the start of a line | Commands, matched on their names and common words, such as "h2" or "todo" | Runs the command, and the `/` text is removed |
+| `/` at the start of a block | Commands from the `commands` lookup, if it's set | A command chip, such as **/Summarize**, then a space. `orbCommand` is emitted. Without `commands`, `/` is a plain character. |
 | `:` and two letters | Emoji shortcodes, such as `:grinning:` | The emoji |
 | `@` | Mentions, from the `mentions` lookup | A mention |
 | `#` | Tags, from the `tags` lookup, and **Create #name** | A tag |
 | `{{` | Placeholders, from the `params` prop | A placeholder |
 
-`@`, `#`, `:` and `{{` open a menu only after a space or at the start of a line, so `10:30` and an email address don't. In a table cell, the `/` menu leaves out the commands that don't apply there.
+`@`, `#`, `:` and `{{` open a menu only after a space or at the start of a line, so `10:30` and an email address don't.
+
+`commands` is a function, set as a property, that's called with the text typed after `/`, and returns the matches, or a promise of them. Each command is saved as `<span data-command="summarize">/Summarize</span>`, which is one piece, so Backspace removes all of it. The text typed after it is for the command's arguments. Choosing a command emits `orbCommand`, with the `id` and `label` of the command. The editor doesn't run commands itself, so the host does that when it hears the event.
 
 ::: live-code-demo
 
@@ -322,6 +324,10 @@ Typing some characters opens a menu of items. The menu narrows as you type. Up a
 ```javascript
 await customElements.whenDefined("orb-rich-text");
 const editor = document.querySelector("#menus-demo");
+editor.commands = (query) =>
+  [{ id: "summarize", label: "Summarize" }, { id: "translate", label: "Translate" }].filter((command) =>
+    command.label.toLowerCase().includes(query.toLowerCase()),
+  );
 const people = [
   { id: "ada", label: "Ada Lovelace" },
   { id: "alan", label: "Alan Turing" },
@@ -337,7 +343,7 @@ editor.params = [
 :::
 
 **Manual test:**
-- Click an empty line and type `/quo`. **Quote** is the only item. Press Enter, and the line becomes a quote.
+- Click an empty line and type `/sum`. **Summarize** is the only item. Press Enter, and it's inserted as a command. Type `now` after it, and the text follows the command.
 - Type `/` and press Escape. The menu closes, and the `/` stays.
 - Type `#` on its own. The tag list opens. Type `@`, and the people list opens. Type `{{`, and the placeholders open.
 - Type `10:30`. No menu opens. Type `:gri`. The emoji menu opens, and Enter with **:grinning:** highlighted inserts 😀.
@@ -492,6 +498,45 @@ form.addEventListener("submit", (event) => {
 ```
 
 :::
+
+### Chat composer
+
+For writing a message, set a few props on the same editor:
+
+- `variant="compact"` gives a shorter writing area with chat typography. It has no menubar, and no word count unless `show-word-count` is set.
+- `enter-action="submit"` makes Enter send. It emits a cancelable `orbSubmit`, with the content as `html`, `text` and `isEmpty`. Unless the event is canceled, the editor is then cleared, so cancel it when sending fails. Empty content doesn't send. Shift+Enter adds a line, and so does Enter in a code block. Ctrl or ⌘+Enter always sends.
+- `toolbar-placement="bottom"` puts the formatting controls below the writing area.
+- Content slotted into `top-start`, `top-end`, `bottom-start` and `bottom-end` sits around the writing area, inside its border. A row with nothing in it is hidden.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="composer-demo" label="Message" variant="compact" enter-action="submit" toolbar-placement="bottom" placeholder="Message Ada…">
+  <span slot="top-start">Replying to Ada</span>
+  <span slot="bottom-start">Enter sends</span>
+</orb-rich-text>
+<p id="composer-output" role="status"></p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+const composer = document.querySelector("#composer-demo");
+const output = document.querySelector("#composer-output");
+composer.commands = (query) =>
+  [{ id: "summarize", label: "Summarize" }, { id: "translate", label: "Translate" }].filter((command) =>
+    command.label.toLowerCase().includes(query.toLowerCase()),
+  );
+composer.addEventListener("orbSubmit", (event) => (output.textContent = `Sent: ${event.detail.text}`));
+composer.addEventListener("orbCommand", (event) => (output.textContent = `Command: ${event.detail.id}`));
+```
+
+:::
+
+**Manual test:**
+- Type a message and press Enter. The text below the editor shows it, and the editor is empty again.
+- Press Shift+Enter, and the line breaks without sending.
+- Type `/sum` and choose **Summarize**. The text below the editor names the command, and the caret is after it.
+- Press Enter on an empty editor. Nothing is sent.
 
 ### Content
 

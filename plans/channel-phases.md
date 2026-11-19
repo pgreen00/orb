@@ -455,7 +455,7 @@ The plain editor has no toolbar, so it ignores `toolbar`.
 
 ### 2.8 Message actions
 
-- A toolbar on hover and focus: react, reply, copy, and edit and delete for the user's own messages. The `actions` attribute (5.6) makes the list configurable.
+- An actions menu opens from a right click, a long press on touch, or the Menu key. It starts with a row of reactions, then reply, copy, and edit and delete for the user's own messages. The `actions` attribute (5.6) makes the list configurable.
 - `orbEdit` and `orbDelete` are cancelable. Editing happens in place, with the same editor type as the composer.
 - `reply-to` shows a quote of the message it answers.
 
@@ -710,3 +710,47 @@ A section in `channel.md` with a short recipe per SDK, such as the Vercel AI SDK
 ## Open questions
 
 None at the moment.
+
+## Deviations from this plan
+
+What was built differently from the plan, or added to it, while implementing Phases 0 to 2. Each one is open for review.
+
+### Phase 0: rich-text
+
+- **Submit clears the editor.** The plan says `orbSubmit` is cancelable but doesn't say what cancel does. Here a submit that isn't canceled clears the editor, and a canceled one keeps the content.
+- **Public `submit()` method.** Not in the plan. The channel's send button needs it to trigger a submit.
+- **Chat styles started in Phase 0.** The compact variant needs them, so `_chat-content.scss` is created here, not in Phase 1.9. It's compiled to `chat-content.generated.css` by `stencil.config.ts`, following the `tables.generated.css` pattern, instead of being imported as SCSS.
+- **Compact defaults are resolved from `variant`.** `show-word-count` and `min-height` have no default in their declarations, and the variant supplies it. This matches the plan's behavior.
+- **Accessible name from `aria-label` (0.5) isn't verified.** The plan asks to check `syncAttributes`. I didn't check it or change it.
+
+### Phase 1: foundation
+
+- **`kind` isn't written to the element.** It's resolved by a getter: `kind`, then the preset's kind, then `direct`. The other settings are filled in as the plan describes.
+- **Presets are accepted but empty.** The mechanism is in place. The preset values come in Phase 5.
+- **`date-dividers` was added as a setting** in Phase 2. It wasn't in Phase 1's settings.
+- **No `editor` attribute in Phase 1.** Only the plain composer existed. `editor` was added in Phase 2.
+- **Dividers are label-only in Phase 1.** Date and unread dividers came in Phase 2.
+- **Receipts, typing, presence and threads aren't implemented.** They're Phase 4. The kind defaults table doesn't include them yet.
+- **`to` in `orbSend` is always `null`.** Send-to and threads are Phase 4.
+- **`message` in `orbSend` is set after dispatch.** With `echo`, the echoed element is added after the event, so a listener sees `message` as null during dispatch and has to read the detail later.
+- **Chat styles are adopted in `componentDidLoad`,** through the shared `src/utils/chat-styles.ts`. Stencil adds the component's own styles after `componentWillLoad`, so adopting earlier lost the cascade.
+- **Icons live in `channel/icons.tsx`,** not `utils/icons`. The plan's action icons needed new SVGs.
+- **The first view is built in `componentWillLoad`,** so methods such as `focusComposer()` find their elements. The plan doesn't say when the first view should be built.
+- **Module layout differs.** There's no `render/divider.tsx` or `render/thread.tsx`. `DividerRow` lives in `render/message.tsx`. The thread file waits for Phase 4.
+
+### Phase 2: content
+
+- **Reactions use six fixed emoji,** not the rich-text emoji picker.
+- **Actions open from a menu, not a hover toolbar.** A right click, a 500ms press on touch (cancelled by a drag of more than 10px), or the Menu key opens it, in the style of iMessage's tapback menu. The Menu key opens it beside the message and focuses the first reaction, and Escape returns focus to the message. The change came from a request to match that interaction.
+- **The plain editor's `/` and `@` menus open at the text box,** not at the caret. Caret positioning would need a mirror element.
+- **Editing always uses a plain textarea,** even with the rich composer. `orbEditCommit` (cancelable) is an added event for saving. The plan listed only `orbEdit`.
+- **Default actions:** React, Reply and Delete only emit their events. Copy copies the text. Edit opens the in-place editor unless `orbEdit` is canceled.
+- **Mute shows when it ends** ("muted until 4:30 PM"), not a live countdown.
+- **Drag-and-drop and paste of files work only in the plain composer.** The rich composer uses its attach button. Rich-text's own paste and drop of images isn't routed to attachments.
+- **`mention-self` marks only plain-text mentions.** Rich-text mentions are HTML spans with `data-mention`, and they don't get the part.
+- **Code blocks aren't syntax-highlighted.** The plan marked this optional.
+- **`unread` is set by the channel and reflected.** The plan said read-only. It's still a reflected attribute, and the app shouldn't set it.
+- **`orbRead`'s detail is `{ message }`.** The plan gave no detail.
+- **`orbModerate`'s `participant` is the participant element,** not an id or a model.
+- **Pin only emits `orbModerate`.** The `pinned` state changes only when the app sets it. The header doesn't list pinned messages, which is Phase 5.
+- **Untested behavior.** Ignored participants, the pinned state, the toolbar toggle, drag-and-drop of files, and moderation on rich content compile and run, but no test covers them yet.

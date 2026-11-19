@@ -1,11 +1,6 @@
 import { Component, Element, Prop, Watch } from "@stencil/core";
 import type MarkdownIt from "markdown-it";
-
-let markdownIt: Promise<typeof MarkdownIt> | undefined;
-
-/** Loads markdown-it on first use so pages without markdown don't pay for it. */
-const loadMarkdownIt = () =>
-  (markdownIt ??= import("markdown-it").then((mod) => mod.default));
+import { loadMarkdownIt } from "../../utils/markdown";
 
 const SOURCE_SELECTOR = 'script[type="text/markdown"]';
 

@@ -32,7 +32,7 @@ type Inline =
   | { t: "text"; s: string }
   | { t: "break" }
   | { t: "mark"; mark: Mark; href?: string; children: Inline[] }
-  | { t: "piece"; kind: "mention" | "tag" | "placeholder"; id: string; label: string }
+  | { t: "piece"; kind: "mention" | "tag" | "command" | "placeholder"; id: string; label: string }
   | { t: "img"; src: string; alt: string };
 
 type Content = Inline | Block;
@@ -55,9 +55,10 @@ type Block =
 const INLINE_TYPES = new Set<string>(["text", "break", "mark", "piece", "img"]);
 const isInline = (node: Content): node is Inline => INLINE_TYPES.has(node.t);
 
-const PIECE_ATTRS: [string, "mention" | "tag" | "placeholder"][] = [
+const PIECE_ATTRS: [string, "mention" | "tag" | "command" | "placeholder"][] = [
   ["data-mention", "mention"],
   ["data-tag", "tag"],
+  ["data-command", "command"],
   ["data-param", "placeholder"],
 ];
 

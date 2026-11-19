@@ -1,5 +1,4 @@
-import { COMMANDS } from "./commands";
-import { mentionNode, paramNode, tagNode } from "./params";
+import { commandNode, mentionNode, paramNode, tagNode } from "./params";
 import type { ParamDef } from "./params";
 import { closestBlock } from "./selection";
 import type { EmojiEntry } from "../ui/emoji";
@@ -26,7 +25,7 @@ export interface Trigger {
   spaces?: boolean;
   /** The items come from a lookup, so they wait for a pause in typing */
   async?: boolean;
-  /** The chosen item runs a command, rather than inserting text */
+  /** The chosen item is a command: a chip is inserted, and the host emits `orbCommand` for it */
   command?: boolean;
   items(query: string): TriggerItem[] | Promise<TriggerItem[]>;
   /** Replaces the trigger and search text, which the range covers, and returns the caret */
@@ -46,8 +45,8 @@ export interface TriggerMatch {
 /** A search longer than this doesn't open a menu */
 const MAX_QUERY = 50;
 
-/** Mentions, tags and placeholders are one piece each. The text inside one isn't typed, so it can't start a menu. */
-const PIECE = "[data-mention],[data-tag],[data-param]";
+/** Mentions, tags, commands and placeholders are one piece each. The text inside one isn't typed, so it can't start a menu. */
+const PIECE = "[data-mention],[data-tag],[data-command],[data-param]";
 
 /** The text of a block from its start to the caret */
 function textBeforeCaret(block: HTMLElement, caret: Range): string {
@@ -106,48 +105,26 @@ function replaceWith(range: Range, node: Node): Range {
   return caret;
 }
 
-/** The words each slash command is also found by, besides its label */
-const SLASH: Record<string, string[]> = {
-  paragraph: ["text", "normal"],
-  heading1: ["title", "h1"],
-  heading2: ["subtitle", "h2"],
-  heading3: ["h3"],
-  bulletList: ["ul", "bullets", "unordered"],
-  orderedList: ["ol", "numbered"],
-  taskList: ["todo", "checkbox", "tasks"],
-  quote: ["blockquote", "citation"],
-  code: ["pre", "snippet", "codeblock"],
-  table: ["grid", "rows", "columns"],
-  separator: ["hr", "divider", "rule", "line"],
-  media: ["image", "picture", "photo", "file"],
-  toc: ["contents", "outline"],
-  link: ["url", "hyperlink"],
-  specialCharacter: ["symbol", "character"],
-  emoji: ["smiley"],
-};
-
-/** `/` opens the commands. The chosen one runs once its text is removed, so the caller runs it. */
-export function slashTrigger(options: { inTable: boolean }): Trigger {
+/**
+ * `/` opens the host's commands, at the start of a block. Choosing one inserts
+ * a chip and a space, so arguments can be typed after it.
+ */
+export function commandTrigger(lookup: (query: string) => TriggerItem[] | Promise<TriggerItem[]>): Trigger {
   return {
     text: "/",
     label: "Commands",
     blockStart: true,
     spaces: true,
+    async: true,
     command: true,
-    items(query) {
-      const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-      const items: TriggerItem[] = [];
-      for (const [id, keywords] of Object.entries(SLASH)) {
-        const command = COMMANDS.get(id);
-        if (!command || (command.noTable && options.inTable)) continue;
-        const found = [command.label, ...keywords].join(" ").toLowerCase();
-        if (words.every((word) => found.includes(word))) items.push({ id, label: command.label });
-      }
-      return items;
-    },
-    choose(_item, _root, range) {
-      range.deleteContents();
-      const caret = range.cloneRange();
+    items: (query) => lookup(query),
+    choose(item, _root, range) {
+      const chip = commandNode(item.id, item.label);
+      replaceWith(range, chip);
+      const space = document.createTextNode(" ");
+      chip.after(space);
+      const caret = document.createRange();
+      caret.setStart(space, 1);
       caret.collapse(true);
       return caret;
     },

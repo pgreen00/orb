@@ -159,6 +159,37 @@
   border-bottom: 1px solid var(--orb-divider-color);
 }
 
+/* Below the writing area, the divider is above the toolbar */
+.editor-toolbar.bottom {
+  border-bottom: 0;
+  border-top: 1px solid var(--orb-divider-color);
+}
+
+/* The rows above and below the writing area, for content slotted into them. Each is hidden while it's empty. */
+.utility {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  min-width: 0;
+  padding: var(--orb-spacing-xs);
+  background: var(--editor-toolbar-bg);
+}
+
+.utility[part="top"] {
+  border-bottom: 1px solid var(--orb-divider-color);
+}
+
+.utility[hidden] {
+  display: none;
+}
+
+.utility .row-end {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  margin-inline-start: auto;
+}
+
 /* Groups use the same corners as a standalone button. */
 .editor-toolbar orb-button-group {
   --button-group-radius: var(--orb-radius-md);
@@ -638,9 +669,16 @@ orb-tooltip kbd::after {
   }
 }
 
-/* Inline objects: mentions, tags and placeholders are pills that the caret steps over. A placeholder with no key in `params` gets the invalid color. */
+/* The compact variant is a composer: less padding around the writing area, and its content uses the chat content styles (see _chat-content.scss) */
+:host([variant="compact"]) .editor-content {
+  padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  line-height: 1.5;
+}
+
+/* Inline objects: mentions, tags, commands and placeholders are pills that the caret steps over. A placeholder with no key in `params` gets the invalid color. */
 .editor-content [data-mention],
 .editor-content [data-tag],
+.editor-content [data-command],
 .editor-content [data-param] {
   padding: 0 0.3em;
   border-radius: var(--orb-radius-sm);

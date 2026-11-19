@@ -14,25 +14,11 @@ import {
 import { CloseIcon, FileIcon, UploadIcon } from "../../utils/icons";
 import { ReadyController } from "../../utils/ready-controller";
 import bytes from "../pipe/pipes/bytes";
+import { isAccepted } from "../../utils/files";
 
 const fileKey = (file: File) =>
   `${file.name}-${file.size}-${file.lastModified}`;
 
-function isAccepted(file: File, accept: string) {
-  const types = accept
-    .split(",")
-    .map((type) => type.trim().toLowerCase())
-    .filter(Boolean);
-  if (!types.length) return true;
-
-  const name = file.name.toLowerCase();
-  const mime = file.type.toLowerCase();
-  return types.some((type) => {
-    if (type.startsWith(".")) return name.endsWith(type);
-    if (type.endsWith("/*")) return mime.startsWith(type.slice(0, -1));
-    return mime === type;
-  });
-}
 
 async function readAllEntries(
   reader: FileSystemDirectoryReader,

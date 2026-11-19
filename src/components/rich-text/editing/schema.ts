@@ -170,6 +170,7 @@ export const NODES: NodeSpec[] = [
   // Inline objects are pieces the caret steps over. They come before the style span, which matches any span.
   { name: "mention", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-mention"), attrs: { "data-mention": safeKey } },
   { name: "tag", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-tag"), attrs: { "data-tag": safeKey } },
+  { name: "command", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-command"), attrs: { "data-command": safeKey } },
   { name: "param", tag: "SPAN", kind: "atom-inline", match: (el) => el.hasAttribute("data-param"), attrs: { "data-param": safeKey } },
   { name: "textStyle", tag: "SPAN", kind: "style", styles: INLINE_STYLES },
   {

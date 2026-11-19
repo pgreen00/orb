@@ -1,0 +1,95 @@
+// Chat content
+//
+// The typography for a message's rich text: the compact composer's writing
+// area now, and the messages in orb-channel later. Every rule is under
+// `.chat-content`, so it only reaches content that has the class.
+//
+// Compiled to chat-content.generated.css, which components import and adopt
+// into their shadow root, since component styles can't `@use` a partial.
+
+.chat-content {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0.5em 0 0.25em;
+    font-size: var(--orb-font-md);
+    font-weight: var(--orb-font-bold);
+  }
+
+  h1 {
+    font-size: var(--orb-font-lg);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  p + p,
+  ul,
+  ol,
+  blockquote,
+  pre {
+    margin-block: 0.5em;
+  }
+
+  ul,
+  ol {
+    padding-inline-start: 1.5em;
+  }
+
+  blockquote {
+    margin-inline: 0;
+    padding-inline-start: 0.75em;
+    border-inline-start: 3px solid var(--orb-divider-color);
+    color: var(--orb-label-color);
+  }
+
+  pre {
+    padding: 0.5em 0.75em;
+    border-radius: var(--orb-radius-md);
+    background: light-dark(var(--orb-neutral-150), var(--orb-neutral-900));
+    font-family: var(--orb-font-mono, ui-monospace, monospace);
+    font-size: 0.9em;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  :not(pre) > code {
+    padding: 0 0.25em;
+    border-radius: var(--orb-radius-sm);
+    background: light-dark(var(--orb-neutral-150), var(--orb-neutral-900));
+    font-family: var(--orb-font-mono, ui-monospace, monospace);
+  }
+
+  hr {
+    margin-block: 0.75em;
+    border: 0;
+    border-block-start: 1px solid var(--orb-divider-color);
+  }
+
+  img {
+    display: block;
+    max-inline-size: 100%;
+    block-size: auto;
+    border-radius: var(--orb-radius-md);
+  }
+
+  [data-mention],
+  [data-tag],
+  [data-command],
+  [data-param] {
+    padding: 0 0.3em;
+    border-radius: var(--orb-radius-sm);
+    background: light-dark(var(--orb-primary-100), color-mix(in srgb, var(--orb-primary-500) 30%, transparent));
+    white-space: nowrap;
+  }
+}

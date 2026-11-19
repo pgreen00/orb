@@ -18,6 +18,12 @@ writeFileSync(
   compile("src/styles/_tables.scss").css,
 );
 
+// Chat content styles are shared by orb-rich-text's compact variant and orb-channel
+writeFileSync(
+  "src/styles/chat-content.generated.css",
+  compile("src/styles/_chat-content.scss").css,
+);
+
 export const config: Config = {
   namespace: "orb-style",
   enableCache: false,

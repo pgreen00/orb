@@ -1,3 +1,465 @@
+/**
+ * @prop --orb-channel-gap: Space between messages
+ * @prop --orb-channel-max-width: Widest a message's text can be, as a share of the list
+ * @prop --orb-channel-bubble-background: Background of messages from other participants
+ * @prop --orb-channel-bubble-color: Text color of messages from other participants
+ * @prop --orb-channel-self-background: Background of the point of view's messages
+ * @prop --orb-channel-self-color: Text color of the point of view's messages
+ * @prop --orb-channel-divider-color: Color of the lines in dividers
+ */
+
 :host {
+  --orb-channel-gap: var(--orb-spacing-xs);
+  --orb-channel-max-width: 70%;
+  --orb-channel-bubble-background: light-dark(var(--orb-neutral-150), var(--orb-neutral-875));
+  --orb-channel-bubble-color: var(--orb-text-color);
+  --orb-channel-self-background: light-dark(var(--orb-primary-500), var(--orb-primary-600));
+  --orb-channel-self-color: var(--orb-neutral-75);
+  --orb-channel-divider-color: var(--orb-divider-color);
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-block-size: 0;
+  color: var(--orb-text-color);
+  font-size: var(--orb-font-md);
+  line-height: 1.5;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-sm);
+  padding: var(--orb-spacing-sm) var(--orb-spacing-md);
+  border-block-end: 1px solid var(--orb-divider-color);
+}
+
+.titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.title {
+  overflow: hidden;
+  font-weight: var(--orb-font-semi-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.description {
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+}
+
+.avatars {
+  display: flex;
+}
+
+.avatars .avatar + .avatar {
+  margin-inline-start: -0.5rem;
+}
+
+.list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--orb-channel-gap);
+  min-block-size: 0;
+  padding: var(--orb-spacing-md);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.empty {
+  margin: auto;
+  color: var(--orb-note-color);
+  text-align: center;
+}
+
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--orb-spacing-xs);
+  outline: none;
+}
+
+.message.first {
+  margin-block-start: var(--orb-spacing-xs);
+}
+
+.message.self {
+  flex-direction: row-reverse;
+}
+
+.message:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
+  border-radius: var(--orb-radius-md);
+}
+
+.avatar,
+.avatar-space {
+  flex: none;
+  inline-size: 2rem;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 2rem;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--orb-secondary-background-color);
+  color: var(--orb-text-color);
+  font-size: var(--orb-font-sm);
+  font-weight: var(--orb-font-semi-bold);
+}
+
+.avatar img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-inline-size: 0;
+  max-inline-size: var(--orb-channel-max-width);
+}
+
+.message.self .body {
+  align-items: flex-end;
+}
+
+.name,
+.status,
+.time {
+  margin-inline: var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-xs);
+}
+
+.name {
+  color: var(--accent, var(--orb-label-color));
+  font-size: var(--orb-font-sm);
+}
+
+.bubble {
+  min-inline-size: 0;
+  padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  border-radius: var(--orb-radius-lg);
+  background: var(--orb-channel-bubble-background);
+  color: var(--orb-channel-bubble-color);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message.self .bubble {
+  background: var(--orb-channel-self-background);
+  color: var(--orb-channel-self-color);
+}
+
+.message.failed .bubble {
+  color: light-dark(var(--orb-danger-750), var(--orb-danger-300));
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+}
+
+.divider::before,
+.divider::after {
+  flex: 1;
+  border-block-start: 1px solid var(--orb-channel-divider-color);
+  content: "";
+}
+
+.composer {
+  padding: var(--orb-spacing-sm) var(--orb-spacing-md);
+  border-block-start: 1px solid var(--orb-divider-color);
+}
+
+orb-textbox {
   display: block;
+}
+
+textarea {
+  inline-size: 100%;
+  max-block-size: 8lh;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  resize: none;
+  outline: none;
+}
+
+textarea::placeholder {
+  color: var(--orb-note-color);
+}
+
+.action-icon svg,
+.icon-only svg {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+}
+
+.orb-channel-sr-only,
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.menu-anchor {
+  position: absolute;
+  inline-size: 0;
+  block-size: 0;
+}
+
+orb-rich-text {
+  display: block;
+}
+
+.composer .note {
+  margin: var(--orb-spacing-2xs) 0 0;
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+}
+
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--orb-spacing-2xs);
+}
+
+.file {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  padding-inline: var(--orb-spacing-xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-md);
+  font-size: var(--orb-font-sm);
+}
+
+.file img {
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--orb-radius-sm);
+  object-fit: cover;
+}
+
+/* The popover supplies the surface, and its padding frames the menu */
+.actions {
+  --padding: var(--orb-spacing-2xs);
+}
+
+.actions orb-menu {
+  min-width: 11rem;
+}
+
+.actions [slot="icon"] svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.react {
+  display: flex;
+  gap: var(--orb-spacing-3xs);
+  margin-block-end: var(--orb-spacing-3xs);
+  padding-block-end: var(--orb-spacing-2xs);
+  border-block-end: 1px solid var(--orb-divider-color);
+}
+
+.react button {
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--orb-radius-pill, 999px);
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--orb-transition-x-fast) ease-in-out;
+}
+
+.react button:hover {
+  background-color: light-dark(var(--orb-neutral-150), var(--orb-neutral-850));
+}
+
+.react button[aria-pressed="true"] {
+  background-color: light-dark(var(--orb-primary-100), color-mix(in srgb, var(--orb-primary-500) 30%, transparent));
+}
+
+.react button:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: -2px;
+}
+
+/* On touch screens a long press opens the actions, so the browser doesn't select the text or show its callout */
+@media (pointer: coarse) {
+  .bubble {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--orb-spacing-3xs);
+  margin-inline: var(--orb-spacing-sm);
+}
+
+.reaction {
+  padding: 0 var(--orb-spacing-xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-pill, 999px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--orb-font-sm);
+  cursor: pointer;
+}
+
+.reaction[aria-pressed="true"] {
+  border-color: var(--orb-primary-300);
+  background: light-dark(var(--orb-primary-100), color-mix(in srgb, var(--orb-primary-500) 30%, transparent));
+}
+
+.quote {
+  max-inline-size: var(--orb-channel-max-width);
+  margin-inline: var(--orb-spacing-sm);
+  padding-inline-start: var(--orb-spacing-xs);
+  border-inline-start: 3px solid var(--orb-divider-color);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  margin-inline: var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+}
+
+.message.pending .bubble {
+  opacity: 0.6;
+}
+
+.badge {
+  margin-inline-start: var(--orb-spacing-2xs);
+  padding-inline: var(--orb-spacing-2xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-sm);
+  font-size: var(--orb-font-xs);
+  font-weight: var(--orb-font-regular);
+}
+
+.mention {
+  padding-inline: 0.2em;
+  border-radius: var(--orb-radius-sm);
+  background: light-dark(var(--orb-neutral-200), var(--orb-neutral-800));
+  white-space: nowrap;
+}
+
+.mention-self {
+  background: light-dark(var(--orb-primary-100), color-mix(in srgb, var(--orb-primary-500) 30%, transparent));
+  font-weight: var(--orb-font-semi-bold);
+}
+
+.divider.unread {
+  color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+  font-weight: var(--orb-font-semi-bold);
+}
+
+.attachments {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--orb-spacing-2xs);
+  margin-inline: var(--orb-spacing-sm);
+}
+
+.attachment.image img {
+  display: block;
+  max-inline-size: 16rem;
+  border-radius: var(--orb-radius-md);
+}
+
+.attachment.file {
+  color: inherit;
+}
+
+.file-size {
+  color: var(--orb-note-color);
+}
+
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-xs);
+  inline-size: min(28rem, 100%);
+}
+
+.edit textarea {
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: var(--orb-spacing-xs);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-md);
+  background: var(--orb-background-color);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--orb-spacing-xs);
+}
+
+.code-block {
+  position: relative;
+}
+
+.code-block [part~="copy"] {
+  position: absolute;
+  inset-block-start: var(--orb-spacing-2xs);
+  inset-inline-end: var(--orb-spacing-2xs);
+}
+
+@media (forced-colors: active) {
+  .bubble {
+    border: 1px solid CanvasText;
+  }
+
+  .message:focus-visible {
+    outline-color: Highlight;
+  }
 }

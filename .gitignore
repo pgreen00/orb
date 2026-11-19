@@ -42,3 +42,6 @@ src/components/pipe/pipes.generated.ts
 
 # Native table styles for orb-grid's print
 src/components/grid/tables.generated.css
+
+# Chat content styles, shared by orb-rich-text's compact variant and orb-channel
+src/styles/chat-content.generated.css

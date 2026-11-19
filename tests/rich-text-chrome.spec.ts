@@ -52,10 +52,11 @@ test.describe("orb-rich-text full screen, menubar, modes and formats", () => {
 
   test("Escape closes the command menu without leaving full screen", async ({ page }) => {
     await editor(page, "<p><br></p>");
+    await host(page).evaluate((el: any) => (el.commands = () => [{ id: "summarize", label: "Summarize" }]));
     await setFullscreen(page, true);
     await host(page).locator(".editor-content").click();
     await page.keyboard.type("/");
-    await expect(host(page).locator("orb-mi:visible").first()).toBeVisible();
+    await expect(host(page).locator("orb-mi:text-is('Summarize'):visible")).toBeVisible();
     await page.keyboard.press("Escape");
     await page.waitForTimeout(400);
     expect(await isFullscreen(page)).toBe(true);
