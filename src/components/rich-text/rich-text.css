@@ -83,6 +83,72 @@
   --editor-bg: var(--editor-toolbar-bg);
 }
 
+/* Full screen: the shell is a popover, so it sits above the page. The host keeps its height, since the shell leaves the layout. */
+:host([fullscreen]) {
+  block-size: var(--editor-placeholder-height);
+}
+
+/* Overrides the popover styles, which center a box that fits its content. */
+.shell:popover-open {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: auto 0;
+  top: var(--editor-viewport-top, 0);
+  inline-size: 100vw;
+  max-inline-size: none;
+  block-size: var(--editor-viewport-height, 100dvh);
+  max-block-size: none;
+  margin: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  border: 0;
+  border-radius: 0;
+  background: var(--editor-fullscreen-bg, Canvas);
+  color: var(--editor-text-color);
+}
+
+.shell:popover-open .editor-content-wrapper {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+/* The writing area takes the window's height. Its maximum height is set inline, so this overrides it. */
+.shell:popover-open .editor-content {
+  flex: 1;
+  max-block-size: none !important;
+  inline-size: min(100%, var(--editor-fullscreen-width, 816px));
+  margin-inline: auto;
+  /* Scrolling past the end doesn't scroll the page behind */
+  overscroll-behavior: contain;
+}
+
+/* Tab wraps around the shell. The sentinels are focusable, but hidden. */
+.sentinel {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* The HTML source view shows the document's HTML in place of the editor */
+.source {
+  box-sizing: border-box;
+  display: block;
+  inline-size: 100%;
+  min-block-size: 200px;
+  margin: 0;
+  padding: var(--orb-spacing-md);
+  border: 0;
+  background: var(--editor-bg);
+  color: var(--editor-text-color);
+  font-family: var(--orb-font-mono, ui-monospace, monospace);
+  font-size: var(--orb-font-sm);
+  resize: vertical;
+}
+
 .editor-toolbar {
   display: flex;
   flex-wrap: nowrap;

@@ -26,6 +26,9 @@ import { toggleTask } from "./editing/lists";
 import { closestCell } from "./editing/tables";
 import { emojiTrigger, findTrigger, mentionTrigger, paramTrigger, slashTrigger, tagTrigger } from "./editing/triggers";
 import type { Trigger, TriggerItem, TriggerMatch } from "./editing/triggers";
+import type { ExportFormat, ImportFormat, JsonNode } from "./convert/export";
+
+import { printDocument } from "./convert/print";
 import { fillParams, markUnknownParams, paramKeysIn } from "./editing/params";
 import type { ParamDef } from "./editing/params";
 import type { TemplateInfo } from "./editing/templates";
@@ -65,11 +68,14 @@ import { Plan, planEnter, planTyped } from "./editing/rules";
 import { isSafeUrl } from "./editing/schema";
 import { sanitize, textToFragment } from "./editing/sanitize";
 import {
+  Boundaries,
   caretAfterPiece,
   caretAnchor,
   closestBlock,
   getRange,
+  keep,
   pieceAt,
+  restore,
   selectRange,
   settleCaret,
   settleEmptyText,
@@ -98,6 +104,14 @@ function idOf(el: HTMLElement) {
 }
 
 /** How long typing pauses before it's saved as one undo step */
+/** Sanitized, normalized and ready to insert: pasted, templated or imported HTML */
+function sanitizedFragment(html: string): DocumentFragment {
+  const fragment = sanitize(html);
+  normalize(fragment);
+  markPieces(fragment);
+  return fragment;
+}
+
 const TYPING_UNDO_MS = 500;
 /** How long typing pauses before code blocks are colored again */
 const HIGHLIGHT_MS = 150;
@@ -117,6 +131,9 @@ const sameValues = (a: Record<string, unknown>, b: Record<string, unknown>) => {
 };
 /** Used until the More button has been measured */
 const MORE_BUTTON_WIDTH = 36;
+
+/** Menubar items that don't change the document, so they work while it's read-only */
+const NO_EDIT_ACTIONS = new Set(["fullscreen", "source", "outline", "wordCount", "print", "help"]);
 
 export interface EditorChangeEvent {
   html: string;
@@ -179,7 +196,7 @@ export class RichText extends ReadyController implements EditorHost {
   @Prop() maxHeight = "500px";
 
   /** Shows the word and character counts below the editor */
-  @Prop() showWordCount = true;
+  @Prop({ mutable: true }) showWordCount = true;
 
   /** Underlines misspelled words, using the browser's spell checker */
   @Prop() spellcheck = true;
@@ -225,7 +242,7 @@ export class RichText extends ReadyController implements EditorHost {
   @Prop() embedProviders: EmbedProvider[] = DEFAULT_EMBED_PROVIDERS;
 
   /** Shows a panel listing the document's headings, which jumps to each one */
-  @Prop({ reflect: true }) outline = false;
+  @Prop({ mutable: true, reflect: true }) outline = false;
 
   /** Looks up people for `@`. Set it as a property. Its items are shown in a menu while the user types. */
   @Prop() mentions?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
@@ -238,6 +255,21 @@ export class RichText extends ReadyController implements EditorHost {
 
   /** Templates the templates picker offers. Set it as a property. */
   @Prop() templates: TemplateInfo[] = [];
+
+  /** Fills the window, above the rest of the page */
+  @Prop({ mutable: true, reflect: true }) fullscreen = false;
+
+  /** When the menubar shows */
+  @Prop() menubar: "always" | "fullscreen" | "never" = "fullscreen";
+
+  /** `view` is read-only, like `readonly`, but says so in the mode */
+  @Prop({ reflect: true }) mode: "edit" | "view" = "edit";
+
+  /** Where the formatting controls appear */
+  @Prop() toolbarPlacement: "top" | "none" = "top";
+
+  /** The title used for downloads and printing */
+  @Prop() docTitle = "Untitled";
 
   @State() isFocused = false;
   @State() wordCount = 0;
@@ -262,9 +294,15 @@ export class RichText extends ReadyController implements EditorHost {
   @State() templatesOpen = false;
   /** The items of the open trigger menu */
   @State() triggerItems: TriggerItem[] = [];
+  /** The HTML source view is showing, in place of the editor */
+  @State() htmlSource = false;
+  @State() sourceText = "";
 
   /** Emits after each change, with the saved HTML and text. Both are computed only when read. */
   @Event() orbEditorChange: EventEmitter<EditorChangeEvent>;
+
+  /** Emitted by File > Download as. Call preventDefault() to handle the data yourself. */
+  @Event({ cancelable: true }) orbExport: EventEmitter<{ format: ExportFormat; data: string | JsonNode[] }>;
 
   /** Emits when the content area gains focus */
   @Event() orbEditorFocus: EventEmitter<FocusEvent>;
@@ -351,6 +389,11 @@ export class RichText extends ReadyController implements EditorHost {
   /** The trigger the user pressed Escape on. It stays closed until the caret leaves it. */
   private triggerDismissed: { block: HTMLElement; at: number; trigger: string } | null = null;
   private triggerMenuEl?: HTMLOrbMenuElement;
+  private shellEl?: HTMLElement;
+  /** The selection to restore after a full screen change renders */
+  private pendingSelection?: Boundaries;
+  private viewportListeners?: AbortController;
+  private openInput?: HTMLInputElement;
   private triggerTimer?: ReturnType<typeof setTimeout>;
   /** Each lookup gets a number, so an answer that comes back late is ignored */
   private triggerRequest = 0;
@@ -362,7 +405,11 @@ export class RichText extends ReadyController implements EditorHost {
   }
 
   get editable() {
-    return !this.isDisabled && !this.readonly;
+    return !this.isDisabled && !this.isReadonly && !this.htmlSource;
+  }
+
+  private get isReadonly() {
+    return this.readonly || this.mode === "view";
   }
 
   get fontSizeList(): string[] {
@@ -451,8 +498,43 @@ export class RichText extends ReadyController implements EditorHost {
 
   @Watch("required")
   @Watch("readonly")
+  @Watch("mode")
   onFlagChange() {
     this.syncValidity();
+  }
+
+  @Watch("fullscreen")
+  onFullscreenChange(on: boolean) {
+    const shell = this.shellEl;
+    if (!shell || !this.editorRef) return;
+    const range = this.takeRange();
+
+    if (on && !shell.matches(":popover-open")) {
+      // The shell leaves the page's layout, so the host keeps its height.
+      this.el.style.setProperty("--editor-placeholder-height", `${this.el.offsetHeight}px`);
+      shell.popover = "manual";
+      shell.showPopover();
+      this.watchViewport();
+    } else if (!on && shell.matches(":popover-open")) {
+      shell.hidePopover();
+      // With the attribute left on, the shell would stay hidden.
+      shell.removeAttribute("popover");
+      this.el.style.removeProperty("--editor-placeholder-height");
+      this.viewportListeners?.abort();
+      this.el.scrollIntoView({ block: "nearest" });
+    }
+    // The shell's children change with full screen, so the editor can be moved on the next render. It's restored after that.
+    this.pendingSelection = keep(range);
+    this.restoreSelection();
+  }
+
+  /** Puts focus and the selection back in the editor. Safari only redraws the caret when the selection changes. */
+  private restoreSelection() {
+    const saved = this.pendingSelection;
+    if (!saved || !this.editorRef) return;
+    this.editorRef.focus({ preventScroll: true });
+    const range = restore(saved, this.editorRef);
+    if (range) selectRange(range, { redraw: true });
   }
 
   @Watch("params")
@@ -478,6 +560,7 @@ export class RichText extends ReadyController implements EditorHost {
 
   componentDidLoad() {
     super.componentDidLoad();
+    if (this.fullscreen) this.onFullscreenChange(true);
     this.outlinePanel = createOutlinePanel({
       onSelect: (heading) => this.focusAt(goToHeading(this.editorRef, heading)),
     });
@@ -497,6 +580,10 @@ export class RichText extends ReadyController implements EditorHost {
     this.wireAria();
     this.syncToolbarFocus();
     this.measureToolbar();
+    if (this.pendingSelection) {
+      this.restoreSelection();
+      this.pendingSelection = undefined;
+    }
   }
 
   connectedCallback() {
@@ -504,6 +591,7 @@ export class RichText extends ReadyController implements EditorHost {
   }
 
   disconnectedCallback() {
+    this.viewportListeners?.abort();
     clearTimeout(this.typingTimer);
     clearTimeout(this.highlightTimer);
     this.disconnectHeadings?.();
@@ -555,6 +643,18 @@ export class RichText extends ReadyController implements EditorHost {
   }
 
   /** The content as canonical HTML, the form of the saved value */
+  /** The document in another format. JSON is a tree of nodes, the rest are strings. */
+  @Method()
+  async exportAs(format: ExportFormat): Promise<string | JsonNode[]> {
+    const { html, text } = this.output();
+    if (format === "html") return html;
+    if (format === "text") return text;
+    const root = document.createElement("div");
+    root.innerHTML = html;
+    const convert = await import("./convert/export");
+    return format === "markdown" ? convert.toMarkdown(root) : convert.toJSON(root);
+  }
+
   @Method()
   async getContent(): Promise<string> {
     return this.output().html;
@@ -969,9 +1069,11 @@ export class RichText extends ReadyController implements EditorHost {
     const template = this.templates.find((each) => each.id === id);
     if (!template || !this.editable) return;
     const html = template.html ?? (await template.load?.()) ?? "";
-    const fragment = sanitize(html);
-    normalize(fragment);
-    markPieces(fragment);
+    this.applyFragment(sanitizedFragment(html), how);
+  }
+
+  /** Replaces the content, or inserts at the caret, as one undo step */
+  private applyFragment(fragment: DocumentFragment, how: "replace" | "insert") {
     this.apply((range) => {
       if (how === "insert") return insertFragment(this.editorRef, range, fragment);
       this.editorRef.replaceChildren(fragment);
@@ -984,6 +1086,262 @@ export class RichText extends ReadyController implements EditorHost {
 
   openTemplates() {
     this.templatesOpen = true;
+  }
+
+  /** Fills the window, or returns to the page */
+  @Method()
+  async toggleFullscreen() {
+    this.fullscreen = !this.fullscreen;
+  }
+
+  /** Prints the document. The page around the editor isn't printed. */
+  @Method()
+  async print() {
+    printDocument(this.output().html, this.docTitle);
+  }
+
+  /** Replaces the document, or inserts at the caret, from another format. Undoable. */
+  @Method()
+  async importFrom(format: ImportFormat, data: string, { replace = true } = {}) {
+    if (!this.editable) return;
+    let fragment: DocumentFragment;
+    if (format === "text") {
+      fragment = document.createDocumentFragment();
+      for (const line of data.split(/\r?\n/)) {
+        const paragraph = document.createElement("p");
+        if (line) paragraph.textContent = line;
+        else paragraph.append(document.createElement("br"));
+        fragment.append(paragraph);
+      }
+      normalize(fragment);
+      markPieces(fragment);
+    } else {
+      fragment = sanitizedFragment(format === "markdown" ? await markdownToHtml(data) : data);
+    }
+    this.applyFragment(fragment, replace ? "replace" : "insert");
+  }
+
+  /** Follows the visible part of the window, which shrinks when the on-screen keyboard opens */
+  private watchViewport() {
+    const viewport = window.visualViewport;
+    const shell = this.shellEl;
+    if (!viewport || !shell) return;
+    this.viewportListeners?.abort();
+    this.viewportListeners = new AbortController();
+    const { signal } = this.viewportListeners;
+    const sync = () => {
+      shell.style.setProperty("--editor-viewport-height", `${viewport.height}px`);
+      shell.style.setProperty("--editor-viewport-top", `${viewport.offsetTop}px`);
+    };
+    viewport.addEventListener("resize", sync, { signal });
+    viewport.addEventListener("scroll", sync, { signal });
+    sync();
+  }
+
+  /** Escape leaves full screen, unless a menu or popover the editor opened takes it first */
+  private onShellKeyDown = (event: KeyboardEvent) => {
+    if (!this.fullscreen || event.key !== "Escape") return;
+    if (event.defaultPrevented || this.hasOpenPopup()) return;
+    event.preventDefault();
+    this.fullscreen = false;
+  };
+
+  /** Menus, popovers and dialogs the editor opened. Tooltips don't count. */
+  private hasOpenPopup() {
+    const root = this.el.shadowRoot!;
+    return (
+      Array.from(root.querySelectorAll("orb-menu, orb-popover")).some((el) => el.matches(":popover-open")) ||
+      Array.from(root.querySelectorAll<HTMLElement & { open: boolean }>("orb-overlay")).some((el) => el.open)
+    );
+  }
+
+  /** In full screen, Tab wraps: past the end it returns to the menubar or toolbar, and back past the start to the content */
+  private onSentinelFocus(at: "start" | "end") {
+    if (at === "start") {
+      this.editorRef.focus({ preventScroll: true });
+      return;
+    }
+    const first = this.shellEl?.querySelector<HTMLElement>("orb-menubar [tabindex='0'], .editor-toolbar [tabindex='0']");
+    (first ?? this.editorRef).focus({ preventScroll: true });
+  }
+
+  /** Shows the HTML of the document, or applies the HTML as one undo step when switching back */
+  private async toggleSource() {
+    if (!this.htmlSource) {
+      this.sourceText = this.output().html;
+      this.htmlSource = true;
+      return;
+    }
+    const html = this.sourceText;
+    this.htmlSource = false;
+    // The editor is shown again on the next frame, so the caret can go into it
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    this.applyFragment(sanitizedFragment(html), "replace");
+  }
+
+  /** Saves the document in `format`. A listener can cancel `orbExport` to get the data and handle it itself. */
+  private async download(format: ExportFormat) {
+    const data = await this.exportAs(format);
+    if (this.orbExport.emit({ format, data }).defaultPrevented) return;
+    const text = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    const type = { html: "text/html", text: "text/plain", markdown: "text/markdown", json: "application/json" }[format];
+    const extension = { html: "html", text: "txt", markdown: "md", json: "json" }[format];
+    const url = URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${this.docTitle}.${extension}`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /** Opens a file picked from File > Open…, reading the format from its extension */
+  private async onOpenFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    const format = /\.(md|markdown)$/i.test(file.name) ? "markdown" : /\.html?$/i.test(file.name) ? "html" : /\.txt$/i.test(file.name) ? "text" : null;
+    if (format) await this.importFrom(format, await file.text());
+  }
+
+  private selectAll() {
+    const range = document.createRange();
+    range.selectNodeContents(this.editorRef);
+    this.editorRef.focus({ preventScroll: true });
+    selectRange(range, { redraw: true });
+  }
+
+  private get showMenubar() {
+    return this.menubar === "always" || (this.menubar === "fullscreen" && this.fullscreen);
+  }
+
+  /** The menubar's items. A value that names a command runs it; the others are actions of the editor. */
+  private renderMenubar() {
+    const item = (value: string, label = COMMANDS.get(value)?.label ?? "", disabled = false) => {
+      const shortcut = COMMANDS.get(value)?.shortcuts?.[0];
+      const needsEditing = !(value.startsWith("export:") || NO_EDIT_ACTIONS.has(value));
+      return (
+        <orb-mi value={value} disabled={disabled || (needsEditing && !this.editable)}>
+          {label}
+          {shortcut && <kbd slot="details">{shortcutText(shortcut)}</kbd>}
+        </orb-mi>
+      );
+    };
+    const styles = COMMANDS.get("blockType")!.options!(this);
+
+    return (
+      <orb-menubar label="Editor" class="menubar" onOrbSelect={(ev) => this.runMenuItem(ev.detail.value)}>
+        <orb-mi id="bar-file">File</orb-mi>
+        <orb-mi id="bar-edit">Edit</orb-mi>
+        <orb-mi id="bar-view">View</orb-mi>
+        <orb-mi id="bar-insert">Insert</orb-mi>
+        <orb-mi id="bar-format">Format</orb-mi>
+        <orb-mi id="bar-help">Help</orb-mi>
+
+        <orb-menu for="bar-file" label="File">
+          {item("templates", "New from template")}
+          {item("open", "Open…")}
+          <orb-mi id="bar-download">Download as</orb-mi>
+          <orb-menu for="bar-download" label="Download as">
+            {item("export:html", "HTML")}
+            {item("export:text", "Text")}
+            {item("export:markdown", "Markdown")}
+            {item("export:json", "JSON")}
+          </orb-menu>
+          {item("print", "Print")}
+        </orb-menu>
+
+        <orb-menu for="bar-edit" label="Edit">
+          {item("undo")}
+          {item("redo")}
+          {item("selectAll", "Select all")}
+        </orb-menu>
+
+        <orb-menu for="bar-view" label="View">
+          {item("fullscreen", this.fullscreen ? "Exit full screen" : "Full screen")}
+          {item("source", this.htmlSource ? "Show editor" : "HTML source")}
+          {item("outline", this.outline ? "Hide outline" : "Show outline")}
+          {item("wordCount", this.showWordCount ? "Hide word count" : "Show word count")}
+        </orb-menu>
+
+        <orb-menu for="bar-insert" label="Insert">
+          {item("media")}
+          {item("table")}
+          {item("separator")}
+          {item("specialCharacter")}
+          {item("emoji")}
+          {item("param", undefined, this.params.length === 0)}
+          {item("toc")}
+        </orb-menu>
+
+        <orb-menu for="bar-format" label="Format">
+          <orb-mi id="bar-style">Text style</orb-mi>
+          <orb-menu for="bar-style" label="Text style">
+            {styles.map((style) => item(`blockType:${style.value}`, style.label))}
+          </orb-menu>
+          {item("bold")}
+          {item("italic")}
+          {item("underline")}
+          {item("strike")}
+          {item("quote")}
+          {item("code", "Code block")}
+          {item("bulletList")}
+          {item("orderedList")}
+          {item("taskList")}
+          {item("indent")}
+          {item("outdent")}
+          {item("clearFormatting")}
+        </orb-menu>
+
+        <orb-menu for="bar-help" label="Help">
+          {item("help", "Keyboard shortcuts")}
+        </orb-menu>
+      </orb-menubar>
+    );
+  }
+
+  private runMenuItem(value: string) {
+    if (value.startsWith("export:")) {
+      void this.download(value.slice("export:".length) as ExportFormat);
+      return;
+    }
+    if (value.startsWith("blockType:")) {
+      this.runCommand("blockType", value.slice("blockType:".length));
+      return;
+    }
+    switch (value) {
+      case "fullscreen":
+        this.fullscreen = !this.fullscreen;
+        return;
+      case "source":
+        void this.toggleSource();
+        return;
+      case "outline":
+        this.outline = !this.outline;
+        return;
+      case "wordCount":
+        this.showWordCount = !this.showWordCount;
+        return;
+      case "print":
+        void this.print();
+        return;
+      case "open":
+        this.openInput?.click();
+        return;
+      case "templates":
+        this.openTemplates();
+        return;
+      case "selectAll":
+        this.selectAll();
+        return;
+      case "help":
+        this.showHelp();
+        return;
+      default:
+        this.runCommand(value);
+    }
   }
 
   private pickTemplate(id: string) {
@@ -1317,10 +1675,17 @@ export class RichText extends ReadyController implements EditorHost {
       this.focusToolbar();
       return;
     }
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "p") {
+      event.preventDefault();
+      this.print();
+      return;
+    }
     if (!this.editable) return;
     // While the trigger menu is open, it takes these keys. Escape closes it and leaves the text.
     if (this.triggerOpen()) {
       if (event.key === "Escape") {
+        // Stops the shell from taking this Escape to leave full screen
+        event.preventDefault();
         this.dismissTrigger();
         return;
       }
@@ -1765,7 +2130,18 @@ export class RichText extends ReadyController implements EditorHost {
 
         <div class="editor-body">
           <div class="outline-slot" hidden={!this.outline} ref={(el) => (this.outlineSlotEl = el)}></div>
-        <div class="shell" part="shell">
+        <div
+          class="shell"
+          part="shell"
+          ref={(el) => (this.shellEl = el)}
+          role={this.fullscreen ? "dialog" : undefined}
+          aria-modal={this.fullscreen ? "true" : undefined}
+          aria-label={this.fullscreen ? "Editor" : undefined}
+          onKeyDown={this.onShellKeyDown}
+        >
+          {this.fullscreen && <span tabindex={0} class="sentinel" onFocus={() => this.onSentinelFocus("start")} />}
+          {this.showMenubar && this.renderMenubar()}
+          {this.toolbarPlacement === "top" && (
           <div
             class="editor-toolbar"
             part="toolbar"
@@ -1818,8 +2194,9 @@ export class RichText extends ReadyController implements EditorHost {
               </orb-button>
             )}
           </div>
+          )}
 
-          <div class="editor-content-wrapper">
+          <div class="editor-content-wrapper" hidden={this.htmlSource}>
             <div
               tabindex={this.isDisabled ? -1 : 0}
               ref={(el) => (this.editorRef = el)}
@@ -1852,6 +2229,17 @@ export class RichText extends ReadyController implements EditorHost {
             ></div>
           </div>
 
+          {this.htmlSource && (
+            <textarea
+              class="source"
+              aria-label="HTML source"
+              spellcheck={false}
+              readOnly={this.isDisabled || this.isReadonly}
+              value={this.sourceText}
+              onInput={(ev) => (this.sourceText = (ev.target as HTMLTextAreaElement).value)}
+            ></textarea>
+          )}
+
           {this.showWordCount && (
             <div class="editor-footer" part="footer">
               <span class="word-count">
@@ -1859,6 +2247,14 @@ export class RichText extends ReadyController implements EditorHost {
               </span>
             </div>
           )}
+          {this.fullscreen && <span tabindex={0} class="sentinel" onFocus={() => this.onSentinelFocus("end")} />}
+          <input
+            ref={(el) => (this.openInput = el)}
+            type="file"
+            accept=".md,.markdown,.html,.htm,.txt"
+            hidden
+            onChange={(ev) => this.onOpenFile(ev)}
+          />
         </div>
           {/* The trigger menu opens at the caret. Its zero-size anchor makes it a popover, as the table menu's is.
               It sits here because these children never change: moving an open popover closes it, and the toolbar's

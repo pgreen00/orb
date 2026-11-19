@@ -24,6 +24,7 @@ import { TriggerItem } from "./components/rich-text/editing/triggers";
 import { ParamDef } from "./components/rich-text/editing/params";
 import { TemplateInfo } from "./components/rich-text/editing/templates";
 import { EditorChangeEvent } from "./components/rich-text/rich-text";
+import { ExportFormat, ImportFormat, JsonNode } from "./components/rich-text/convert/export";
 import { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 import { TabCloseDetail } from "./components/tab-button/tab-button";
 import { ViewChangeDetail, ViewNavigateOptions } from "./components/view-manager/view-manager";
@@ -47,6 +48,7 @@ export { TriggerItem } from "./components/rich-text/editing/triggers";
 export { ParamDef } from "./components/rich-text/editing/params";
 export { TemplateInfo } from "./components/rich-text/editing/templates";
 export { EditorChangeEvent } from "./components/rich-text/rich-text";
+export { ExportFormat, ImportFormat, JsonNode } from "./components/rich-text/convert/export";
 export { ShaderErrorDetail } from "./components/shader-canvas/shader-canvas";
 export { TabCloseDetail } from "./components/tab-button/tab-button";
 export { ViewChangeDetail, ViewNavigateOptions } from "./components/view-manager/view-manager";
@@ -1527,10 +1529,19 @@ export namespace Components {
          */
         "disabled": boolean;
         /**
+          * The title used for downloads and printing
+          * @default "Untitled"
+         */
+        "docTitle": string;
+        /**
           * The sites whose videos can be embedded by link. Set it as a property.
           * @default [YOUTUBE, VIMEO]
          */
         "embedProviders": EmbedProvider[];
+        /**
+          * The document in another format. JSON is a tree of nodes, the rest are strings.
+         */
+        "exportAs": (format: ExportFormat) => Promise<string | JsonNode[]>;
         /**
           * The document's HTML with each placeholder replaced by its value, as text. Placeholders with no value stay as they are.
          */
@@ -1546,8 +1557,10 @@ export namespace Components {
          */
         "fonts": FontOption[];
         /**
-          * The content as canonical HTML, the form of the saved value
+          * Fills the window, above the rest of the page
+          * @default false
          */
+        "fullscreen": boolean;
         "getContent": () => Promise<string>;
         /**
           * The placeholders in the document, by key, in order and without repeats
@@ -1557,6 +1570,10 @@ export namespace Components {
           * The content as plain text, with a line per block
          */
         "getText": () => Promise<string>;
+        /**
+          * Replaces the document, or inserts at the caret, from another format. Undoable.
+         */
+        "importFrom": (format: ImportFormat, data: string, { replace }?: { replace?: boolean; }) => Promise<void>;
         /**
           * Text above the editor
          */
@@ -1581,10 +1598,20 @@ export namespace Components {
          */
         "mentions"?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
         /**
+          * When the menubar shows
+          * @default "fullscreen"
+         */
+        "menubar": "always" | "fullscreen" | "never";
+        /**
           * The smallest height of the writing area
           * @default "200px"
          */
         "minHeight": string;
+        /**
+          * `view` is read-only, like `readonly`, but says so in the mode
+          * @default "edit"
+         */
+        "mode": "edit" | "view";
         /**
           * Informational message below the editor
          */
@@ -1604,6 +1631,10 @@ export namespace Components {
           * @default "Start typing..."
          */
         "placeholder": string;
+        /**
+          * Prints the document. The page around the editor isn't printed.
+         */
+        "print": () => Promise<void>;
         /**
           * Shows the content without allowing edits. Still focusable and submitted with the form.
           * @default false
@@ -1651,10 +1682,19 @@ export namespace Components {
          */
         "templates": TemplateInfo[];
         /**
+          * Fills the window, or returns to the page
+         */
+        "toggleFullscreen": () => Promise<void>;
+        /**
           * The toolbar's controls, in order. `|` separates groups. Commands not listed are still available from keyboard shortcuts. Groups that don't fit move into a More menu.
           * @default DEFAULT_TOOLBAR
          */
         "toolbar": string;
+        /**
+          * Where the formatting controls appear
+          * @default "top"
+         */
+        "toolbarPlacement": "top" | "none";
         /**
           * Uploads a file and returns its URL. Without it, pictures and videos are embedded as data URLs.
          */
@@ -2795,6 +2835,7 @@ declare global {
     };
     interface HTMLOrbRichTextElementEventMap {
         "orbEditorChange": EditorChangeEvent;
+        "orbExport": { format: ExportFormat; data: string | JsonNode[] };
         "orbEditorFocus": FocusEvent;
         "orbEditorBlur": FocusEvent;
         "orbUploadError": { file: File; error: unknown };
@@ -4638,6 +4679,11 @@ declare namespace LocalJSX {
          */
         "disabled"?: boolean;
         /**
+          * The title used for downloads and printing
+          * @default "Untitled"
+         */
+        "docTitle"?: string;
+        /**
           * The sites whose videos can be embedded by link. Set it as a property.
           * @default [YOUTUBE, VIMEO]
          */
@@ -4656,6 +4702,11 @@ declare namespace LocalJSX {
           * The `id` of a `<form>` element to associate this element with.
          */
         "form"?: string;
+        /**
+          * Fills the window, above the rest of the page
+          * @default false
+         */
+        "fullscreen"?: boolean;
         /**
           * Text above the editor
          */
@@ -4680,10 +4731,20 @@ declare namespace LocalJSX {
          */
         "mentions"?: (query: string) => TriggerItem[] | Promise<TriggerItem[]>;
         /**
+          * When the menubar shows
+          * @default "fullscreen"
+         */
+        "menubar"?: "always" | "fullscreen" | "never";
+        /**
           * The smallest height of the writing area
           * @default "200px"
          */
         "minHeight"?: string;
+        /**
+          * `view` is read-only, like `readonly`, but says so in the mode
+          * @default "edit"
+         */
+        "mode"?: "edit" | "view";
         /**
           * The name of the element, used when submitting an HTML form.
          */
@@ -4704,6 +4765,10 @@ declare namespace LocalJSX {
           * Emits when the content area gains focus
          */
         "onOrbEditorFocus"?: (event: OrbRichTextCustomEvent<FocusEvent>) => void;
+        /**
+          * Emitted by File > Download as. Call preventDefault() to handle the data yourself.
+         */
+        "onOrbExport"?: (event: OrbRichTextCustomEvent<{ format: ExportFormat; data: string | JsonNode[] }>) => void;
         /**
           * Emits when a mention is chosen from the `@` menu
          */
@@ -4766,6 +4831,11 @@ declare namespace LocalJSX {
           * @default DEFAULT_TOOLBAR
          */
         "toolbar"?: string;
+        /**
+          * Where the formatting controls appear
+          * @default "top"
+         */
+        "toolbarPlacement"?: "top" | "none";
         /**
           * Uploads a file and returns its URL. Without it, pictures and videos are embedded as data URLs.
          */
@@ -5555,6 +5625,11 @@ declare namespace LocalJSX {
         "markdownPaste": boolean;
         "mediaAccept": string;
         "outline": boolean;
+        "fullscreen": boolean;
+        "menubar": "always" | "fullscreen" | "never";
+        "mode": "edit" | "view";
+        "toolbarPlacement": "top" | "none";
+        "docTitle": string;
     }
     interface OrbRowDetailsAttributes {
         "expanded": boolean;

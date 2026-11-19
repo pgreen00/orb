@@ -600,6 +600,125 @@ editor.addEventListener("orbEditorChange", (event) => {
 
 :::
 
+### Full screen and menubar
+
+Full screen fills the window, above the rest of the page. Set `fullscreen` (or call `toggleFullscreen()`) and the editor keeps focus inside. Escape leaves full screen, unless a menu the editor opened is showing, which Escape closes first. Tab wraps around the editor, so keyboard users don't tab into the page behind it.
+
+In full screen, the menubar appears above the toolbar. `menubar` sets when it shows: `fullscreen` (the default), `always`, or `never`. The menubar's File, Edit, View, Insert, Format and Help menus run the same commands as the toolbar. The page's scroll position is the same after leaving full screen. The outline panel isn't shown in full screen.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="fs-demo" label="Full screen" value="<h1>Draft</h1><p>Open the View menu, or use the button, to fill the window.</p>"></orb-rich-text>
+<p><orb-button id="fs-toggle" fill="outline">Toggle full screen</orb-button></p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+document.querySelector("#fs-toggle").addEventListener("click", () => document.querySelector("#fs-demo").toggleFullscreen());
+```
+
+:::
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="bar-demo" label="Menubar always shown" menubar="always" value="<p>The menubar stays above the editor, whether or not it's full screen.</p>"></orb-rich-text>
+```
+
+:::
+
+**Manual test:**
+- Click **Toggle full screen**. The editor fills the window and the menubar shows above the toolbar.
+- Open **Format**, then choose **Bulleted list**. The current line becomes a list item.
+- Press Escape. The menu closes, and the editor stays full screen. Press Escape again to leave.
+- Scroll the page, enter full screen, and leave it. The page is scrolled to the same place.
+
+### Modes and HTML source
+
+`mode` is `edit`, the default, or `view`. A `view` editor is read-only and has no editing controls, like `readonly`, but the mode says what it's for.
+
+In full screen, **View > HTML source** shows the document's HTML in place of the editor. Choosing **View > Show editor** applies the HTML as one undo step. Changes in the HTML don't reach `getContent()` until the editor is shown again.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="mode-demo" label="Mode" value="<p>Switch the mode, then try to type.</p>"></orb-rich-text>
+<p>
+  <orb-button id="mode-edit" fill="outline">Edit</orb-button>
+  <orb-button id="mode-view" fill="outline">View</orb-button>
+</p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+const editor = document.querySelector("#mode-demo");
+document.querySelector("#mode-edit").addEventListener("click", () => (editor.mode = "edit"));
+document.querySelector("#mode-view").addEventListener("click", () => (editor.mode = "view"));
+```
+
+:::
+
+**Manual test:**
+- Click **View**, then click in the editor and type. Nothing changes, and the toolbar is off.
+- Click **Edit**, then type. The text appears.
+- Enter full screen, open **View > HTML source**, and change a heading. Choose **View > Show editor**. The heading has the new text, and Ctrl+Z restores the old HTML.
+
+### Import and export
+
+`exportAs(format)` returns the document as `html`, `text`, `markdown`, or `json`. Markdown keeps the structure: headings, lists and task lists, quotes, code blocks, tables, images, links and emphasis. Placeholders become `{{key}}`, and mentions and tags keep their names. Underline, colors, fonts and alignment aren't in Markdown, so they're dropped. JSON is a tree of the nodes.
+
+`importFrom(format, data)` replaces the document, or inserts at the caret with `{ replace: false }`, as one undo step. The formats are `html`, `text` (one paragraph per line) and `markdown`.
+
+File > Download as saves the document in one of these formats. A listener on `orbExport` gets the data first. Call `preventDefault()` to handle the file yourself. File > Open… imports a `.md`, `.markdown`, `.html`, `.htm` or `.txt` file.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="io-markdown" label="Markdown" value="<h2>Notes</h2><ul><li>First</li><li><strong>Second</strong></li></ul>"></orb-rich-text>
+<p>
+  <orb-button id="io-export" fill="outline">Export as Markdown</orb-button>
+  <orb-button id="io-import" fill="outline">Import the Markdown below</orb-button>
+</p>
+<textarea id="io-source" rows="5" style="width: 100%; font-family: monospace;"># Imported
+
+- one
+- two</textarea>
+<p id="io-output" role="status" style="font-family: monospace; white-space: pre-wrap;"></p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+const editor = document.querySelector("#io-markdown");
+const output = document.querySelector("#io-output");
+document.querySelector("#io-export").addEventListener("click", async () => (output.textContent = await editor.exportAs("markdown")));
+document.querySelector("#io-import").addEventListener("click", () =>
+  editor.importFrom("markdown", document.querySelector("#io-source").value),
+);
+```
+
+:::
+
+### Printing
+
+`print()` prints the document, and Ctrl+P does the same from the editor. Only the document is printed, not the page around it. The printed page uses letter size with one-inch margins.
+
+::: live-code-demo
+
+```html
+<orb-rich-text id="print-demo" label="Print" value="<h2>Shipping note</h2><p>This text is what gets printed.</p>"></orb-rich-text>
+<p><orb-button id="print-button" fill="outline">Print</orb-button></p>
+```
+
+```javascript
+await customElements.whenDefined("orb-rich-text");
+document.querySelector("#print-button").addEventListener("click", () => document.querySelector("#print-demo").print());
+```
+
+:::
+
+**Not in this version:** page setup, page breaks, headers and footers, DOCX import and export, a floating toolbar, the preview, suggest and comment modes, and `form-format`.
+
 ### Keyboard
 
 Shortcuts use Ctrl, or ⌘ on Apple devices.
@@ -618,6 +737,8 @@ Shortcuts use Ctrl, or ⌘ on Apple devices.
 | Ctrl+Shift+L, E, R, J | Align left, center, right, justify |
 | Ctrl+[ and Ctrl+] | Outdent, indent |
 | Ctrl+/ | Show this list of shortcuts |
+| Ctrl+P | Print the document |
+| Escape (in full screen) | Closes an open menu, or leaves full screen |
 | Alt+F10 | Move focus to the toolbar |
 | Left, Right, Home, End (on the toolbar) | Move between toolbar controls |
 | Enter | Split the block. In a list, adds an item, and on an empty item leaves the list. In a task, the new item gets a checkbox. In a quote, leaves the quote from an empty last paragraph. In a code block, adds a line, and two empty lines in a row leave the block. |
@@ -684,5 +805,6 @@ With no text selected, a bold, italic or underline shortcut, or a color or font 
 - Spellcheck is on by default. Set `spellcheck="false"` to turn it off.
 - The table size grid is a group of buttons, each named for its size, such as "2 by 3 table". Arrow keys move through it, and focus shows the size it would insert.
 - The outline is a `nav` of buttons, and the current section is marked with `aria-current`.
+- In full screen the editor is a modal `dialog`. Focus stays inside it, and Tab wraps around.
 - While a `/`, `@`, `#`, `:` or `{{` menu is open, focus stays in the text. Up and Down move through its items, which are announced through `aria-activedescendant`.
 - Still to check: a manual pass with VoiceOver and NVDA, which the automated tests can't cover.
