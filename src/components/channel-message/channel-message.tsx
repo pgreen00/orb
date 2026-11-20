@@ -39,6 +39,33 @@ export class ChannelMessage {
   /** The `id` of the message this one replies to. It's shown as a quote. */
   @Prop() replyTo?: string;
 
+  /**
+   * The `id` of the message this one is a reply to, in its thread. Replies are
+   * shown under the message their thread starts from, not in the list.
+   */
+  @Prop() thread?: string;
+
+  /** Whether the thread the message starts is `collapsed` or `resolved`. The reader can still open it. */
+  @Prop() threadState?: "collapsed" | "resolved";
+
+  /** How many replies the thread has, when not every reply is in the DOM. Overrides the count from the replies. */
+  @Prop() threadCount?: number;
+
+  /** When the thread's last reply was sent, as an ISO 8601 string */
+  @Prop() threadLast?: string;
+
+  /** The message's score, shown next to its vote buttons when the channel's `votes` is on */
+  @Prop() score?: number;
+
+  /** The viewer's own vote, which shows its button as pressed */
+  @Prop() vote?: "up" | "down";
+
+  /** Set while the message is still being written, such as a streamed answer. It shows a cursor. */
+  @Prop() streaming = false;
+
+  /** Why the message failed. It's shown in place of "Not sent" when `status` is `failed`. */
+  @Prop() error?: string;
+
   /** Emitted when the message's data changes, so the channel can update */
   @Event({ bubbles: true, composed: false }) orbChannelDataChange: EventEmitter<void>;
 
@@ -55,6 +82,14 @@ export class ChannelMessage {
   @Watch("moderation")
   @Watch("moderationReason")
   @Watch("replyTo")
+  @Watch("streaming")
+  @Watch("error")
+  @Watch("thread")
+  @Watch("threadState")
+  @Watch("threadCount")
+  @Watch("threadLast")
+  @Watch("score")
+  @Watch("vote")
   changed() {
     this.orbChannelDataChange.emit();
   }

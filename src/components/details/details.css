@@ -1,7 +1,7 @@
 :host {
   display: block;
-
-  --content-open-padding: var(--orb-spacing-md) 0 0 0;
+  --gap: var(--orb-spacing-md);
+  --content-open-padding: var(--gap) 0 0 0;
 }
 
 button {
@@ -20,7 +20,7 @@ button {
 :host([icon-side=left]) button {
   display: flex;
   align-items: center;
-  gap: var(--orb-spacing-md);
+  gap: var(--gap);
 }
 
 :host([icon-side=right]) button {

@@ -43,6 +43,13 @@ export class ChannelComposer {
   @Prop() editor: "plain" | "rich" = "plain";
 
   /**
+   * What sending does while an AI message is streaming. The send button becomes
+   * a stop button then. `block` ignores sends, `queue` holds the draft until the
+   * answer finishes, and `interrupt` stops the answer and sends.
+   */
+  @Prop() whileStreaming: "queue" | "block" | "interrupt" = "block";
+
+  /**
    * The formatting toolbar of the rich editor. `toggle` shows a button that
    * shows and hides it. Ignored by the plain editor.
    */
@@ -54,6 +61,12 @@ export class ChannelComposer {
    * accepts any file.
    */
   @Prop() attachments?: string;
+
+  /**
+   * `replies` makes this the composer for replies in threads. It overrides the
+   * main composer's `placeholder`, `label`, `send-on` and `max-length` when set.
+   */
+  @Prop() scope?: "replies";
 
   /** The name the draft is submitted under with the form */
   @Prop() name?: string;
@@ -82,6 +95,8 @@ export class ChannelComposer {
   @Watch("editor")
   @Watch("toolbar")
   @Watch("attachments")
+  @Watch("whileStreaming")
+  @Watch("scope")
   changed() {
     this.orbChannelDataChange.emit();
   }

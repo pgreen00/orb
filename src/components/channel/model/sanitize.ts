@@ -31,6 +31,11 @@ function cleanElement(el: Element) {
     keep.rel = "noopener noreferrer";
     keep.target = "_blank";
   }
+  // The language of a code block, which the code block's header shows
+  if (el.tagName === "CODE") {
+    const language = /(?:^|\s)language-[\w+#.-]+/.exec(el.getAttribute("class") ?? "");
+    if (language) keep.class = language[0].trim();
+  }
   if (el.tagName === "IMG") {
     const src = el.getAttribute("src") ?? "";
     if (!isSafeHref(src) && !src.startsWith("data:image/")) return false;
@@ -51,6 +56,30 @@ function cleanElement(el: Element) {
     for (const [prop, value] of kept) (el as HTMLElement).style.setProperty(prop, value);
   }
   return true;
+}
+
+/** Elements that load or run another document, or restyle the page. A server's fragment can't have them. */
+const FRAGMENT_REMOVED = new Set(["IFRAME", "FRAME", "FRAMESET", "OBJECT", "EMBED", "BASE", "META", "LINK", "STYLE"]);
+
+/**
+ * Cleans an HTML fragment from a server before it's shown. Event handler
+ * attributes, `srcdoc` and `javascript:` URLs are removed, and so are the elements
+ * in `FRAGMENT_REMOVED`. The rest is kept, since the fragment is the channel's
+ * own markup. Scripts in it don't run, because they're parsed in a template.
+ */
+export function cleanFragment(content: DocumentFragment): void {
+  for (const el of Array.from(content.querySelectorAll("*"))) {
+    if (FRAGMENT_REMOVED.has(el.tagName.toUpperCase())) {
+      el.remove();
+      continue;
+    }
+    for (const name of el.getAttributeNames()) {
+      const value = (el.getAttribute(name) ?? "").replace(/[\u0000-\u0020]/g, "").toLowerCase();
+      if (name.startsWith("on") || name === "srcdoc" || value.startsWith("javascript:") || value.startsWith("vbscript:")) {
+        el.removeAttribute(name);
+      }
+    }
+  }
 }
 
 /** The safe HTML of a message */

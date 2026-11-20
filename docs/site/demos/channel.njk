@@ -25,8 +25,6 @@ permalink: "/demos/channel/"
       display: flex;
       flex-direction: column;
       gap: var(--orb-spacing-lg);
-      max-width: 90rem;
-      margin-inline: auto;
       padding: var(--orb-spacing-lg);
     }
 
@@ -38,9 +36,7 @@ permalink: "/demos/channel/"
     }
 
     .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 36rem), 1fr));
-      gap: var(--orb-spacing-lg);
+      inline-size: 100%;
     }
 
     .card {
@@ -48,13 +44,7 @@ permalink: "/demos/channel/"
       flex-direction: column;
       gap: var(--orb-spacing-sm);
       min-width: 0;
-      padding: var(--orb-spacing-md);
-      border: 1px solid var(--orb-divider-color);
-      border-radius: var(--orb-radius-lg);
-    }
-
-    .card h2 {
-      font-size: var(--orb-font-lg);
+      padding-block: var(--orb-spacing-md);
     }
 
     .card p,
@@ -137,11 +127,21 @@ permalink: "/demos/channel/"
       </div>
     </header>
 
-    <section class="cards">
+    <orb-tabs wrap class="cards">
+      <orb-tab-button panel="direct">1. Direct chat</orb-tab-button>
+      <orb-tab-button panel="group">2. Group chat</orb-tab-button>
+      <orb-tab-button panel="open">3. Open channel</orb-tab-button>
+      <orb-tab-button panel="moderation">4. Comments and moderation</orb-tab-button>
+      <orb-tab-button panel="rich">5. Rich composer and commands</orb-tab-button>
+      <orb-tab-button panel="limits">6. Slow mode and mute</orb-tab-button>
+      <orb-tab-button panel="plain">7. Plain composer, files and form</orb-tab-button>
+      <orb-tab-button panel="bare">8. Empty state, no header</orb-tab-button>
+      <orb-tab-button panel="ai">9. AI participant</orb-tab-button>
+      <orb-tab-button panel="threads">10. Threads, long lists and presence</orb-tab-button>
+      <orb-tab-button panel="transports">11. Transports and drafts</orb-tab-button>
 
-      <!-- 1. Direct chat -->
-      <article class="card" data-card="direct">
-        <h2>1. Direct chat</h2>
+      <orb-tab-panel name="direct">
+        <div class="card" data-card="direct">
         <p>Messages, markdown, HTML, reactions, mentions, links, an attachment, and echo.</p>
         <div class="row">
           <label>Point of view
@@ -196,11 +196,11 @@ permalink: "/demos/channel/"
           <li>Type <code>@Ada</code> or follow the link. The mention is highlighted for Ada only.</li>
           <li>Set Kind to <code>group</code> and see names and avatars appear.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 2. Group chat -->
-      <article class="card" data-card="group">
-        <h2>2. Group chat</h2>
+      <orb-tab-panel name="group">
+        <div class="card" data-card="group">
         <p>Names, grouping, date dividers, an unread divider, and attachments on the composer.</p>
         <div class="row">
           <label>Point of view
@@ -248,11 +248,11 @@ permalink: "/demos/channel/"
           <li>Click "Grace sends one tomorrow". A date divider appears.</li>
           <li>Attach a file with the paperclip, then send. Only images and PDFs are accepted.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 3. Open channel -->
-      <article class="card" data-card="open">
-        <h2>3. Open channel</h2>
+      <orb-tab-panel name="open">
+        <div class="card" data-card="open">
         <p>A header with a label and description, a long list to scroll, and the composer methods.</p>
         <div class="row">
           <label>Kind
@@ -286,11 +286,11 @@ permalink: "/demos/channel/"
           <li>"Jump to the first message" scrolls to it. Tab and the arrow keys move between messages.</li>
           <li>Hide the header, then show it again.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 4. Moderation -->
-      <article class="card" data-card="moderation">
-        <h2>4. Comments and moderation</h2>
+      <orb-tab-panel name="moderation">
+        <div class="card" data-card="moderation">
         <p>Hidden, removed and pending messages, an ignored participant, and moderator buttons.</p>
         <div class="row">
           <label>Point of view
@@ -314,11 +314,11 @@ permalink: "/demos/channel/"
           <li>Switch the point of view to Grace. The moderator buttons disappear, and the removed comment says so.</li>
           <li>Press Ctrl or ⌘+Enter to send. Enter adds a line.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 5. Rich composer -->
-      <article class="card" data-card="rich">
-        <h2>5. Rich composer and commands</h2>
+      <orb-tab-panel name="rich">
+        <div class="card" data-card="rich">
         <p>The rich editor, with its formatting toolbar, mentions and commands.</p>
         <div class="row">
           <label>Point of view
@@ -348,11 +348,11 @@ permalink: "/demos/channel/"
           <li>Click Aa to show the toolbar, and make some text bold. Click Aa again to hide it.</li>
           <li>Press Enter on an empty box. Nothing is sent.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 6. Slow mode and mute -->
-      <article class="card" data-card="limits">
-        <h2>6. Slow mode and mute</h2>
+      <orb-tab-panel name="limits">
+        <div class="card" data-card="limits">
         <p>Slow mode holds back each message. A muted point of view can't write.</p>
         <div class="row">
           <label>Slow mode
@@ -381,11 +381,11 @@ permalink: "/demos/channel/"
           <li>Click "Mute or unmute Ada". The composer is disabled, and says why.</li>
           <li>Switch the point of view to Grace. Slow mode and mute don't apply to Grace's own messages.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 7. Plain composer, files and form -->
-      <article class="card" data-card="plain">
-        <h2>7. Plain composer, files and form</h2>
+      <orb-tab-panel name="plain">
+        <div class="card" data-card="plain">
         <p>Attachments, composer buttons, a 200-character limit, and the channel inside a form.</p>
         <div class="row">
           <label>Send on
@@ -408,11 +408,11 @@ permalink: "/demos/channel/"
           <li>Type past 200 characters. The box stops at 200.</li>
           <li>Click "Show the form data" after you've typed something. The draft is in the form, under <code>body</code>.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-      <!-- 8. Empty state, no header -->
-      <article class="card" data-card="bare">
-        <h2>8. Empty state, no header</h2>
+      <orb-tab-panel name="bare">
+        <div class="card" data-card="bare">
         <p>An empty channel with the header hidden.</p>
         <div class="row">
           <button type="button" data-simulate="bare-ada">Ada writes the first message</button>
@@ -424,9 +424,118 @@ permalink: "/demos/channel/"
           <li>The empty text shows until the first message.</li>
           <li>Send a message. Once there's one, the empty text goes away.</li>
         </ul>
-      </article>
+      </div>
+      </orb-tab-panel>
 
-    </section>
+      <orb-tab-panel name="ai">
+        <div class="card" data-card="ai">
+        <p>Claude streams its answers. The send button becomes a stop button while it streams. Reasoning, a tool call that needs approval, citations, suggestions and versions are here too.</p>
+        <div class="row">
+          <label>Reasoning
+            <select data-attr="reasoning">
+              <option value="collapsed">collapsed</option>
+              <option value="show">show</option>
+              <option value="hidden">hidden</option>
+            </select>
+          </label>
+          <label>While streaming
+            <select data-attr="while-streaming" data-on="orb-channel-composer">
+              <option value="block">block</option>
+              <option value="queue">queue</option>
+              <option value="interrupt">interrupt</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="ai-approval">Claude asks to delete a branch</button>
+          <button type="button" data-simulate="ai-write">Claude writes an answer</button>
+          <button type="button" data-reset="ai">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="ai"></div>
+        <ul class="try">
+          <li>Send a message. Claude answers, and the send button becomes a stop button while it streams. Press it to stop.</li>
+          <li>Send again while it streams. With <em>block</em>, nothing happens. With <em>queue</em>, the draft waits for the answer. With <em>interrupt</em>, the answer stops and the draft is sent.</li>
+          <li>Set Reasoning to show, and the reasoning block opens above the answer.</li>
+          <li>Approve or deny the branch deletion. Its status changes with your choice.</li>
+          <li>Click an arrow in a version switcher, or Regenerate in Claude's menu (right-click a message).</li>
+          <li>Click a citation number to see its link. Click a suggestion. One fills the box, and <em>Thanks, that helps</em> sends.</li>
+        </ul>
+      </div>
+      </orb-tab-panel>
+
+      <orb-tab-panel name="threads">
+        <div class="card" data-card="threads">
+        <p>Replies open in a panel beside the list, or under their message. A long list draws only what's on screen, and scrolling to its top asks for older messages.</p>
+        <div class="row">
+          <label>Threads
+            <select data-attr="threads">
+              <option value="none">none</option>
+              <option value="inline">inline</option>
+              <option value="panel">panel</option>
+            </select>
+          </label>
+          <label>Presence
+            <select data-attr="presence">
+              <option value="none">none</option>
+              <option value="sampled">sampled</option>
+              <option value="full">full</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="threads-reply">Grace replies in the thread</button>
+          <button type="button" data-simulate="threads-batch">Add 300 messages</button>
+          <button type="button" data-reset="threads">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="threads"></div>
+        <ul class="try">
+          <li>Click Open thread under the first message. Reply in the panel, and your reply shows there. Escape closes it.</li>
+          <li>Set Threads to inline. The replies show under their message, and Hide and Show toggle them.</li>
+          <li>Click Add 300 messages, then scroll up. The app loads 20 older messages, and the message you're reading stays where it is.</li>
+          <li>Scroll up, then click the pill at the bottom to go back to the newest message.</li>
+          <li>Set Presence to full, and the header names who's online.</li>
+        </ul>
+      </div>
+      </orb-tab-panel>
+
+      <orb-tab-panel name="transports">
+        <div class="card" data-card="transports">
+        <p>The channel sends through a transport. Here it's a fake server with a short delay. A message shows as sending until the server has it, and the server's copy replaces it. The transport can also page older messages in. With drafts on, the text in the box is kept in the page's storage, so it survives a reload.</p>
+        <div class="row">
+          <label>Point of view
+            <select data-attr="pov">
+              <option value="ada">Ada</option>
+              <option value="grace">Grace</option>
+            </select>
+          </label>
+          <label>Drafts
+            <select data-attr="drafts">
+              <option value="">none</option>
+              <option value="persist">persist</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" data-simulate="transports-grace">Grace posts a message</button>
+          <button type="button" data-simulate="transports-fail">The server fails the next send</button>
+          <button type="button" data-simulate="transports-older">Load older messages</button>
+          <button type="button" data-reset="transports">Reset</button>
+          <span class="readout" data-readout></span>
+        </div>
+        <div class="slot" data-slot="transports"></div>
+        <ul class="try">
+          <li>Send a message. It shows as sending, then it's replaced by the server's copy.</li>
+          <li>Click "The server fails the next send", then send. The message says why it failed. Press Retry to send it again.</li>
+          <li>Click "Grace posts a message" to see a message arrive from the server.</li>
+          <li>Scroll to the top, or click "Load older messages". Older messages come in above, three at a time.</li>
+          <li>Type a draft, then reload the page. It's still in the box. Set Drafts to none, and drafts aren't kept. Reset clears the saved draft.</li>
+          <li>Without JavaScript, <code>&lt;orb-channel-transport&gt;</code> sends and receives over a form, server-sent events, a WebSocket or polling. Those need a real server, so this page doesn't use one.</li>
+        </ul>
+      </div>
+      </orb-tab-panel>
+    </orb-tabs>
 
     <section class="log">
       <div class="row">
@@ -546,6 +655,60 @@ permalink: "/demos/channel/"
     </orb-channel>
   </template>
 
+  <template id="tpl-ai">
+    <orb-channel id="chan-ai" label="Assistant" pov="ada" echo reasoning="collapsed">
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="claude" name="Claude" role="ai" ai-label="Assistant"></orb-channel-participant>
+      <orb-channel-message id="x1" from="ada" ts="2025-06-01T09:00:00Z">Can you look at the release notes?</orb-channel-message>
+      <orb-channel-message id="x2" from="claude" ts="2025-06-01T09:00:20Z">
+        <orb-channel-reasoning state="done" duration="2.4s">The notes list three changes. I'll summarize them.</orb-channel-reasoning>
+        The release has three changes: a faster compiler, stricter imports, and a new migration guide<orb-channel-citation href="https://example.com/migration" index="1" title="Migration guide"></orb-channel-citation>.
+      </orb-channel-message>
+      <orb-channel-message id="x3" from="claude" ts="2025-06-01T09:02:00Z">
+        <script type="text/markdown">Version one: Porto is best in spring.</script>
+        <orb-channel-variants current="1" count="2"></orb-channel-variants>
+      </orb-channel-message>
+      <orb-channel-suggestions label="Suggested replies">
+        <orb-channel-suggestion>Show me the migration steps</orb-channel-suggestion>
+        <orb-channel-suggestion send>Thanks, that helps</orb-channel-suggestion>
+      </orb-channel-suggestions>
+      <orb-channel-composer name="ai" placeholder="Ask Claude" while-streaming="block"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-threads">
+    <orb-channel id="chan-threads" label="Launch" pov="ada" threads="panel" presence="sampled" receipts="read" echo>
+      <orb-channel-participant id="ada" name="Ada" presence="online"></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace" presence="online"></orb-channel-participant>
+      <orb-channel-participant id="lin" name="Lin" presence="away"></orb-channel-participant>
+      <orb-channel-message id="t1" from="grace" ts="2025-06-01T09:00:00Z">Release 2.0 is out!</orb-channel-message>
+      <orb-channel-message id="t2" from="ada" thread="t1" ts="2025-06-01T09:01:00Z">Congrats, team!</orb-channel-message>
+      <orb-channel-message id="t3" from="lin" thread="t1" ts="2025-06-01T09:03:00Z">The changelog is in the docs.</orb-channel-message>
+      <orb-channel-message id="t4" from="ada" ts="2025-06-01T09:05:00Z" status="read">Anyone going to the meetup?</orb-channel-message>
+      <orb-channel-composer name="launch" placeholder="Message the channel"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
+  <template id="tpl-transports">
+    <orb-channel id="chan-transports" label="Launch" pov="ada" key="demo-drafts" drafts="persist">
+      <orb-channel-participant id="ada" name="Ada"></orb-channel-participant>
+      <orb-channel-participant id="grace" name="Grace"></orb-channel-participant>
+      <orb-channel-message id="tr1" from="grace">Morning. The release branch is green.</orb-channel-message>
+      <orb-channel-message id="tr2" from="ada">Nice. Are the migration notes done?</orb-channel-message>
+      <orb-channel-message id="tr3" from="grace">Almost. Two sections left.</orb-channel-message>
+      <orb-channel-message id="tr4" from="ada">I can take one of them.</orb-channel-message>
+      <orb-channel-message id="tr5" from="grace">Thanks. The API section is yours, then.</orb-channel-message>
+      <orb-channel-message id="tr6" from="ada">Done by lunch.</orb-channel-message>
+      <orb-channel-message id="tr7" from="grace">Great. I'll start the changelog.</orb-channel-message>
+      <orb-channel-message id="tr8" from="ada">Should we mention the new transports?</orb-channel-message>
+      <orb-channel-message id="tr9" from="grace">Yes, in one line, with a link.</orb-channel-message>
+      <orb-channel-message id="tr10" from="ada">I'll draft it now.</orb-channel-message>
+      <orb-channel-message id="tr11" from="grace">Perfect.</orb-channel-message>
+      <orb-channel-message id="tr12" from="ada">Sending it to review.</orb-channel-message>
+      <orb-channel-composer name="transports" placeholder="Type a message"></orb-channel-composer>
+    </orb-channel>
+  </template>
+
   <script type="module">
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -560,6 +723,7 @@ permalink: "/demos/channel/"
       const card = $(`[data-card="${name}"]`);
       $(`[data-slot="${name}"]`, card).replaceChildren($(`#tpl-${name}`).content.cloneNode(true));
       syncControls(card);
+      if (name === "transports") connectServer($("orb-channel", card));
     }
 
     // The controls show the channel's attributes, and change them when used
@@ -641,7 +805,58 @@ permalink: "/demos/channel/"
       "moderation-pending": (channel) => say(channel, "grace", "Waiting for a moderator to approve this.", { moderation: "pending" }),
       "rich-send": (channel) => channel.send("Sent from code with send()"),
       "bare-ada": (channel) => say(channel, "ada", "The first message."),
+      "ai-approval": (channel) => {
+        const message = document.createElement("orb-channel-message");
+        message.setAttribute("from", "claude");
+        message.setAttribute("ts", new Date().toISOString());
+        message.innerHTML = `<orb-channel-reasoning state="done" duration="1.8s">Old branches are safe to remove once they're merged.</orb-channel-reasoning><orb-channel-tool-call name="delete_branch" call-id="sim-${Date.now()}" status="awaiting-approval" requires-approval><script type="application/json" data-part="args">{"branch": "old-api"}<\/script></orb-channel-tool-call>I can delete the old-api branch once you approve.`;
+        channel.querySelector(":scope > orb-channel-composer").before(message);
+      },
+      "ai-write": (channel) => answer(channel, "claude"),
+      "threads-reply": (channel) => say(channel, "grace", "Thanks, all!", { thread: "t1" }),
+      "threads-batch": (channel) => {
+        for (let i = 1; i <= 300; i++) say(channel, i % 2 ? "lin" : "grace", `Message ${i} of the batch.`);
+      },
+      "transports-grace": () => server.handlers.receive(`<orb-channel-message id="posted-${Date.now()}" from="grace">Posted by the server, not typed here.</orb-channel-message>`),
+      "transports-fail": () => (server.failNext = true),
+      "transports-older": (channel) => channel.scrollToMessage(channel.querySelector(":scope > orb-channel-message").id, { behavior: "auto" }),
     };
+
+    // The transports card's fake server. It answers each send after a short delay, and can fail the next one.
+    const DRAFT_KEY = "orb-channel-draft:demo-drafts";
+    const server = { handlers: undefined, failNext: false, older: [], copies: 0 };
+    const escapeHtml = (text) => text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+    function connectServer(channel) {
+      server.older = Array.from({ length: 9 }, (_, i) => `<orb-channel-message id="older-${i + 1}" from="${i % 2 ? "ada" : "grace"}">Older message ${i + 1}</orb-channel-message>`);
+      server.failNext = false;
+      customElements.whenDefined("orb-channel").then(() => {
+        channel.transport = {
+          async send(message) {
+            await sleep(700);
+            if (server.failNext) {
+              server.failNext = false;
+              throw new Error("Offline. Check the connection.");
+            }
+            server.handlers.receive(`<orb-channel-message id="sent-${++server.copies}" from="${message.from}" client-id="${message.clientId}">${escapeHtml(message.text)}</orb-channel-message>`);
+          },
+          subscribe(handlers) {
+            server.handlers = handlers;
+            return () => (server.handlers = undefined);
+          },
+          async history() {
+            await sleep(500);
+            return server.older.splice(-3).join("");
+          },
+        };
+      });
+    }
+
+    // Rebuilds a card. Reset also clears the transports card's saved draft.
+    function reset(name) {
+      if (name === "transports") localStorage.removeItem(DRAFT_KEY);
+      mount(name);
+    }
 
     // The log: every event the channels emit
     const log = $("#log");
@@ -671,6 +886,10 @@ permalink: "/demos/channel/"
         command: detail.command,
         files: detail.files.map((file) => file.name),
       })}`);
+    });
+
+    document.addEventListener("orbRetry", (event) => {
+      record(`${nameOf(event.target)}  orbRetry on "${preview(event.detail.message)}"`);
     });
 
     document.addEventListener("orbReact", (event) => {
@@ -744,6 +963,93 @@ permalink: "/demos/channel/"
     let reads = 0;
     document.addEventListener("orbRead", () => ($("#read-count").textContent = String(++reads)));
 
+    // The AI card's app. Claude answers the messages that name it, streaming its answer with the message writer.
+    const { createMessageWriter } = await import("/build/components/index.js");
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    let stopRequested = false;
+
+    async function answer(channel, from) {
+      stopRequested = false;
+      const writer = createMessageWriter(channel, { from });
+      writer.reasoning("The question is about the release. I'll check the notes first.");
+      await sleep(700);
+      writer.text("Here's the short version. ");
+      for (const sentence of ["The compiler is faster. ", "Imports are stricter now. ", "The migration guide has the details."]) {
+        if (stopRequested) break;
+        await sleep(600);
+        writer.text(sentence);
+      }
+      writer.finish();
+      record(`${nameOf(channel)}  Claude ${stopRequested ? "stopped" : "finished"} its answer`);
+    }
+
+    document.addEventListener("orbSend", (event) => {
+      const channel = event.target;
+      if (nameOf(channel) !== "ai" || !event.detail.respondents.length) return;
+      // The echo of the question is added after this event, so the answer starts after it
+      setTimeout(() => answer(channel, event.detail.respondents[0]), 0);
+    });
+
+    document.addEventListener("orbStop", (event) => {
+      if (nameOf(event.target) !== "ai") return;
+      stopRequested = true;
+      record("ai  orbStop, the answer stops", "cancel");
+    });
+
+    document.addEventListener("orbToolDecision", (event) => {
+      const { toolCall, callId, approved } = event.detail;
+      toolCall.setAttribute("status", approved ? "done" : "denied");
+      record(`${nameOf(event.target)}  orbToolDecision ${callId} ${approved ? "approved" : "denied"}`);
+    });
+
+    const VERSIONS = ["Version one: Porto is best in spring.", "Version two: Porto is lovely in late September."];
+    document.addEventListener("orbVariantChange", (event) => {
+      const { message, current } = event.detail;
+      event.target.replaceFrom(
+        message,
+        `<orb-channel-message from="claude">${VERSIONS[current - 1]}<orb-channel-variants current="${current}" count="${VERSIONS.length}"></orb-channel-variants></orb-channel-message>`,
+      );
+      record(`${nameOf(event.target)}  orbVariantChange to version ${current}`);
+    });
+
+    document.addEventListener("orbRegenerate", (event) => {
+      event.target.replaceFrom(event.detail.message, `<orb-channel-message from="claude">A fresh take: the release is mostly about the compiler.</orb-channel-message>`);
+      record(`${nameOf(event.target)}  orbRegenerate, a new answer replaces it`);
+    });
+
+    // Threads, long lists and presence. The app loads older messages for the threads card.
+    for (const name of ["orbThreadOpen", "orbThreadClose", "orbTyping"]) {
+      document.addEventListener(name, (event) => {
+        const detail = name === "orbTyping" ? ` ${event.detail.typing ? "on" : "off"}` : "";
+        record(`${nameOf(event.target)}  ${name}${detail} ${event.detail.parent ? `on "${preview(event.detail.parent)}"` : ""}`);
+      });
+    }
+
+
+    document.addEventListener("orbLoadMore", async (event) => {
+      const channel = event.target;
+      if (event.detail.parent) {
+        record(`${nameOf(channel)}  orbLoadMore for the replies of "${preview(event.detail.parent)}"`);
+        return;
+      }
+      if (nameOf(channel) === "transports") {
+        record(`${nameOf(channel)}  orbLoadMore before "${event.detail.cursor}", the transport answers`);
+        return;
+      }
+      record(`${nameOf(channel)}  orbLoadMore before "${event.detail.cursor}"`);
+      channel.setAttribute("loading-more", "");
+      await sleep(600);
+      const first = channel.querySelector("orb-channel-message");
+      for (let i = 1; i <= 20; i++) {
+        const older = document.createElement("orb-channel-message");
+        older.id = `older-${event.detail.cursor}-${i}`;
+        older.setAttribute("from", "grace");
+        older.textContent = `Older message ${i}`;
+        channel.insertBefore(older, first);
+      }
+      channel.removeAttribute("loading-more");
+    });
+
     // The readouts, updated as the channels change
     setInterval(() => {
       for (const card of $$("[data-card]")) {
@@ -764,10 +1070,10 @@ permalink: "/demos/channel/"
         simulations[button.dataset.simulate]?.(channel);
         record(`simulated: ${button.textContent.trim()}`);
       } else if (button.dataset.reset) {
-        mount(button.dataset.reset);
+        reset(button.dataset.reset);
         record(`reset ${button.dataset.reset}`);
       } else if ("resetAll" in button.dataset) {
-        for (const name of ["direct", "group", "open", "moderation", "rich", "limits", "plain", "bare"]) mount(name);
+        for (const name of ["direct", "group", "open", "moderation", "rich", "limits", "plain", "bare", "ai", "threads", "transports"]) reset(name);
         record("reset all");
       } else if (button.dataset.mute) {
         const participant = channelOf("limits").querySelector(`orb-channel-participant#${button.dataset.mute}`);
@@ -781,7 +1087,7 @@ permalink: "/demos/channel/"
       }
     });
 
-    for (const name of ["direct", "group", "open", "moderation", "rich", "limits", "plain", "bare"]) mount(name);
+    for (const name of ["direct", "group", "open", "moderation", "rich", "limits", "plain", "bare", "ai", "threads", "transports"]) mount(name);
   </script>
 </body>
 

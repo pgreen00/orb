@@ -10,9 +10,12 @@ const demos = [...docs.matchAll(/::: live-code-demo\n\n([\s\S]*?)\n:::/g)].map((
   js: /```javascript\n([\s\S]*?)```/.exec(match[1])?.[1] ?? "",
 }));
 
-/** Runs a demo's script the way the docs page does, as an async function body */
+/**
+ * Runs a demo's script the way the docs page does, as an async function body.
+ * The docs site serves the build at /build, and the test server serves it at /dist.
+ */
 const runScript = (page: import("@playwright/test").Page, js: string) =>
-  page.evaluate((code) => new Function(`return (async () => {\n${code}\n})()`)(), js);
+  page.evaluate((code) => new Function(`return (async () => {\n${code}\n})()`)(), js.replaceAll("/build/", "/dist/"));
 
 test.describe("channel.md demos", () => {
   test("every live demo mounts and its script runs without errors", async ({ page }) => {

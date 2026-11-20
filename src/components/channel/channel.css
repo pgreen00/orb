@@ -83,6 +83,7 @@
   display: flex;
   align-items: flex-end;
   gap: var(--orb-spacing-xs);
+  margin-inline-start: calc(var(--depth, 0) * 2rem);
   outline: none;
 }
 
@@ -129,6 +130,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: var(--orb-channel-gap);
   min-inline-size: 0;
   max-inline-size: var(--orb-channel-max-width);
 }
@@ -158,6 +160,11 @@
   color: var(--orb-channel-bubble-color);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* Rendered markdown and HTML have line breaks between their tags, which the bubble's pre-wrap would show as blank lines */
+.bubble .html {
+  white-space: normal;
 }
 
 .message.self .bubble {
@@ -405,13 +412,13 @@ orb-rich-text {
   margin-inline: var(--orb-spacing-sm);
 }
 
-.attachment.image img {
+.attachments .image img {
   display: block;
   max-inline-size: 16rem;
   border-radius: var(--orb-radius-md);
 }
 
-.attachment.file {
+.attachments .file {
   color: inherit;
 }
 
@@ -445,13 +452,448 @@ orb-rich-text {
 }
 
 .code-block {
-  position: relative;
+  align-self: stretch;
+  overflow: hidden;
+  border-radius: var(--orb-radius-md);
+  background: var(--orb-channel-code-background, var(--orb-neutral-950));
 }
 
-.code-block [part~="copy"] {
-  position: absolute;
-  inset-block-start: var(--orb-spacing-2xs);
-  inset-inline-end: var(--orb-spacing-2xs);
+.chat-content .code-block > pre {
+  margin-block: 0;
+  background: transparent;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--orb-spacing-sm);
+  padding: var(--orb-spacing-2xs) var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-xs);
+}
+
+.code-language {
+  font-family: var(--orb-font-mono, ui-monospace, monospace);
+}
+
+/* The cursor of a message that's still streaming. Reduced motion hides it. */
+.cursor {
+  display: inline-block;
+  inline-size: 0.5em;
+  block-size: 1em;
+  margin-inline-start: 0.1em;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    display: none;
+  }
+}
+
+.reasoning {
+  margin-inline: var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+}
+
+.reasoning-text {
+  padding-block: var(--orb-spacing-2xs);
+  padding-inline-start: var(--orb-spacing-sm);
+  border-inline-start: 2px solid var(--orb-divider-color);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+orb-details {
+  --gap: var(--orb-spacing-xs);
+  &::part(toggle) {
+    font-size: var(--orb-font-sm);
+    gap: var(--orb-spacing-xs);
+    flex-direction: row-reverse;
+  }
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-2xs);
+  inline-size: min(100%, 36rem);
+  margin-inline: var(--orb-spacing-sm);
+  padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  border: 1px solid var(--orb-divider-color);
+  border-radius: var(--orb-radius-md);
+  font-size: var(--orb-font-sm);
+}
+
+.tool-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+}
+
+.tool-name {
+  font-weight: var(--orb-font-semi-bold);
+}
+
+.tool-status {
+  color: var(--orb-note-color);
+}
+
+.tool-data {
+  max-block-size: 12rem;
+  margin: 0;
+  padding: var(--orb-spacing-2xs);
+  overflow: auto;
+  border-radius: var(--orb-radius-sm);
+  background: var(--orb-secondary-background-color);
+  font-size: var(--orb-font-xs);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tool-actions {
+  display: flex;
+  gap: var(--orb-spacing-xs);
+}
+
+.citation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.25em;
+  block-size: 1.25em;
+  margin-inline: 0.1em;
+  padding: 0 0.3em;
+  border: 0;
+  border-radius: var(--orb-radius-pill, 999px);
+  background: light-dark(var(--orb-neutral-200), var(--orb-neutral-800));
+  color: inherit;
+  font: inherit;
+  font-size: 0.75em;
+  font-weight: var(--orb-font-semi-bold);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.citation:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
+}
+
+.citation-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-3xs);
+  max-inline-size: 18rem;
+  font-size: var(--orb-font-sm);
+}
+
+.citation-card a {
+  color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+  overflow-wrap: anywhere;
+}
+
+.variants {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-2xs);
+  margin-inline: var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-xs);
+}
+
+.variants-count {
+  min-inline-size: 3ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.variants-loading {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--orb-spacing-2xs);
+  margin-block-end: var(--orb-spacing-xs);
+}
+
+.suggestion-icon {
+  display: inline-flex;
+}
+
+.suggestion-icon svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+/* The list and the thread panel sit side by side, and the panel overlays the list when the channel is narrow */
+.main {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  container-type: inline-size;
+}
+
+.main > .list {
+  min-inline-size: 0;
+}
+
+/* With the page scrolling, the list has no scrollbar of its own, and the composer and the pill stay on screen */
+:host([scroll-target="document"]) .main {
+  flex-direction: column;
+}
+
+:host([scroll-target="document"]) .list {
+  overflow: visible;
+  overflow-anchor: none;
+}
+
+:host([scroll-target="document"]) .composer {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  background: var(--orb-background-color);
+}
+
+
+.spacer {
+  flex: none;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--orb-spacing-xs);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+}
+
+.typing {
+  margin-block-end: var(--orb-spacing-2xs);
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-spacing-2xs);
+  padding-inline-start: var(--orb-spacing-lg);
+}
+
+.thread-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--orb-spacing-xs);
+  margin-inline: var(--orb-spacing-sm);
+  font-size: var(--orb-font-xs);
+}
+
+.thread-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.thread-toggle:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
+}
+
+.resolved,
+.thread-last {
+  color: var(--orb-note-color);
+}
+
+.reply {
+  margin-block: var(--orb-spacing-2xs);
+  margin-inline: var(--orb-spacing-sm);
+}
+
+/* The jump pill is a popover, so it takes no room in the layout. The popover's own box is hidden, and the pill is its content. */
+.jump-pill-popover {
+  --background: transparent;
+  --border: none;
+  --padding: 0;
+  box-shadow: none;
+}
+
+.jump-pill {
+  box-shadow: var(--orb-shadow-lg);
+}
+
+.thread-panel {
+  display: flex;
+  flex: 0 0 min(22rem, 40%);
+  flex-direction: column;
+  min-block-size: 0;
+  min-inline-size: 0;
+  border-inline-start: 1px solid var(--orb-divider-color);
+  background: var(--orb-background-color);
+}
+
+@container (max-width: 40rem) {
+  .thread-panel {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: min(22rem, 100%);
+    z-index: 2;
+    box-shadow: var(--orb-shadow-lg);
+  }
+}
+
+.thread-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  border-block-end: 1px solid var(--orb-divider-color);
+}
+
+.thread-parent {
+  margin: 0;
+  padding: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-sm);
+  overflow-wrap: anywhere;
+}
+
+.thread-replies {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--orb-channel-gap);
+  min-block-size: 0;
+  padding: var(--orb-spacing-sm);
+  overflow-y: auto;
+}
+
+/* Layouts. Each one changes how the messages sit, and the message bubbles keep their part. */
+.list[data-layout="flat"] .message .bubble {
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+.list[data-layout="flat"] .message.self {
+  flex-direction: row;
+}
+
+.list[data-layout="flat"] .message.self .body {
+  align-items: flex-start;
+}
+
+.list[data-layout="assistant"] .message:not(.self) {
+  inline-size: 100%;
+}
+
+.list[data-layout="assistant"] .message:not(.self) .body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.list[data-layout="assistant"] .message:not(.self) .bubble {
+  inline-size: 100%;
+  padding: 0;
+  background: none;
+  color: inherit;
+  max-inline-size: none;
+}
+
+.list[data-layout="compact"] .message {
+  align-items: baseline;
+  gap: 0;
+}
+
+.list[data-layout="compact"] .avatar,
+.list[data-layout="compact"] .avatar-space,
+.list[data-layout="compact"] .time,
+.list[data-layout="compact"] .status,
+.list[data-layout="compact"] .receipt {
+  display: none;
+}
+
+.list[data-layout="compact"] .body {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  max-inline-size: none;
+}
+
+.list[data-layout="compact"] .name {
+  margin-inline: 0 var(--orb-spacing-2xs);
+}
+
+.list[data-layout="compact"] .name::after {
+  content: ":";
+}
+
+.list[data-layout="compact"] .message .bubble {
+  display: inline;
+  padding: 0;
+  background: none;
+  color: inherit;
+}
+
+.list[data-layout="compact"] .message .bubble .text,
+.list[data-layout="compact"] .message .bubble .html {
+  display: inline;
+}
+
+.votes {
+  display: flex;
+  align-items: center;
+  gap: var(--orb-spacing-3xs);
+  margin-inline: var(--orb-spacing-sm);
+  color: var(--orb-note-color);
+  font-size: var(--orb-font-xs);
+}
+
+.votes .score {
+  min-inline-size: 1.5ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.votes orb-button[aria-pressed="true"] {
+  color: light-dark(var(--orb-primary-600), var(--orb-primary-200));
+}
+
+.sort {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--orb-spacing-2xs) var(--orb-spacing-md) 0;
+}
+
+.thread-nested {
+  display: flex;
+  flex-direction: column;
+  gap: var(--orb-channel-gap);
+  margin-block-start: var(--orb-spacing-2xs);
+  padding-inline-start: var(--orb-spacing-md);
+  border-inline-start: 2px solid var(--orb-divider-color);
 }
 
 @media (forced-colors: active) {

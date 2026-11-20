@@ -1,0 +1,157 @@
+---
+layout: false
+permalink: "/demos/channel-ai/"
+---
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/orb.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat | Orb</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "orb-style": "/build/components/index.js",
+        "orb-style/": "/build/components/",
+        "ai": "https://cdn.jsdelivr.net/npm/ai@5.0.291/+esm",
+        "@ai-sdk/openai-compatible": "https://cdn.jsdelivr.net/npm/@ai-sdk/openai-compatible@1.0.63/+esm"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/build/orb.css" />
+  <script type="module" src="/build/loader.js"></script>
+  <style>
+    body {
+      display: block;
+    }
+
+    orb-channel {
+      inline-size: 100%;
+      --orb-channel-gap: var(--orb-spacing-lg);
+    }
+
+    /* A centred reading column, with the composer under it */
+    orb-channel::part(main) {
+      flex: 1 1 auto;
+      min-block-size: 0;
+      inline-size: 100%;
+      max-inline-size: 52rem;
+      margin-inline: auto;
+    }
+
+    orb-channel::part(composer) {
+      inline-size: 100%;
+      max-inline-size: 52rem;
+      margin-inline: auto;
+      padding-block: var(--orb-spacing-md) var(--orb-spacing-lg);
+      border-block-start: 0;
+    }
+
+    orb-channel::part(ai-badge),
+    orb-channel::part(time) {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <orb-channel scroll-target="document" id="ai-chat" pov="ada" echo preset="assistant" show-header="false" show-names reasoning="collapsed" follow="bottom">
+    <orb-channel-participant id="ada" name="You"></orb-channel-participant>
+    <orb-channel-participant id="gemma" name="Gemma" role="ai" respond-to="always"></orb-channel-participant>
+    <orb-channel-composer name="ask" placeholder="Ask anything" while-streaming="block">
+      <orb-channel-action name="attach" label="Add a file">
+        <svg slot="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+      </orb-channel-action>
+      <orb-channel-action name="model" label="Model">
+        <span slot="icon" style="white-space: nowrap">gemma-4-flash</span>
+      </orb-channel-action>
+      <orb-channel-action name="voice" label="Voice input">
+        <svg slot="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+      </orb-channel-action>
+    </orb-channel-composer>
+  </orb-channel>
+
+  <script type="module">
+    import { createMessageWriter } from "orb-style";
+    import { streamText } from 'ai'
+    import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+
+    const SERVER = "http://localhost:9931/v1";
+    const MODEL = "gemma-4-flash";
+    const channel = document.querySelector("#ai-chat");
+    let active;
+
+    /** The text a message holds, without its reasoning, tool calls or other data */
+    function textOf(message) {
+      return [...message.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE || (node.nodeName === "SCRIPT" && node.type === "text/markdown"))
+        .map((node) => node.textContent)
+        .join("")
+        .trim();
+    }
+
+    /** The conversation so far, as the model's chat messages. Call it after the question is echoed. */
+    function conversation() {
+      const messages = [{ role: "system", content: "You are a helpful assistant in a chat. Keep answers short." }];
+      for (const message of channel.querySelectorAll(":scope > orb-channel-message")) {
+        const content = textOf(message);
+        if (content) messages.push({ role: message.getAttribute("from") === "ada" ? "user" : "assistant", content });
+      }
+      return messages;
+    }
+
+    async function answer(from, messages) {
+      const writer = createMessageWriter(channel, { from });
+      const controller = new AbortController();
+      active = controller;
+      let thinkingSince;
+
+      // The reasoning block says how long the model thought, once its answer starts
+      const labelThought = () => {
+        const block = [...writer.message.querySelectorAll(":scope > orb-channel-reasoning")].at(-1);
+        if (!block || thinkingSince === undefined) return;
+        const seconds = Math.max(1, Math.round((Date.now() - thinkingSince) / 1000));
+        block.setAttribute("label", `Thought for ${seconds} second${seconds === 1 ? "" : "s"}`);
+        block.removeAttribute("duration");
+        thinkingSince = undefined;
+      };
+
+      try {
+        const provider = createOpenAICompatible({ name: "llama.cpp", baseURL: SERVER });
+        const result = streamText({ model: provider.chatModel(MODEL), messages, abortSignal: controller.signal });
+        for await (const part of result.fullStream) {
+          if (part.type === "reasoning-delta") {
+            thinkingSince ??= Date.now();
+            writer.reasoning(part.text);
+          } else if (part.type === "text-delta") {
+            writer.text(part.text);
+            labelThought();
+          } else if (part.type === "error") {
+            throw part.error;
+          }
+        }
+        writer.finish();
+        labelThought();
+      } catch (error) {
+        if (controller.signal.aborted) writer.finish();
+        else writer.fail(`Couldn't reach the model server at ${SERVER}`);
+      } finally {
+        if (active === controller) active = undefined;
+      }
+    }
+
+    channel.addEventListener("orbSend", (event) => {
+      if (!event.detail.respondents.length) return;
+      // The echo of the question is added after this event, so the conversation is read after it
+      setTimeout(() => answer(event.detail.respondents[0], conversation()), 0);
+    });
+
+    channel.addEventListener("orbStop", () => active?.abort());
+  </script>
+</body>
+
+</html>

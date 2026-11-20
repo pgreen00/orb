@@ -9,7 +9,9 @@ import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
 import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
+import { MessageTransport } from "./components/channel/transport";
 import { SendDetail } from "./components/channel/model/types";
+import { Element } from "@stencil/core";
 import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 import { MaskDefinition } from "./components/mask-input/mask";
 import { Placement } from "@floating-ui/dom";
@@ -34,7 +36,9 @@ export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
 export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
+export { MessageTransport } from "./components/channel/transport";
 export { SendDetail } from "./components/channel/model/types";
+export { Element } from "@stencil/core";
 export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
 export { MaskDefinition } from "./components/mask-input/mask";
 export { Placement } from "@floating-ui/dom";
@@ -377,9 +381,25 @@ export namespace Components {
      */
     interface OrbChannel {
         /**
+          * The message actions, in order, separated by spaces. The names are `react`, `reply`, `copy`, `copy-link`, `edit`, `delete`, `pin`, `regenerate` and `report`. Without it, the menu has the usual ones.
+         */
+        "actions"?: string;
+        /**
+          * Where the list starts. `top` puts the composer above the list, and the list doesn't follow new messages.
+         */
+        "anchor"?: "bottom" | "top";
+        /**
+          * Whether new messages are announced. Off, the list is a feed, which doesn't announce each message.
+         */
+        "announce"?: boolean;
+        /**
           * Shows each participant's picture beside their messages. Defaults to on, except in `direct` chats.
          */
         "avatars"?: boolean;
+        /**
+          * How updates are batched, such as "250ms". "0" draws each frame.
+         */
+        "coalesce"?: string;
         /**
           * Shows a line with the date between messages from different days. Defaults to on.
          */
@@ -394,7 +414,16 @@ export namespace Components {
          */
         "disabled": boolean;
         /**
-          * Adds each message the composer sends as a message from `pov`, with `status="sent"`. An app's own message with the same `client-id` replaces it. Without `echo`, the app adds sent messages itself.
+          * Names the channel for its saved drafts, with `drafts="persist"`
+         */
+        "draftKeyName"?: string;
+        /**
+          * `persist` keeps each draft in `localStorage` under `key`, for the channel's composer and for each thread's reply box. Sending clears the draft.
+          * @default "none"
+         */
+        "drafts": "none" | "persist";
+        /**
+          * Adds each message the composer sends as a message from `pov`, with `status="sent"`. An app's own message with the same `client-id` replaces it. Without `echo`, the app adds sent messages itself. With a `transport`, a sent message is shown while it sends, whether or not `echo` is set.
           * @default false
          */
         "echo": boolean;
@@ -407,9 +436,18 @@ export namespace Components {
          */
         "focusComposer": () => Promise<void>;
         /**
+          * Whether sending keeps the list at the newest message. `question` scrolls the viewer's message to the top, so the answer grows below it.
+         */
+        "follow"?: "bottom" | "question";
+        /**
           * Messages from the same sender, closer together than this, are grouped. A duration such as "5m" or "30s". "0" turns grouping off. Defaults to "5m".
          */
         "groupWithin"?: string;
+        /**
+          * Shows the pill that jumps to the newest message, when the list is above its bottom
+          * @default true
+         */
+        "jumpToLatest": boolean;
         /**
           * `direct` is a conversation between two people, `group` is a few people, and `open` is a channel with many people. The default is `direct`.
          */
@@ -419,9 +457,38 @@ export namespace Components {
          */
         "label"?: string;
         /**
+          * The layout. `bubbles` puts the point of view's messages at the end, `flat` puts every message at the start with no bubble, `assistant` keeps bubbles for the point of view only, and `compact` is one line per message.
+         */
+        "layout"?: "bubbles" | "flat" | "assistant" | "compact";
+        /**
+          * Set by the app while older messages load. The list shows a loading row at its top.
+          * @default false
+         */
+        "loadingMore": boolean;
+        /**
+          * How many levels of replies are indented. Replies deeper than this sit at the last level. Above 1, inline replies are nested in the message they answer.
+         */
+        "maxDepth"?: number;
+        /**
+          * The id of the message whose thread is open in the panel. The channel sets it when a thread opens or closes.
+         */
+        "openThread"?: string;
+        /**
+          * Stops following new messages while the pointer is over the list. The pill then says the chat is paused.
+         */
+        "pauseOnScroll"?: boolean;
+        /**
+          * The address of a message's link, with `{id}` for its id, such as "/posts/42#{id}". Without it, the page's address is used.
+         */
+        "permalink"?: string;
+        /**
           * The id of the participant whose point of view the channel shows. Their messages are `self`.
          */
         "pov"?: string;
+        /**
+          * Who's online. `sampled` shows a count and a few avatars, and `full` names them.
+         */
+        "presence"?: "none" | "sampled" | "full";
         /**
           * A familiar format, such as `comments`. It sets the settings it covers, and the kind when `kind` isn't set. An attribute set on the element wins.
          */
@@ -432,11 +499,29 @@ export namespace Components {
          */
         "readonly": boolean;
         /**
-          * Scrolls a message into view and moves the list's focus to it
+          * How model reasoning shows. `collapsed` is a closed block, `show` opens it, and `hidden` leaves it out.
+          * @default "collapsed"
+         */
+        "reasoning": "show" | "collapsed" | "hidden";
+        /**
+          * How far a message has been read. `delivered` and `read` show a receipt under the viewer's last message.
+         */
+        "receipts"?: "none" | "delivered" | "read";
+        /**
+          * Replaces a message with new content. The message and every message and divider after it are removed, and the content goes where the message was. The content can be an HTML string, an element or a fragment. After a switch from `orbVariantChange`, the place on screen is kept and focus moves to the new version's switcher.
+         */
+        "replaceFrom": (message: HTMLElement, content: string | Node) => Promise<void>;
+        /**
+          * What scrolls the messages. `list` gives the list its own scrollbar, within the channel's height. `document` lets the page scroll instead: the channel is as tall as its messages, and the composer stays at the bottom of the screen.
+          * @default "list"
+         */
+        "scrollTarget": "list" | "document";
+        /**
+          * Scrolls a message into view and moves the list's focus to it. A reply opens its thread first, and a message that isn't drawn is brought into the list.
          */
         "scrollToMessage": (id: string, options?: { behavior?: ScrollBehavior; }) => Promise<void>;
         /**
-          * Sends text as a message, through the same path as the composer. The draft is left as it is.
+          * Sends text as a message, through the same path as the composer. The draft is left as it is. While an AI message streams, only a composer set to `interrupt` sends, and it stops the answer first.
          */
         "send": (text: string) => Promise<void>;
         /**
@@ -453,10 +538,30 @@ export namespace Components {
          */
         "slowMode"?: string;
         /**
+          * The sort in use, one of `sorts`. Choosing one emits `orbSortChange`, and the app reorders the messages.
+         */
+        "sort"?: string;
+        /**
+          * The sort options, separated by spaces, such as "top new old". Without them, there's no sort menu.
+         */
+        "sorts"?: string;
+        /**
+          * How replies to a message are shown. `none` puts them in the list, `inline` shows them under the message they answer, and `panel` opens them beside the list. Defaults to `panel` for `open` channels, and `none` otherwise.
+         */
+        "threads"?: "none" | "inline" | "panel";
+        /**
+          * Sends and receives messages. Each message shows while it sends, and the server's copy replaces it when it has the same `client-id`. The transport's `history` pages older messages in.
+         */
+        "transport"?: MessageTransport;
+        /**
           * The number of messages after the `unread` divider that aren't from the point of view. Set by the channel.
           * @default 0
          */
         "unread": number;
+        /**
+          * The vote buttons on each message. `up-down` adds a downvote.
+         */
+        "votes"?: "none" | "up" | "up-down";
     }
     /**
      * A button in an `orb-channel-composer`. Its icon is a child with
@@ -494,6 +599,24 @@ export namespace Components {
           * The file's MIME type, such as `image/png`. Images are shown inline.
          */
         "type"?: string;
+    }
+    /**
+     * A source a message refers to. It shows as a numbered button in the text, and
+     * the button opens a popover with the source's link. It renders nothing itself.
+     */
+    interface OrbChannelCitation {
+        /**
+          * The source's title, shown in the popover. Set with the `title` attribute.
+         */
+        "citationTitle"?: string;
+        /**
+          * Where the source is
+         */
+        "href"?: string;
+        /**
+          * The number shown in the text. Defaults to the citation's place in its message.
+         */
+        "index"?: number;
     }
     /**
      * A command in an `orb-channel-composer`. Typing `/` at the start of a message
@@ -546,6 +669,10 @@ export namespace Components {
          */
         "placeholder"?: string;
         /**
+          * `replies` makes this the composer for replies in threads. It overrides the main composer's `placeholder`, `label`, `send-on` and `max-length` when set.
+         */
+        "scope"?: "replies";
+        /**
           * What sends the message. `enter` sends on Enter, and Shift+Enter adds a line. `mod-enter` sends on Ctrl or ⌘+Enter, and Enter adds a line.
           * @default "enter"
          */
@@ -560,6 +687,11 @@ export namespace Components {
           * @default ""
          */
         "value": string;
+        /**
+          * What sending does while an AI message is streaming. The send button becomes a stop button then. `block` ignores sends, `queue` holds the draft until the answer finishes, and `interrupt` stops the answer and sends.
+          * @default "block"
+         */
+        "whileStreaming": "queue" | "block" | "interrupt";
     }
     /**
      * A line across an `orb-channel`, with a label, placed between messages. An
@@ -596,6 +728,10 @@ export namespace Components {
          */
         "edited": boolean;
         /**
+          * Why the message failed. It's shown in place of "Not sent" when `status` is `failed`.
+         */
+        "error"?: string;
+        /**
           * Who sent the message, by the id of a participant
          */
         "from"?: string;
@@ -617,13 +753,42 @@ export namespace Components {
          */
         "replyTo"?: string;
         /**
+          * The message's score, shown next to its vote buttons when the channel's `votes` is on
+         */
+        "score"?: number;
+        /**
           * Where the message is in its delivery. `failed` shows it as not sent.
          */
         "status"?: "sending" | "sent" | "delivered" | "read" | "failed";
         /**
+          * Set while the message is still being written, such as a streamed answer. It shows a cursor.
+          * @default false
+         */
+        "streaming": boolean;
+        /**
+          * The `id` of the message this one is a reply to, in its thread. Replies are shown under the message their thread starts from, not in the list.
+         */
+        "thread"?: string;
+        /**
+          * How many replies the thread has, when not every reply is in the DOM. Overrides the count from the replies.
+         */
+        "threadCount"?: number;
+        /**
+          * When the thread's last reply was sent, as an ISO 8601 string
+         */
+        "threadLast"?: string;
+        /**
+          * Whether the thread the message starts is `collapsed` or `resolved`. The reader can still open it.
+         */
+        "threadState"?: "collapsed" | "resolved";
+        /**
           * When the message was sent, as an ISO 8601 string
          */
         "ts"?: string;
+        /**
+          * The viewer's own vote, which shows its button as pressed
+         */
+        "vote"?: "up" | "down";
     }
     /**
      * A person in an `orb-channel`, identified by the element's `id`. Messages
@@ -635,9 +800,17 @@ export namespace Components {
          */
         "accent"?: string;
         /**
+          * The label of an AI participant's badge, such as "Assistant"
+         */
+        "aiLabel"?: string;
+        /**
           * The URL of their picture. Without one, their first letter is shown.
          */
         "avatar"?: string;
+        /**
+          * What an AI participant sees of the conversation: `channel`, `thread`, `last:20` for the last 20 messages, or `selection`. The channel doesn't read it. It's for the app, which sends the context to its model.
+         */
+        "context"?: string;
         /**
           * Collapses the participant's messages, for the point of view only
           * @default false
@@ -661,6 +834,40 @@ export namespace Components {
           * The name shown above their messages and in the header
          */
         "name"?: string;
+        /**
+          * Whether they're online, away or offline. Without it, the channel doesn't show presence for them.
+         */
+        "presence"?: "online" | "away" | "offline";
+        /**
+          * Where an AI participant's answers go: `channel`, `thread`, or `auto`. The channel doesn't read it. It's for the app, which writes the answer there.
+         */
+        "replyIn"?: "channel" | "thread" | "auto";
+        /**
+          * When an AI participant answers a message the point of view sends. `always` answers every message, and `mention` answers when it's `@`-mentioned. `manual` and `never` don't answer on their own. The channel lists the ones that should answer in `orbSend`'s `respondents`. The default is `always` in a `direct` chat, and `mention` otherwise.
+         */
+        "respondTo"?: "always" | "mention" | "manual" | "never";
+        /**
+          * What the participant is. `ai` marks a model: its messages get a badge, and it can answer messages (see `respondTo`). The others are shown as people.
+          * @default "human"
+         */
+        "role": "human" | "ai" | "bot" | "system";
+        /**
+          * Shows that they're typing. The channel shows a line for it.
+          * @default false
+         */
+        "typing": boolean;
+    }
+    /**
+     * Where an `orb-channel` gets the people it doesn't have yet. When a message
+     * comes from someone who isn't a child of the channel, the channel asks for
+     * them, in batches, and shows the `orb-channel-participant` elements in the
+     * response. It renders nothing itself.
+     */
+    interface OrbChannelParticipantSource {
+        /**
+          * The URL to fetch, with `{ids}` where the ids go. They're comma-separated and URL-encoded, such as `/people?ids={ids}`. The response is HTML of `orb-channel-participant` elements.
+         */
+        "href"?: string;
     }
     /**
      * One reaction to a message in an `orb-channel`. Each reaction is one
@@ -676,6 +883,118 @@ export namespace Components {
           * The emoji, such as 🎉
          */
         "emoji"?: string;
+    }
+    /**
+     * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
+     * Its text is the reasoning. It renders nothing itself.
+     */
+    interface OrbChannelReasoning {
+        /**
+          * How long the reasoning took, such as "4.2s". Shown after the summary's text.
+         */
+        "duration"?: string;
+        /**
+          * The summary's text. Defaults to "Thinking…" while it's thinking, and "Reasoning" after.
+         */
+        "label"?: string;
+        /**
+          * Whether the reasoning is still being written, or has finished
+          * @default "thinking"
+         */
+        "state": "thinking" | "done";
+    }
+    /**
+     * One suggestion, a chip whose text is the suggestion. Clicking it fills the
+     * message box with the text, or sends it with `send`. A child with
+     * `slot="icon"` is its icon. It renders nothing itself.
+     */
+    interface OrbChannelSuggestion {
+        /**
+          * Sends the suggestion right away, rather than filling the message box with it
+          * @default false
+         */
+        "send": boolean;
+    }
+    /**
+     * Follow-up suggestions for the point of view, shown above the message box.
+     * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+     */
+    interface OrbChannelSuggestions {
+        /**
+          * The accessible name of the group of suggestions
+         */
+        "label"?: string;
+    }
+    /**
+     * A tool a model called, shown in an `orb-channel-message` with its arguments
+     * and result. Its arguments and result go in `<script type="application/json">`
+     * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+     */
+    interface OrbChannelToolCall {
+        /**
+          * Identifies the call, so a result can be matched to it
+         */
+        "callId"?: string;
+        /**
+          * The name of the tool, such as "fetch_schema"
+         */
+        "name"?: string;
+        /**
+          * Marks a call that needs approval, with a label
+          * @default false
+         */
+        "requiresApproval": boolean;
+        /**
+          * Where the call is. `running` and `done` are shown as they are, and `awaiting-approval` shows approve and deny buttons.
+          * @default "running"
+         */
+        "status": "running" | "awaiting-approval" | "done" | "error" | "denied" | string;
+    }
+    /**
+     * How an `orb-channel` sends and receives messages over the network, for apps
+     * that don't write a transport in JavaScript. The channel reads its attributes
+     * when it connects, and reconnects when they change. It renders nothing itself.
+     */
+    interface OrbChannelTransport {
+        /**
+          * Where messages are posted: `form`, and `sse` or `poll` when they should send too. `websocket` sends over the socket instead.
+         */
+        "action"?: string;
+        /**
+          * How often `poll` fetches `src`, such as "5s". Defaults to 5s.
+         */
+        "interval"?: string;
+        /**
+          * Where incoming HTML comes from: `sse`, `websocket` and `poll`
+         */
+        "src"?: string;
+        /**
+          * `form` posts each message to `action`, and shows the HTML the response holds. `sse` receives HTML events from `src`, and posts to `action` when it's set. `websocket` opens `src`, sends each message over the socket, and shows the HTML it receives. `poll` fetches `src` every `interval`.
+          * @default "form"
+         */
+        "type": "form" | "sse" | "websocket" | "poll";
+    }
+    /**
+     * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
+     * emits `orbVariantChange` on the channel, and the app shows that version. It
+     * renders nothing itself.
+     */
+    interface OrbChannelVariants {
+        /**
+          * Set while the app fetches a version. The buttons are off and a spinner shows.
+          * @default false
+         */
+        "busy": boolean;
+        /**
+          * How many versions there are
+          * @default 1
+         */
+        "count": number;
+        /**
+          * The version on screen, counting from 1
+          * @default 1
+         */
+        "current": number;
     }
     interface OrbCheckbox {
         /**
@@ -2492,6 +2811,10 @@ export interface OrbChannelAttachmentCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbChannelAttachmentElement;
 }
+export interface OrbChannelCitationCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelCitationElement;
+}
 export interface OrbChannelCommandCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbChannelCommandElement;
@@ -2512,9 +2835,37 @@ export interface OrbChannelParticipantCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbChannelParticipantElement;
 }
+export interface OrbChannelParticipantSourceCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelParticipantSourceElement;
+}
 export interface OrbChannelReactionCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbChannelReactionElement;
+}
+export interface OrbChannelReasoningCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelReasoningElement;
+}
+export interface OrbChannelSuggestionCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelSuggestionElement;
+}
+export interface OrbChannelSuggestionsCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelSuggestionsElement;
+}
+export interface OrbChannelToolCallCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelToolCallElement;
+}
+export interface OrbChannelTransportCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelTransportElement;
+}
+export interface OrbChannelVariantsCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbChannelVariantsElement;
 }
 export interface OrbCheckboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
@@ -2715,6 +3066,7 @@ declare global {
     };
     interface HTMLOrbChannelElementEventMap {
         "orbSend": SendDetail;
+        "orbRetry": { message: HTMLElement };
         "orbAction": { name: string; composer: HTMLElement };
         "orbReact": { message: HTMLElement; emoji: string; on: boolean };
         "orbEdit": { message: HTMLElement; text: string };
@@ -2728,6 +3080,17 @@ declare global {
     participant: HTMLElement | null;
   };
         "orbRead": { message: HTMLElement };
+        "orbStop": { messages: HTMLElement[] };
+        "orbToolDecision": { toolCall: HTMLElement; callId: string; approved: boolean };
+        "orbVariantChange": { message: HTMLElement; current: number };
+        "orbRegenerate": { message: HTMLElement };
+        "orbThreadOpen": { parent: HTMLElement };
+        "orbThreadClose": { parent: HTMLElement };
+        "orbLoadMore": { direction?: "before" | "after"; cursor?: string; parent?: HTMLElement };
+        "orbPin": { message: HTMLElement; pinned: boolean };
+        "orbVote": { message: HTMLElement; value: "up" | "down" | "none" };
+        "orbSortChange": { sort: string };
+        "orbTyping": { typing: boolean };
     }
     /**
      * A chat interface. It renders the messages, participants, dividers and
@@ -2789,6 +3152,27 @@ declare global {
     var HTMLOrbChannelAttachmentElement: {
         prototype: HTMLOrbChannelAttachmentElement;
         new (): HTMLOrbChannelAttachmentElement;
+    };
+    interface HTMLOrbChannelCitationElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * A source a message refers to. It shows as a numbered button in the text, and
+     * the button opens a popover with the source's link. It renders nothing itself.
+     */
+    interface HTMLOrbChannelCitationElement extends Components.OrbChannelCitation, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelCitationElementEventMap>(type: K, listener: (this: HTMLOrbChannelCitationElement, ev: OrbChannelCitationCustomEvent<HTMLOrbChannelCitationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelCitationElementEventMap>(type: K, listener: (this: HTMLOrbChannelCitationElement, ev: OrbChannelCitationCustomEvent<HTMLOrbChannelCitationElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelCitationElement: {
+        prototype: HTMLOrbChannelCitationElement;
+        new (): HTMLOrbChannelCitationElement;
     };
     interface HTMLOrbChannelCommandElementEventMap {
         "orbChannelDataChange": void;
@@ -2898,6 +3282,29 @@ declare global {
         prototype: HTMLOrbChannelParticipantElement;
         new (): HTMLOrbChannelParticipantElement;
     };
+    interface HTMLOrbChannelParticipantSourceElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * Where an `orb-channel` gets the people it doesn't have yet. When a message
+     * comes from someone who isn't a child of the channel, the channel asks for
+     * them, in batches, and shows the `orb-channel-participant` elements in the
+     * response. It renders nothing itself.
+     */
+    interface HTMLOrbChannelParticipantSourceElement extends Components.OrbChannelParticipantSource, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelParticipantSourceElementEventMap>(type: K, listener: (this: HTMLOrbChannelParticipantSourceElement, ev: OrbChannelParticipantSourceCustomEvent<HTMLOrbChannelParticipantSourceElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelParticipantSourceElementEventMap>(type: K, listener: (this: HTMLOrbChannelParticipantSourceElement, ev: OrbChannelParticipantSourceCustomEvent<HTMLOrbChannelParticipantSourceElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelParticipantSourceElement: {
+        prototype: HTMLOrbChannelParticipantSourceElement;
+        new (): HTMLOrbChannelParticipantSourceElement;
+    };
     interface HTMLOrbChannelReactionElementEventMap {
         "orbChannelDataChange": void;
     }
@@ -2919,6 +3326,136 @@ declare global {
     var HTMLOrbChannelReactionElement: {
         prototype: HTMLOrbChannelReactionElement;
         new (): HTMLOrbChannelReactionElement;
+    };
+    interface HTMLOrbChannelReasoningElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
+     * Its text is the reasoning. It renders nothing itself.
+     */
+    interface HTMLOrbChannelReasoningElement extends Components.OrbChannelReasoning, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelReasoningElementEventMap>(type: K, listener: (this: HTMLOrbChannelReasoningElement, ev: OrbChannelReasoningCustomEvent<HTMLOrbChannelReasoningElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelReasoningElementEventMap>(type: K, listener: (this: HTMLOrbChannelReasoningElement, ev: OrbChannelReasoningCustomEvent<HTMLOrbChannelReasoningElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelReasoningElement: {
+        prototype: HTMLOrbChannelReasoningElement;
+        new (): HTMLOrbChannelReasoningElement;
+    };
+    interface HTMLOrbChannelSuggestionElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * One suggestion, a chip whose text is the suggestion. Clicking it fills the
+     * message box with the text, or sends it with `send`. A child with
+     * `slot="icon"` is its icon. It renders nothing itself.
+     */
+    interface HTMLOrbChannelSuggestionElement extends Components.OrbChannelSuggestion, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelSuggestionElementEventMap>(type: K, listener: (this: HTMLOrbChannelSuggestionElement, ev: OrbChannelSuggestionCustomEvent<HTMLOrbChannelSuggestionElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelSuggestionElementEventMap>(type: K, listener: (this: HTMLOrbChannelSuggestionElement, ev: OrbChannelSuggestionCustomEvent<HTMLOrbChannelSuggestionElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelSuggestionElement: {
+        prototype: HTMLOrbChannelSuggestionElement;
+        new (): HTMLOrbChannelSuggestionElement;
+    };
+    interface HTMLOrbChannelSuggestionsElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * Follow-up suggestions for the point of view, shown above the message box.
+     * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+     */
+    interface HTMLOrbChannelSuggestionsElement extends Components.OrbChannelSuggestions, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelSuggestionsElementEventMap>(type: K, listener: (this: HTMLOrbChannelSuggestionsElement, ev: OrbChannelSuggestionsCustomEvent<HTMLOrbChannelSuggestionsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelSuggestionsElementEventMap>(type: K, listener: (this: HTMLOrbChannelSuggestionsElement, ev: OrbChannelSuggestionsCustomEvent<HTMLOrbChannelSuggestionsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelSuggestionsElement: {
+        prototype: HTMLOrbChannelSuggestionsElement;
+        new (): HTMLOrbChannelSuggestionsElement;
+    };
+    interface HTMLOrbChannelToolCallElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * A tool a model called, shown in an `orb-channel-message` with its arguments
+     * and result. Its arguments and result go in `<script type="application/json">`
+     * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+     */
+    interface HTMLOrbChannelToolCallElement extends Components.OrbChannelToolCall, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelToolCallElementEventMap>(type: K, listener: (this: HTMLOrbChannelToolCallElement, ev: OrbChannelToolCallCustomEvent<HTMLOrbChannelToolCallElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelToolCallElementEventMap>(type: K, listener: (this: HTMLOrbChannelToolCallElement, ev: OrbChannelToolCallCustomEvent<HTMLOrbChannelToolCallElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelToolCallElement: {
+        prototype: HTMLOrbChannelToolCallElement;
+        new (): HTMLOrbChannelToolCallElement;
+    };
+    interface HTMLOrbChannelTransportElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * How an `orb-channel` sends and receives messages over the network, for apps
+     * that don't write a transport in JavaScript. The channel reads its attributes
+     * when it connects, and reconnects when they change. It renders nothing itself.
+     */
+    interface HTMLOrbChannelTransportElement extends Components.OrbChannelTransport, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelTransportElementEventMap>(type: K, listener: (this: HTMLOrbChannelTransportElement, ev: OrbChannelTransportCustomEvent<HTMLOrbChannelTransportElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelTransportElementEventMap>(type: K, listener: (this: HTMLOrbChannelTransportElement, ev: OrbChannelTransportCustomEvent<HTMLOrbChannelTransportElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelTransportElement: {
+        prototype: HTMLOrbChannelTransportElement;
+        new (): HTMLOrbChannelTransportElement;
+    };
+    interface HTMLOrbChannelVariantsElementEventMap {
+        "orbChannelDataChange": void;
+    }
+    /**
+     * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
+     * emits `orbVariantChange` on the channel, and the app shows that version. It
+     * renders nothing itself.
+     */
+    interface HTMLOrbChannelVariantsElement extends Components.OrbChannelVariants, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbChannelVariantsElementEventMap>(type: K, listener: (this: HTMLOrbChannelVariantsElement, ev: OrbChannelVariantsCustomEvent<HTMLOrbChannelVariantsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbChannelVariantsElementEventMap>(type: K, listener: (this: HTMLOrbChannelVariantsElement, ev: OrbChannelVariantsCustomEvent<HTMLOrbChannelVariantsElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbChannelVariantsElement: {
+        prototype: HTMLOrbChannelVariantsElement;
+        new (): HTMLOrbChannelVariantsElement;
     };
     interface HTMLOrbCheckboxElementEventMap {
         "orbCheckedChange": "true" | "false" | "mixed";
@@ -3649,12 +4186,20 @@ declare global {
         "orb-channel": HTMLOrbChannelElement;
         "orb-channel-action": HTMLOrbChannelActionElement;
         "orb-channel-attachment": HTMLOrbChannelAttachmentElement;
+        "orb-channel-citation": HTMLOrbChannelCitationElement;
         "orb-channel-command": HTMLOrbChannelCommandElement;
         "orb-channel-composer": HTMLOrbChannelComposerElement;
         "orb-channel-divider": HTMLOrbChannelDividerElement;
         "orb-channel-message": HTMLOrbChannelMessageElement;
         "orb-channel-participant": HTMLOrbChannelParticipantElement;
+        "orb-channel-participant-source": HTMLOrbChannelParticipantSourceElement;
         "orb-channel-reaction": HTMLOrbChannelReactionElement;
+        "orb-channel-reasoning": HTMLOrbChannelReasoningElement;
+        "orb-channel-suggestion": HTMLOrbChannelSuggestionElement;
+        "orb-channel-suggestions": HTMLOrbChannelSuggestionsElement;
+        "orb-channel-tool-call": HTMLOrbChannelToolCallElement;
+        "orb-channel-transport": HTMLOrbChannelTransportElement;
+        "orb-channel-variants": HTMLOrbChannelVariantsElement;
         "orb-checkbox": HTMLOrbCheckboxElement;
         "orb-checkbox-group": HTMLOrbCheckboxGroupElement;
         "orb-color": HTMLOrbColorElement;
@@ -4039,9 +4584,25 @@ declare namespace LocalJSX {
      */
     interface OrbChannel {
         /**
+          * The message actions, in order, separated by spaces. The names are `react`, `reply`, `copy`, `copy-link`, `edit`, `delete`, `pin`, `regenerate` and `report`. Without it, the menu has the usual ones.
+         */
+        "actions"?: string;
+        /**
+          * Where the list starts. `top` puts the composer above the list, and the list doesn't follow new messages.
+         */
+        "anchor"?: "bottom" | "top";
+        /**
+          * Whether new messages are announced. Off, the list is a feed, which doesn't announce each message.
+         */
+        "announce"?: boolean;
+        /**
           * Shows each participant's picture beside their messages. Defaults to on, except in `direct` chats.
          */
         "avatars"?: boolean;
+        /**
+          * How updates are batched, such as "250ms". "0" draws each frame.
+         */
+        "coalesce"?: string;
         /**
           * Shows a line with the date between messages from different days. Defaults to on.
          */
@@ -4056,7 +4617,16 @@ declare namespace LocalJSX {
          */
         "disabled"?: boolean;
         /**
-          * Adds each message the composer sends as a message from `pov`, with `status="sent"`. An app's own message with the same `client-id` replaces it. Without `echo`, the app adds sent messages itself.
+          * Names the channel for its saved drafts, with `drafts="persist"`
+         */
+        "draftKeyName"?: string;
+        /**
+          * `persist` keeps each draft in `localStorage` under `key`, for the channel's composer and for each thread's reply box. Sending clears the draft.
+          * @default "none"
+         */
+        "drafts"?: "none" | "persist";
+        /**
+          * Adds each message the composer sends as a message from `pov`, with `status="sent"`. An app's own message with the same `client-id` replaces it. Without `echo`, the app adds sent messages itself. With a `transport`, a sent message is shown while it sends, whether or not `echo` is set.
           * @default false
          */
         "echo"?: boolean;
@@ -4065,9 +4635,18 @@ declare namespace LocalJSX {
          */
         "empty"?: string;
         /**
+          * Whether sending keeps the list at the newest message. `question` scrolls the viewer's message to the top, so the answer grows below it.
+         */
+        "follow"?: "bottom" | "question";
+        /**
           * Messages from the same sender, closer together than this, are grouped. A duration such as "5m" or "30s". "0" turns grouping off. Defaults to "5m".
          */
         "groupWithin"?: string;
+        /**
+          * Shows the pill that jumps to the newest message, when the list is above its bottom
+          * @default true
+         */
+        "jumpToLatest"?: boolean;
         /**
           * `direct` is a conversation between two people, `group` is a few people, and `open` is a channel with many people. The default is `direct`.
          */
@@ -4076,6 +4655,19 @@ declare namespace LocalJSX {
           * The title in the header, and the accessible name of the list
          */
         "label"?: string;
+        /**
+          * The layout. `bubbles` puts the point of view's messages at the end, `flat` puts every message at the start with no bubble, `assistant` keeps bubbles for the point of view only, and `compact` is one line per message.
+         */
+        "layout"?: "bubbles" | "flat" | "assistant" | "compact";
+        /**
+          * Set by the app while older messages load. The list shows a loading row at its top.
+          * @default false
+         */
+        "loadingMore"?: boolean;
+        /**
+          * How many levels of replies are indented. Replies deeper than this sit at the last level. Above 1, inline replies are nested in the message they answer.
+         */
+        "maxDepth"?: number;
         /**
           * Emitted when a button from an `orb-channel-action` is clicked
          */
@@ -4093,6 +4685,10 @@ declare namespace LocalJSX {
          */
         "onOrbEditCommit"?: (event: OrbChannelCustomEvent<{ message: HTMLElement; text: string }>) => void;
         /**
+          * Emitted when older messages are wanted, as the list is scrolled to its top, with the id of the oldest message as `cursor`. It's also emitted with the `parent` message, when the "View more replies" button of a thread is used. Set `loading-more` while the app loads them.
+         */
+        "onOrbLoadMore"?: (event: OrbChannelCustomEvent<{ direction?: "before" | "after"; cursor?: string; parent?: HTMLElement }>) => void;
+        /**
           * Emitted when a moderator uses a moderation button, such as "hide", "remove", "pin" or "mute"
          */
         "onOrbModerate"?: (event: OrbChannelCustomEvent<{
@@ -4100,6 +4696,10 @@ declare namespace LocalJSX {
     message: HTMLElement;
     participant: HTMLElement | null;
   }>) => void;
+        /**
+          * Emitted when a message's pin is chosen. The app sets `pinned` on the message. Cancel it to leave the message as it is.
+         */
+        "onOrbPin"?: (event: OrbChannelCustomEvent<{ message: HTMLElement; pinned: boolean }>) => void;
         /**
           * Emitted when a reaction is chosen. `on` is whether the point of view is reacting, or taking the reaction back. The channel doesn't change the reaction itself.
          */
@@ -4109,6 +4709,10 @@ declare namespace LocalJSX {
          */
         "onOrbRead"?: (event: OrbChannelCustomEvent<{ message: HTMLElement }>) => void;
         /**
+          * Emitted when the user asks for another answer to an AI message. The app asks its model, and shows the new answer with `replaceFrom()`. Cancel it to take over.
+         */
+        "onOrbRegenerate"?: (event: OrbChannelCustomEvent<{ message: HTMLElement }>) => void;
+        /**
           * Emitted when the user chooses Reply on a message. The app sets `reply-to` on its own message.
          */
         "onOrbReply"?: (event: OrbChannelCustomEvent<{ message: HTMLElement }>) => void;
@@ -4117,13 +4721,65 @@ declare namespace LocalJSX {
          */
         "onOrbReport"?: (event: OrbChannelCustomEvent<{ message: HTMLElement }>) => void;
         /**
+          * Emitted when the viewer asks to send a failed message again. With a transport, the channel sends it again unless this is canceled. Without one, the app does.
+         */
+        "onOrbRetry"?: (event: OrbChannelCustomEvent<{ message: HTMLElement }>) => void;
+        /**
           * Emitted when a message is sent from the composer. Cancel it to keep the draft.
          */
         "onOrbSend"?: (event: OrbChannelCustomEvent<SendDetail>) => void;
         /**
+          * Emitted when a sort is chosen. The app reorders the messages, since DOM order is the order. Cancel it to keep the sort.
+         */
+        "onOrbSortChange"?: (event: OrbChannelCustomEvent<{ sort: string }>) => void;
+        /**
+          * Emitted when the user stops a streaming AI message. The channel doesn't stop the model: the app does. Cancel it to keep the answer going.
+         */
+        "onOrbStop"?: (event: OrbChannelCustomEvent<{ messages: HTMLElement[] }>) => void;
+        /**
+          * Emitted when the panel's thread closes. Cancel it to keep the thread open.
+         */
+        "onOrbThreadClose"?: (event: OrbChannelCustomEvent<{ parent: HTMLElement }>) => void;
+        /**
+          * Emitted when a thread opens in the panel. Cancel it to keep the thread closed.
+         */
+        "onOrbThreadOpen"?: (event: OrbChannelCustomEvent<{ parent: HTMLElement }>) => void;
+        /**
+          * Emitted when the user approves or denies a tool call. The channel doesn't run the tool. The app does, and sets the call's `status`. Cancel it to take over.
+         */
+        "onOrbToolDecision"?: (event: OrbChannelCustomEvent<{ toolCall: HTMLElement; callId: string; approved: boolean }>) => void;
+        /**
+          * Emitted when the local user starts or stops typing. It stops after a few seconds without a keystroke, and when a message is sent.
+         */
+        "onOrbTyping"?: (event: OrbChannelCustomEvent<{ typing: boolean }>) => void;
+        /**
+          * Emitted when the user asks for another version of a message. The app fetches that version and shows it with `replaceFrom()`.
+         */
+        "onOrbVariantChange"?: (event: OrbChannelCustomEvent<{ message: HTMLElement; current: number }>) => void;
+        /**
+          * Emitted when a vote button is used. `value` is `none` when the vote is taken back. The app sets `score` and `vote`.
+         */
+        "onOrbVote"?: (event: OrbChannelCustomEvent<{ message: HTMLElement; value: "up" | "down" | "none" }>) => void;
+        /**
+          * The id of the message whose thread is open in the panel. The channel sets it when a thread opens or closes.
+         */
+        "openThread"?: string;
+        /**
+          * Stops following new messages while the pointer is over the list. The pill then says the chat is paused.
+         */
+        "pauseOnScroll"?: boolean;
+        /**
+          * The address of a message's link, with `{id}` for its id, such as "/posts/42#{id}". Without it, the page's address is used.
+         */
+        "permalink"?: string;
+        /**
           * The id of the participant whose point of view the channel shows. Their messages are `self`.
          */
         "pov"?: string;
+        /**
+          * Who's online. `sampled` shows a count and a few avatars, and `full` names them.
+         */
+        "presence"?: "none" | "sampled" | "full";
         /**
           * A familiar format, such as `comments`. It sets the settings it covers, and the kind when `kind` isn't set. An attribute set on the element wins.
          */
@@ -4133,6 +4789,20 @@ declare namespace LocalJSX {
           * @default false
          */
         "readonly"?: boolean;
+        /**
+          * How model reasoning shows. `collapsed` is a closed block, `show` opens it, and `hidden` leaves it out.
+          * @default "collapsed"
+         */
+        "reasoning"?: "show" | "collapsed" | "hidden";
+        /**
+          * How far a message has been read. `delivered` and `read` show a receipt under the viewer's last message.
+         */
+        "receipts"?: "none" | "delivered" | "read";
+        /**
+          * What scrolls the messages. `list` gives the list its own scrollbar, within the channel's height. `document` lets the page scroll instead: the channel is as tall as its messages, and the composer stays at the bottom of the screen.
+          * @default "list"
+         */
+        "scrollTarget"?: "list" | "document";
         /**
           * Shows the header. The header's content depends on `kind`.
           * @default true
@@ -4147,10 +4817,30 @@ declare namespace LocalJSX {
          */
         "slowMode"?: string;
         /**
+          * The sort in use, one of `sorts`. Choosing one emits `orbSortChange`, and the app reorders the messages.
+         */
+        "sort"?: string;
+        /**
+          * The sort options, separated by spaces, such as "top new old". Without them, there's no sort menu.
+         */
+        "sorts"?: string;
+        /**
+          * How replies to a message are shown. `none` puts them in the list, `inline` shows them under the message they answer, and `panel` opens them beside the list. Defaults to `panel` for `open` channels, and `none` otherwise.
+         */
+        "threads"?: "none" | "inline" | "panel";
+        /**
+          * Sends and receives messages. Each message shows while it sends, and the server's copy replaces it when it has the same `client-id`. The transport's `history` pages older messages in.
+         */
+        "transport"?: MessageTransport;
+        /**
           * The number of messages after the `unread` divider that aren't from the point of view. Set by the channel.
           * @default 0
          */
         "unread"?: number;
+        /**
+          * The vote buttons on each message. `up-down` adds a downvote.
+         */
+        "votes"?: "none" | "up" | "up-down";
     }
     /**
      * A button in an `orb-channel-composer`. Its icon is a child with
@@ -4196,6 +4886,28 @@ declare namespace LocalJSX {
           * The file's MIME type, such as `image/png`. Images are shown inline.
          */
         "type"?: string;
+    }
+    /**
+     * A source a message refers to. It shows as a numbered button in the text, and
+     * the button opens a popover with the source's link. It renders nothing itself.
+     */
+    interface OrbChannelCitation {
+        /**
+          * The source's title, shown in the popover. Set with the `title` attribute.
+         */
+        "citationTitle"?: string;
+        /**
+          * Where the source is
+         */
+        "href"?: string;
+        /**
+          * The number shown in the text. Defaults to the citation's place in its message.
+         */
+        "index"?: number;
+        /**
+          * Emitted when the citation's data changes, so the channel can update
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelCitationCustomEvent<void>) => void;
     }
     /**
      * A command in an `orb-channel-composer`. Typing `/` at the start of a message
@@ -4264,6 +4976,10 @@ declare namespace LocalJSX {
          */
         "placeholder"?: string;
         /**
+          * `replies` makes this the composer for replies in threads. It overrides the main composer's `placeholder`, `label`, `send-on` and `max-length` when set.
+         */
+        "scope"?: "replies";
+        /**
           * What sends the message. `enter` sends on Enter, and Shift+Enter adds a line. `mod-enter` sends on Ctrl or ⌘+Enter, and Enter adds a line.
           * @default "enter"
          */
@@ -4278,6 +4994,11 @@ declare namespace LocalJSX {
           * @default ""
          */
         "value"?: string;
+        /**
+          * What sending does while an AI message is streaming. The send button becomes a stop button then. `block` ignores sends, `queue` holds the draft until the answer finishes, and `interrupt` stops the answer and sends.
+          * @default "block"
+         */
+        "whileStreaming"?: "queue" | "block" | "interrupt";
     }
     /**
      * A line across an `orb-channel`, with a label, placed between messages. An
@@ -4318,6 +5039,10 @@ declare namespace LocalJSX {
          */
         "edited"?: boolean;
         /**
+          * Why the message failed. It's shown in place of "Not sent" when `status` is `failed`.
+         */
+        "error"?: string;
+        /**
           * Who sent the message, by the id of a participant
          */
         "from"?: string;
@@ -4343,13 +5068,42 @@ declare namespace LocalJSX {
          */
         "replyTo"?: string;
         /**
+          * The message's score, shown next to its vote buttons when the channel's `votes` is on
+         */
+        "score"?: number;
+        /**
           * Where the message is in its delivery. `failed` shows it as not sent.
          */
         "status"?: "sending" | "sent" | "delivered" | "read" | "failed";
         /**
+          * Set while the message is still being written, such as a streamed answer. It shows a cursor.
+          * @default false
+         */
+        "streaming"?: boolean;
+        /**
+          * The `id` of the message this one is a reply to, in its thread. Replies are shown under the message their thread starts from, not in the list.
+         */
+        "thread"?: string;
+        /**
+          * How many replies the thread has, when not every reply is in the DOM. Overrides the count from the replies.
+         */
+        "threadCount"?: number;
+        /**
+          * When the thread's last reply was sent, as an ISO 8601 string
+         */
+        "threadLast"?: string;
+        /**
+          * Whether the thread the message starts is `collapsed` or `resolved`. The reader can still open it.
+         */
+        "threadState"?: "collapsed" | "resolved";
+        /**
           * When the message was sent, as an ISO 8601 string
          */
         "ts"?: string;
+        /**
+          * The viewer's own vote, which shows its button as pressed
+         */
+        "vote"?: "up" | "down";
     }
     /**
      * A person in an `orb-channel`, identified by the element's `id`. Messages
@@ -4361,9 +5115,17 @@ declare namespace LocalJSX {
          */
         "accent"?: string;
         /**
+          * The label of an AI participant's badge, such as "Assistant"
+         */
+        "aiLabel"?: string;
+        /**
           * The URL of their picture. Without one, their first letter is shown.
          */
         "avatar"?: string;
+        /**
+          * What an AI participant sees of the conversation: `channel`, `thread`, `last:20` for the last 20 messages, or `selection`. The channel doesn't read it. It's for the app, which sends the context to its model.
+         */
+        "context"?: string;
         /**
           * Collapses the participant's messages, for the point of view only
           * @default false
@@ -4391,6 +5153,44 @@ declare namespace LocalJSX {
           * Emitted when the participant's data changes, so the channel can update
          */
         "onOrbChannelDataChange"?: (event: OrbChannelParticipantCustomEvent<void>) => void;
+        /**
+          * Whether they're online, away or offline. Without it, the channel doesn't show presence for them.
+         */
+        "presence"?: "online" | "away" | "offline";
+        /**
+          * Where an AI participant's answers go: `channel`, `thread`, or `auto`. The channel doesn't read it. It's for the app, which writes the answer there.
+         */
+        "replyIn"?: "channel" | "thread" | "auto";
+        /**
+          * When an AI participant answers a message the point of view sends. `always` answers every message, and `mention` answers when it's `@`-mentioned. `manual` and `never` don't answer on their own. The channel lists the ones that should answer in `orbSend`'s `respondents`. The default is `always` in a `direct` chat, and `mention` otherwise.
+         */
+        "respondTo"?: "always" | "mention" | "manual" | "never";
+        /**
+          * What the participant is. `ai` marks a model: its messages get a badge, and it can answer messages (see `respondTo`). The others are shown as people.
+          * @default "human"
+         */
+        "role"?: "human" | "ai" | "bot" | "system";
+        /**
+          * Shows that they're typing. The channel shows a line for it.
+          * @default false
+         */
+        "typing"?: boolean;
+    }
+    /**
+     * Where an `orb-channel` gets the people it doesn't have yet. When a message
+     * comes from someone who isn't a child of the channel, the channel asks for
+     * them, in batches, and shows the `orb-channel-participant` elements in the
+     * response. It renders nothing itself.
+     */
+    interface OrbChannelParticipantSource {
+        /**
+          * The URL to fetch, with `{ids}` where the ids go. They're comma-separated and URL-encoded, such as `/people?ids={ids}`. The response is HTML of `orb-channel-participant` elements.
+         */
+        "href"?: string;
+        /**
+          * Emitted when the source's data changes
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelParticipantSourceCustomEvent<void>) => void;
     }
     /**
      * One reaction to a message in an `orb-channel`. Each reaction is one
@@ -4410,6 +5210,142 @@ declare namespace LocalJSX {
           * Emitted when the reaction's data changes, so the channel can update
          */
         "onOrbChannelDataChange"?: (event: OrbChannelReactionCustomEvent<void>) => void;
+    }
+    /**
+     * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
+     * Its text is the reasoning. It renders nothing itself.
+     */
+    interface OrbChannelReasoning {
+        /**
+          * How long the reasoning took, such as "4.2s". Shown after the summary's text.
+         */
+        "duration"?: string;
+        /**
+          * The summary's text. Defaults to "Thinking…" while it's thinking, and "Reasoning" after.
+         */
+        "label"?: string;
+        /**
+          * Emitted when the reasoning's data changes, so the channel can update
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelReasoningCustomEvent<void>) => void;
+        /**
+          * Whether the reasoning is still being written, or has finished
+          * @default "thinking"
+         */
+        "state"?: "thinking" | "done";
+    }
+    /**
+     * One suggestion, a chip whose text is the suggestion. Clicking it fills the
+     * message box with the text, or sends it with `send`. A child with
+     * `slot="icon"` is its icon. It renders nothing itself.
+     */
+    interface OrbChannelSuggestion {
+        /**
+          * Emitted when the suggestion's data changes, so the channel can update
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelSuggestionCustomEvent<void>) => void;
+        /**
+          * Sends the suggestion right away, rather than filling the message box with it
+          * @default false
+         */
+        "send"?: boolean;
+    }
+    /**
+     * Follow-up suggestions for the point of view, shown above the message box.
+     * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+     */
+    interface OrbChannelSuggestions {
+        /**
+          * The accessible name of the group of suggestions
+         */
+        "label"?: string;
+        /**
+          * Emitted when the suggestions' data changes, so the channel can update
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelSuggestionsCustomEvent<void>) => void;
+    }
+    /**
+     * A tool a model called, shown in an `orb-channel-message` with its arguments
+     * and result. Its arguments and result go in `<script type="application/json">`
+     * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+     */
+    interface OrbChannelToolCall {
+        /**
+          * Identifies the call, so a result can be matched to it
+         */
+        "callId"?: string;
+        /**
+          * The name of the tool, such as "fetch_schema"
+         */
+        "name"?: string;
+        /**
+          * Emitted when the call's data changes, so the channel can update
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelToolCallCustomEvent<void>) => void;
+        /**
+          * Marks a call that needs approval, with a label
+          * @default false
+         */
+        "requiresApproval"?: boolean;
+        /**
+          * Where the call is. `running` and `done` are shown as they are, and `awaiting-approval` shows approve and deny buttons.
+          * @default "running"
+         */
+        "status"?: "running" | "awaiting-approval" | "done" | "error" | "denied" | string;
+    }
+    /**
+     * How an `orb-channel` sends and receives messages over the network, for apps
+     * that don't write a transport in JavaScript. The channel reads its attributes
+     * when it connects, and reconnects when they change. It renders nothing itself.
+     */
+    interface OrbChannelTransport {
+        /**
+          * Where messages are posted: `form`, and `sse` or `poll` when they should send too. `websocket` sends over the socket instead.
+         */
+        "action"?: string;
+        /**
+          * How often `poll` fetches `src`, such as "5s". Defaults to 5s.
+         */
+        "interval"?: string;
+        /**
+          * Emitted when the transport's data changes, so the channel can reconnect
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelTransportCustomEvent<void>) => void;
+        /**
+          * Where incoming HTML comes from: `sse`, `websocket` and `poll`
+         */
+        "src"?: string;
+        /**
+          * `form` posts each message to `action`, and shows the HTML the response holds. `sse` receives HTML events from `src`, and posts to `action` when it's set. `websocket` opens `src`, sends each message over the socket, and shows the HTML it receives. `poll` fetches `src` every `interval`.
+          * @default "form"
+         */
+        "type"?: "form" | "sse" | "websocket" | "poll";
+    }
+    /**
+     * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
+     * emits `orbVariantChange` on the channel, and the app shows that version. It
+     * renders nothing itself.
+     */
+    interface OrbChannelVariants {
+        /**
+          * Set while the app fetches a version. The buttons are off and a spinner shows.
+          * @default false
+         */
+        "busy"?: boolean;
+        /**
+          * How many versions there are
+          * @default 1
+         */
+        "count"?: number;
+        /**
+          * The version on screen, counting from 1
+          * @default 1
+         */
+        "current"?: number;
+        /**
+          * Emitted when the switcher's data changes, so the channel can update
+         */
+        "onOrbChannelDataChange"?: (event: OrbChannelVariantsCustomEvent<void>) => void;
     }
     interface OrbCheckbox {
         /**
@@ -6322,6 +7258,8 @@ declare namespace LocalJSX {
         "showHeader": boolean;
         "empty": string;
         "echo": boolean;
+        "draftKeyName": string;
+        "drafts": "none" | "persist";
         "readonly": boolean;
         "disabled": boolean;
         "showNames": boolean;
@@ -6330,6 +7268,26 @@ declare namespace LocalJSX {
         "dateDividers": boolean;
         "slowMode": string;
         "unread": number;
+        "threads": "none" | "inline" | "panel";
+        "receipts": "none" | "delivered" | "read";
+        "presence": "none" | "sampled" | "full";
+        "maxDepth": number;
+        "layout": "bubbles" | "flat" | "assistant" | "compact";
+        "anchor": "bottom" | "top";
+        "follow": "bottom" | "question";
+        "pauseOnScroll": boolean;
+        "announce": boolean;
+        "votes": "none" | "up" | "up-down";
+        "sorts": string;
+        "coalesce": string;
+        "sort": string;
+        "jumpToLatest": boolean;
+        "scrollTarget": "list" | "document";
+        "actions": string;
+        "permalink": string;
+        "openThread": string;
+        "loadingMore": boolean;
+        "reasoning": "show" | "collapsed" | "hidden";
     }
     interface OrbChannelActionAttributes {
         "name": string;
@@ -6340,6 +7298,11 @@ declare namespace LocalJSX {
         "name": string;
         "type": string;
         "size": string;
+    }
+    interface OrbChannelCitationAttributes {
+        "href": string;
+        "index": number;
+        "citationTitle": string;
     }
     interface OrbChannelCommandAttributes {
         "name": string;
@@ -6352,8 +7315,10 @@ declare namespace LocalJSX {
         "maxLength": number;
         "sendOn": "enter" | "mod-enter";
         "editor": "plain" | "rich";
+        "whileStreaming": "queue" | "block" | "interrupt";
         "toolbar": "always" | "toggle" | "none";
         "attachments": string;
+        "scope": "replies";
         "name": string;
         "value": string;
     }
@@ -6372,6 +7337,14 @@ declare namespace LocalJSX {
         "moderation": "pending" | "hidden" | "removed";
         "moderationReason": string;
         "replyTo": string;
+        "thread": string;
+        "threadState": "collapsed" | "resolved";
+        "threadCount": number;
+        "threadLast": string;
+        "score": number;
+        "vote": "up" | "down";
+        "streaming": boolean;
+        "error": string;
     }
     interface OrbChannelParticipantAttributes {
         "name": string;
@@ -6381,10 +7354,48 @@ declare namespace LocalJSX {
         "muted": boolean;
         "mutedUntil": string;
         "ignored": boolean;
+        "role": "human" | "ai" | "bot" | "system";
+        "presence": "online" | "away" | "offline";
+        "typing": boolean;
+        "aiLabel": string;
+        "respondTo": "always" | "mention" | "manual" | "never";
+        "context": string;
+        "replyIn": "channel" | "thread" | "auto";
+    }
+    interface OrbChannelParticipantSourceAttributes {
+        "href": string;
     }
     interface OrbChannelReactionAttributes {
         "emoji": string;
         "by": string;
+    }
+    interface OrbChannelReasoningAttributes {
+        "state": "thinking" | "done";
+        "label": string;
+        "duration": string;
+    }
+    interface OrbChannelSuggestionAttributes {
+        "send": boolean;
+    }
+    interface OrbChannelSuggestionsAttributes {
+        "label": string;
+    }
+    interface OrbChannelToolCallAttributes {
+        "name": string;
+        "callId": string;
+        "status": "running" | "awaiting-approval" | "done" | "error" | "denied" | string;
+        "requiresApproval": boolean;
+    }
+    interface OrbChannelTransportAttributes {
+        "type": "form" | "sse" | "websocket" | "poll";
+        "src": string;
+        "action": string;
+        "interval": string;
+    }
+    interface OrbChannelVariantsAttributes {
+        "current": number;
+        "count": number;
+        "busy": boolean;
     }
     interface OrbCheckboxAttributes {
         "defaultChecked": "true" | "false" | "mixed";
@@ -6796,12 +7807,20 @@ declare namespace LocalJSX {
         "orb-channel": Omit<OrbChannel, keyof OrbChannelAttributes> & { [K in keyof OrbChannel & keyof OrbChannelAttributes]?: OrbChannel[K] } & { [K in keyof OrbChannel & keyof OrbChannelAttributes as `attr:${K}`]?: OrbChannelAttributes[K] } & { [K in keyof OrbChannel & keyof OrbChannelAttributes as `prop:${K}`]?: OrbChannel[K] };
         "orb-channel-action": Omit<OrbChannelAction, keyof OrbChannelActionAttributes> & { [K in keyof OrbChannelAction & keyof OrbChannelActionAttributes]?: OrbChannelAction[K] } & { [K in keyof OrbChannelAction & keyof OrbChannelActionAttributes as `attr:${K}`]?: OrbChannelActionAttributes[K] } & { [K in keyof OrbChannelAction & keyof OrbChannelActionAttributes as `prop:${K}`]?: OrbChannelAction[K] };
         "orb-channel-attachment": Omit<OrbChannelAttachment, keyof OrbChannelAttachmentAttributes> & { [K in keyof OrbChannelAttachment & keyof OrbChannelAttachmentAttributes]?: OrbChannelAttachment[K] } & { [K in keyof OrbChannelAttachment & keyof OrbChannelAttachmentAttributes as `attr:${K}`]?: OrbChannelAttachmentAttributes[K] } & { [K in keyof OrbChannelAttachment & keyof OrbChannelAttachmentAttributes as `prop:${K}`]?: OrbChannelAttachment[K] };
+        "orb-channel-citation": Omit<OrbChannelCitation, keyof OrbChannelCitationAttributes> & { [K in keyof OrbChannelCitation & keyof OrbChannelCitationAttributes]?: OrbChannelCitation[K] } & { [K in keyof OrbChannelCitation & keyof OrbChannelCitationAttributes as `attr:${K}`]?: OrbChannelCitationAttributes[K] } & { [K in keyof OrbChannelCitation & keyof OrbChannelCitationAttributes as `prop:${K}`]?: OrbChannelCitation[K] };
         "orb-channel-command": Omit<OrbChannelCommand, keyof OrbChannelCommandAttributes> & { [K in keyof OrbChannelCommand & keyof OrbChannelCommandAttributes]?: OrbChannelCommand[K] } & { [K in keyof OrbChannelCommand & keyof OrbChannelCommandAttributes as `attr:${K}`]?: OrbChannelCommandAttributes[K] } & { [K in keyof OrbChannelCommand & keyof OrbChannelCommandAttributes as `prop:${K}`]?: OrbChannelCommand[K] };
         "orb-channel-composer": Omit<OrbChannelComposer, keyof OrbChannelComposerAttributes> & { [K in keyof OrbChannelComposer & keyof OrbChannelComposerAttributes]?: OrbChannelComposer[K] } & { [K in keyof OrbChannelComposer & keyof OrbChannelComposerAttributes as `attr:${K}`]?: OrbChannelComposerAttributes[K] } & { [K in keyof OrbChannelComposer & keyof OrbChannelComposerAttributes as `prop:${K}`]?: OrbChannelComposer[K] };
         "orb-channel-divider": Omit<OrbChannelDivider, keyof OrbChannelDividerAttributes> & { [K in keyof OrbChannelDivider & keyof OrbChannelDividerAttributes]?: OrbChannelDivider[K] } & { [K in keyof OrbChannelDivider & keyof OrbChannelDividerAttributes as `attr:${K}`]?: OrbChannelDividerAttributes[K] } & { [K in keyof OrbChannelDivider & keyof OrbChannelDividerAttributes as `prop:${K}`]?: OrbChannelDivider[K] };
         "orb-channel-message": Omit<OrbChannelMessage, keyof OrbChannelMessageAttributes> & { [K in keyof OrbChannelMessage & keyof OrbChannelMessageAttributes]?: OrbChannelMessage[K] } & { [K in keyof OrbChannelMessage & keyof OrbChannelMessageAttributes as `attr:${K}`]?: OrbChannelMessageAttributes[K] } & { [K in keyof OrbChannelMessage & keyof OrbChannelMessageAttributes as `prop:${K}`]?: OrbChannelMessage[K] };
         "orb-channel-participant": Omit<OrbChannelParticipant, keyof OrbChannelParticipantAttributes> & { [K in keyof OrbChannelParticipant & keyof OrbChannelParticipantAttributes]?: OrbChannelParticipant[K] } & { [K in keyof OrbChannelParticipant & keyof OrbChannelParticipantAttributes as `attr:${K}`]?: OrbChannelParticipantAttributes[K] } & { [K in keyof OrbChannelParticipant & keyof OrbChannelParticipantAttributes as `prop:${K}`]?: OrbChannelParticipant[K] };
+        "orb-channel-participant-source": Omit<OrbChannelParticipantSource, keyof OrbChannelParticipantSourceAttributes> & { [K in keyof OrbChannelParticipantSource & keyof OrbChannelParticipantSourceAttributes]?: OrbChannelParticipantSource[K] } & { [K in keyof OrbChannelParticipantSource & keyof OrbChannelParticipantSourceAttributes as `attr:${K}`]?: OrbChannelParticipantSourceAttributes[K] } & { [K in keyof OrbChannelParticipantSource & keyof OrbChannelParticipantSourceAttributes as `prop:${K}`]?: OrbChannelParticipantSource[K] };
         "orb-channel-reaction": Omit<OrbChannelReaction, keyof OrbChannelReactionAttributes> & { [K in keyof OrbChannelReaction & keyof OrbChannelReactionAttributes]?: OrbChannelReaction[K] } & { [K in keyof OrbChannelReaction & keyof OrbChannelReactionAttributes as `attr:${K}`]?: OrbChannelReactionAttributes[K] } & { [K in keyof OrbChannelReaction & keyof OrbChannelReactionAttributes as `prop:${K}`]?: OrbChannelReaction[K] };
+        "orb-channel-reasoning": Omit<OrbChannelReasoning, keyof OrbChannelReasoningAttributes> & { [K in keyof OrbChannelReasoning & keyof OrbChannelReasoningAttributes]?: OrbChannelReasoning[K] } & { [K in keyof OrbChannelReasoning & keyof OrbChannelReasoningAttributes as `attr:${K}`]?: OrbChannelReasoningAttributes[K] } & { [K in keyof OrbChannelReasoning & keyof OrbChannelReasoningAttributes as `prop:${K}`]?: OrbChannelReasoning[K] };
+        "orb-channel-suggestion": Omit<OrbChannelSuggestion, keyof OrbChannelSuggestionAttributes> & { [K in keyof OrbChannelSuggestion & keyof OrbChannelSuggestionAttributes]?: OrbChannelSuggestion[K] } & { [K in keyof OrbChannelSuggestion & keyof OrbChannelSuggestionAttributes as `attr:${K}`]?: OrbChannelSuggestionAttributes[K] } & { [K in keyof OrbChannelSuggestion & keyof OrbChannelSuggestionAttributes as `prop:${K}`]?: OrbChannelSuggestion[K] };
+        "orb-channel-suggestions": Omit<OrbChannelSuggestions, keyof OrbChannelSuggestionsAttributes> & { [K in keyof OrbChannelSuggestions & keyof OrbChannelSuggestionsAttributes]?: OrbChannelSuggestions[K] } & { [K in keyof OrbChannelSuggestions & keyof OrbChannelSuggestionsAttributes as `attr:${K}`]?: OrbChannelSuggestionsAttributes[K] } & { [K in keyof OrbChannelSuggestions & keyof OrbChannelSuggestionsAttributes as `prop:${K}`]?: OrbChannelSuggestions[K] };
+        "orb-channel-tool-call": Omit<OrbChannelToolCall, keyof OrbChannelToolCallAttributes> & { [K in keyof OrbChannelToolCall & keyof OrbChannelToolCallAttributes]?: OrbChannelToolCall[K] } & { [K in keyof OrbChannelToolCall & keyof OrbChannelToolCallAttributes as `attr:${K}`]?: OrbChannelToolCallAttributes[K] } & { [K in keyof OrbChannelToolCall & keyof OrbChannelToolCallAttributes as `prop:${K}`]?: OrbChannelToolCall[K] };
+        "orb-channel-transport": Omit<OrbChannelTransport, keyof OrbChannelTransportAttributes> & { [K in keyof OrbChannelTransport & keyof OrbChannelTransportAttributes]?: OrbChannelTransport[K] } & { [K in keyof OrbChannelTransport & keyof OrbChannelTransportAttributes as `attr:${K}`]?: OrbChannelTransportAttributes[K] } & { [K in keyof OrbChannelTransport & keyof OrbChannelTransportAttributes as `prop:${K}`]?: OrbChannelTransport[K] };
+        "orb-channel-variants": Omit<OrbChannelVariants, keyof OrbChannelVariantsAttributes> & { [K in keyof OrbChannelVariants & keyof OrbChannelVariantsAttributes]?: OrbChannelVariants[K] } & { [K in keyof OrbChannelVariants & keyof OrbChannelVariantsAttributes as `attr:${K}`]?: OrbChannelVariantsAttributes[K] } & { [K in keyof OrbChannelVariants & keyof OrbChannelVariantsAttributes as `prop:${K}`]?: OrbChannelVariants[K] };
         "orb-checkbox": Omit<OrbCheckbox, keyof OrbCheckboxAttributes> & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes]?: OrbCheckbox[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `attr:${K}`]?: OrbCheckboxAttributes[K] } & { [K in keyof OrbCheckbox & keyof OrbCheckboxAttributes as `prop:${K}`]?: OrbCheckbox[K] };
         "orb-checkbox-group": Omit<OrbCheckboxGroup, keyof OrbCheckboxGroupAttributes> & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes]?: OrbCheckboxGroup[K] } & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes as `attr:${K}`]?: OrbCheckboxGroupAttributes[K] } & { [K in keyof OrbCheckboxGroup & keyof OrbCheckboxGroupAttributes as `prop:${K}`]?: OrbCheckboxGroup[K] };
         "orb-color": Omit<OrbColor, keyof OrbColorAttributes> & { [K in keyof OrbColor & keyof OrbColorAttributes]?: OrbColor[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `attr:${K}`]?: OrbColorAttributes[K] } & { [K in keyof OrbColor & keyof OrbColorAttributes as `prop:${K}`]?: OrbColor[K] };
@@ -6907,6 +7926,11 @@ declare module "@stencil/core" {
              */
             "orb-channel-attachment": LocalJSX.IntrinsicElements["orb-channel-attachment"] & JSXBase.HTMLAttributes<HTMLOrbChannelAttachmentElement>;
             /**
+             * A source a message refers to. It shows as a numbered button in the text, and
+             * the button opens a popover with the source's link. It renders nothing itself.
+             */
+            "orb-channel-citation": LocalJSX.IntrinsicElements["orb-channel-citation"] & JSXBase.HTMLAttributes<HTMLOrbChannelCitationElement>;
+            /**
              * A command in an `orb-channel-composer`. Typing `/` at the start of a message
              * offers the commands, and a message that starts with one is sent with its
              * `command` in `orbSend`. It renders nothing itself.
@@ -6935,11 +7959,52 @@ declare module "@stencil/core" {
              */
             "orb-channel-participant": LocalJSX.IntrinsicElements["orb-channel-participant"] & JSXBase.HTMLAttributes<HTMLOrbChannelParticipantElement>;
             /**
+             * Where an `orb-channel` gets the people it doesn't have yet. When a message
+             * comes from someone who isn't a child of the channel, the channel asks for
+             * them, in batches, and shows the `orb-channel-participant` elements in the
+             * response. It renders nothing itself.
+             */
+            "orb-channel-participant-source": LocalJSX.IntrinsicElements["orb-channel-participant-source"] & JSXBase.HTMLAttributes<HTMLOrbChannelParticipantSourceElement>;
+            /**
              * One reaction to a message in an `orb-channel`. Each reaction is one
              * element, and the channel combines those with the same emoji into a button
              * with a count. It renders nothing itself.
              */
             "orb-channel-reaction": LocalJSX.IntrinsicElements["orb-channel-reaction"] & JSXBase.HTMLAttributes<HTMLOrbChannelReactionElement>;
+            /**
+             * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
+             * Its text is the reasoning. It renders nothing itself.
+             */
+            "orb-channel-reasoning": LocalJSX.IntrinsicElements["orb-channel-reasoning"] & JSXBase.HTMLAttributes<HTMLOrbChannelReasoningElement>;
+            /**
+             * One suggestion, a chip whose text is the suggestion. Clicking it fills the
+             * message box with the text, or sends it with `send`. A child with
+             * `slot="icon"` is its icon. It renders nothing itself.
+             */
+            "orb-channel-suggestion": LocalJSX.IntrinsicElements["orb-channel-suggestion"] & JSXBase.HTMLAttributes<HTMLOrbChannelSuggestionElement>;
+            /**
+             * Follow-up suggestions for the point of view, shown above the message box.
+             * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+             */
+            "orb-channel-suggestions": LocalJSX.IntrinsicElements["orb-channel-suggestions"] & JSXBase.HTMLAttributes<HTMLOrbChannelSuggestionsElement>;
+            /**
+             * A tool a model called, shown in an `orb-channel-message` with its arguments
+             * and result. Its arguments and result go in `<script type="application/json">`
+             * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+             */
+            "orb-channel-tool-call": LocalJSX.IntrinsicElements["orb-channel-tool-call"] & JSXBase.HTMLAttributes<HTMLOrbChannelToolCallElement>;
+            /**
+             * How an `orb-channel` sends and receives messages over the network, for apps
+             * that don't write a transport in JavaScript. The channel reads its attributes
+             * when it connects, and reconnects when they change. It renders nothing itself.
+             */
+            "orb-channel-transport": LocalJSX.IntrinsicElements["orb-channel-transport"] & JSXBase.HTMLAttributes<HTMLOrbChannelTransportElement>;
+            /**
+             * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
+             * emits `orbVariantChange` on the channel, and the app shows that version. It
+             * renders nothing itself.
+             */
+            "orb-channel-variants": LocalJSX.IntrinsicElements["orb-channel-variants"] & JSXBase.HTMLAttributes<HTMLOrbChannelVariantsElement>;
             "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;
             /**
              * Groups related checkboxes or toggles under a shared label.

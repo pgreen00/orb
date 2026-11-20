@@ -1,11 +1,12 @@
 import type { ActionModel, ComposerModel, ParticipantModel } from "../model/types";
-import { PaperclipIcon, PlusIcon, SendIcon } from "../icons";
+import { PaperclipIcon, PlusIcon, SendIcon, StopIcon } from "../icons";
 
 export interface ComposerHandlers {
   input: (text: string) => void;
   keyDown: (event: KeyboardEvent) => void;
   paste: (event: ClipboardEvent) => void;
   send: () => void;
+  stop: () => void;
   richSubmit: (event: CustomEvent<{ html: string; text: string }>) => void;
   attach: () => void;
   removeFile: (index: number) => void;
@@ -33,6 +34,10 @@ export interface ComposerProps {
   /** The countdown shown while slow mode is on */
   countdown?: string;
   toolbarShown: boolean;
+  /** Whether an AI message is streaming, which turns the send button into a stop button */
+  streaming: boolean;
+  /** Whether a send is waiting for the answer to finish. Its draft stays in the box. */
+  queued: boolean;
   handlers: ComposerHandlers;
   /** The action buttons, from the composer's children */
   actions: ActionModel[];
@@ -103,7 +108,7 @@ export function ComposerView(props: ComposerProps) {
           part="action"
           fill="clear"
           size="sm"
-          class="icon-only"
+          class={action.icon?.textContent?.trim() ? undefined : "icon-only"}
           aria-label={action.label}
           disabled={disabled || readonly}
           onClick={() => handlers.action(action.name, model.el)}
@@ -118,7 +123,11 @@ export function ComposerView(props: ComposerProps) {
     </>
   );
 
-  const send = (
+  const send = props.streaming ? (
+    <orb-button slot="bottom-end" part="stop" fill="solid" size="sm" class="icon-only" aria-label="Stop" onClick={() => handlers.stop()}>
+      <StopIcon />
+    </orb-button>
+  ) : (
     <orb-button
       slot="bottom-end"
       part="send"
@@ -132,6 +141,8 @@ export function ComposerView(props: ComposerProps) {
       <SendIcon />
     </orb-button>
   );
+
+  const note = props.note ?? (props.queued ? "Sends when the answer finishes. Press Enter to cancel." : undefined);
 
   return (
     <div part="composer" class="composer" onDragOver={handlers.dragOver} onDrop={handlers.drop}>
@@ -166,7 +177,11 @@ export function ComposerView(props: ComposerProps) {
             onInput={(event) => handlers.input((event.target as HTMLTextAreaElement).value)}
             onKeyDown={handlers.keyDown}
             onPaste={handlers.paste}
-            ref={(el) => handlers.textarea(el ?? null)}
+            ref={(el) => {
+              handlers.textarea(el ?? null);
+              // Stencil writes `value` only when the render's draft changes. A draft typed and cleared before a render would stay in the box, so the box is set here.
+              if (el && el.value !== draft) el.value = draft;
+            }}
           />
           {top}
           {bottomStart}
@@ -178,9 +193,9 @@ export function ComposerView(props: ComposerProps) {
           {props.countdown}
         </span>
       )}
-      {props.note && (
+      {note && (
         <p part="note" class="note">
-          {props.note}
+          {note}
         </p>
       )}
       <p part="announcement" class="sr-only" role="status">

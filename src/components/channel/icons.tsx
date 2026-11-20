@@ -22,6 +22,64 @@ const Svg = (props: any, children: any) => (
  * The plane's box is centered, but its ink sits up and to the right, so it's shifted
  * until the ink's center is the middle of the button. `overflow` lets the shift leave the box.
  */
+export function ArrowUpIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <path d="m18 15-6-6-6 6" />
+    </Svg>
+  );
+}
+
+export function ArrowDownIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </Svg>
+  );
+}
+
+export function LinkIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </Svg>
+  );
+}
+
+export function RefreshIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />
+      <path d="M21 3v5h-5" />
+    </Svg>
+  );
+}
+
+export function StopIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </Svg>
+  );
+}
+
+export function ChevronLeftIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <path d="m15 18-6-6 6-6" />
+    </Svg>
+  );
+}
+
+export function ChevronRightIcon(props: any) {
+  return (
+    <Svg {...props}>
+      <path d="m9 18 6-6-6-6" />
+    </Svg>
+  );
+}
+
 export function SendIcon(props: any) {
   return (
     <Svg {...props} overflow="visible">

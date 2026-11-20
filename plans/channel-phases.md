@@ -713,7 +713,7 @@ None at the moment.
 
 ## Deviations from this plan
 
-What was built differently from the plan, or added to it, while implementing Phases 0 to 2. Each one is open for review.
+What was built differently from the plan, or added to it, while implementing. Each one is open for review.
 
 ### Phase 0: rich-text
 
@@ -754,3 +754,82 @@ What was built differently from the plan, or added to it, while implementing Pha
 - **`orbModerate`'s `participant` is the participant element,** not an id or a model.
 - **Pin only emits `orbModerate`.** The `pinned` state changes only when the app sets it. The header doesn't list pinned messages, which is Phase 5.
 - **Untested behavior.** Ignored participants, the pinned state, the toolbar toggle, drag-and-drop of files, and moderation on rich content compile and run, but no test covers them yet.
+
+### Phase 3: AI
+
+- **Citations are a numbered button,** not a link. The button opens a popover with the link, drawn by the channel beside the list, since a popover inside the text would break the line.
+- **`title` on `orb-channel-citation` is the `citationTitle` prop.** A prop named `title` clashes with the element's own `title`, so the attribute maps to a differently named prop.
+- **Screen readers hear each sentence as it finishes,** in a status region on the channel, and the rest of a message when it ends. The full text isn't read again at the end, so nothing is heard twice.
+- **`replaceFrom` also removes the custom dividers after the message.** Otherwise they'd be left over from the old path.
+- **`replaceFrom` keeps the place on screen only when the list isn't at the bottom.** At the bottom, the list stays there, as it does for any new message.
+- **Regenerate is an item in an AI message's menu.** The `actions` attribute (5.6) isn't built, so the item is always there for AI participants. `orbRegenerate` is cancelable, but the channel has no default for it, so canceling changes nothing.
+- **`orbStop` is cancelable, and the channel doesn't stop the model.** The app stops the model, and its writer finishes the message.
+- **`while-streaming` queues in the box.** `queue` keeps the draft in the box and sends it, through `orbSend`, when the answer finishes. Enter again while it's queued cancels the queue. `interrupt` emits `orbStop`, then sends unless the stop is canceled.
+- **`send()` while an AI message streams only sends with `interrupt`.** Otherwise it does nothing, as `block` and `queue` do for the composer.
+- **Suggestions sit above the message box,** not in the list. Filling a rich editor with a suggestion uses `setContent()`.
+- **Approve and deny emit `orbToolDecision`, and the channel leaves the status to the app.** Canceling the event changes nothing either.
+- **`respond-to` defaults to `always` in a direct chat, and to `mention` elsewhere.** The plan doesn't give a default for groups.
+- **Streamed markdown is split at blank lines outside code fences.** Finished parts are rendered once. A list with a blank line inside can show as two lists until the message ends. Markdown scripts are still dedented, so a streamed answer whose every line is indented loses that shared indentation.
+- **The cursor is hidden under reduced motion,** as the plan says, rather than only stopping its blink.
+- **The AI badge shows on the first message of each group,** even where names are hidden, so it's never missing.
+- **Streaming messages are `aria-busy`,** so the log doesn't announce every token.
+- **`orb-channel-message` has an `error` prop,** not in the plan. `writer.fail(reason)` sets it, and it's shown in place of "Not sent".
+- **`createMessageWriter` takes an `id`,** not in the plan, and sets `ts` to the time it's called.
+- **Not covered by tests:** a suggestion filling the rich editor, and the cursor under reduced motion.
+
+### Phase 4: Scale
+
+- **Reply boxes are plain textareas,** even when the main composer is rich. Attachments, commands and the toolbar don't apply to replies. Their placeholder, label, send-on and max-length come from `scope=replies`, or else the main composer.
+- **Inline threads don't emit `orbThreadOpen` or `orbThreadClose`.** Those events are for the panel. Opening and closing an inline thread only changes the channel's own state.
+- **Panel replies aren't in the arrow-key order.** The arrow keys move through the list, including the replies shown inline, and Escape closes the panel.
+- **`orbLoadMore` only asks for older messages (`direction` is always `before`).** It's emitted when the list is scrolled within 80px of its top, and again only when the oldest message changes. `after` paging isn't built.
+- **Windowing starts at 200 rows, automatically.** There's no setting for it, and `content-visibility` isn't used, since the window covers the same need. Rows that haven't been drawn are estimated at 72px until they are.
+- **The list keeps the row at its top in place** when rows above it change, when older messages arrive, and when a height is measured. It doesn't use the browser's scroll anchoring alone, since that doesn't work at the top.
+- **`thread-state="resolved"` starts closed, like `collapsed`.** The plan doesn't say what resolved shows; here it's labelled Resolved in the summary.
+- **`threads`, `receipts` and `presence` default by kind.** Direct: none, read, none. Group: none, delivered, none. Open: panel, none, sampled. The plan doesn't give these defaults.
+- **Receipts only appear under the viewer's last message.** They come from the `status` the app sets, and the channel doesn't mark messages as read.
+- **Typing stops after 3 seconds without a keystroke, or when a message is sent.** Replies don't emit `orbTyping`.
+- **Presence is text in the header, with avatars when `sampled`.** There are no status dots on the avatars in the list.
+- **The jump pill counts the messages added since the list was left at its bottom.** It's only shown once the list is above its bottom.
+- **A `#id` in the URL goes to that message, and opens its thread if it's a reply.** Only the id is read from the hash.
+
+### Phase 5: Formats
+
+- **The default `layout` is `bubbles` for every kind.** The plan doesn't give kind defaults for it. The presets change it, and the existing tests keep their bubbles.
+- **The default `actions` include `regenerate` and `report`,** and each action is filtered by who the message is from. `edit` and `delete` are the viewer's own, `regenerate` is AI, and `report` is other people's. `report` was already in the menu before this phase.
+- **`copy-link` copies the page's address with `#id`,** replacing any existing hash. `permalink` takes `{id}`.
+- **`pin` emits `orbPin`.** Moderator pinning (`orbModerate`) is unchanged, and its `mod-pin` item is hidden when `pin` is in `actions`.
+- **`orbVote` and `orbSortChange` have no default action,** except that `sort` is set on the channel when `orbSortChange` isn't canceled. The vote buttons don't change `score` or `vote`; the app does.
+- **`votes="up"` shows only the up button.** The plan doesn't say what `up` alone shows.
+- **`follow="question"` brings the viewer's new message to the top** once it's drawn. To let it reach the top, the list gets bottom padding, the room below the message. The room shrinks as the answer grows below, and it's gone once the content fills the list. Re-rendering keeps the room, but doesn't scroll again.
+- **`pause-on-scroll` pauses while the pointer is over the list.** Scrolling up already stops following, so hovering is the only extra pause. The pill reads "Chat paused, N new".
+- **`anchor="top"` doesn't follow new messages,** hides the jump pill, and pages `after` near the bottom. The cursor is the newest message's `id`. `orbLoadMore` gets `direction` (`before` or `after`).
+- **`jump-to-latest="false"` hides the pill.**
+- **`announce="false"` makes the list a `feed` without `aria-live`.** Nested replies (`max-depth` above 1, inline) sit inside their parent's article in a `list` of `listitem`s. Inline threads that aren't nested stay as sibling `.thread` blocks, as in Phase 4.
+- **Left and Right are: a reply's Left goes to its parent.** On a parent, Right opens its replies, or moves to the first reply when they're open, and Left closes them. The plan only says "collapse, expand, and move to the parent".
+- **`coalesce` uses `setTimeout`,** not `requestAnimationFrame`, when it's above `0`. `0` keeps the per-frame update.
+- **Preset values** are in the table in `channel.md`. Each preset sets its `kind` and its settings, and the rest come from the kind's defaults. `assistant` sets `follow="question"` and `group-within="0"`, `workspace` sets flat layout with names, avatars, a thread panel, delivered receipts and sampled presence, `comments` is open, flat, top-anchored, with inline threads, depth 3, `up-down` votes and sorting, and `live` is compact, with `pause-on-scroll` and a 250ms coalesce.
+- **A removed attribute counts as unset.** Removing `layout` (or any setting) makes the channel refill it from the preset, rather than keeping the `null`.
+- **Docs demo ids end in `-demo`.** The headings `Reactions`, `Editing`, `Threads`, `Methods` and `Versions` get the same slug as the demos' ids, so `document.querySelector("#versions")` found the heading, and the demo did nothing. The demos are `reactions-demo`, `editing-demo`, `threads-demo`, `methods-demo` and `versions-demo`.
+- **Not run:** Firefox. Tests ran on Chromium and WebKit.
+
+### Phase 6: Transports
+
+- **The transport interface is `MessageTransport`,** not `ChannelTransport`, since the `orb-channel-transport` element's class already takes that name in the generated types. It's exported from `orb-style` with `OutgoingMessage` and `TransportHandlers`.
+- **`history` is optional.** The plan lists it with `send` and `subscribe`, but a transport that only pushes messages doesn't need it. Without it, paging emits `orbLoadMore` as before.
+- **`send` resolves when the server has the message,** and the server's copy comes through `subscribe`. The channel sets `status="sent"` on resolve, and the copy replaces the sending message when its `client-id` matches. A copy that arrives before `send` resolves is handled too.
+- **A rejected `send` shows its reason on the message,** as `error`, in place of "Not sent". Retry is on every failed message. `orbRetry` is cancelable: without a transport, the app resends, and with one, the channel resends unless it's canceled.
+- **With a transport, `echo` isn't needed.** The message shows as sending whether or not `echo` is set. The transport takes precedence over `echo`.
+- **`orbSend`'s detail has `clientId`,** the id the server's copy should carry. `orbSend` is still cancelable before the transport is called.
+- **Files go in POST fields and `form`, `sse` and `poll` requests.** A websocket sends JSON without them, since files aren't JSON.
+- **`orb-channel-transport` `form` shows the POST response,** when it isn't empty, as it's the server's copy. The plan doesn't say what `form` does with the response.
+- **Declared transports have no `history`.** Paging with `orb-channel-transport` still emits `orbLoadMore`, for the app to load older messages.
+- **A websocket reconnects two seconds after it closes.** While it's closed, sending fails with "The connection is closed". The plan doesn't mention reconnecting.
+- **`poll` fetches once when it starts, then every `interval`,** and defaults to 5s. A failed poll is logged, not shown.
+- **The participant source returns HTML,** like the other fragments, not JSON. Requests cover up to 50 people each. Only the `from` ids of messages and their replies are asked for, not mentions. A person is asked for once, even if the `href` changes later. A failed request is logged, and that person is asked for again on the channel's next change.
+- **`key` is an attribute, but the prop is `draftKeyName`.** Stencil reserves `key` as a prop name. The attribute is still `key` in the markup and the docs.
+- **A draft is restored over the composer's text.** With `drafts="persist"` and a `key`, loading the channel, or changing `key`, puts the saved draft in the composer, even when the saved draft is empty.
+- **A thread's reply draft is saved under its parent message's `id`.** A reply box whose message has no `id` isn't saved.
+- **The docs' AI recipes are code samples, not live demos.** They're checked against the published type definitions of `ai`, `@anthropic-ai/sdk` and `openai`, not run against a model.
+- **`loadingMore` is mutable.** The channel sets it while `history` loads, as well as the app.
+- **Not run:** Firefox again. Tests ran on Chromium and WebKit.

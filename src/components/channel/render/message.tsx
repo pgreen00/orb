@@ -1,7 +1,9 @@
 import { mountHtml } from "../model/content";
-import type { MessageModel, ParticipantModel } from "../model/types";
+import type { ContentPart, MessageModel, ParticipantModel } from "../model/types";
 
 import { Avatar, renderText } from "./parts";
+import { CitationButton, ReasoningBlock, ToolCallBlock, VariantSwitch, type ReasoningPart, type ToolCallPart } from "./ai";
+import { ArrowDownIcon, ArrowUpIcon } from "../icons";
 
 /** What a message's buttons ask the channel to do. The channel decides what each one means. */
 export interface RowHandlers {
@@ -13,8 +15,21 @@ export interface RowHandlers {
   edit: () => void;
   remove: () => void;
   report: () => void;
+  regenerate: () => void;
+  /** Sends a failed message again */
+  retry: () => void;
+  /** Pins the message, for the app to set `pinned` on it */
+  pin: () => void;
+  /** Copies a link to the message */
+  copyLink: () => void;
+  /** The viewer's vote. `none` takes the vote back. */
+  vote: (value: "up" | "down" | "none") => void;
   moderate: (action: "pin" | "unpin" | "hide" | "remove" | "mute") => void;
   reveal: () => void;
+  /** A tool call's approve or deny button */
+  toolDecision: (toolCall: HTMLElement, callId: string, approved: boolean) => void;
+  /** The version switcher's arrows, with the version asked for */
+  variant: (current: number) => void;
   editInput: (text: string) => void;
   editCommit: () => void;
   editCancel: () => void;
@@ -48,6 +63,16 @@ export interface MessageRowProps {
   editing?: string;
   /** Whether the point of view is a moderator, who gets moderation buttons */
   moderator: boolean;
+  /** How reasoning shows: `show` opens it, `collapsed` keeps it shut, and `hidden` leaves it out */
+  reasoning: "show" | "collapsed" | "hidden";
+  /** How deep a reply is in its thread. Replies are indented by it. */
+  depth?: number;
+  /** A receipt under the message, such as "Delivered" or "Read" */
+  receipt?: string;
+  /** Which vote buttons the message shows */
+  votes: "none" | "up" | "up-down";
+  /** Content drawn at the end of the message, such as its replies when they're nested in it */
+  nested?: any;
   /** The HTML of a markdown source, or undefined while it loads */
   markdownOf: (source: string) => string | undefined;
   handlers: RowHandlers;
@@ -71,6 +96,26 @@ function Attachments(props: { model: MessageModel }) {
       )}
     </div>
   );
+}
+
+/** A message's content is bubbles of text, with reasoning and tool calls between them, drawn as blocks */
+type Segment = { kind: "bubble"; parts: ContentPart[] } | { kind: "block"; part: ReasoningPart | ToolCallPart };
+
+function segmentsOf(parts: ContentPart[], reasoning: MessageRowProps["reasoning"], streaming: boolean): Segment[] {
+  const segments: Segment[] = [];
+  for (const part of parts) {
+    if (part.type === "reasoning" && reasoning === "hidden") continue;
+    if (part.type === "reasoning" || part.type === "tool-call") {
+      segments.push({ kind: "block", part });
+      continue;
+    }
+    const last = segments[segments.length - 1];
+    if (last?.kind === "bubble") last.parts.push(part);
+    else segments.push({ kind: "bubble", parts: [part] });
+  }
+  // A message that's still streaming ends in a bubble, which holds its cursor
+  if (streaming && segments[segments.length - 1]?.kind !== "bubble") segments.push({ kind: "bubble", parts: [] });
+  return segments;
 }
 
 /** How long a finger or pen rests on a message before its actions open */
@@ -100,12 +145,58 @@ export function MessageRow(props: MessageRowProps) {
     model.status === "failed" && "failed",
     model.moderation === "pending" && "pending",
     model.pinned && "pinned",
+    model.streaming && "streaming",
     removed && "removed",
   ].filter(Boolean) as string[];
   const name = participant?.name ?? model.from;
+  const aiLabel = participant?.role === "ai" ? participant.aiLabel : undefined;
 
   const reacted = (emoji: string) => model.reactions.find((r) => r.emoji === emoji)?.by.includes(props.pov ?? "");
   const bubbleParts = ["bubble", ...states].join(" ");
+  const segments = segmentsOf(model.parts, props.reasoning, model.streaming);
+
+  const inline = (part: ContentPart) => {
+    if (part.type === "text") return renderText(part.text, participants, props.pov);
+    if (part.type === "citation") return <CitationButton part={part} />;
+    return null;
+  };
+
+  // Keys stop the vdom from reusing a block that was filled with innerHTML for a different part
+  const block = (part: ContentPart, position: number) => {
+    if (part.type === "markdown") {
+      const html = props.markdownOf(part.source);
+      return html === undefined ? (
+        <div key={`source-${position}`} class="text">{part.source}</div>
+      ) : (
+        <div key={`markdown-${position}`} class="html" ref={(el) => mountHtml(el ?? null, html)} />
+      );
+    }
+    if (part.type === "html") return <div key={`html-${position}`} class="html" ref={(el) => mountHtml(el ?? null, part.html)} />;
+    if (part.type === "reasoning") return <ReasoningBlock part={part} open={props.reasoning === "show"} />;
+    if (part.type === "tool-call") {
+      return <ToolCallBlock part={part} onDecide={(approved) => handlers.toolDecision(part.el, part.callId, approved)} />;
+    }
+    return null;
+  };
+
+  /** A bubble's lines: runs of text and citations share a line, and the cursor ends the last line */
+  const lines = (parts: ContentPart[], cursor: boolean) => {
+    const cursorEl = <span part="cursor" class="cursor" aria-hidden="true" />;
+    const nodes: unknown[] = [];
+    let run: ContentPart[] = [];
+    for (const part of parts) {
+      if (part.type === "text" || part.type === "citation") {
+        run.push(part);
+        continue;
+      }
+      if (run.length) nodes.push(<div key={`run-${nodes.length}`} class="text">{run.map(inline)}</div>);
+      run = [];
+      nodes.push(block(part, nodes.length));
+    }
+    if (run.length) nodes.push(<div key={`run-${nodes.length}`} class="text">{run.map(inline)}{cursor && cursorEl}</div>);
+    else if (cursor) nodes.push(<div key={`cursor-${nodes.length}`} class="text">{cursorEl}</div>);
+    return nodes;
+  };
 
   const content = () => {
     if (removed) return <div part="removed" class="note">Removed by a moderator</div>;
@@ -148,33 +239,27 @@ export function MessageRow(props: MessageRowProps) {
         </div>
       );
     }
-    return (
-      <div part={bubbleParts} class="bubble chat-content">
-        {model.parts.map((part) => {
-          if (part.type === "text") {
-            return <div class="text">{renderText(part.text, participants, props.pov)}</div>;
-          }
-          if (part.type === "markdown") {
-            const html = props.markdownOf(part.source);
-            return html === undefined ? (
-              <div class="text">{part.source}</div>
-            ) : (
-              <div class="html" ref={(el) => mountHtml(el ?? null, html)} />
-            );
-          }
-          return <div class="html" ref={(el) => mountHtml(el ?? null, part.html)} />;
-        })}
-      </div>
+    return segments.map((segment, index) =>
+      segment.kind === "block" ? (
+        block(segment.part, index)
+      ) : (
+        <div key={`bubble-${index}`} part={bubbleParts} class="bubble chat-content">
+          {lines(segment.parts, model.streaming && index === segments.length - 1)}
+        </div>
+      ),
     );
   };
 
   return (
     <div
+      key={props.rowKey}
       role="article"
       class={{ message: true, self, first, last, failed: model.status === "failed", pending: model.moderation === "pending", removed }}
       part={["message", ...states].join(" ")}
       data-id={model.id || undefined}
       data-key={props.rowKey}
+      style={props.depth ? ({ "--depth": String(props.depth) } as any) : undefined}
+      aria-busy={model.streaming ? "true" : undefined}
       tabIndex={props.active ? 0 : -1}
       onFocus={props.onFocus}
       onContextMenu={(event) => {
@@ -209,10 +294,15 @@ export function MessageRow(props: MessageRowProps) {
         <span class="avatar-space" aria-hidden="true" />
       )}
       <div class="body">
-        {props.showName && (
+        {(props.showName || (aiLabel && props.first)) && (
           <div part="name" class="name" style={participant?.accent ? ({ "--accent": participant.accent } as any) : undefined}>
-            {name}
-            {participant?.moderator && (
+            {props.showName && name}
+            {props.first && aiLabel && (
+              <span part="ai-badge" class="badge">
+                {aiLabel}
+              </span>
+            )}
+            {props.showName && participant?.moderator && (
               <span part="badge" class="badge">
                 Moderator
               </span>
@@ -224,6 +314,7 @@ export function MessageRow(props: MessageRowProps) {
             {props.quoted ? props.quoted.text.slice(0, 140) : "A message that isn't shown"}
           </div>
         )}
+        {!collapsed && !removed && model.attachments.length > 0 && <Attachments model={model} />}
         {content()}
         {!collapsed && !removed && model.reactions.length > 0 && (
           <div part="reactions" class="reactions">
@@ -240,14 +331,57 @@ export function MessageRow(props: MessageRowProps) {
             ))}
           </div>
         )}
-        {!collapsed && !removed && model.attachments.length > 0 && <Attachments model={model} />}
+        {!collapsed && !removed && props.votes !== "none" && (
+          <div part="votes" class="votes">
+            <orb-button
+              part="vote-up"
+              fill="clear"
+              size="xs"
+              class="icon-only"
+              aria-label="Upvote"
+              aria-pressed={model.vote === "up" ? "true" : "false"}
+              onClick={() => handlers.vote(model.vote === "up" ? "none" : "up")}
+            >
+              <ArrowUpIcon />
+            </orb-button>
+            <span part="score" class="score" aria-label={`Score ${model.score ?? 0}`}>
+              {model.score ?? 0}
+            </span>
+            {props.votes === "up-down" && (
+              <orb-button
+                part="vote-down"
+                fill="clear"
+                size="xs"
+                class="icon-only"
+                aria-label="Downvote"
+                aria-pressed={model.vote === "down" ? "true" : "false"}
+                onClick={() => handlers.vote(model.vote === "down" ? "none" : "down")}
+              >
+                <ArrowDownIcon />
+              </orb-button>
+            )}
+          </div>
+        )}
+        {!collapsed && !removed && model.variants && (
+          <VariantSwitch variants={model.variants} onChange={(current) => handlers.variant(current)} />
+        )}
         {(model.status === "sending" || model.status === "failed" || model.edited || model.pinned || model.moderation === "pending") && (
           <div part="status" class="status">
             {model.pinned && "Pinned "}
             {model.status === "sending" && "Sending… "}
-            {model.status === "failed" && "Not sent "}
+            {model.status === "failed" && `${model.error ?? "Not sent"} `}
+            {model.status === "failed" && (
+              <orb-button part="retry" size="xs" fill="clear" onClick={() => handlers.retry()}>
+                Retry
+              </orb-button>
+            )}
             {model.moderation === "pending" && "Awaiting approval "}
             {model.edited && "Edited"}
+          </div>
+        )}
+        {props.receipt && (
+          <div part="receipt" class="status">
+            {props.receipt}
           </div>
         )}
         {props.showTime && model.ts && (
@@ -255,6 +389,7 @@ export function MessageRow(props: MessageRowProps) {
             <orb-relative-time date={model.ts} />
           </div>
         )}
+        {props.nested}
       </div>
     </div>
   );
@@ -263,7 +398,7 @@ export function MessageRow(props: MessageRowProps) {
 /** A line across the list, with a label in its middle */
 export function DividerRow(props: { key?: string; label: string; type: "date" | "unread" | "custom" }) {
   return (
-    <div part="divider" class={{ divider: true, unread: props.type === "unread" }} role="separator">
+    <div key={props.key} part="divider" class={{ divider: true, unread: props.type === "unread" }} role="separator">
       {props.label && <span>{props.label}</span>}
     </div>
   );

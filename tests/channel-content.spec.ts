@@ -85,6 +85,9 @@ test.describe("orb-channel content", () => {
     await mount(page, CONVERSATION.replace("Yep, merged this morning.</orb-channel-message>", 'Yep, merged this morning.<orb-channel-attachment href="/a/photo.png" name="photo.png" type="image/png"></orb-channel-attachment><orb-channel-attachment href="/a/report.pdf" name="report.pdf" type="application/pdf" size="2 MB"></orb-channel-attachment></orb-channel-message>'));
     await expect(page.locator("orb-channel [part~='attachment'].image img")).toHaveAttribute("src", "/a/photo.png");
     await expect(page.locator("orb-channel [part~='attachment'].file")).toContainText("report.pdf");
+    const attachments = await row(page, "m2").locator("[part~='attachments']").boundingBox();
+    const text = await bubble(page, "m2").boundingBox();
+    expect(attachments!.y + attachments!.height).toBeLessThanOrEqual(text!.y);
   });
 
   test("date dividers mark the days, and date-dividers=false removes them", async ({ page }) => {
@@ -316,5 +319,24 @@ test.describe("orb-channel content", () => {
     await page.locator('orb-channel [aria-label="Send"]').click();
     await expect.poll(events.bind(null, page)).toEqual([expect.objectContaining({ type: "orbSend", files: 1 })]);
     await expect(page.locator("orb-channel [part~='files']")).toHaveCount(0);
+  });
+
+  test("with echo, a sent image is shown in the echoed message after the preview is released", async ({ page }) => {
+    const SVG = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400"><rect width="800" height="400" fill="#c33"/></svg>');
+    await mount(page, CONVERSATION.replace("<orb-channel pov=\"ada\"", "<orb-channel pov=\"ada\" echo").replace('<orb-channel-composer name="body" placeholder="Message Grace"></orb-channel-composer>', '<orb-channel-composer name="body" attachments="image/*,.pdf"></orb-channel-composer>'));
+    await page.locator("orb-channel input[type=file]").setInputFiles({ name: "pic.svg", mimeType: "image/svg+xml", buffer: SVG });
+    await page.locator('orb-channel [aria-label="Send"]').click();
+    await expect(page.locator("orb-channel [part~='attachment'].image img")).toHaveCount(1);
+    await expect(page.locator("orb-channel [part~='attachment'].image img")).toHaveJSProperty("naturalWidth", 800);
+    await expect.poll(() =>
+      page.locator("orb-channel [part~='attachment'].image img").evaluate((el) => el.getBoundingClientRect().width <= 16 * parseFloat(getComputedStyle(document.documentElement).fontSize) + 1),
+    ).toBe(true);
+  });
+
+  test("the line breaks between rendered markdown tags don't add space between list items", async ({ page }) => {
+    await mount(page, `<orb-channel pov="ada" style="height: 400px"><orb-channel-participant id="grace" name="Grace"></orb-channel-participant><orb-channel-message id="md" from="grace"><script type="text/markdown">Ingredients:\n\n- butter\n- sugar\n- cocoa</script></orb-channel-message></orb-channel>`);
+    await expect(page.locator("orb-channel li")).toHaveCount(3);
+    const gap = await page.locator("orb-channel li").evaluateAll((items) => items[1].getBoundingClientRect().top - items[0].getBoundingClientRect().bottom);
+    expect(gap).toBeLessThan(4);
   });
 });
