@@ -7,10 +7,10 @@ import { AttachInternals, Component, Host, Prop } from "@stencil/core";
  */
 @Component({
   tag: "orb-row-details",
-  styleUrl: "row-details.css",
+  styleUrl: "grid-row-details.css",
   shadow: true,
 })
-export class RowDetails {
+export class GridRowDetails {
   @AttachInternals() internals: ElementInternals;
 
   /**

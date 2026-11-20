@@ -1,8 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A file attached to a message in an `orb-channel`. Images are shown in the
- * message, and other files as links. It renders nothing itself.
+ * A file attached to a message in an `orb-channel`.
  */
 @Component({
   tag: "orb-channel-attachment",

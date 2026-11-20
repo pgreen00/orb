@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A tool a model called, shown in an `orb-channel-message` with its arguments
- * and result. Its arguments and result go in `<script type="application/json">`
- * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+ * A tool a model called, shown in an `orb-channel-message` with its arguments and result. Its arguments and result go in `<script type="application/json">` children with `data-part="args"` and `data-part="result"`.
  */
 @Component({
   tag: "orb-channel-tool-call",

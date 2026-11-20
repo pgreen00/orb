@@ -1,8 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * One message in an `orb-channel`. It renders nothing itself: the channel
- * draws it from its text, its children and its attributes.
+ * One message in an `orb-channel`.
  */
 @Component({
   tag: "orb-channel-message",

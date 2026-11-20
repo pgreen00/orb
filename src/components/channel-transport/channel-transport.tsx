@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * How an `orb-channel` sends and receives messages over the network, for apps
- * that don't write a transport in JavaScript. The channel reads its attributes
- * when it connects, and reconnects when they change. It renders nothing itself.
+ * How an `orb-channel` sends and receives messages over the network, for apps that don't write a transport in JavaScript.
  */
 @Component({
   tag: "orb-channel-transport",

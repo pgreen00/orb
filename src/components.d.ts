@@ -376,8 +376,7 @@ export namespace Components {
         "width"?: "xs" | "sm" | "md" | "lg" | "xl" | "auto" | "min";
     }
     /**
-     * A chat interface. It renders the messages, participants, dividers and
-     * composer it finds in its light DOM, all in its own shadow root.
+     * A chat interface.
      */
     interface OrbChannel {
         /**
@@ -564,9 +563,7 @@ export namespace Components {
         "votes"?: "none" | "up" | "up-down";
     }
     /**
-     * A button in an `orb-channel-composer`. Its icon is a child with
-     * `slot="icon"`, and without one the button shows a default icon. Clicking the
-     * button emits `orbAction` on the channel. It renders nothing itself.
+     * A button in an `orb-channel-composer`.
      */
     interface OrbChannelAction {
         /**
@@ -579,8 +576,7 @@ export namespace Components {
         "name"?: string;
     }
     /**
-     * A file attached to a message in an `orb-channel`. Images are shown in the
-     * message, and other files as links. It renders nothing itself.
+     * A file attached to a message in an `orb-channel`.
      */
     interface OrbChannelAttachment {
         /**
@@ -601,8 +597,7 @@ export namespace Components {
         "type"?: string;
     }
     /**
-     * A source a message refers to. It shows as a numbered button in the text, and
-     * the button opens a popover with the source's link. It renders nothing itself.
+     * A source a message refers to.
      */
     interface OrbChannelCitation {
         /**
@@ -619,9 +614,7 @@ export namespace Components {
         "index"?: number;
     }
     /**
-     * A command in an `orb-channel-composer`. Typing `/` at the start of a message
-     * offers the commands, and a message that starts with one is sent with its
-     * `command` in `orbSend`. It renders nothing itself.
+     * A command in an `orb-channel-composer`.
      */
     interface OrbChannelCommand {
         /**
@@ -638,9 +631,7 @@ export namespace Components {
         "name"?: string;
     }
     /**
-     * The message box of an `orb-channel`. It's form-associated: the draft is
-     * submitted under `name`, and a form reset clears it. The channel draws the
-     * field and the buttons. This element renders nothing itself.
+     * The message box of an `orb-channel`.
      */
     interface OrbChannelComposer {
         /**
@@ -694,9 +685,7 @@ export namespace Components {
         "whileStreaming": "queue" | "block" | "interrupt";
     }
     /**
-     * A line across an `orb-channel`, with a label, placed between messages. An
-     * `unread` divider marks where the new messages start, and the channel counts
-     * the messages after it. It renders nothing itself.
+     * A line across an `orb-channel`, with a label, placed between messages.
      */
     interface OrbChannelDivider {
         /**
@@ -714,8 +703,7 @@ export namespace Components {
         "type": "custom" | "unread";
     }
     /**
-     * One message in an `orb-channel`. It renders nothing itself: the channel
-     * draws it from its text, its children and its attributes.
+     * One message in an `orb-channel`.
      */
     interface OrbChannelMessage {
         /**
@@ -791,8 +779,7 @@ export namespace Components {
         "vote"?: "up" | "down";
     }
     /**
-     * A person in an `orb-channel`, identified by the element's `id`. Messages
-     * refer to them with `from`. It renders nothing itself.
+     * A person in an `orb-channel`, identified by the element's `id`.
      */
     interface OrbChannelParticipant {
         /**
@@ -858,10 +845,7 @@ export namespace Components {
         "typing": boolean;
     }
     /**
-     * Where an `orb-channel` gets the people it doesn't have yet. When a message
-     * comes from someone who isn't a child of the channel, the channel asks for
-     * them, in batches, and shows the `orb-channel-participant` elements in the
-     * response. It renders nothing itself.
+     * Where an `orb-channel` gets the people it doesn't have yet.
      */
     interface OrbChannelParticipantSource {
         /**
@@ -870,9 +854,7 @@ export namespace Components {
         "href"?: string;
     }
     /**
-     * One reaction to a message in an `orb-channel`. Each reaction is one
-     * element, and the channel combines those with the same emoji into a button
-     * with a count. It renders nothing itself.
+     * One reaction to a message in an `orb-channel`.
      */
     interface OrbChannelReaction {
         /**
@@ -886,7 +868,6 @@ export namespace Components {
     }
     /**
      * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
-     * Its text is the reasoning. It renders nothing itself.
      */
     interface OrbChannelReasoning {
         /**
@@ -904,9 +885,7 @@ export namespace Components {
         "state": "thinking" | "done";
     }
     /**
-     * One suggestion, a chip whose text is the suggestion. Clicking it fills the
-     * message box with the text, or sends it with `send`. A child with
-     * `slot="icon"` is its icon. It renders nothing itself.
+     * One suggestion, a chip whose text is the suggestion.
      */
     interface OrbChannelSuggestion {
         /**
@@ -916,8 +895,7 @@ export namespace Components {
         "send": boolean;
     }
     /**
-     * Follow-up suggestions for the point of view, shown above the message box.
-     * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+     * Follow-up suggestions for the point of view, shown above the message box. Its `orb-channel-suggestion` children are the chips.
      */
     interface OrbChannelSuggestions {
         /**
@@ -926,9 +904,7 @@ export namespace Components {
         "label"?: string;
     }
     /**
-     * A tool a model called, shown in an `orb-channel-message` with its arguments
-     * and result. Its arguments and result go in `<script type="application/json">`
-     * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+     * A tool a model called, shown in an `orb-channel-message` with its arguments and result. Its arguments and result go in `<script type="application/json">` children with `data-part="args"` and `data-part="result"`.
      */
     interface OrbChannelToolCall {
         /**
@@ -951,9 +927,7 @@ export namespace Components {
         "status": "running" | "awaiting-approval" | "done" | "error" | "denied" | string;
     }
     /**
-     * How an `orb-channel` sends and receives messages over the network, for apps
-     * that don't write a transport in JavaScript. The channel reads its attributes
-     * when it connects, and reconnects when they change. It renders nothing itself.
+     * How an `orb-channel` sends and receives messages over the network, for apps that don't write a transport in JavaScript.
      */
     interface OrbChannelTransport {
         /**
@@ -975,9 +949,7 @@ export namespace Components {
         "type": "form" | "sse" | "websocket" | "poll";
     }
     /**
-     * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
-     * emits `orbVariantChange` on the channel, and the app shows that version. It
-     * renders nothing itself.
+     * The version switcher of a message, such as "‹ 2 / 3 ›".
      */
     interface OrbChannelVariants {
         /**
@@ -3093,8 +3065,7 @@ declare global {
         "orbTyping": { typing: boolean };
     }
     /**
-     * A chat interface. It renders the messages, participants, dividers and
-     * composer it finds in its light DOM, all in its own shadow root.
+     * A chat interface.
      */
     interface HTMLOrbChannelElement extends Components.OrbChannel, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelElementEventMap>(type: K, listener: (this: HTMLOrbChannelElement, ev: OrbChannelCustomEvent<HTMLOrbChannelElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3114,9 +3085,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A button in an `orb-channel-composer`. Its icon is a child with
-     * `slot="icon"`, and without one the button shows a default icon. Clicking the
-     * button emits `orbAction` on the channel. It renders nothing itself.
+     * A button in an `orb-channel-composer`.
      */
     interface HTMLOrbChannelActionElement extends Components.OrbChannelAction, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelActionElementEventMap>(type: K, listener: (this: HTMLOrbChannelActionElement, ev: OrbChannelActionCustomEvent<HTMLOrbChannelActionElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3136,8 +3105,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A file attached to a message in an `orb-channel`. Images are shown in the
-     * message, and other files as links. It renders nothing itself.
+     * A file attached to a message in an `orb-channel`.
      */
     interface HTMLOrbChannelAttachmentElement extends Components.OrbChannelAttachment, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelAttachmentElementEventMap>(type: K, listener: (this: HTMLOrbChannelAttachmentElement, ev: OrbChannelAttachmentCustomEvent<HTMLOrbChannelAttachmentElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3157,8 +3125,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A source a message refers to. It shows as a numbered button in the text, and
-     * the button opens a popover with the source's link. It renders nothing itself.
+     * A source a message refers to.
      */
     interface HTMLOrbChannelCitationElement extends Components.OrbChannelCitation, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelCitationElementEventMap>(type: K, listener: (this: HTMLOrbChannelCitationElement, ev: OrbChannelCitationCustomEvent<HTMLOrbChannelCitationElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3178,9 +3145,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A command in an `orb-channel-composer`. Typing `/` at the start of a message
-     * offers the commands, and a message that starts with one is sent with its
-     * `command` in `orbSend`. It renders nothing itself.
+     * A command in an `orb-channel-composer`.
      */
     interface HTMLOrbChannelCommandElement extends Components.OrbChannelCommand, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelCommandElementEventMap>(type: K, listener: (this: HTMLOrbChannelCommandElement, ev: OrbChannelCommandCustomEvent<HTMLOrbChannelCommandElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3200,9 +3165,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * The message box of an `orb-channel`. It's form-associated: the draft is
-     * submitted under `name`, and a form reset clears it. The channel draws the
-     * field and the buttons. This element renders nothing itself.
+     * The message box of an `orb-channel`.
      */
     interface HTMLOrbChannelComposerElement extends Components.OrbChannelComposer, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelComposerElementEventMap>(type: K, listener: (this: HTMLOrbChannelComposerElement, ev: OrbChannelComposerCustomEvent<HTMLOrbChannelComposerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3222,9 +3185,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A line across an `orb-channel`, with a label, placed between messages. An
-     * `unread` divider marks where the new messages start, and the channel counts
-     * the messages after it. It renders nothing itself.
+     * A line across an `orb-channel`, with a label, placed between messages.
      */
     interface HTMLOrbChannelDividerElement extends Components.OrbChannelDivider, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelDividerElementEventMap>(type: K, listener: (this: HTMLOrbChannelDividerElement, ev: OrbChannelDividerCustomEvent<HTMLOrbChannelDividerElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3244,8 +3205,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * One message in an `orb-channel`. It renders nothing itself: the channel
-     * draws it from its text, its children and its attributes.
+     * One message in an `orb-channel`.
      */
     interface HTMLOrbChannelMessageElement extends Components.OrbChannelMessage, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelMessageElementEventMap>(type: K, listener: (this: HTMLOrbChannelMessageElement, ev: OrbChannelMessageCustomEvent<HTMLOrbChannelMessageElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3265,8 +3225,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A person in an `orb-channel`, identified by the element's `id`. Messages
-     * refer to them with `from`. It renders nothing itself.
+     * A person in an `orb-channel`, identified by the element's `id`.
      */
     interface HTMLOrbChannelParticipantElement extends Components.OrbChannelParticipant, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelParticipantElementEventMap>(type: K, listener: (this: HTMLOrbChannelParticipantElement, ev: OrbChannelParticipantCustomEvent<HTMLOrbChannelParticipantElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3286,10 +3245,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * Where an `orb-channel` gets the people it doesn't have yet. When a message
-     * comes from someone who isn't a child of the channel, the channel asks for
-     * them, in batches, and shows the `orb-channel-participant` elements in the
-     * response. It renders nothing itself.
+     * Where an `orb-channel` gets the people it doesn't have yet.
      */
     interface HTMLOrbChannelParticipantSourceElement extends Components.OrbChannelParticipantSource, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelParticipantSourceElementEventMap>(type: K, listener: (this: HTMLOrbChannelParticipantSourceElement, ev: OrbChannelParticipantSourceCustomEvent<HTMLOrbChannelParticipantSourceElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3309,9 +3265,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * One reaction to a message in an `orb-channel`. Each reaction is one
-     * element, and the channel combines those with the same emoji into a button
-     * with a count. It renders nothing itself.
+     * One reaction to a message in an `orb-channel`.
      */
     interface HTMLOrbChannelReactionElement extends Components.OrbChannelReaction, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelReactionElementEventMap>(type: K, listener: (this: HTMLOrbChannelReactionElement, ev: OrbChannelReactionCustomEvent<HTMLOrbChannelReactionElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3332,7 +3286,6 @@ declare global {
     }
     /**
      * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
-     * Its text is the reasoning. It renders nothing itself.
      */
     interface HTMLOrbChannelReasoningElement extends Components.OrbChannelReasoning, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelReasoningElementEventMap>(type: K, listener: (this: HTMLOrbChannelReasoningElement, ev: OrbChannelReasoningCustomEvent<HTMLOrbChannelReasoningElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3352,9 +3305,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * One suggestion, a chip whose text is the suggestion. Clicking it fills the
-     * message box with the text, or sends it with `send`. A child with
-     * `slot="icon"` is its icon. It renders nothing itself.
+     * One suggestion, a chip whose text is the suggestion.
      */
     interface HTMLOrbChannelSuggestionElement extends Components.OrbChannelSuggestion, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelSuggestionElementEventMap>(type: K, listener: (this: HTMLOrbChannelSuggestionElement, ev: OrbChannelSuggestionCustomEvent<HTMLOrbChannelSuggestionElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3374,8 +3325,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * Follow-up suggestions for the point of view, shown above the message box.
-     * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+     * Follow-up suggestions for the point of view, shown above the message box. Its `orb-channel-suggestion` children are the chips.
      */
     interface HTMLOrbChannelSuggestionsElement extends Components.OrbChannelSuggestions, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelSuggestionsElementEventMap>(type: K, listener: (this: HTMLOrbChannelSuggestionsElement, ev: OrbChannelSuggestionsCustomEvent<HTMLOrbChannelSuggestionsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3395,9 +3345,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * A tool a model called, shown in an `orb-channel-message` with its arguments
-     * and result. Its arguments and result go in `<script type="application/json">`
-     * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+     * A tool a model called, shown in an `orb-channel-message` with its arguments and result. Its arguments and result go in `<script type="application/json">` children with `data-part="args"` and `data-part="result"`.
      */
     interface HTMLOrbChannelToolCallElement extends Components.OrbChannelToolCall, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelToolCallElementEventMap>(type: K, listener: (this: HTMLOrbChannelToolCallElement, ev: OrbChannelToolCallCustomEvent<HTMLOrbChannelToolCallElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3417,9 +3365,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * How an `orb-channel` sends and receives messages over the network, for apps
-     * that don't write a transport in JavaScript. The channel reads its attributes
-     * when it connects, and reconnects when they change. It renders nothing itself.
+     * How an `orb-channel` sends and receives messages over the network, for apps that don't write a transport in JavaScript.
      */
     interface HTMLOrbChannelTransportElement extends Components.OrbChannelTransport, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelTransportElementEventMap>(type: K, listener: (this: HTMLOrbChannelTransportElement, ev: OrbChannelTransportCustomEvent<HTMLOrbChannelTransportElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3439,9 +3385,7 @@ declare global {
         "orbChannelDataChange": void;
     }
     /**
-     * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
-     * emits `orbVariantChange` on the channel, and the app shows that version. It
-     * renders nothing itself.
+     * The version switcher of a message, such as "‹ 2 / 3 ›".
      */
     interface HTMLOrbChannelVariantsElement extends Components.OrbChannelVariants, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbChannelVariantsElementEventMap>(type: K, listener: (this: HTMLOrbChannelVariantsElement, ev: OrbChannelVariantsCustomEvent<HTMLOrbChannelVariantsElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -4579,8 +4523,7 @@ declare namespace LocalJSX {
         "width"?: "xs" | "sm" | "md" | "lg" | "xl" | "auto" | "min";
     }
     /**
-     * A chat interface. It renders the messages, participants, dividers and
-     * composer it finds in its light DOM, all in its own shadow root.
+     * A chat interface.
      */
     interface OrbChannel {
         /**
@@ -4843,9 +4786,7 @@ declare namespace LocalJSX {
         "votes"?: "none" | "up" | "up-down";
     }
     /**
-     * A button in an `orb-channel-composer`. Its icon is a child with
-     * `slot="icon"`, and without one the button shows a default icon. Clicking the
-     * button emits `orbAction` on the channel. It renders nothing itself.
+     * A button in an `orb-channel-composer`.
      */
     interface OrbChannelAction {
         /**
@@ -4862,8 +4803,7 @@ declare namespace LocalJSX {
         "onOrbChannelDataChange"?: (event: OrbChannelActionCustomEvent<void>) => void;
     }
     /**
-     * A file attached to a message in an `orb-channel`. Images are shown in the
-     * message, and other files as links. It renders nothing itself.
+     * A file attached to a message in an `orb-channel`.
      */
     interface OrbChannelAttachment {
         /**
@@ -4888,8 +4828,7 @@ declare namespace LocalJSX {
         "type"?: string;
     }
     /**
-     * A source a message refers to. It shows as a numbered button in the text, and
-     * the button opens a popover with the source's link. It renders nothing itself.
+     * A source a message refers to.
      */
     interface OrbChannelCitation {
         /**
@@ -4910,9 +4849,7 @@ declare namespace LocalJSX {
         "onOrbChannelDataChange"?: (event: OrbChannelCitationCustomEvent<void>) => void;
     }
     /**
-     * A command in an `orb-channel-composer`. Typing `/` at the start of a message
-     * offers the commands, and a message that starts with one is sent with its
-     * `command` in `orbSend`. It renders nothing itself.
+     * A command in an `orb-channel-composer`.
      */
     interface OrbChannelCommand {
         /**
@@ -4933,9 +4870,7 @@ declare namespace LocalJSX {
         "onOrbChannelDataChange"?: (event: OrbChannelCommandCustomEvent<void>) => void;
     }
     /**
-     * The message box of an `orb-channel`. It's form-associated: the draft is
-     * submitted under `name`, and a form reset clears it. The channel draws the
-     * field and the buttons. This element renders nothing itself.
+     * The message box of an `orb-channel`.
      */
     interface OrbChannelComposer {
         /**
@@ -5001,9 +4936,7 @@ declare namespace LocalJSX {
         "whileStreaming"?: "queue" | "block" | "interrupt";
     }
     /**
-     * A line across an `orb-channel`, with a label, placed between messages. An
-     * `unread` divider marks where the new messages start, and the channel counts
-     * the messages after it. It renders nothing itself.
+     * A line across an `orb-channel`, with a label, placed between messages.
      */
     interface OrbChannelDivider {
         /**
@@ -5025,8 +4958,7 @@ declare namespace LocalJSX {
         "type"?: "custom" | "unread";
     }
     /**
-     * One message in an `orb-channel`. It renders nothing itself: the channel
-     * draws it from its text, its children and its attributes.
+     * One message in an `orb-channel`.
      */
     interface OrbChannelMessage {
         /**
@@ -5106,8 +5038,7 @@ declare namespace LocalJSX {
         "vote"?: "up" | "down";
     }
     /**
-     * A person in an `orb-channel`, identified by the element's `id`. Messages
-     * refer to them with `from`. It renders nothing itself.
+     * A person in an `orb-channel`, identified by the element's `id`.
      */
     interface OrbChannelParticipant {
         /**
@@ -5177,10 +5108,7 @@ declare namespace LocalJSX {
         "typing"?: boolean;
     }
     /**
-     * Where an `orb-channel` gets the people it doesn't have yet. When a message
-     * comes from someone who isn't a child of the channel, the channel asks for
-     * them, in batches, and shows the `orb-channel-participant` elements in the
-     * response. It renders nothing itself.
+     * Where an `orb-channel` gets the people it doesn't have yet.
      */
     interface OrbChannelParticipantSource {
         /**
@@ -5193,9 +5121,7 @@ declare namespace LocalJSX {
         "onOrbChannelDataChange"?: (event: OrbChannelParticipantSourceCustomEvent<void>) => void;
     }
     /**
-     * One reaction to a message in an `orb-channel`. Each reaction is one
-     * element, and the channel combines those with the same emoji into a button
-     * with a count. It renders nothing itself.
+     * One reaction to a message in an `orb-channel`.
      */
     interface OrbChannelReaction {
         /**
@@ -5213,7 +5139,6 @@ declare namespace LocalJSX {
     }
     /**
      * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
-     * Its text is the reasoning. It renders nothing itself.
      */
     interface OrbChannelReasoning {
         /**
@@ -5235,9 +5160,7 @@ declare namespace LocalJSX {
         "state"?: "thinking" | "done";
     }
     /**
-     * One suggestion, a chip whose text is the suggestion. Clicking it fills the
-     * message box with the text, or sends it with `send`. A child with
-     * `slot="icon"` is its icon. It renders nothing itself.
+     * One suggestion, a chip whose text is the suggestion.
      */
     interface OrbChannelSuggestion {
         /**
@@ -5251,8 +5174,7 @@ declare namespace LocalJSX {
         "send"?: boolean;
     }
     /**
-     * Follow-up suggestions for the point of view, shown above the message box.
-     * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+     * Follow-up suggestions for the point of view, shown above the message box. Its `orb-channel-suggestion` children are the chips.
      */
     interface OrbChannelSuggestions {
         /**
@@ -5265,9 +5187,7 @@ declare namespace LocalJSX {
         "onOrbChannelDataChange"?: (event: OrbChannelSuggestionsCustomEvent<void>) => void;
     }
     /**
-     * A tool a model called, shown in an `orb-channel-message` with its arguments
-     * and result. Its arguments and result go in `<script type="application/json">`
-     * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+     * A tool a model called, shown in an `orb-channel-message` with its arguments and result. Its arguments and result go in `<script type="application/json">` children with `data-part="args"` and `data-part="result"`.
      */
     interface OrbChannelToolCall {
         /**
@@ -5294,9 +5214,7 @@ declare namespace LocalJSX {
         "status"?: "running" | "awaiting-approval" | "done" | "error" | "denied" | string;
     }
     /**
-     * How an `orb-channel` sends and receives messages over the network, for apps
-     * that don't write a transport in JavaScript. The channel reads its attributes
-     * when it connects, and reconnects when they change. It renders nothing itself.
+     * How an `orb-channel` sends and receives messages over the network, for apps that don't write a transport in JavaScript.
      */
     interface OrbChannelTransport {
         /**
@@ -5322,9 +5240,7 @@ declare namespace LocalJSX {
         "type"?: "form" | "sse" | "websocket" | "poll";
     }
     /**
-     * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
-     * emits `orbVariantChange` on the channel, and the app shows that version. It
-     * renders nothing itself.
+     * The version switcher of a message, such as "‹ 2 / 3 ›".
      */
     interface OrbChannelVariants {
         /**
@@ -7910,99 +7826,71 @@ declare module "@stencil/core" {
              */
             "orb-cell": LocalJSX.IntrinsicElements["orb-cell"] & JSXBase.HTMLAttributes<HTMLOrbCellElement>;
             /**
-             * A chat interface. It renders the messages, participants, dividers and
-             * composer it finds in its light DOM, all in its own shadow root.
+             * A chat interface.
              */
             "orb-channel": LocalJSX.IntrinsicElements["orb-channel"] & JSXBase.HTMLAttributes<HTMLOrbChannelElement>;
             /**
-             * A button in an `orb-channel-composer`. Its icon is a child with
-             * `slot="icon"`, and without one the button shows a default icon. Clicking the
-             * button emits `orbAction` on the channel. It renders nothing itself.
+             * A button in an `orb-channel-composer`.
              */
             "orb-channel-action": LocalJSX.IntrinsicElements["orb-channel-action"] & JSXBase.HTMLAttributes<HTMLOrbChannelActionElement>;
             /**
-             * A file attached to a message in an `orb-channel`. Images are shown in the
-             * message, and other files as links. It renders nothing itself.
+             * A file attached to a message in an `orb-channel`.
              */
             "orb-channel-attachment": LocalJSX.IntrinsicElements["orb-channel-attachment"] & JSXBase.HTMLAttributes<HTMLOrbChannelAttachmentElement>;
             /**
-             * A source a message refers to. It shows as a numbered button in the text, and
-             * the button opens a popover with the source's link. It renders nothing itself.
+             * A source a message refers to.
              */
             "orb-channel-citation": LocalJSX.IntrinsicElements["orb-channel-citation"] & JSXBase.HTMLAttributes<HTMLOrbChannelCitationElement>;
             /**
-             * A command in an `orb-channel-composer`. Typing `/` at the start of a message
-             * offers the commands, and a message that starts with one is sent with its
-             * `command` in `orbSend`. It renders nothing itself.
+             * A command in an `orb-channel-composer`.
              */
             "orb-channel-command": LocalJSX.IntrinsicElements["orb-channel-command"] & JSXBase.HTMLAttributes<HTMLOrbChannelCommandElement>;
             /**
-             * The message box of an `orb-channel`. It's form-associated: the draft is
-             * submitted under `name`, and a form reset clears it. The channel draws the
-             * field and the buttons. This element renders nothing itself.
+             * The message box of an `orb-channel`.
              */
             "orb-channel-composer": LocalJSX.IntrinsicElements["orb-channel-composer"] & JSXBase.HTMLAttributes<HTMLOrbChannelComposerElement>;
             /**
-             * A line across an `orb-channel`, with a label, placed between messages. An
-             * `unread` divider marks where the new messages start, and the channel counts
-             * the messages after it. It renders nothing itself.
+             * A line across an `orb-channel`, with a label, placed between messages.
              */
             "orb-channel-divider": LocalJSX.IntrinsicElements["orb-channel-divider"] & JSXBase.HTMLAttributes<HTMLOrbChannelDividerElement>;
             /**
-             * One message in an `orb-channel`. It renders nothing itself: the channel
-             * draws it from its text, its children and its attributes.
+             * One message in an `orb-channel`.
              */
             "orb-channel-message": LocalJSX.IntrinsicElements["orb-channel-message"] & JSXBase.HTMLAttributes<HTMLOrbChannelMessageElement>;
             /**
-             * A person in an `orb-channel`, identified by the element's `id`. Messages
-             * refer to them with `from`. It renders nothing itself.
+             * A person in an `orb-channel`, identified by the element's `id`.
              */
             "orb-channel-participant": LocalJSX.IntrinsicElements["orb-channel-participant"] & JSXBase.HTMLAttributes<HTMLOrbChannelParticipantElement>;
             /**
-             * Where an `orb-channel` gets the people it doesn't have yet. When a message
-             * comes from someone who isn't a child of the channel, the channel asks for
-             * them, in batches, and shows the `orb-channel-participant` elements in the
-             * response. It renders nothing itself.
+             * Where an `orb-channel` gets the people it doesn't have yet.
              */
             "orb-channel-participant-source": LocalJSX.IntrinsicElements["orb-channel-participant-source"] & JSXBase.HTMLAttributes<HTMLOrbChannelParticipantSourceElement>;
             /**
-             * One reaction to a message in an `orb-channel`. Each reaction is one
-             * element, and the channel combines those with the same emoji into a button
-             * with a count. It renders nothing itself.
+             * One reaction to a message in an `orb-channel`.
              */
             "orb-channel-reaction": LocalJSX.IntrinsicElements["orb-channel-reaction"] & JSXBase.HTMLAttributes<HTMLOrbChannelReactionElement>;
             /**
              * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
-             * Its text is the reasoning. It renders nothing itself.
              */
             "orb-channel-reasoning": LocalJSX.IntrinsicElements["orb-channel-reasoning"] & JSXBase.HTMLAttributes<HTMLOrbChannelReasoningElement>;
             /**
-             * One suggestion, a chip whose text is the suggestion. Clicking it fills the
-             * message box with the text, or sends it with `send`. A child with
-             * `slot="icon"` is its icon. It renders nothing itself.
+             * One suggestion, a chip whose text is the suggestion.
              */
             "orb-channel-suggestion": LocalJSX.IntrinsicElements["orb-channel-suggestion"] & JSXBase.HTMLAttributes<HTMLOrbChannelSuggestionElement>;
             /**
-             * Follow-up suggestions for the point of view, shown above the message box.
-             * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+             * Follow-up suggestions for the point of view, shown above the message box. Its `orb-channel-suggestion` children are the chips.
              */
             "orb-channel-suggestions": LocalJSX.IntrinsicElements["orb-channel-suggestions"] & JSXBase.HTMLAttributes<HTMLOrbChannelSuggestionsElement>;
             /**
-             * A tool a model called, shown in an `orb-channel-message` with its arguments
-             * and result. Its arguments and result go in `<script type="application/json">`
-             * children with `data-part="args"` and `data-part="result"`. It renders nothing itself.
+             * A tool a model called, shown in an `orb-channel-message` with its arguments and result. Its arguments and result go in `<script type="application/json">` children with `data-part="args"` and `data-part="result"`.
              */
             "orb-channel-tool-call": LocalJSX.IntrinsicElements["orb-channel-tool-call"] & JSXBase.HTMLAttributes<HTMLOrbChannelToolCallElement>;
             /**
-             * How an `orb-channel` sends and receives messages over the network, for apps
-             * that don't write a transport in JavaScript. The channel reads its attributes
-             * when it connects, and reconnects when they change. It renders nothing itself.
+             * How an `orb-channel` sends and receives messages over the network, for apps that don't write a transport in JavaScript.
              */
             "orb-channel-transport": LocalJSX.IntrinsicElements["orb-channel-transport"] & JSXBase.HTMLAttributes<HTMLOrbChannelTransportElement>;
             /**
-             * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
-             * emits `orbVariantChange` on the channel, and the app shows that version. It
-             * renders nothing itself.
+             * The version switcher of a message, such as "‹ 2 / 3 ›".
              */
             "orb-channel-variants": LocalJSX.IntrinsicElements["orb-channel-variants"] & JSXBase.HTMLAttributes<HTMLOrbChannelVariantsElement>;
             "orb-checkbox": LocalJSX.IntrinsicElements["orb-checkbox"] & JSXBase.HTMLAttributes<HTMLOrbCheckboxElement>;

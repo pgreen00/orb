@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A button in an `orb-channel-composer`. Its icon is a child with
- * `slot="icon"`, and without one the button shows a default icon. Clicking the
- * button emits `orbAction` on the channel. It renders nothing itself.
+ * A button in an `orb-channel-composer`.
  */
 @Component({
   tag: "orb-channel-action",

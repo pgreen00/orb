@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A command in an `orb-channel-composer`. Typing `/` at the start of a message
- * offers the commands, and a message that starts with one is sent with its
- * `command` in `orbSend`. It renders nothing itself.
+ * A command in an `orb-channel-composer`.
  */
 @Component({
   tag: "orb-channel-command",

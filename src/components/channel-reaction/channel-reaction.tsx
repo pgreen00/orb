@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * One reaction to a message in an `orb-channel`. Each reaction is one
- * element, and the channel combines those with the same emoji into a button
- * with a count. It renders nothing itself.
+ * One reaction to a message in an `orb-channel`.
  */
 @Component({
   tag: "orb-channel-reaction",

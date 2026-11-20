@@ -1,8 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A person in an `orb-channel`, identified by the element's `id`. Messages
- * refer to them with `from`. It renders nothing itself.
+ * A person in an `orb-channel`, identified by the element's `id`.
  */
 @Component({
   tag: "orb-channel-participant",

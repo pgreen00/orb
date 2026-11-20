@@ -114,8 +114,7 @@ interface SuggestMenu {
 }
 
 /**
- * A chat interface. It renders the messages, participants, dividers and
- * composer it finds in its light DOM, all in its own shadow root.
+ * A chat interface.
  *
  * @slot header-start - Before the title, such as a back button
  * @slot header-title - Replaces the title, description and avatars
@@ -2633,4 +2632,3 @@ export class Channel {
     );
   }
 }
-

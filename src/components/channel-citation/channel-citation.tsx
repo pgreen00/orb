@@ -1,8 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A source a message refers to. It shows as a numbered button in the text, and
- * the button opens a popover with the source's link. It renders nothing itself.
+ * A source a message refers to.
  */
 @Component({
   tag: "orb-channel-citation",

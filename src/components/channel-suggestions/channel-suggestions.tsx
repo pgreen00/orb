@@ -1,8 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * Follow-up suggestions for the point of view, shown above the message box.
- * Its `orb-channel-suggestion` children are the chips. It renders nothing itself.
+ * Follow-up suggestions for the point of view, shown above the message box. Its `orb-channel-suggestion` children are the chips.
  */
 @Component({
   tag: "orb-channel-suggestions",

@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * The version switcher of a message, such as "‹ 2 / 3 ›". Clicking an arrow
- * emits `orbVariantChange` on the channel, and the app shows that version. It
- * renders nothing itself.
+ * The version switcher of a message, such as "‹ 2 / 3 ›".
  */
 @Component({
   tag: "orb-channel-variants",

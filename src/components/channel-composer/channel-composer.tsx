@@ -9,9 +9,7 @@ import {
 } from "@stencil/core";
 
 /**
- * The message box of an `orb-channel`. It's form-associated: the draft is
- * submitted under `name`, and a form reset clears it. The channel draws the
- * field and the buttons. This element renders nothing itself.
+ * The message box of an `orb-channel`.
  */
 @Component({
   tag: "orb-channel-composer",

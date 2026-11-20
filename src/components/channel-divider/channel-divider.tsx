@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * A line across an `orb-channel`, with a label, placed between messages. An
- * `unread` divider marks where the new messages start, and the channel counts
- * the messages after it. It renders nothing itself.
+ * A line across an `orb-channel`, with a label, placed between messages.
  */
 @Component({
   tag: "orb-channel-divider",

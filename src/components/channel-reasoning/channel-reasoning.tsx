@@ -2,7 +2,6 @@ import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core
 
 /**
  * A model's reasoning, shown as a collapsible block in an `orb-channel-message`.
- * Its text is the reasoning. It renders nothing itself.
  */
 @Component({
   tag: "orb-channel-reasoning",

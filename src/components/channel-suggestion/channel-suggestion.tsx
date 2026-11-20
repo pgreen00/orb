@@ -1,9 +1,7 @@
 import { Component, Event, EventEmitter, Host, Prop, Watch } from "@stencil/core";
 
 /**
- * One suggestion, a chip whose text is the suggestion. Clicking it fills the
- * message box with the text, or sends it with `send`. A child with
- * `slot="icon"` is its icon. It renders nothing itself.
+ * One suggestion, a chip whose text is the suggestion.
  */
 @Component({
   tag: "orb-channel-suggestion",
