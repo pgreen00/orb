@@ -756,7 +756,7 @@ Set `width` on a header cell to size its column, and `align` or `numeric` to ali
 
 ### Cards on Small Screens
 
-With `layout="auto"`, the grid shows each row as a card while it's narrower than `card-breakpoint`, which is 640 pixels by default. Each cell is on its own line, with its column's name at the start and its content at the end. A row's drag handle and details toggle go on the card's first line. The header cells become a row of chips above the cards, so sorting and filtering work the same way. `layout="cards"` always shows cards, and `layout="table"`, the default, never does.
+With `layout="auto"`, the grid shows each row as a card while it's narrower than `card-breakpoint`, which is 640 pixels by default. Each cell is on its own line, with its column's name at the start and its content at the end. A row's drag handle and details toggle go on the card's first line. The header cells become a row of chips above the cards. `layout="cards"` always shows cards, and `layout="table"`, the default, never does.
 
 The breakpoint is the grid's own width, not the window's, so a grid in a narrow column switches too. Set `card-breakpoint` to a number of pixels, or `sm`, `md`, `lg`, or `xl`.
 
@@ -769,6 +769,8 @@ In cards:
 - A cell that spans columns is one line. A cell that spans rows only shows in its first row's card.
 - Tree cards are indented by their level. Open details show in a card joined to their row's card.
 - The footer is a card of its own at the end.
+- A chip has no sort arrow or funnel button. Tapping it, or pressing Enter or Alt + Down on it, opens a bottom sheet with a **Sort** control for a `sortable` header (None, plus "A to Z" and "Z to A", or "Low to high" and "High to low" for numbers, or "Oldest first" and "Newest first" for dates), the header's **filter** when it has one, and **Clear** and **Done** buttons. Screen readers announce the same sort state, and `orbSortChange` still fires before a sort changes, so `preventDefault()` still keeps it.
+- A chip with neither a sort nor a filter is hidden, but stays a column header for screen readers.
 - There are no selection controls. Tapping a card selects it, and with `selection="multiple"`, tapping it again clears it. A press on a button, link, or other control inside a cell does that control's job instead. With `select-all` and `selection="multiple"`, a button at the end of the header row's chips selects every row, or clears the selection, and it reads "Select all" or "Clear selection".
 - Space still selects the focused row, so the keyboard works the same way.
 - The grid sets the `cards` state, and each body and footer cell the `card` state, for styling. `--grid-card-gap` and `--grid-card-radius` set the space between cards and their corners, and `--grid-selected-border-color` outlines a selected card.
@@ -799,7 +801,9 @@ This demo sets `card-breakpoint="480"`, since the docs column is narrow. Drag th
 
 **Manual test:**
 - At full width, the grid is a table. Drag the box narrower than 480 pixels. Each row becomes a card, with "NAME", "ROLE", "STATUS", and "PROJECTS" at the start of each line, and the values at the end.
-- The headers are chips above the cards, with a "Select all" button at the end of the row. Click "Name". The cards sort by name. Open the Role filter and uncheck a role. Its cards hide.
+- The headers are chips above the cards, with a "Select all" button at the end of the row. Tap "Name". A sheet slides up from the bottom with Sort set to None.
+- Choose "Z to A". The cards sort by name, and the "Name" chip shows a down arrow. Tap "Role". Choose "Designer" and "Engineer" to clear the other roles. Its cards hide, and the sheet's Done button closes it. Open the Role sheet again and tap "Clear". Every card comes back.
+- Press Escape while a sheet is open. It closes, and focus goes back to the chip that opened it.
 - Tap a card. It's tinted and outlined as selected. Tap it again. It isn't. Tap "Select all". Every card is selected, and the button reads "Clear selection".
 - A button or link in a card selects nothing when it's pressed, so its own action runs.
 - Priya's card is tinted for its warning status. The footer is a card at the end.

@@ -331,9 +331,13 @@ export namespace Components {
          */
         "numeric": boolean;
         /**
-          * Opens the header's filter, and moves focus into it.
+          * Opens the header's filter, and moves focus into it. In cards, opens the sheet.
          */
         "openFilter": () => Promise<void>;
+        /**
+          * Opens the header's sheet, with its sort and filter. In a table, this opens the filter popover.
+         */
+        "openSheet": () => Promise<void>;
         /**
           * Makes a body cell its row's header, like a `th` with `scope="row"`. Screen readers read it with the other cells in the row.
           * @default false
@@ -3018,6 +3022,7 @@ declare global {
     };
     interface HTMLOrbCellElementEventMap {
         "orbFilterInput": void;
+        "orbSortInput": "ascending" | "descending" | "none";
     }
     /**
      * A cell in an `orb-grid`. Put cells directly inside the grid, in reading order, and the grid places them in rows.
@@ -4481,6 +4486,10 @@ declare namespace LocalJSX {
           * Emits when a header's filter value changes, from its popover or from code. The grid listens for it.
          */
         "onOrbFilterInput"?: (event: OrbCellCustomEvent<void>) => void;
+        /**
+          * Emits when the sort chosen in the sheet changes, from `none` to `ascending` or `descending`. The grid listens for it, and sorts the rows unless its `orbSortChange` is canceled.
+         */
+        "onOrbSortInput"?: (event: OrbCellCustomEvent<"ascending" | "descending" | "none">) => void;
         /**
           * Makes a body cell its row's header, like a `th` with `scope="row"`. Screen readers read it with the other cells in the row.
           * @default false

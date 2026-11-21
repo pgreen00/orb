@@ -1087,8 +1087,22 @@ export class Grid {
     toggleState(this.internals.states, "cards", cards);
     for (const cell of this.cellEls) setState(cell, "card", cards && cell.getAttribute("section") !== "head");
     this.observeSticky();
+    // Header chips open a sheet in cards
+    for (const cell of this.cellEls) this.markHeaderChip(cell);
     // Cards leave out the selection controls, so the placements change
     this.setRows();
+  }
+
+  /**
+   * Marks a header cell as part of a card's chips, and hides the chips that
+   * have neither a sort nor a filter. Hidden chips keep their place for
+   * screen readers, which still use every column header.
+   */
+  private markHeaderChip(cell: HTMLElement) {
+    const head = cell.getAttribute("section") === "head";
+    const chip = head && this.cardMode;
+    setAttr(cell, "data-card-header", chip ? "" : null);
+    setState(cell, "chip-hidden", chip && !this.isSortableHeader(cell) && !cell.hasAttribute("filter"));
   }
 
   /** The grid's custom states, and its cells' states that follow the rows */
@@ -1115,6 +1129,7 @@ export class Grid {
       setState(cell, "details-open", detailsOpen.has(cell));
       setState(cell, "stripe", stripes.has(cell));
       setState(cell, "card", this.cardMode && cell.getAttribute("section") !== "head");
+      this.markHeaderChip(cell);
     }
 
     // A row that only shows for a match under it isn't a match itself
@@ -1841,6 +1856,15 @@ export class Grid {
     const cell = ev.target as HTMLElement;
     if (cell.parentElement === this.host && cell.getAttribute("section") === "head") {
       this.filtersChanged();
+    }
+  }
+
+  /** A header's sheet chose a sort direction. The grid decides whether it applies. */
+  @Listen("orbSortInput")
+  onSortInput(ev: CustomEvent<"ascending" | "descending" | "none">) {
+    const cell = ev.target as HTMLElement;
+    if (cell.parentElement === this.host && cell.getAttribute("section") === "head") {
+      this.setSort(cell, ev.detail);
     }
   }
 
@@ -2684,6 +2708,8 @@ export class Grid {
    */
   private locate(ev: globalThis.Event) {
     const path = ev.composedPath();
+    // Keys in a header's popover or sheet belong to it, not to the cell
+    if (this.inCellOverlay(path as Element[])) return null;
     const target = path[0];
     const handle = [...this.handleEls.values()].find((el) => path.includes(el));
     if (handle) {
@@ -2884,8 +2910,15 @@ export class Grid {
    */
   private toggleSort(cell: HTMLElement) {
     const current = cell.getAttribute("sort");
-    const direction =
-      current === "ascending" ? "descending" : current === "descending" ? "none" : "ascending";
+    this.setSort(cell, current === "ascending" ? "descending" : current === "descending" ? "none" : "ascending");
+  }
+
+  /**
+   * Sorts by a header in the direction asked for. Only one header sorts at a
+   * time, and paging goes back to the first page. Emits `orbSortChange`
+   * first, and does nothing if it's canceled, leaving the header as it was.
+   */
+  private setSort(cell: HTMLElement, direction: "ascending" | "descending" | "none") {
     if (this.orbSortChange.emit({ cell, direction }).defaultPrevented) return;
 
     for (const other of this.host.querySelectorAll(":scope > orb-cell[sort]")) {
@@ -2934,6 +2967,10 @@ export class Grid {
   onClick(ev: MouseEvent) {
     const path = ev.composedPath() as Element[];
 
+    // Clicks in a header's popover or sheet are the filter's and sort's own,
+    // even though they bubble out of the cell
+    if (this.inCellOverlay(path)) return;
+
     // A tree row's chevron expands or collapses it
     if (path.some((n) => n instanceof globalThis.Element && n.classList.contains("tree-toggle"))) {
       const cell = path.find((n) => n instanceof HTMLElement && n.parentElement === this.host);
@@ -2952,11 +2989,48 @@ export class Grid {
     const index = path.findIndex((n) => this.isSortableHeader(n as HTMLElement));
     if (index >= 0) {
       const onControl = path.slice(0, index).some((n) => n instanceof globalThis.Element && n.matches(FOCUSABLE));
-      if (!onControl) this.toggleSort(path[index] as HTMLElement);
+      if (!onControl) {
+        const cell = path[index] as HTMLElement & { openSheet?: () => Promise<void> };
+        // In cards, a chip opens its sheet, which holds the sort
+        if (this.cardMode) void cell.openSheet?.();
+        else this.toggleSort(cell);
+      }
       return;
     }
 
+    // A header chip in cards that only filters still opens its sheet
+    if (this.cardMode) {
+      const chip = path.find(
+        (n) =>
+          n instanceof globalThis.Element &&
+          n.parentElement === this.host &&
+          n.getAttribute("section") === "head" &&
+          n.hasAttribute("filter"),
+      ) as (HTMLElement & { openSheet?: () => Promise<void> }) | undefined;
+      const onControl = path
+        .slice(0, chip ? path.indexOf(chip) : 0)
+        .some((n) => n instanceof globalThis.Element && n.matches(FOCUSABLE));
+      if (chip && !onControl) {
+        void chip.openSheet?.();
+        return;
+      }
+    }
+
     this.clickCard(path);
+  }
+
+  /**
+   * Whether an event's path goes through an `orb-popover` or `orb-overlay`
+   * inside a cell, such as a header's filter or its sheet. Their events bubble
+   * out of the cell, and are the overlay's to handle.
+   */
+  private inCellOverlay(path: Element[]) {
+    return path.some(
+      (n) =>
+        n instanceof globalThis.Element &&
+        (n.localName === "orb-popover" || n.localName === "orb-overlay") &&
+        n.parentElement?.localName === "orb-cell",
+    );
   }
 
   /**
@@ -3338,6 +3412,20 @@ export class Grid {
 
     const onRow = where.kind === "row";
     const { rowIndex } = where;
+
+    // In cards, Enter and Alt + Down open a header chip's sheet, which has
+    // its sort and filter.
+    if (
+      this.cardMode &&
+      where.kind === "cell" &&
+      where.cell.getAttribute("section") === "head" &&
+      (where.cell.hasAttribute("sortable") || where.cell.hasAttribute("filter")) &&
+      (ev.key === "Enter" || (ev.altKey && ev.key === "ArrowDown"))
+    ) {
+      ev.preventDefault();
+      void (where.cell as HTMLElement & { openSheet: () => Promise<void> }).openSheet();
+      return;
+    }
 
     // Alt + Down opens a header's filter. On a header that doesn't sort,
     // Enter does too.

@@ -4,6 +4,7 @@ import {
   Element,
   Event,
   EventEmitter,
+  Fragment,
   Host,
   Method,
   Prop,
@@ -28,6 +29,8 @@ import { shareStates, toggleState } from "../../utils/custom-states";
  * @part tree-toggle - The chevron and indent at the start of a tree row's first cell
  * @part filter-button - The funnel button that opens a header's filter
  * @part filter-panel - The filter's content, inside its popover
+ * @part sheet - The bottom sheet a header opens in cards, with its sort and filter
+ * @part sort-control - The sort control, inside the sheet
  * @part label - The column's name, shown before the content when the grid shows cards
  */
 @Component({
@@ -72,6 +75,8 @@ export class GridCell {
       "details-open": false,
       /** The grid shows its rows as cards, and the cell is in one */
       card: false,
+      /** A header chip in cards with neither a sort nor a filter, hidden but still a column header */
+      "chip-hidden": false,
     },
   })
   internals: ElementInternals;
@@ -204,18 +209,72 @@ export class GridCell {
    */
   @Event() orbFilterInput: EventEmitter<void>;
 
+  /**
+   * Emits when the sort chosen in the sheet changes, from `none` to
+   * `ascending` or `descending`. The grid listens for it, and sorts the rows
+   * unless its `orbSortChange` is canceled.
+   */
+  @Event() orbSortInput: EventEmitter<"ascending" | "descending" | "none">;
+
   @State() filterOpen = false;
+
+  /**
+   * Whether the grid shows its rows as cards, so this header is a chip over
+   * them. The chip opens a sheet with its sort and filter instead of showing
+   * them itself. The grid sets it, and this tracks it for rendering.
+   */
+  @State() cardHeader = false;
+
+  /** `orb-grid` sets `data-card-header` on the header cells of a card layout. */
+  @Watch("data-card-header")
+  onCardHeaderChange(header?: string) {
+    this.cardHeader = header != null;
+  }
+
+  /** Whether the header's sheet is open, in cards */
+  @State() sheetOpen = false;
+  /** Resolves once a render that includes the sheet is done */
+  private sheetRendered: Promise<void> = Promise.resolve();
+  private resolveSheet?: () => void;
+  /** The open in flight, so a second call joins it instead of starting over */
+  private opening?: Promise<void>;
 
   private filterButton?: HTMLButtonElement;
   private filterPanel?: HTMLElement;
+  private sheetEl?: HTMLElement & { show?: () => Promise<void> };
   private filterTimer?: ReturnType<typeof setTimeout>;
   /** A value waiting for typing to pause, so quick edits build on each other */
   private pendingFilter?: { value: typeof this.filterValue };
 
-  /** Opens the header's filter, and moves focus into it. */
+  /** Opens the header's filter, and moves focus into it. In cards, opens the sheet. */
   @Method()
   async openFilter() {
-    if (this.filter && !this.filterOpen) this.filterButton?.click();
+    if (this.cardHeader) {
+      if (this.filter) await this.openSheet();
+    } else if (this.filter && !this.filterOpen) {
+      this.filterButton?.click();
+    }
+  }
+
+  /** Opens the header's sheet, with its sort and filter. In a table, this opens the filter popover. */
+  @Method()
+  async openSheet() {
+    if (!this.cardHeader) return this.openFilter();
+    if (!this.opening) {
+      // The overlay renders, closed, before it can open
+      this.opening = (async () => {
+        this.sheetRendered = new Promise((resolve) => (this.resolveSheet = resolve));
+        this.sheetOpen = true;
+        await this.sheetRendered;
+        await this.sheetEl?.show?.();
+      })();
+    }
+    await this.opening;
+  }
+
+  componentDidRender() {
+    this.resolveSheet?.();
+    this.resolveSheet = undefined;
   }
 
   @Watch("filterValue")
@@ -279,9 +338,45 @@ export class GridCell {
     if (this.host.shadowRoot.activeElement) this.host.focus();
   };
 
+  /** Moves focus to the first control once the sheet is open */
+  private onSheetPresent = () => {
+    toggleState(this.internals.states, "filter-open", true);
+    const first = this.sheetEl?.querySelector<HTMLElement>("input, orb-radio-group, orb-checkbox");
+    first?.focus();
+  };
+
+  /**
+   * Applies a filter still waiting on typing to pause, then puts focus back
+   * on the header, which opened the sheet.
+   */
+  private onSheetDismiss = () => {
+    this.sheetOpen = false;
+    this.opening = undefined;
+    toggleState(this.internals.states, "filter-open", false);
+    if (this.pendingFilter) this.setFilterNow(this.pendingFilter.value);
+    this.host.focus();
+  };
+
+  /** Clears this column's sort and filter, from the sheet's footer */
+  private clearColumn = () => {
+    if (this.pendingFilter) this.setFilterNow(undefined);
+    else if (this.filter && this.filterValue != null) this.filterValue = undefined;
+    if (this.sort) this.orbSortInput.emit("none");
+  };
+
+  /** The sheet's sort choices, named for the column's kind of value */
+  private get sortChoices() {
+    if (this.numeric || this.filter === "number") {
+      return { up: "Low to high", down: "High to low" };
+    }
+    if (this.filter === "date") return { up: "Oldest first", down: "Newest first" };
+    return { up: "A to Z", down: "Z to A" };
+  };
+
   componentWillLoad() {
     // The grid sets the cell's other states
     shareStates(this.host, this.internals);
+    this.cardHeader = this.host.hasAttribute("data-card-header");
     this.onSectionChange();
     this.onSpanChange();
     this.updateFilterDescription();
@@ -317,7 +412,16 @@ export class GridCell {
         : this.sort === "descending"
           ? SortDescendingIcon
           : SortIcon;
-    return <Icon class="sort-icon" part="sort-icon" aria-hidden="true" />;
+    // A chip in cards only shows the arrow when it's sorted, as a status mark.
+    // Sorting happens in its sheet.
+    if (this.cardHeader && !this.sort) return null;
+    return (
+      <Icon
+        class={{ "sort-icon": true, status: this.cardHeader }}
+        part="sort-icon"
+        aria-hidden="true"
+      />
+    );
   }
 
   /**
@@ -392,8 +496,32 @@ export class GridCell {
     );
   }
 
+  /** The filter's controls, shared by the popover and the sheet */
+  private renderFilterControls() {
+    if (!this.filter) return null;
+    const name = this.columnName;
+    return [
+      this.filter === "text" && (
+        <orb-textbox label={`${name} contains`}>
+          <input
+            type="search"
+            value={typeof this.filterValue === "string" ? this.filterValue : ""}
+            onInput={(e) => this.setFilterSoon((e.target as HTMLInputElement).value || undefined)}
+            onKeyDown={(e) => {
+              // Enter applies right away, without waiting for the pause
+              if (e.key === "Enter") this.setFilterNow((e.target as HTMLInputElement).value || undefined);
+            }}
+          />
+        </orb-textbox>
+      ),
+      (this.filter === "number" || this.filter === "date") && this.renderRange(this.filter),
+      this.filter === "select" && this.renderSelect(),
+    ];
+  }
+
   private renderFilter() {
-    if (this.section !== "head" || !this.filter) return null;
+    // Cards open a sheet instead, so the chip has no funnel or popover
+    if (this.section !== "head" || !this.filter || this.cardHeader) return null;
     const name = this.columnName;
     return [
       <button
@@ -424,21 +552,7 @@ export class GridCell {
           aria-label={`Filter ${name}`}
           ref={(el) => (this.filterPanel = el)}
         >
-          {this.filter === "text" && (
-            <orb-textbox label={`${name} contains`}>
-              <input
-                type="search"
-                value={typeof this.filterValue === "string" ? this.filterValue : ""}
-                onInput={(e) => this.setFilterSoon((e.target as HTMLInputElement).value || undefined)}
-                onKeyDown={(e) => {
-                  // Enter applies right away, without waiting for the pause
-                  if (e.key === "Enter") this.setFilterNow((e.target as HTMLInputElement).value || undefined);
-                }}
-              />
-            </orb-textbox>
-          )}
-          {(this.filter === "number" || this.filter === "date") && this.renderRange(this.filter)}
-          {this.filter === "select" && this.renderSelect()}
+          {this.renderFilterControls()}
           <orb-button
             size="sm"
             fill="outline"
@@ -449,6 +563,61 @@ export class GridCell {
         </div>
       </orb-popover>,
     ];
+  }
+
+  /**
+   * A bottom sheet with this column's sort and filter, which a header chip in
+   * cards opens in place of the popover. Only rendered while it's open.
+   */
+  private renderSheet() {
+    // Cards only. It stays in the page, closed, since an overlay has to be
+    // there before it can open
+    if (!this.cardHeader || this.section !== "head") return null;
+    const name = this.columnName;
+    const choices = this.sortChoices;
+    return (
+      <orb-overlay
+        part="sheet"
+        side="bottom"
+        open={this.sheetOpen}
+        onOrbPresent={this.onSheetPresent}
+        onOrbDismiss={this.onSheetDismiss}
+        ref={(el) => (this.sheetEl = el)}
+      >
+        {this.sheetOpen && (
+          <orb-view label={name} closable>
+          {this.sortable && (
+            <orb-radio-group
+              part="sort-control"
+              label="Sort"
+              buttons
+              value={this.sort ?? "none"}
+              onOrbValueChange={(e: CustomEvent<string>) =>
+                this.orbSortInput.emit(e.detail as "ascending" | "descending" | "none")
+              }
+            >
+              <orb-radio value="none">None</orb-radio>
+              <orb-radio value="ascending">{choices.up}</orb-radio>
+              <orb-radio value="descending">{choices.down}</orb-radio>
+            </orb-radio-group>
+          )}
+          {this.filter && (
+            <div class="filter-panel" role="group" aria-label={`Filter ${name}`}>
+              {this.renderFilterControls()}
+            </div>
+          )}
+          {this.filter && (
+            <Fragment>
+              <orb-button slot="footer" fill="outline" onClick={this.clearColumn}>
+                Clear
+              </orb-button>
+              <orb-button slot="footer" data-overlay="hide">Done</orb-button>
+            </Fragment>
+          )}
+        </orb-view>
+        )}
+      </orb-overlay>
+    );
   }
 
   render() {
@@ -464,6 +633,7 @@ export class GridCell {
         </span>
         {this.renderSortIcon()}
         {this.renderFilter()}
+        {this.renderSheet()}
       </Host>
     );
   }

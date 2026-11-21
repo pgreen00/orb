@@ -138,6 +138,7 @@ export class Overlay extends ReadyController {
 
   @Watch("open")
   async onOpenChange(open: boolean) {
+    await this.ready;
     if (open && !this.dialogEl.open) {
       this.resetBottomSheet()
       await this.init?.()

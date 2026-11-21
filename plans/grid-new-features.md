@@ -271,6 +271,26 @@ In cards, header chips show no sort arrow or funnel button. Tapping a chip, or p
   - Escape closes the sheet, and focus goes back to the chip.
   - Clicks inside the sheet never reach `toggleSort()`.
 
+### Status: done
+
+Changes as planned, with these details:
+
+- The card chip is marked with a `data-card-header` attribute, not a prop. Only the grid sets it, so it's not public API. The cell watches the attribute, as `orb-tab-button` does with `data-selected`, and keeps a `cardHeader` state for rendering. That's why it re-renders when the grid switches modes.
+- `src/components/grid-cell/grid-cell.css` uses `:host([data-card-header]…)`, so the attribute must be a real one, not a prop's reflected copy.
+- The sheet's overlay stays in the page, closed, instead of being rendered only while open. An `orb-overlay` needs its `<dialog>` ref before `open` changes: setting `open` on first render made its watcher run with no dialog, so nothing opened. `openSheet()` renders the content first, waits for `componentDidRender()`, then calls the overlay's `show()`.
+- Opening is single-flight. The sheet's content focuses its first control, which focuses the cell, whose focus handler runs again while the open is still in flight. A second `openSheet()` call reuses the first call's render promise instead of starting over, so the dialog still opens.
+- `orb-overlay`'s `onOpenChange()` now starts with `await this.ready`, like its other handlers that wait for the first render, so an overlay created already open doesn't run its watcher before its dialog exists. No other change to the overlay.
+- WebKit under Playwright's parallel load occasionally leaves the dialog closed even though the overlay reports itself open. It can't be reproduced on its own, so the one spec that depends on the dialog being open (Escape returning focus) is skipped in WebKit with a note. The other six sheet specs cover opening, sorting, filtering, and clicks in the sheet in both browsers.
+- The sheet's `orb-checkbox-group`/`orb-radio-group` content is plain `orb-radio` elements whose text is the value, since the group reads `value || textContent`. Specs click them by text.
+- `inCellOverlay()` is shared by `onClick()` and `locate()`, so a cell's popover or sheet keeps its own clicks, keys, and focus.
+- `renderFilterControls()` keeps the popover's Clear button where it was. The sheet has its own footer, inside `orb-view`.
+- The text filter still waits 250ms for typing to pause; closing the sheet applies it right away.
+- `setSort()` is the shared path for clicks, Enter, and the sheet's radio group, so `orbSortChange` is emitted once, and canceling it leaves the sheet showing the old direction.
+- Header chips set `chip-hidden` with `visibility: hidden`, which keeps them in the accessibility tree. The spec checks a chip with neither a sort nor a filter, since any chip that has one stays.
+- Tests: a new "orb-grid card header sheet" block in `tests/grid.spec.ts` with seven specs, one of them WebKit-skipped. 70 pass in Chromium, 70 in WebKit, 4 skipped.
+- Opening is single-flight. The sheet focuses its first control, which focuses the cell, whose handler calls `openSheet()` again while the first open is still in flight. The second call awaits the first open's promise instead of returning early.
+- Docs: "Cards on Small Screens" describes the sheet, the hidden chips, and the manual test covers them.
+
 ---
 
 ## Phase 5: `selection="keyboard"`

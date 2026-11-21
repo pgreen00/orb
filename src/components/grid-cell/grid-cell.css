@@ -222,6 +222,29 @@
   color: inherit;
 }
 
+/* Cards: a chip opens a sheet, so it isn't the sorting control itself. Its
+   arrow only shows the direction, and a filtered chip is tinted. */
+:host([data-card-header][section="head"]) {
+  cursor: pointer;
+}
+
+.sort-icon.status {
+  color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
+}
+
+:host([data-card-header]:state(filtered)) {
+  color: light-dark(var(--orb-primary-600), var(--orb-primary-300));
+}
+
+:host([data-card-header]:state(filtered)) .text {
+  font-weight: var(--orb-font-semi-bold);
+}
+
+/* A chip with nothing to open stays a column header for screen readers */
+:host([data-card-header]:state(chip-hidden)) {
+  visibility: hidden;
+}
+
 /* Inside the cell, so the ring isn't hidden by the cells around it */
 :host(:focus-visible) {
   outline: 2px solid var(--orb-primary-300);
