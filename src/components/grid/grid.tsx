@@ -12,7 +12,7 @@ import {
   State,
   Watch,
 } from "@stencil/core";
-import { ChevronRightIcon, GripVerticalIcon, RadioEmpty, RadioFill } from "../../utils/icons";
+import { ChevronRightIcon, RadioEmpty, RadioFill } from "../../utils/icons";
 import lightStyles from "./grid-light.css";
 import tableStyles from "./tables.generated.css";
 import { setState, toggleState } from "../../utils/custom-states";
@@ -487,8 +487,6 @@ const FOCUSABLE = [
  * @part details-row - The row an open `orb-row-details` shows in
  * @part toggle-cell - The cell holding a row's details toggle, when any row has details
  * @part toggle - The button that shows and hides a row's details
- * @part handle-cell - The cell holding a row's drag handle, when `reorder` is set
- * @part handle - The drag handle button
  * @part drop-indicator - The line that shows where a dragged row will land
  * @part empty-row - The row shown when the search and filters hide every row
  * @part empty-cell - The cell in the empty row
@@ -579,11 +577,13 @@ export class Grid {
   @Prop() selectAll = false;
 
   /**
-   * Adds a drag handle to the start of each body row. Drag it with a pointer
-   * to move the row. From the keyboard, press Space or Enter on the handle to
-   * pick the row up, Up and Down to move it, and Space or Enter to drop it.
-   * Alt + Up and Down move the focused row from any cell. Rows only move
-   * within the body, and a cell's row span doesn't move with it.
+   * Lets rows be moved. Press and drag anywhere on a body row to move it, on
+   * touch screens with a long press first. The row follows the pointer, and a
+   * line shows where it will land. Alt + Up and Down move the focused row
+   * from any cell. Rows only move within the body, and a cell's row span
+   * doesn't move with it.
+   *
+   * While rows can be moved, their text can't be selected with the mouse.
    */
   @Prop() reorder = false;
 
@@ -653,8 +653,8 @@ export class Grid {
   @Prop({ reflect: true }) stickyHeader = false;
 
   /**
-   * The first column, and the selection, details, and drag handle columns
-   * before it, stay at the start while the grid scrolls sideways.
+   * The first column, and the selection and details columns before it, stay
+   * at the start while the grid scrolls sideways.
    */
   @Prop({ reflect: true }) stickyColumn = false;
 
@@ -750,8 +750,6 @@ export class Grid {
   @State() dragKey?: HTMLElement;
   /** Where the drop line is, from the top of the grid's content */
   @State() dropTop?: number;
-  /** The row picked up from the keyboard */
-  @State() grabbedKey?: HTMLElement;
   /** Text for the live region, describing reordering */
   @State() announcement = "";
 
@@ -764,12 +762,27 @@ export class Grid {
   private rowEls = new Map<HTMLElement, HTMLElement>();
   /** Each body row's selection control, keyed by the row's first cell */
   private controlEls = new Map<HTMLElement, HTMLElement>();
-  /** Each body row's drag handle, keyed by the row's first cell */
-  private handleEls = new Map<HTMLElement, HTMLElement>();
-  /** A row being dragged with the drag and drop API, and where it would land */
-  private drag?: { key: HTMLElement; to: number };
-  /** The index a row picked up from the keyboard started at */
-  private grabFrom = 0;
+  /**
+   * A press on a body row of a grid with `reorder`, which becomes a drag once
+   * it moves far enough, or, on touch, once it's held.
+   */
+  private press?: {
+    key: HTMLElement;
+    pointerId: number;
+    startX: number;
+    startY: number;
+    type: string;
+    timer?: ReturnType<typeof setTimeout>;
+    dragging: boolean;
+  };
+  /** The translate of the row being dragged, in pixels */
+  private dragOffset = 0;
+  /** The index the dragged row would land at, among the body rows */
+  private dragTo = 0;
+  /** Skips the click that follows a drag */
+  private suppressClick = false;
+  /** Auto-scrolls a dragged row while the pointer is near an edge */
+  private scrollFrame?: number;
   /** Every body row in markup order, including rows on other pages */
   private allBodyRows: Row[] = [];
   /** Each body row's `orb-row-details`, keyed by the row's first cell */
@@ -861,9 +874,7 @@ export class Grid {
   /** After a page turn from the keyboard, the column to focus on the new page */
   private pendingPageFocus?: number;
   /** A shadow element to focus once a moved row has rendered */
-  private pendingFocus?: { kind: "handle" | "control" | "row"; key: HTMLElement };
-  /** Set while focus is moved back to a moved row's element */
-  private refocusing = false;
+  private pendingFocus?: { kind: "control" | "row"; key: HTMLElement };
   private placements = new Map<HTMLElement, Placement>();
   /** Each column's width, alignment, and numbers, from its header */
   private columnInfo: ColumnInfo[] = [];
@@ -991,16 +1002,8 @@ export class Grid {
       const { kind, key } = this.pendingFocus;
       this.pendingFocus = undefined;
       const el =
-        kind === "handle"
-          ? this.handleEls.get(key)
-          : kind === "control"
-            ? this.controlEls.get(key)
-            : this.rowEls.get(key);
-      if (el) {
-        this.refocusing = true;
-        focusInView(el);
-        this.refocusing = false;
-      }
+        kind === "control" ? this.controlEls.get(key) : this.rowEls.get(key);
+      if (el) focusInView(el);
     }
     this.updateStates();
     this.updateFocusStates();
@@ -1123,7 +1126,7 @@ export class Grid {
     const moving = new Set<HTMLElement>();
     const detailsOpen = new Set<HTMLElement>();
     const stripes = new Set<HTMLElement>();
-    const movingKey = this.grabbedKey ?? this.dragKey;
+    const movingKey = this.dragKey;
     for (const row of this.allBodyRows) {
       const key = row.cells[0];
       const sets = [
@@ -1313,7 +1316,7 @@ export class Grid {
    * shown. Cells hold their content as text, with form fields' values, and
    * the grid's settings become `data-orb` words, so the table looks like the
    * grid with Orb's native styles. The grid's label becomes the caption.
-   * The selection, details, and drag handle columns are left out.
+   * The selection and details columns are left out.
    */
   @Method()
   async toTable(options: GridExportOptions = {}): Promise<HTMLTableElement> {
@@ -1660,7 +1663,7 @@ export class Grid {
     for (const row of this.allBodyRows) {
       const key = row.cells[0];
       if (row.cells.some(inside) || inside(this.detailsOf.get(key))) return key;
-      if (shadow && [this.rowEls, this.handleEls, this.toggleEls, this.controlEls].some((els) => els.get(key) === shadow)) {
+      if (shadow && [this.rowEls, this.toggleEls, this.controlEls].some((els) => els.get(key) === shadow)) {
         return key;
       }
     }
@@ -2033,7 +2036,6 @@ export class Grid {
 
   @Watch("reorder")
   onReorderChange() {
-    this.grabbedKey = undefined;
     this.endDrag();
     this.setRows();
   }
@@ -2111,8 +2113,7 @@ export class Grid {
     }
     this.hasDetails = this.detailsOf.size > 0;
 
-    // The drag handles, details toggles, and selection controls take the
-    // first columns
+    // The details toggles and selection controls take the first columns
     const offset = this.offset;
 
     // A tree, when any row has a depth or can be expanded. Each row's parent
@@ -2506,6 +2507,8 @@ export class Grid {
     this.updateTabStops();
     this.updateHighlights();
     this.queueFormValue();
+    // Rows don't look draggable while a sort decides their order
+    toggleState(this.internals.states, "reorder-blocked", !this.reorder || !!this.reorderBlocked);
   }
 
   @Watch("name")
@@ -2607,7 +2610,6 @@ export class Grid {
   /** A lead column control is a Tab stop only when it's the active cell. */
   private updateControlTabStops() {
     for (const control of [
-      ...this.handleEls.values(),
       ...this.toggleEls.values(),
       ...this.controlEls.values(),
     ]) {
@@ -2617,13 +2619,12 @@ export class Grid {
   }
 
   /**
-   * The columns before the first data column: the drag handles, the details
-   * toggles, then the selection controls, each when it's used. Cards leave
-   * out the selection controls, since tapping a card selects it.
+   * The columns before the first data column: the details toggles, then the
+   * selection controls, each when it's used. Cards leave out the selection
+   * controls, since tapping a card selects it.
    */
   private get offset() {
     return (
-      (this.reorder ? 1 : 0) +
       (this.hasDetails ? 1 : 0) +
       (!this.selecting || this.keyboardSelecting || this.cardMode ? 0 : 1)
     );
@@ -2642,21 +2643,18 @@ export class Grid {
     return this.selection === "keyboard";
   }
 
-  /** The column of the drag handles, from 0 */
-  private get handleCol() {
-    return this.reorder ? 0 : -1;
-  }
-
   /** The column of the details toggles, from 0 */
   private get toggleCol() {
-    return this.hasDetails ? (this.reorder ? 1 : 0) : -1;
+    return this.hasDetails ? 0 : -1;
   }
 
   /** The column of the selection controls, from 0. Cards and keyboard selection have none. */
   private get selectCol() {
     return !this.selecting || this.keyboardSelecting || this.cardMode
       ? -1
-      : (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0);
+      : this.hasDetails
+        ? 1
+        : 0;
   }
 
   private get bodyRows() {
@@ -2670,7 +2668,7 @@ export class Grid {
 
   /** The row a lead column control belongs to */
   private controlRow(control: HTMLElement) {
-    const key = [...this.handleEls, ...this.toggleEls, ...this.controlEls].find(
+    const key = [...this.toggleEls, ...this.controlEls].find(
       ([, el]) => el === control,
     )?.[0];
     return key ? this.rows.find((r) => r.cells[0] === key) : undefined;
@@ -2681,11 +2679,7 @@ export class Grid {
     const p = this.placements.get(el);
     if (p) return p;
     const row = this.controlRow(el);
-    const col = [...this.handleEls.values()].includes(el)
-      ? this.handleCol
-      : [...this.toggleEls.values()].includes(el)
-        ? this.toggleCol
-        : this.selectCol;
+    const col = [...this.toggleEls.values()].includes(el) ? this.toggleCol : this.selectCol;
     return row && { track: row.track, col, colspan: 1, rowspan: 1 };
   }
 
@@ -2736,11 +2730,6 @@ export class Grid {
     // Keys in a header's popover or sheet belong to it, not to the cell
     if (this.inCellOverlay(path as Element[])) return null;
     const target = path[0];
-    const handle = [...this.handleEls.values()].find((el) => path.includes(el));
-    if (handle) {
-      const row = this.controlRow(handle);
-      return { kind: "handle" as const, cell: handle, rowIndex: this.rows.indexOf(row) };
-    }
     // Toggles behave like selection controls: they handle their own Space and Enter.
     const control = [...this.toggleEls.values(), ...this.controlEls.values()].find((el) =>
       path.includes(el),
@@ -2755,9 +2744,11 @@ export class Grid {
       return { kind: "row" as const, rowIndex };
     }
     const node = target as Node;
+    // The path reaches into the cell's own shadow root, so it's searched
+    // rather than the cell's light DOM subtree
     const cell = this.rows
       .flatMap((r) => r.cells)
-      .find((c) => c === node || c.contains(node));
+      .find((c) => path.includes(c));
     if (!cell) return null;
     return {
       kind: cell === node ? ("cell" as const) : ("content" as const),
@@ -2769,11 +2760,9 @@ export class Grid {
   private at(track: number, col: number) {
     if (col < this.offset) {
       const els =
-        col === this.handleCol
-          ? this.handleEls
-          : col === this.toggleCol
-            ? this.toggleEls
-            : this.controlEls;
+        col === this.toggleCol
+          ? this.toggleEls
+          : this.controlEls;
       const row = this.rows.find((r) => r.track === track && els.has(r.cells[0]));
       if (row) return els.get(row.cells[0]);
     }
@@ -3049,6 +3038,11 @@ export class Grid {
   /** A click on a sortable header sorts by it, unless it was on a control inside. */
   @Listen("click")
   onClick(ev: MouseEvent) {
+    // The click that follows a drag doesn't select, sort, or activate
+    if (this.suppressClick) {
+      this.suppressClick = false;
+      return;
+    }
     const path = ev.composedPath() as Element[];
 
     // Clicks in a header's popover or sheet are the filter's and sort's own,
@@ -3109,13 +3103,70 @@ export class Grid {
   private lastClick = { shift: false, ctrl: false };
 
   /**
-   * Notes the pointer and its modifiers before the click, and in keyboard
-   * selection keeps Shift + click from selecting text across rows.
+   * Notes the pointer and its modifiers before the click, in keyboard
+   * selection keeps Shift + click from selecting text across rows, and starts
+   * a press that can drag a row.
    */
   @Listen("pointerdown")
   onPointerDown(ev: PointerEvent) {
     this.lastPointerType = ev.pointerType || "mouse";
     this.lastClick = { shift: ev.shiftKey, ctrl: ev.ctrlKey || ev.metaKey };
+
+    // A press on a body row in a grid that reorders can drag it, whether it's
+    // on a cell or inside its content.
+    const where = this.locate(ev);
+    const row =
+      where && where.kind !== "control" ? this.rows[where.rowIndex] : undefined;
+    if (!row || row.section !== "body") return;
+    const key = row.cells[0];
+    if (!this.canDragPress(ev, key)) return;
+    this.beginPress(ev, key);
+  }
+
+  @Listen("pointermove")
+  onPointerMove(ev: PointerEvent) {
+    const press = this.press;
+    if (!press || ev.pointerId !== press.pointerId) return;
+    const dx = ev.clientX - press.startX;
+    const dy = ev.clientY - press.startY;
+    if (press.dragging) {
+      this.moveDrag(ev.clientY);
+      return;
+    }
+    const distance = Math.hypot(dx, dy);
+    if (press.type === "mouse") {
+      if (distance > 4) this.startDrag(ev.clientX, ev.clientY);
+    } else if (distance > 8) {
+      // The finger moved before the hold, so it's a scroll
+      this.cancelPress();
+    }
+  }
+
+  @Listen("pointerup")
+  onPointerUp(ev: PointerEvent) {
+    if (this.press && ev.pointerId === this.press.pointerId) this.endPress(true);
+  }
+
+  @Listen("pointercancel")
+  onPointerCancel() {
+    this.cancelPress();
+  }
+
+  @Listen("lostpointercapture")
+  onLostPointerCapture() {
+    if (this.press?.dragging) this.cancelPress();
+  }
+
+  /** Stops a touch long press from opening the context menu */
+  @Listen("contextmenu")
+  onContextMenu(ev: Event) {
+    if (this.press) ev.preventDefault();
+  }
+
+  /** Cancels the press, or a drag that didn't finish, putting the row back */
+  private cancelPress() {
+    if (!this.press) return;
+    this.endPress(false);
   }
 
   @Listen("mousedown")
@@ -3169,7 +3220,8 @@ export class Grid {
     const at = path.indexOf(this.rowEls.get(key) as Element);
     const inner = path.slice(0, at);
     const cell = this.cellEls.find((el) => inner.includes(el));
-    const inCell = cell ? inner.slice(0, inner.indexOf(cell)) : [];
+    // Inside a cell's own shadow root, the cell comes after its content
+    const inCell = cell ? inner.slice(0, inner.indexOf(cell)) : inner;
     const skip = (n: Element) =>
       n instanceof globalThis.Element &&
       (n.matches(FOCUSABLE) ||
@@ -3289,9 +3341,7 @@ export class Grid {
     // their place.
     const focusedCell = row.cells.find((c) => c === document.activeElement);
     const shadowFocus = this.host.shadowRoot.activeElement;
-    if (shadowFocus && shadowFocus === this.handleEls.get(key)) {
-      this.pendingFocus = { kind: "handle", key };
-    } else if (shadowFocus && shadowFocus === this.controlEls.get(key)) {
+    if (shadowFocus && shadowFocus === this.controlEls.get(key)) {
       this.pendingFocus = { kind: "control", key };
     } else if (shadowFocus && shadowFocus === this.rowEls.get(key)) {
       this.activeRowKey = key;
@@ -3312,11 +3362,7 @@ export class Grid {
     // see the new order.
     this.observer.takeRecords();
     this.setRows();
-    if (focusedCell) {
-      this.refocusing = true;
-      focusInView(focusedCell);
-      this.refocusing = false;
-    }
+    if (focusedCell) focusInView(focusedCell);
     return true;
   }
 
@@ -3328,101 +3374,166 @@ export class Grid {
     }
   }
 
-  private grab(key: HTMLElement) {
-    if (this.reorderBlocked) {
-      this.announce(this.reorderBlocked);
-      return;
-    }
-    const index = this.bodyIndexOf(key);
-    this.grabbedKey = key;
-    this.grabFrom = index;
-    this.announce(
-      `Picked up ${this.rowName(key)}, row ${index + 1} of ${this.bodyRows.length}. ` +
-        "Press Up or Down to move it, Space to drop it, or Escape to cancel.",
+  /**
+   * Whether a press at this event can start a drag: the primary button is
+   * down, and it's on the row's own content, not on something that does
+   * something when pressed.
+   */
+  private canDragPress(ev: PointerEvent, key: HTMLElement) {
+    if (!this.reorder || this.reorderBlocked || this.press) return false;
+    if (ev.pointerType === "mouse" && ev.button !== 0) return false;
+    const rowEl = this.rowEls.get(key);
+    const path = ev.composedPath();
+    if (!rowEl || !path.includes(rowEl)) return false;
+    // Leading up to the row from the target: nothing that does its own thing.
+    // The path may run through the cell's own shadow root, where the cell
+    // comes after its content, and the cell itself is focusable, so it's left
+    // out.
+    const before = path.slice(0, path.indexOf(rowEl));
+    return !before.some(
+      (n) =>
+        n instanceof globalThis.Element &&
+        !this.cellEls.includes(n as HTMLElement) &&
+        (n.matches(FOCUSABLE) || n.classList.contains("tree-toggle") || n.closest("[draggable]")),
     );
   }
 
-  private drop() {
-    const key = this.grabbedKey;
-    if (!key) return;
-    this.grabbedKey = undefined;
-    const index = this.bodyIndexOf(key);
-    this.announce(`Dropped ${this.rowName(key)} at row ${index + 1} of ${this.bodyRows.length}.`);
-  }
-
-  private cancelGrab() {
-    const key = this.grabbedKey;
-    if (!key) return;
-    this.grabbedKey = undefined;
-    this.moveRow(key, this.grabFrom);
-    const index = this.bodyIndexOf(key);
-    this.announce(`Canceled. ${this.rowName(key)} is at row ${index + 1} of ${this.bodyRows.length}.`);
-  }
-
-  /**
-   * Starts a native drag from a handle. The drag image is the whole row, so
-   * the browser shows the row following the pointer, from where it was
-   * grabbed. The row left behind fades once the image is taken.
-   */
-  private onHandleDragStart(ev: DragEvent, key: HTMLElement) {
-    const rowEl = this.rowEls.get(key);
-    if (this.grabbedKey || this.reorderBlocked || !rowEl || !ev.dataTransfer) {
-      ev.preventDefault();
-      return;
+  /** Starts a drag, or holds the press on touch until the row is held long enough */
+  private beginPress(ev: PointerEvent, key: HTMLElement) {
+    const press = {
+      key,
+      pointerId: ev.pointerId,
+      startX: ev.clientX,
+      startY: ev.clientY,
+      type: ev.pointerType || "mouse",
+      dragging: false,
+      timer: undefined as ReturnType<typeof setTimeout> | undefined,
+    };
+    this.press = press;
+    // A mouse drags as soon as it moves. A finger drags once it's held, so
+    // a swipe still scrolls.
+    if (press.type !== "mouse") {
+      press.timer = setTimeout(() => this.startDrag(ev.clientX, ev.clientY), 400);
     }
-    this.drag = { key, to: this.bodyIndexOf(key) };
-    ev.dataTransfer.effectAllowed = "move";
-    // Some browsers only start a drag that carries data.
-    ev.dataTransfer.setData("text/plain", this.rowName(key));
-    // The image is taken from how the row looks now, so give it an opaque
-    // background first.
-    rowEl.classList.add("drag-image");
-    const rect = rowEl.getBoundingClientRect();
-    ev.dataTransfer.setDragImage(rowEl, ev.clientX - rect.left, ev.clientY - rect.top);
-    requestAnimationFrame(() => {
-      rowEl.classList.remove("drag-image");
-      if (this.drag?.key === key) this.dragKey = key;
-    });
   }
 
-  /** Finds where the dragged row would land, and draws the drop line there. */
-  // Not passive, so preventDefault() allows the drop
-  @Listen("dragover", { passive: false })
-  onDragOver(ev: DragEvent) {
-    const drag = this.drag;
-    // Only this grid's own rows can be dropped here.
-    if (!drag) return;
-    ev.preventDefault();
-    if (ev.dataTransfer) ev.dataTransfer.dropEffect = "move";
+  private startDrag(x: number, y: number) {
+    const press = this.press;
+    if (!press || press.dragging) return;
+    clearTimeout(press.timer);
+    press.dragging = true;
+    press.startX = x;
+    press.startY = y;
+    this.dragKey = press.key;
+    this.dragTo = this.bodyIndexOf(press.key);
+    this.dragOffset = 0;
+    const rowEl = this.rowEls.get(press.key);
+    try {
+      rowEl?.setPointerCapture?.(press.pointerId);
+    } catch {
+      // A pointer the browser doesn't know, such as one from a script
+    }
+    // The page mustn't scroll under a held finger, which a passive listener can't stop
+    document.addEventListener("touchmove", this.preventScroll, { passive: false });
+    navigator.vibrate?.(10);
+    this.updateDropTarget(y);
+  }
 
-    const others = this.bodyRows.filter((r) => r.cells[0] !== drag.key);
+  private preventScroll = (ev: TouchEvent) => {
+    if (this.press?.dragging) ev.preventDefault();
+  };
+
+  /** Moves the dragged row, follows the pointer with it, and finds where it lands */
+  private moveDrag(y: number) {
+    const press = this.press;
+    if (!press?.dragging) return;
+    this.dragOffset = y - press.startY;
+    const rowEl = this.rowEls.get(press.key);
+    if (rowEl) rowEl.style.translate = `0 ${this.dragOffset}px`;
+    this.updateDropTarget(y);
+    this.autoScroll(y);
+  }
+
+  /** The index the dragged row would land at, from where `clientY` is among the rows */
+  private updateDropTarget(clientY: number) {
+    const key = this.press?.key ?? this.dragKey;
+    if (!key) return;
+    const others = this.bodyRows.filter((r) => r.cells[0] !== key);
     if (!others.length) return;
     const rects = others.map((r) => this.rowEls.get(r.cells[0]).getBoundingClientRect());
-    drag.to = rects.filter((rect) => ev.clientY > rect.top + rect.height / 2).length;
-
-    const edge = drag.to < rects.length ? rects[drag.to].top : rects[rects.length - 1].bottom;
+    this.dragTo = rects.filter((rect) => clientY > rect.top + rect.height / 2).length;
+    const edge = this.dragTo < rects.length ? rects[this.dragTo].top : rects[rects.length - 1].bottom;
     const hostRect = this.host.getBoundingClientRect();
     const top = edge - hostRect.top - this.host.clientTop + this.host.scrollTop;
     if (top !== this.dropTop) this.dropTop = top;
   }
 
-  @Listen("drop", { passive: false })
-  onDrop(ev: DragEvent) {
-    const drag = this.drag;
-    if (!drag) return;
-    // Keeps the browser from opening the dragged text
-    ev.preventDefault();
+  /** Scrolls the grid, or the page, when the pointer is near its top or bottom */
+  private autoScroll(y: number) {
+    if (this.scrollFrame != null) return;
+    const step = () => {
+      this.scrollFrame = undefined;
+      if (!this.press?.dragging) return;
+      const hostRect = this.host.getBoundingClientRect();
+      const box = { top: hostRect.top, bottom: hostRect.bottom };
+      // The grid's scroll box, when it scrolls, otherwise the window
+      const scroller = this.host.scrollHeight > this.host.clientHeight + 1 ? "grid" : "window";
+      const view = scroller === "grid" ? box : { top: 0, bottom: window.innerHeight };
+      const edge = 40;
+      let delta = 0;
+      if (y < view.top + edge) delta = -Math.min(1, (view.top + edge - y) / edge) * 16;
+      else if (y > view.bottom - edge) delta = Math.min(1, (y - (view.bottom - edge)) / edge) * 16;
+      if (!delta) return;
+      if (scroller === "grid") this.host.scrollTop += delta;
+      else window.scrollBy(0, delta);
+      // The rows moved under the pointer
+      this.updateDropTarget(y);
+      this.scrollFrame = requestAnimationFrame(step);
+    };
+    this.scrollFrame = requestAnimationFrame(step);
+  }
+
+  /** Ends a drag, from the pointer lifting, Escape, or a canceled pointer */
+  private endPress(commit: boolean) {
+    const press = this.press;
+    if (!press) return;
+    clearTimeout(press.timer);
+    if (this.scrollFrame != null) cancelAnimationFrame(this.scrollFrame);
+    this.scrollFrame = undefined;
+    if (!press.dragging) {
+      this.press = undefined;
+      return;
+    }
+    const { key, pointerId } = press;
+    const to = this.dragTo;
+    this.press = undefined;
+    const rowEl = this.rowEls.get(key);
+    try {
+      rowEl?.releasePointerCapture?.(pointerId);
+    } catch {
+      // Already released, or never captured
+    }
+    // The row eases back into place, then the rows are reordered
+    if (rowEl) rowEl.style.transition = "translate 150ms ease-in-out";
     this.endDrag();
-    if (this.moveRow(drag.key, drag.to)) {
-      this.announce(
-        `Moved ${this.rowName(drag.key)} to row ${drag.to + 1} of ${this.bodyRows.length}.`,
-      );
+    // The click that follows a drag does nothing, so it doesn't select the row
+    this.suppressClick = true;
+    setTimeout(() => (this.suppressClick = false), 0);
+    if (commit && this.moveRow(key, to)) {
+      this.announce(`Moved ${this.rowName(key)} to row ${to + 1} of ${this.bodyRows.length}.`);
     }
   }
 
   /** Runs after a drop, and when a drag is canceled, such as with Escape. */
   private endDrag() {
-    this.drag = undefined;
+    const key = this.dragKey;
+    const rowEl = key ? this.rowEls.get(key) : undefined;
+    if (rowEl) {
+      rowEl.style.translate = "";
+      // Cleared after the ease back finishes, so the next drag doesn't animate
+      setTimeout(() => rowEl.style.transition = "", 160);
+    }
+    document.removeEventListener("touchmove", this.preventScroll);
     this.dragKey = undefined;
     this.dropTop = undefined;
   }
@@ -3472,7 +3583,7 @@ export class Grid {
         this.openCells = [];
         this.updateTabStops();
       }
-    } else if (where.kind === "cell" || where.kind === "control" || where.kind === "handle") {
+    } else if (where.kind === "cell" || where.kind === "control") {
       // Keep the remembered slot when it's inside this cell, such as after
       // moving with the arrow keys.
       if (!this.position || this.at(this.position.track, this.position.col) !== where.cell) {
@@ -3515,10 +3626,15 @@ export class Grid {
 
   @Listen("keydown")
   onKeyDown(ev: KeyboardEvent) {
+    // Escape puts a dragged row back before anything else looks at the key
+    if (ev.key === "Escape" && this.press?.dragging) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.cancelPress();
+      return;
+    }
     const where = this.locate(ev);
     if (!where) return;
-
-    if (where.kind === "handle" && this.handleKey(ev, this.rows[where.rowIndex].cells[0])) return;
 
     if (this.keyboardSelecting && this.keyboardKeys(ev, where)) return;
 
@@ -3839,77 +3955,6 @@ export class Grid {
   }
 
   /**
-   * Keys on a drag handle. Space or Enter picks the row up or drops it. While
-   * it's picked up, Up and Down move it, and Escape puts it back. Returns true
-   * when the key was handled.
-   */
-  private handleKey(ev: KeyboardEvent, key: HTMLElement) {
-    if (ev.key === " " || ev.key === "Enter") {
-      ev.preventDefault();
-      if (this.grabbedKey === key) this.drop();
-      else this.grab(key);
-      return true;
-    }
-    if (this.grabbedKey !== key || ev.key === "Tab") return false;
-    // While picked up, other keys don't move focus around the grid.
-    ev.preventDefault();
-    if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
-      this.stepRow(key, ev.key === "ArrowDown");
-    } else if (ev.key === "Escape") {
-      ev.stopPropagation();
-      this.cancelGrab();
-    }
-    return true;
-  }
-
-  /**
-   * The drag handle cell: a handle in body rows, a labelled header in the
-   * first header row, and an empty cell in other rows.
-   */
-  private renderHandleCell(row: Row) {
-    const style = this.leadStyle(row, 0);
-    if (row.section !== "body") {
-      const firstHead = row === this.rows.find((r) => r.section === "head");
-      return (
-        <div
-          role={row.section === "head" ? "columnheader" : "gridcell"}
-          class="lead-cell"
-          part="handle-cell"
-          style={style}
-        >
-          {firstHead && <span class="visually-hidden">Reorder</span>}
-        </div>
-      );
-    }
-
-    const key = row.cells[0];
-    return (
-      <div role="gridcell" class="lead-cell" part="handle-cell" style={style}>
-        {/* A div, since Firefox doesn't start drags from a <button>. The grid
-            handles its keys, so it doesn't need a button's click. */}
-        <div
-          role="button"
-          class="handle"
-          part="handle"
-          draggable={!this.reorderBlocked}
-          aria-disabled={this.reorderBlocked ? "true" : undefined}
-          aria-label={`Reorder ${this.rowName(key)}`}
-          aria-pressed={String(this.grabbedKey === key)}
-          ref={(el?: HTMLElement) => el && this.handleEls.set(key, el)}
-          onDragStart={(e: DragEvent) => this.onHandleDragStart(e, key)}
-          onDragEnd={() => this.endDrag()}
-          onBlur={() => {
-            // Leaving a picked-up row, such as with Tab, drops it where it is.
-            if (!this.refocusing && this.grabbedKey === key) this.drop();
-          }}
-        >
-          <GripVerticalIcon aria-hidden="true" />
-        </div>
-      </div>
-    );
-  }
-
-  /**
    * The details toggle cell: a toggle in body rows that have details, a
    * labelled header in the first header row, and an empty cell in other rows.
    */
@@ -4126,7 +4171,6 @@ export class Grid {
     this.mixed = this.mixedRows();
     this.rowEls = new Map();
     this.controlEls = new Map();
-    this.handleEls = new Map();
     this.toggleEls = new Map();
     const rowNav = this.navigation === "row";
     const leadColumns = this.offset ? `--_lead-columns: repeat(${this.offset}, min-content);` : "";
@@ -4138,6 +4182,8 @@ export class Grid {
           const key = row.cells[0];
           const body = row.section === "body";
           const selectable = this.selecting && body;
+          // Rows that can be moved say so, since there's no handle to find
+          const movable = body && this.reorder && !this.reorderBlocked;
           // Stripes count the body rows that show, like :nth-child(even)
           const stripe = body && bodyIndex++ % 2 === 1;
           const status = row.section !== "details" && key.getAttribute("row-status");
@@ -4153,7 +4199,6 @@ export class Grid {
                 // A checkbox is enough to show a selected row, so single
                 // selection and keyboard selection tint it.
                 tint: this.selection === "single" || this.keyboardSelecting,
-                moving: key === this.grabbedKey,
                 dragging: key === this.dragKey,
                 // Joins the card to its details card below it
                 "has-details": body && !!this.detailsOf.get(key)?.hasAttribute("expanded"),
@@ -4168,12 +4213,13 @@ export class Grid {
               }}
               tabIndex={rowNav ? (key === this.activeRowKey ? 0 : -1) : undefined}
               aria-selected={selectable ? String(this.selected.has(key)) : undefined}
+              aria-keyshortcuts={movable ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
+              aria-description={movable ? "Movable" : undefined}
               aria-rowindex={this.ariaRowIndex.has(row) ? String(this.ariaRowIndex.get(row)) : undefined}
               {...this.treeAria(row)}
               ref={(el) => el && this.rowEls.set(key, el)}
             >
               {row.section !== "details" && [
-                this.reorder && this.renderHandleCell(row),
                 this.hasDetails && this.renderToggleCell(row),
                 this.selecting && !this.keyboardSelecting && !this.cardMode && this.renderSelectCell(row),
               ]}

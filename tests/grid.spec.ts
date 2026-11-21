@@ -9,9 +9,8 @@
  *   move focus into its first child, which grid.md's manual test says it
  *   should. Left on a child does move focus to its parent.
  * - WebKit doesn't move a row with the drag events Playwright dispatches, and
- *   Chromium sometimes drops at the start, so that spec retries once. The
- *   native drag and drop is replaced with pointer events in Phase 6, which
- *   replaces the spec.
+ *   Chromium sometimes drops at the start. Phase 6 replaced the native drag
+ *   and drop with pointer events, which fixed it, and replaced that spec.
  * - Phase 1's `contain: inline-size` stops wide rows from making the page
  *   wider, so the grid fills its container. A container that sizes to its
  *   content gets no width from the grid, which the `fixme` spec records.
@@ -32,7 +31,8 @@
  *   sometimes leaves the overlay's dialog closed though the overlay is open.
  *   That can't be reproduced outside the suite.
  * - Phase 5: `selection="keyboard"` adds its own describe block.
- * - Phase 6: the handle is gone, so the drag spec drags a cell's text instead.
+ * - Phase 6: the handle is gone, so the drag specs press a cell's text instead,
+ *   with `page.mouse`.
  * - Phase 7: trees reorder, so the "blocked" announcement is only for sorting
  *   and filtering.
  */
@@ -777,33 +777,140 @@ test.describe("orb-grid reordering", () => {
     await expect(grid(page).locator('[role="status"]')).toContainText("can't be moved");
   });
 
-  // WebKit turns the drag events this dispatches into a drop at the row's
-  // start, so the row doesn't move. In Chromium it sometimes lands at the
-  // start instead, so the one move it makes is retried. The drag and drop
-  // code is replaced with pointer events in Phase 6, which the pointer tests
-  // then cover.
-  test("dragging a row by its handle moves it", async ({ page, browserName }) => {
-    test.skip(browserName === "webkit", "WebKit doesn't move the row with dispatched drag events");
-    test.info().annotations.push({ type: "flaky", description: "Chromium occasionally drops at the start" });
+  // The handle is gone, so these drag a row by its own text with the mouse.
+  /** Presses on a cell's text, moves in steps, and releases */
+  const dragRow = async (page: Page, from: string, toY: number, steps = 8) => {
+    const start = (await cells(page).filter({ hasText: from }).boundingBox())!;
+    const x = start.x + start.width / 2;
+    const y = start.y + start.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let i = 1; i <= steps; i++) {
+      await page.mouse.move(x, y + ((toY - y) * i) / steps);
+    }
+    await page.mouse.up();
+  };
+
+  test("pressing a row's text and dragging moves it, and reports it", async ({ page }) => {
     await mount(page, reorderable);
-    const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
-    const rows = grid(page).locator('[role="row"].body');
-    const last = (await rows.last().boundingBox())!;
+    await page.evaluate(() => {
+      (window as any).moves = [];
+      document.querySelector("orb-grid")!.addEventListener("orbReorder", (event: any) =>
+        (window as any).moves.push([event.detail.from, event.detail.to]),
+      );
+    });
+    const last = (await grid(page).locator('[role="row"].body').last().boundingBox())!;
 
-    const drag = async () => {
-      await grid(page).locator('[part~="handle"]').first().dispatchEvent("dragstart", { dataTransfer });
-      await rows.last().dispatchEvent("dragover", {
-        dataTransfer,
-        clientX: last.x + 10,
-        clientY: last.y + last.height - 1,
-      });
-      await rows.last().dispatchEvent("drop", { dataTransfer });
-      await grid(page).locator('[part~="handle"]').first().dispatchEvent("dragend", { dataTransfer });
-    };
+    await dragRow(page, "One", last.y + last.height - 2);
 
-    await drag();
-    if ((await rowOrder(page)).join() !== "Two,Three,One") await drag();
-    expect(await rowOrder(page)).toEqual(["Two", "Three", "One"]);
+    await expect.poll(() => rowOrder(page)).toEqual(["Two", "Three", "One"]);
+    expect(await page.evaluate(() => (window as any).moves)).toEqual([[0, 2]]);
+  });
+
+  test("no drag handle is rendered", async ({ page }) => {
+    await mount(page, reorderable);
+    await expect(grid(page).locator('[part~="handle"]')).toHaveCount(0);
+    await expect(grid(page).locator('[part~="handle-cell"]')).toHaveCount(0);
+    // The rows say how to move them with the keyboard instead
+    await expect(grid(page).locator('[role="row"].body').first()).toHaveAttribute(
+      "aria-keyshortcuts",
+      "Alt+ArrowUp Alt+ArrowDown",
+    );
+  });
+
+  test("a click without moving moves nothing", async ({ page }) => {
+    await mount(page, reorderable);
+    await cells(page).filter({ hasText: "One" }).click();
+    await page.waitForTimeout(100);
+    expect(await rowOrder(page)).toEqual(["One", "Two", "Three"]);
+  });
+
+  test("Escape during a drag moves nothing", async ({ page }) => {
+    await mount(page, reorderable);
+    const last = (await grid(page).locator('[role="row"].body').last().boundingBox())!;
+    const start = (await cells(page).filter({ hasText: "One" }).boundingBox())!;
+    const x = start.x + start.width / 2;
+    const y = start.y + start.height / 2;
+
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, last.y + last.height - 2, { steps: 8 });
+    await page.keyboard.press("Escape");
+    await page.mouse.up();
+
+    await page.waitForTimeout(200);
+    expect(await rowOrder(page)).toEqual(["One", "Two", "Three"]);
+  });
+
+  test("a drag started on a button inside a cell does nothing", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid reorder>
+        <orb-cell section="head">Task</orb-cell>
+        <orb-cell section="head">Actions</orb-cell>
+        <orb-cell>One</orb-cell><orb-cell><button type="button">Edit</button></orb-cell>
+        <orb-cell>Two</orb-cell><orb-cell></orb-cell>
+        <orb-cell>Three</orb-cell><orb-cell></orb-cell>
+      </orb-grid>`,
+    );
+    const last = (await grid(page).locator('[role="row"].body').last().boundingBox())!;
+    const box = (await page.locator("orb-grid orb-cell button").boundingBox())!;
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, last.y + last.height - 2, { steps: 8 });
+    await page.mouse.up();
+
+    await page.waitForTimeout(200);
+    expect(await rowOrder(page)).toEqual(["One", "Two", "Three"]);
+  });
+
+  test("dragging to the bottom edge scrolls the grid", async ({ page }) => {
+    await mount(page, reorderable.replace("<orb-grid reorder>", '<orb-grid reorder style="--grid-max-height: 80px; display: block; overflow: auto;">'));
+    const scrolled = await grid(page).evaluate(async (el: any) => {
+      const rows = el.shadowRoot!.querySelectorAll<HTMLElement>('[role="row"].body');
+      const cell = el.querySelectorAll(":scope > orb-cell")[1] as HTMLElement;
+      const box = cell.getBoundingClientRect();
+      cell.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true, clientX: box.x + 5, clientY: box.y + 5, pointerId: 1, button: 0, pointerType: "mouse" }));
+      el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, composed: true, clientX: box.x + 5, clientY: box.y + 20, pointerId: 1, pointerType: "mouse" }));
+      // Near the bottom edge, which auto-scrolls on each frame
+      const hostBox = el.getBoundingClientRect();
+      el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, composed: true, clientX: box.x + 5, clientY: hostBox.bottom - 2, pointerId: 1, pointerType: "mouse" }));
+      await new Promise((r) => setTimeout(r, 300));
+      const top = el.scrollTop;
+      el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, composed: true, pointerId: 1 }));
+      return top;
+    });
+    expect(scrolled).toBeGreaterThan(0);
+  });
+
+  test("a long press on touch drags, and a quick swipe doesn't", async ({ page }) => {
+    await mount(page, reorderable);
+    const result = await grid(page).evaluate(async (el: any) => {
+      const cell = el.querySelectorAll(":scope > orb-cell")[1] as HTMLElement;
+      const box = cell.getBoundingClientRect();
+      const others = el.shadowRoot!.querySelectorAll<HTMLElement>('[role="row"].body');
+      const last = others[others.length - 1].getBoundingClientRect();
+      const send = (type: string, clientY: number) =>
+        cell.dispatchEvent(new PointerEvent(type, { bubbles: true, composed: true, clientX: box.x + 5, clientY, pointerId: 7, pointerType: "touch", isPrimary: true }));
+
+      // A quick swipe moves a little, then lifts, before the hold
+      send("pointerdown", box.y + 5);
+      send("pointermove", box.y + 30);
+      send("pointerup", box.y + 30);
+      await new Promise((r) => setTimeout(r, 50));
+
+      // A long press, then a move to the last row
+      send("pointerdown", box.y + 5);
+      await new Promise((r) => setTimeout(r, 450));
+      send("pointermove", last.y + last.height - 2);
+      send("pointerup", last.y + last.height - 2);
+      await new Promise((r) => setTimeout(r, 200));
+      return [...el.shadowRoot!.querySelectorAll('[role="row"].body')].map(
+        (row) => row.querySelector("slot")?.assignedElements()[0]?.textContent?.trim(),
+      );
+    });
+    expect(result).toEqual(["Two", "Three", "One"]);
   });
 });
 

@@ -1312,7 +1312,7 @@ export namespace Components {
          */
         "print": (options?: GridExportOptions) => Promise<void>;
         /**
-          * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
+          * Lets rows be moved. Press and drag anywhere on a body row to move it, on touch screens with a long press first. The row follows the pointer, and a line shows where it will land. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.  While rows can be moved, their text can't be selected with the mouse.
           * @default false
          */
         "reorder": boolean;
@@ -1367,7 +1367,7 @@ export namespace Components {
          */
         "serverSide": boolean;
         /**
-          * The first column, and the selection, details, and drag handle columns before it, stay at the start while the grid scrolls sideways.
+          * The first column, and the selection and details columns before it, stay at the start while the grid scrolls sideways.
           * @default false
          */
         "stickyColumn": boolean;
@@ -1386,7 +1386,7 @@ export namespace Components {
          */
         "toCSV": (options?: GridExportOptions) => Promise<string>;
         /**
-          * Builds a native `<table>` from the grid, with the rows in the order shown. Cells hold their content as text, with form fields' values, and the grid's settings become `data-orb` words, so the table looks like the grid with Orb's native styles. The grid's label becomes the caption. The selection, details, and drag handle columns are left out.
+          * Builds a native `<table>` from the grid, with the rows in the order shown. Cells hold their content as text, with form fields' values, and the grid's settings become `data-orb` words, so the table looks like the grid with Orb's native styles. The grid's label becomes the caption. The selection and details columns are left out.
          */
         "toTable": (options?: GridExportOptions) => Promise<HTMLTableElement>;
         /**
@@ -5658,7 +5658,7 @@ declare namespace LocalJSX {
          */
         "pagination"?: string;
         /**
-          * Adds a drag handle to the start of each body row. Drag it with a pointer to move the row. From the keyboard, press Space or Enter on the handle to pick the row up, Up and Down to move it, and Space or Enter to drop it. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.
+          * Lets rows be moved. Press and drag anywhere on a body row to move it, on touch screens with a long press first. The row follows the pointer, and a line shows where it will land. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.  While rows can be moved, their text can't be selected with the mouse.
           * @default false
          */
         "reorder"?: boolean;
@@ -5697,7 +5697,7 @@ declare namespace LocalJSX {
          */
         "serverSide"?: boolean;
         /**
-          * The first column, and the selection, details, and drag handle columns before it, stay at the start while the grid scrolls sideways.
+          * The first column, and the selection and details columns before it, stay at the start while the grid scrolls sideways.
           * @default false
          */
         "stickyColumn"?: boolean;

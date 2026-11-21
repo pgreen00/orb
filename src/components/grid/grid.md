@@ -209,11 +209,19 @@ A click on a button, link, or other control inside a cell does that control's jo
 
 ### Reordering
 
-Add `reorder`, and each body row gets a drag handle at its start. Press and hold the handle, then drag the row up or down. It uses the browser's drag and drop, so a picture of the row follows the pointer, the row left behind fades, and a line shows where it will land. Touch dragging depends on the browser's drag and drop support. The grid moves the row's cells in the page, so the markup always matches the order on screen.
+Add `reorder`, and any body row can be moved. Press and drag anywhere on the row's cells. The row follows the pointer, and the rows around it stay put, so a line shows where it will land. On touch screens, hold the row for a moment first, then drag. A quick swipe still scrolls, and holding the row doesn't open the browser's context menu.
+
+Dragging in a grid taller than `--grid-max-height`, or near the edge of the window, scrolls it as you drag. The grid moves the row's cells in the page, so the markup always matches the order on screen.
+
+With a pointer, everything else in the row keeps working: press a button or link, or the details toggle, to use it instead of dragging.
 
 `orbReorder` fires before each move, with the row's cells and its old and new index among the body rows. Call `preventDefault()` to keep the row where it is. Do that when a framework renders the cells from your data: update the data in the event instead, and let the framework render the new order.
 
-Rows only move within the body. A cell's row span doesn't move with its row, so reordering works best in grids without row spans. With `selection` set as well, the handles come first and the selection controls second.
+Rows only move within the body. A cell's row span doesn't move with its row, so reordering works best in grids without row spans. A sorted grid can't be reordered, since the sort decides the order: clear it first, or the keys and the pointer do nothing and say so.
+
+**Text selection.** While `reorder` is set, a mouse drag moves rows, so text can't be selected in body rows with the mouse. Inputs, textareas, and `contenteditable` content keep their normal selection.
+
+**From the keyboard**, press Alt + Up or Alt + Down on any cell or row to move its row. Focus stays with the row, and a screen reader hears where it moved. Rows report these keys, so there's no handle to look for.
 
 ::: live-code-demo
 
@@ -253,14 +261,15 @@ document.querySelector("#task-grid").addEventListener("orbReorder", (event) => {
 :::
 
 **Manual test:**
-- Each body row has a grip handle first, then a checkbox. The header row has empty cells above them.
-- Press and hold "Write the release notes"'s handle, and drag it down below "Review the design". A picture of the whole row follows the pointer, from the point where you grabbed it, and the row in the grid fades. A line follows between the rows. Release. The row moves there, and the status line reports it.
-- Click a handle without dragging. Nothing moves.
-- Start a drag, then press Escape before releasing. The line goes away, and nothing moves.
+- Each body row has a checkbox first, and no handle. The header row has an empty cell above it.
+- Press and drag "Write the release notes" from its text, down past "Review the design". The row lifts and follows the pointer, and a line follows between the rows. Release. The row moves there, and the status line reports it.
+- Click a row's text without dragging. It's selected, and nothing moves.
+- Start a drag, then press Escape before releasing. The row goes back, and nothing moves.
+- Drag a row toward the bottom of a page taller than the window. The page scrolls as you hold it there.
 - Select a row, then move it. It stays selected.
-- Focus a handle with the arrow keys and press Space. The row is tinted, and a screen reader hears that it's picked up. Press Down twice, then Space. The row moves two rows down and is dropped there.
-- Pick a row up, press Down, then Escape. It goes back to where it started.
 - On any cell in a body row, press Alt + Down. The row moves down one, and focus stays on the same cell.
+- Sort a column, then try Alt + Down. The row doesn't move, and a screen reader hears that it can't while sorted.
+- On a touch screen, hold a row until it lifts, then drag. A quick swipe scrolls instead.
 
 ### Sorting
 

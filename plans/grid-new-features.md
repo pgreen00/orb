@@ -456,6 +456,23 @@ All of the drag state lives in one object: `private press?: { key, pointerId, st
   - Auto-scroll: in a grid with `--grid-max-height: 200px`, dragging to the bottom edge scrolls it.
   - No `[part~=handle]` is rendered.
 
+### Status: done
+
+Changes as planned, with these details:
+
+- All of the handle code is gone: `renderHandleCell()`, `handleEls`, `handleCol`, `handleKey()`, `grab()`, `drop()`, `cancelGrab()`, `grabbedKey`, `grabFrom`, `onHandleDragStart()`, `dragover`/`drop`, the `handle` kind in `locate()`/`placementOf()`/`controlRow()`/`pendingFocus`, the `.handle*` and `.drag-image` styles, and the `handle-cell` and `handle` parts. This is a breaking change, as the plan says. Alt + Up and Down still move a row, through `stepRow()`.
+- `press`, `dragOffset`, `dragTo`, `suppressClick`, and `scrollFrame` replace the drag state. `pointerdown`, `pointermove`, `pointerup`, `pointercancel`, `lostpointercapture`, and `contextmenu` drive it. The row itself carries `transform: translate`, so a subgrid stays intact in a table and a card works the same way.
+- `canDragPress()` looks at the whole path before the row, leaving out the cell element itself: pressing onto a cell lands inside its shadow root, where the path is text, `orb-cell`, then the row. That was the first bug the new specs caught, since `orb-cell` carries a `tabindex` and matched `FOCUSABLE`.
+- `locate()` now finds a cell by the composed path rather than `contains()`, since a press on a cell's text never has the cell in its light DOM subtree. This also fixed keyboard selection's click handling in Phase 5, which had the same gap.
+- `setPointerCapture()` and `releasePointerCapture()` are wrapped in `try`/`catch`. A pointer from a script, as the touch spec sends, isn't a real pointer, and the throw abandoned the drag halfway.
+- `suppressClick` consumes the one click after a drag, so a drag doesn't also select, sort, or activate. It's reset on the next tick, and in `onClick()` which clears it.
+- Escape in `onKeyDown()` cancels a drag before anything else looks at the key.
+- `reorder-blocked` is a custom state, set at the end of `setRows()`, so a sorted grid doesn't show a grab cursor.
+- Rows get `aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"` and `aria-description="Movable"` while they can move.
+- The pointer specs use `page.mouse`, so the drag itself, Escape, a press on a button, and auto-scroll all run in both browsers. The touch spec dispatches pointer events, since Playwright's touchscreen can't hold a press.
+- Tests: the reordering block went from four specs to ten. 99 pass in Chromium and WebKit, 3 skipped.
+- Docs: "Reordering" is rewritten, with the keyboard keys, long press, auto-scroll, the text selection note, and a new manual test. The `reorder` JSDoc and the part list are updated.
+
 ---
 
 ## Phase 7: Reordering in tree grids

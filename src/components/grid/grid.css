@@ -14,7 +14,7 @@
  * @prop --grid-success-background: Background of cells and rows with a `success` status
  * @prop --grid-warning-background: Background of cells and rows with a `warning` status
  * @prop --grid-danger-background: Background of cells and rows with a `danger` status
- * @prop --grid-moving-background: Background of a row being moved
+ * @prop --grid-moving-background: Background of a row being dragged
  * @prop --grid-drop-indicator-color: Color of the line that shows where a dragged row will land
  * @prop --grid-cell-padding-y: Block padding of each cell
  * @prop --grid-cell-padding-x: Inline padding of each cell
@@ -87,8 +87,8 @@
   --_text-wrap: initial;
 
   display: grid;
-  /* Narrow first columns for the drag handles and selection controls, then
-     each column's width, set by the grid from its header's `width` */
+  /* Narrow first columns for the details toggles and selection controls,
+     then each column's width, set by the grid from its header's `width` */
   grid-template-columns: var(--_lead-columns,) var(--_data-columns, auto);
   gap: calc(var(--_sep) * var(--grid-border-spacing));
   /* For the drop line */
@@ -317,9 +317,6 @@
 
 /* A row picked up from the keyboard, and a dragged row while the browser takes
    its picture for the drag image */
-:where(.moving, .drag-image) {
-  --_row-background: var(--grid-moving-background);
-}
 
 /* A cell's own status wins over its row's */
 [role="row"] > slot::slotted([status="success"]) {
@@ -376,10 +373,6 @@
   z-index: 1;
 }
 
-/* The row left behind while its picture follows the pointer */
-.dragging {
-  opacity: 0.4;
-}
 
 /* Matches orb-cell, so the lead columns line up with the others. The column
    is set inline. */
@@ -469,40 +462,6 @@
   }
 }
 
-/* The drag handle */
-.handle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: var(--orb-spacing-3xs);
-  border: 0;
-  border-radius: var(--orb-radius-sm);
-  background: none;
-  color: var(--orb-note-color);
-  cursor: grab;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.handle svg {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-@media (hover: hover) {
-  .handle:hover {
-    color: var(--orb-text-color);
-  }
-}
-
-.moving .handle,
-.dragging .handle,
-.handle[aria-pressed="true"] {
-  color: var(--grid-drop-indicator-color);
-  cursor: grabbing;
-}
-
 /* Where a dragged row will land. Spans every column, and sits on the line
    between two rows. */
 .drop-indicator {
@@ -515,6 +474,42 @@
   background-color: var(--grid-drop-indicator-color);
   pointer-events: none;
   z-index: 1;
+}
+
+/* Rows in a grid that reorders can be pressed and dragged anywhere.
+   Selecting text in them with the mouse doesn't work, so a drag can start. */
+:host([reorder]) .body {
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+:host([reorder]) .body > slot::slotted(* *:is(input, textarea, select, [contenteditable]:not([contenteditable="false"]))) {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: auto;
+}
+
+/* A row with a sort it can't be moved out of, so it doesn't look draggable */
+:host([reorder]:state(reorder-blocked)) .body {
+  cursor: auto;
+}
+
+/* The dragged row follows the pointer with a transform, which doesn't change
+   the layout, so the rows around it stay put. */
+.dragging {
+  --_row-background: var(--grid-moving-background);
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dragging {
+    transition: none;
+  }
 }
 
 .visually-hidden {
