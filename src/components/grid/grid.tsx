@@ -559,13 +559,18 @@ export class Grid {
    * Whether body rows can be selected. `single` allows one selected row at a
    * time, and `multiple` allows any number. The grid adds a first column with
    * a radio button or an `orb-checkbox` in each body row. Space on any cell or
-   * row also toggles its row.
+   * row also toggles its row. Cards have no selection controls: tapping a card
+   * selects it instead.
    */
   @Prop() selection: "none" | "single" | "multiple" = "none";
 
   /**
-   * Adds a checkbox to the header that selects or clears every body row. Only
-   * applies with `selection="multiple"` and a header row.
+   * Adds a checkbox to the header that selects or clears every row that
+   * passes the search and filters, on every page, and the rows under
+   * collapsed rows in a tree. It's checked when all of them are selected, and
+   * mixed when some are. Only applies with `selection="multiple"` and a
+   * header row. With `server-side`, it covers the rows the grid has, which is
+   * one page. In cards, it's a button at the end of the header row instead.
    */
   @Prop() selectAll = false;
 
@@ -790,6 +795,12 @@ export class Grid {
   private sortedRoots: TreeNode[] = [];
   /** The rows that pass the search and filters, sorted, before paging */
   private filteredRoots: ViewNode[] = [];
+  /**
+   * The rows select all covers, by their first cells: every row that passes
+   * the search and filters, on every page, including rows under collapsed
+   * rows. Worked out once per rebuild in `setRows()`.
+   */
+  private selectableKeys: HTMLElement[] = [];
   /** The iframe a print is waiting on */
   private printFrame?: HTMLIFrameElement;
   /** Set while a method changes several filters, so they filter once */
@@ -825,6 +836,8 @@ export class Grid {
   /** This grid's ranges in the shared match highlight */
   private highlightRanges: Range[] = [];
   private announceTimer?: ReturnType<typeof setTimeout>;
+  /** Waits for a selection to settle before announcing how many rows it has */
+  private selectionTimer?: ReturnType<typeof setTimeout>;
   /** Where each showing row sits in the tree, by its first cell */
   private treeInfo = new Map<HTMLElement, TreeInfo>();
   /** Each details toggle button, keyed by its row's first cell */
@@ -1074,6 +1087,8 @@ export class Grid {
     toggleState(this.internals.states, "cards", cards);
     for (const cell of this.cellEls) setState(cell, "card", cards && cell.getAttribute("section") !== "head");
     this.observeSticky();
+    // Cards leave out the selection controls, so the placements change
+    this.setRows();
   }
 
   /** The grid's custom states, and its cells' states that follow the rows */
@@ -1103,17 +1118,16 @@ export class Grid {
     }
 
     // A row that only shows for a match under it isn't a match itself
-    let matches = 0;
+    let matches = this.selectableKeys.length;
     let allSelected = this.selecting;
-    const walk = (views: ViewNode[]) =>
-      views.forEach((view) => {
-        if (!view.forced) {
-          matches++;
-          if (!this.selected.has(view.node.cells[0])) allSelected = false;
+    if (allSelected) {
+      for (const key of this.selectableKeys) {
+        if (!this.selected.has(key)) {
+          allSelected = false;
+          break;
         }
-        walk(view.children);
-      });
-    walk(this.filteredRoots);
+      }
+    }
 
     const states = this.internals.states;
     toggleState(states, "filtering", this.filtering);
@@ -1161,6 +1175,7 @@ export class Grid {
     this.unbindPaginator();
     this.unbindSearchbox();
     this.setHighlights([]);
+    clearTimeout(this.selectionTimer);
   }
 
   /**
@@ -1418,15 +1433,21 @@ export class Grid {
   async selectAllRows(): Promise<void> {
     if (this.selection !== "multiple") return;
     const next = new Set(this.selected);
-    // A row that only shows for a match under it isn't a match itself. It's
-    // selected when all of its children are.
-    const walk = (views: ViewNode[]) =>
-      views.forEach((view) => {
-        if (!view.forced) next.add(view.node.cells[0]);
-        walk(view.children);
-      });
-    walk(this.filteredRoots);
+    for (const key of this.selectableKeys) next.add(key);
     this.changeSelection(next);
+    this.announceSelection();
+  }
+
+  /**
+   * Says how many rows are selected, once, after the selection settles. Rows
+   * on other pages change without being seen, so screen reader users need it.
+   */
+  private announceSelection() {
+    clearTimeout(this.selectionTimer);
+    this.selectionTimer = setTimeout(() => {
+      const count = this.selectableKeys.filter((key) => this.selected.has(key)).length;
+      this.announce(count ? `Selected ${count} of ${this.selectableKeys.length} rows.` : "No rows selected.");
+    }, 300);
   }
 
   /** Deselects every row, on every page. Emits `orbSelectionChange`. */
@@ -2410,6 +2431,18 @@ export class Grid {
       this.selected = new Set([...this.selected].filter((key) => bodyKeys.has(key)));
     }
 
+    // The rows select all covers: every row that passes the search and
+    // filters, on every page, including rows under collapsed rows. A row that
+    // only shows for a match under it isn't a match itself, so it's left out.
+    const selectable: HTMLElement[] = [];
+    const walkSelectable = (views: ViewNode[]) =>
+      views.forEach((view) => {
+        if (!view.forced) selectable.push(view.node.cells[0]);
+        walkSelectable(view.children);
+      });
+    walkSelectable(this.filteredRoots);
+    this.selectableKeys = selectable;
+
     // In a tree, children added under a selected row are selected too, such
     // as children loaded when the row opens. Then each parent is updated from
     // its children, since rows may have been added or removed.
@@ -2545,10 +2578,13 @@ export class Grid {
 
   /**
    * The columns before the first data column: the drag handles, the details
-   * toggles, then the selection controls, each when it's used
+   * toggles, then the selection controls, each when it's used. Cards leave
+   * out the selection controls, since tapping a card selects it.
    */
   private get offset() {
-    return (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0) + (!this.selecting ? 0 : 1);
+    return (
+      (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0) + (!this.selecting || this.cardMode ? 0 : 1)
+    );
   }
 
   /**
@@ -2569,9 +2605,9 @@ export class Grid {
     return this.hasDetails ? (this.reorder ? 1 : 0) : -1;
   }
 
-  /** The column of the selection controls, from 0 */
+  /** The column of the selection controls, from 0. Cards have none. */
   private get selectCol() {
-    return !this.selecting ? -1 : (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0);
+    return !this.selecting || this.cardMode ? -1 : (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0);
   }
 
   private get bodyRows() {
@@ -2914,9 +2950,48 @@ export class Grid {
     if (inFilter) return;
 
     const index = path.findIndex((n) => this.isSortableHeader(n as HTMLElement));
-    if (index < 0) return;
-    const onControl = path.slice(0, index).some((n) => n instanceof globalThis.Element && n.matches(FOCUSABLE));
-    if (!onControl) this.toggleSort(path[index] as HTMLElement);
+    if (index >= 0) {
+      const onControl = path.slice(0, index).some((n) => n instanceof globalThis.Element && n.matches(FOCUSABLE));
+      if (!onControl) this.toggleSort(path[index] as HTMLElement);
+      return;
+    }
+
+    this.clickCard(path);
+  }
+
+  /**
+   * Tapping a card selects it, since cards have no selection controls. A
+   * press on the details toggle, the tree chevron, or anything focusable
+   * inside a cell does its own thing instead.
+   */
+  private clickCard(path: Element[]) {
+    if (!this.cardMode || !this.selecting) return;
+    let key: HTMLElement | undefined;
+    for (const [k, el] of this.rowEls) {
+      if (path.includes(el)) key = k;
+    }
+    if (!key) return;
+    const row = this.rows.find((r) => r.cells[0] === key);
+    if (!row || row.section !== "body") return;
+
+    // Where the press went, inside the row: the card's own text selects,
+    // everything else that does something keeps doing it. A cell itself is
+    // focusable, so only what's inside one counts.
+    const at = path.indexOf(this.rowEls.get(key) as Element);
+    const inner = path.slice(0, at);
+    const cell = this.cellEls.find((el) => inner.includes(el));
+    const inCell = cell ? inner.slice(0, inner.indexOf(cell)) : [];
+    const skip = (n: Element) =>
+      n instanceof globalThis.Element &&
+      (n.matches(FOCUSABLE) ||
+        n.classList.contains("tree-toggle") ||
+        n.localName === "orb-popover" ||
+        n.localName === "orb-overlay" ||
+        n.classList.contains("select-all-chip"));
+    if (inCell.some(skip)) return;
+
+    if (this.selection === "single") this.setRowSelected(key, true);
+    else this.toggleSelection(this.rows.indexOf(row));
   }
 
   /** Sets the live region text, so screen readers hear each reordering step. */
@@ -3613,33 +3688,64 @@ export class Grid {
   }
 
   /**
-   * Checked when every body row is selected, and mixed when some are. Checking
-   * it selects every row, and unchecking it clears them.
+   * Selects or clears every selectable row, then announces the new count.
+   * In a tree, rows under collapsed rows are included too.
+   */
+  private setAllSelected(on: boolean) {
+    const next = new Set(this.selected);
+    for (const key of this.selectableKeys) {
+      if (this.cascades) this.cascade(next, key, on);
+      else if (on) next.add(key);
+      else next.delete(key);
+    }
+    this.setSelected(next);
+    this.announceSelection();
+  }
+
+  /** Whether every selectable row is selected, for select all in cards */
+  private get allSelected() {
+    const keys = this.selectableKeys;
+    return keys.length > 0 && keys.every((key) => this.selected.has(key));
+  }
+
+  /**
+   * Select all and clear selection in the header of a card layout, which has
+   * no lead cell. Phase 2's rules decide which rows it covers.
+   */
+  private renderSelectChip() {
+    if (this.selection !== "multiple" || !this.selectAll) return null;
+    const on = this.allSelected;
+    return (
+      <button
+        type="button"
+        class="select-all-chip"
+        part="select-all"
+        aria-pressed={String(on)}
+        onClick={() => this.setAllSelected(!on)}
+      >
+        {on ? "Clear selection" : "Select all"}
+      </button>
+    );
+  }
+
+  /**
+   * Checked when every row that passes the search and filters is selected, on
+   * every page, and mixed when some are. Checking it selects them all,
+   * unchecking it clears them. Rows hidden by a filter keep their selection.
    */
   private renderSelectAll(row: Row) {
-    // With pagination, select all works on the rows on the current page.
-    // Rows selected on other pages stay selected.
-    const keys = this.bodyRows.map((r) => r.cells[0]);
+    const keys = this.selectableKeys;
     const count = keys.filter((key) => this.selected.has(key)).length;
     const someMixed = keys.some((key) => this.mixed.has(key));
     const checked =
-      count === keys.length ? "true" : count === 0 && !someMixed ? "false" : "mixed";
+      keys.length > 0 && count === keys.length ? "true" : count === 0 && !someMixed ? "false" : "mixed";
     return (
       <orb-checkbox
         ref={(el?: HTMLElement) => el && this.controlEls.set(row.cells[0], el)}
         part="select-control select-all"
         aria-label="Select all rows"
         checked={checked}
-        onOrbCheckedChange={(e: CustomEvent<string>) => {
-          const next = new Set(this.selected);
-          for (const key of keys) {
-            // In a tree, rows under collapsed rows are included too.
-            if (this.cascades) this.cascade(next, key, e.detail === "true");
-            else if (e.detail === "true") next.add(key);
-            else next.delete(key);
-          }
-          this.setSelected(next);
-        }}
+        onOrbCheckedChange={(e: CustomEvent<string>) => this.setAllSelected(e.detail === "true")}
       />
     );
   }
@@ -3745,8 +3851,14 @@ export class Grid {
               {row.section !== "details" && [
                 this.reorder && this.renderHandleCell(row),
                 this.hasDetails && this.renderToggleCell(row),
-                this.selecting && this.renderSelectCell(row),
+                this.selecting && !this.cardMode && this.renderSelectCell(row),
               ]}
+              {/* Cards have no lead cell, so select all sits at the end of
+                  the first header row instead */}
+              {row.section === "head" &&
+                row === this.rows.find((r) => r.section === "head") &&
+                this.cardMode &&
+                this.renderSelectChip()}
               <slot ref={(slot) => slot?.assign(...row.cells)} />
             </div>
           );

@@ -257,7 +257,7 @@ To split the body rows into pages, add an [`orb-pagination`](../pagination/) wit
 
 Leave out `total`, and the grid sets it to the number of body rows, and keeps it up to date as rows are added and removed. Leave out `label`, and the grid names it "Pages". Set `total` yourself when the grid only holds one page of a larger set, such as rows loaded from a server for each page.
 
-Sorting sorts every row, not just the current page, and goes back to the first page. Selections are kept across pages, and select all works on the current page.
+Sorting sorts every row, not just the current page, and goes back to the first page. Selections are kept across pages. The select all checkbox covers every row that passes the search and filters, on every page: it's checked when all of them are selected, and mixed when some are. With `server-side`, it covers the rows the grid has, which is one page.
 
 ::: live-code-demo
 
@@ -293,7 +293,8 @@ Sorting sorts every row, not just the current page, and goes back to the first p
 - Focus a cell in the grid and press Page Down. The grid goes to the next page, the pagination follows, and focus moves to the same column in the first row. Page Up goes back.
 - On page 3, click Name twice to sort descending. The grid goes back to page 1 and shows Hiro, Grace, and Frank.
 - Select a row, go to another page, and come back. It's still selected.
-- On page 2, check select all. Only page 2's rows are selected.
+- On page 1, check select all. Every row is selected, on all three pages. Go to page 3: its rows are checked too. Clear it on any page, and every row is cleared.
+- On page 2, search for a name that's only on page 1, such as "Alice". Check select all: only the rows that match are selected, so Alice counts and the others don't. Clear the search. The box shows mixed.
 - In devtools, remove two cells for a row. The pagination's total drops to 7.
 
 ### Searching and Filtering
@@ -720,7 +721,7 @@ Set `width` on a header cell to size its column, and `align` or `numeric` to ali
 
 ### Scrolling Headers and Columns
 
-`sticky-header` keeps the header rows at the top, and `sticky-column` keeps the first column at the start, along with the selection, details, and drag handle columns. The grid is its own scroll box, so a sticky header needs `--grid-max-height`. Use `--grid-min-width` to make the content wider than the grid. Sticky cells are opaque, so if the grid isn't on the page's background, set `--grid-background` to the color behind it.
+`sticky-header` keeps the header rows at the top, and `sticky-column` keeps the first column at the start, along with the selection, details, and drag handle columns. The grid is its own scroll box, so a sticky header needs `--grid-max-height`. Use `--grid-min-width` to make the content wider than the grid. Sticky cells are opaque, so if the grid isn't on the page's background, set `--grid-background` to the color behind it. `--grid-max-width` caps the grid's width, with the content scrolling inside it, and `--grid-min-width` sets how wide the scrolling content is, not how wide the grid is.
 
 ::: live-code-demo
 
@@ -755,9 +756,11 @@ Set `width` on a header cell to size its column, and `align` or `numeric` to ali
 
 ### Cards on Small Screens
 
-With `layout="auto"`, the grid shows each row as a card while it's narrower than `card-breakpoint`, which is 640 pixels by default. Each cell is on its own line, with its column's name at the start and its content at the end. A row's selection checkbox, drag handle, and details toggle go on the card's first line. The header cells become a row of chips above the cards, so sorting and filtering work the same way. `layout="cards"` always shows cards, and `layout="table"`, the default, never does.
+With `layout="auto"`, the grid shows each row as a card while it's narrower than `card-breakpoint`, which is 640 pixels by default. Each cell is on its own line, with its column's name at the start and its content at the end. A row's drag handle and details toggle go on the card's first line. The header cells become a row of chips above the cards, so sorting and filtering work the same way. `layout="cards"` always shows cards, and `layout="table"`, the default, never does.
 
 The breakpoint is the grid's own width, not the window's, so a grid in a narrow column switches too. Set `card-breakpoint` to a number of pixels, or `sm`, `md`, `lg`, or `xl`.
+
+The grid always fills its container, and its content never makes the container wider. A wide table scrolls sideways inside the grid, so the page never scrolls sideways for it, and the grid switches to cards on the actual space it has. One thing to know: a grid in a container that sizes to its content, such as an `inline-block`, a `fit-content` box, or a grid item with auto margins, doesn't grow the container, so give the grid or the container a width.
 
 Only the look changes. Screen readers hear the same grid, with the same rows, cells, and column headers, and the arrow keys move the same way: Left and Right between the cells of a row, and Up and Down between rows. The column names in the cards are hidden from screen readers, which already hear the column headers.
 
@@ -766,7 +769,9 @@ In cards:
 - A cell that spans columns is one line. A cell that spans rows only shows in its first row's card.
 - Tree cards are indented by their level. Open details show in a card joined to their row's card.
 - The footer is a card of its own at the end.
-- The grid sets the `cards` state, and each body and footer cell the `card` state, for styling. `--grid-card-gap` and `--grid-card-radius` set the space between cards and their corners.
+- There are no selection controls. Tapping a card selects it, and with `selection="multiple"`, tapping it again clears it. A press on a button, link, or other control inside a cell does that control's job instead. With `select-all` and `selection="multiple"`, a button at the end of the header row's chips selects every row, or clears the selection, and it reads "Select all" or "Clear selection".
+- Space still selects the focused row, so the keyboard works the same way.
+- The grid sets the `cards` state, and each body and footer cell the `card` state, for styling. `--grid-card-gap` and `--grid-card-radius` set the space between cards and their corners, and `--grid-selected-border-color` outlines a selected card.
 
 This demo sets `card-breakpoint="480"`, since the docs column is narrow. Drag the corner of the box to make it narrower than 480 pixels.
 
@@ -794,8 +799,9 @@ This demo sets `card-breakpoint="480"`, since the docs column is narrow. Drag th
 
 **Manual test:**
 - At full width, the grid is a table. Drag the box narrower than 480 pixels. Each row becomes a card, with "NAME", "ROLE", "STATUS", and "PROJECTS" at the start of each line, and the values at the end.
-- The headers are chips above the cards, with the select all checkbox. Click "Name". The cards sort by name. Open the Role filter and uncheck a role. Its cards hide.
-- Each card's checkbox is on its first line. Checking one selects the row.
+- The headers are chips above the cards, with a "Select all" button at the end of the row. Click "Name". The cards sort by name. Open the Role filter and uncheck a role. Its cards hide.
+- Tap a card. It's tinted and outlined as selected. Tap it again. It isn't. Tap "Select all". Every card is selected, and the button reads "Clear selection".
+- A button or link in a card selects nothing when it's pressed, so its own action runs.
 - Priya's card is tinted for its warning status. The footer is a card at the end.
 - Focus a cell and press Right. Focus moves to the next cell in the card, which is the line below. Press Down. Focus moves to the same column in the next card.
 - Drag the box wider again. The table comes back.

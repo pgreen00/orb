@@ -105,22 +105,29 @@ The grid isn't going off screen by itself. **Its content makes its container wid
 
 What was measured: load at 1280px, then resize to 600px. `main` is 1001px wide, the grid is 956px, and `cards` is false. Loading straight at 600px *does* show cards. The grid switches before the wide rows arrive, and cards have a small min-content width, so it stays narrow. That's why the bug only shows up when you shrink a page that loaded wide. Setting `contain: inline-size` on the grid in devtools fixed it in both engines: at 700px the table is 654px wide and scrolls inside itself, and at 600px it switches to cards.
 
-The same thing happens anywhere the grid sits in a container that sizes to its content: `inline-block`, `width: fit-content`, a flex row item with `flex: none`, grid items with auto margins, and table cells. Fixing it in the component fixes all of them.
+The same thing happens anywhere the grid sits in a container that sizes to its content: `inline-block`, `width: fit-content`, a flex row item with `flex: none`, grid items with auto margins, and table cells.
+
+### Status: done
+
+What the implementation found, and where it differs from the plan above:
+
+- `contain: inline-size` fixed the products page, but those containers don't all come out the same. With containment the grid's width no longer comes from its content, so a container that sizes to its content, and holds nothing else, gets no width from the grid and collapses to its padding. On the products page, `main.page` is `max-width: 80rem; margin-inline: auto`, so the page went from **1001px wide to about 38px, with a 0px grid**, in both engines. The plan's line that fixing it in the component fixes every container was wrong.
+- No CSS left in the grid can fix that, because a percentage width in such a container counts as 0: `width: 0; min-width: 100%`, with or without containment, measured the same 38px page in Chromium and WebKit. A grid in a content-sized container needs a width on itself or on the container.
+- So the demo now gives its page a width: `.page` is `box-sizing: border-box; width: 100vw`, which keeps the 80rem cap. The grid fills it, and at phone widths the page was never wide enough to need cards anyway.
+- The grid's own min-content width didn't shrink the columns in a normal block container (plain text wraps), so a table that scrolls inside the grid only shows up with content as wide as the products data, in a wrapper that sizes to its content. That case is verified on the demo (at 700px the table is 654px and scrolls inside the grid), not in the spec.
+- `--grid-min-width` is indented from the grid's own box now, since containment stops the content from sizing the grid. The sticky header and sticky column demos still measure correctly.
 
 ### Changes
 
-1. **`grid.css`**: add `contain: inline-size` to `:host`. The grid's width then never depends on its content. It fills its container (`width: 100%`), and the columns scroll inside it, which is already how the grid is designed to work. `::before`'s `--grid-min-width` still sets how wide the scrolling content is.
-2. **Check the side effects:**
-   - In a container that sizes to its content and holds nothing else, the grid now collapses to its own `min-width`, which is 0. Document this: "In a container that sizes to its content, give the grid or the container a width."
-   - `measureSticky()`, `rowAbout()`, and the drop line read sizes from the layout, and containment doesn't change them. Confirm with the sticky header and sticky column demos.
-   - `print()` and `toTable()` build their own table, so they aren't affected.
-3. **`products.njk`**: fix `</orb-stack` (it's missing its `>`, so the parser eats the next `<p>`), and remove the empty `<p></p>`.
-4. **`grid.md`** ("Cards on Small Screens" and the CSS property docs): explain that the grid always fills its container and never makes it wider, and add the note about containers that size to their content.
+1. **`grid.css`**: `contain: inline-size` on `:host`, with a comment explaining the caveat. The grid fills its container (`width: 100%`), and the columns scroll inside it. `::before`'s `--grid-min-width` still sets how wide the scrolling content is.
+2. **`products.njk`**: the page gets `box-sizing: border-box; width: 100vw`, so it no longer relies on its content for a width. Fix `</orb-stack` (missing its `>`, so the parser ate the next `<p>`), and remove the empty `<p></p>`.
+3. **`grid.md`**: "Cards on Small Screens" says the grid fills its container, never makes it wider, and needs a width in a container that sizes to its content. The `--grid-max-width` and `--grid-min-width` docs say which is the grid and which is its content.
 
 ### Tests
 
-- A grid with wide content inside `<div style="display:grid"><div style="margin-inline:auto; max-width:80rem">…`, with `layout="auto"`. Load at 1280px and resize to 600px. Expect the wrapper to be ≤ 600px, the grid to have the `cards` state, and `document.documentElement.scrollWidth` to equal the viewport width.
-- The same setup at 700px: the grid is a table that scrolls inside itself (`scrollWidth > clientWidth`), and the page doesn't scroll sideways.
+- Done in `tests/grid.spec.ts` ("orb-grid layout"): a wide table in a normal container stays within the page at 800px, above the breakpoint, and becomes cards at 480px, with nothing scrolling sideways.
+- `test.fixme` records the centered, content-sized wrapper collapsing, so the next person sees the caveat as a known limit, not a surprise.
+- Verified on the real demo, Chromium and WebKit, resizing from 1280px down to 390px: the page never scrolls sideways, the table fills the page above 640px, and cards appear below it. A `www/build` copy of `dist` means the demo needs `npm run build` (Stencil and Eleventy), not just `npx stencil build`.
 
 ---
 
@@ -144,6 +151,18 @@ Right now `renderSelectAll()` uses `this.bodyRows`, which is only the current pa
 - With a search that matches 4 rows, checking select all selects exactly those 4. Clearing the search leaves the box `mixed`.
 - In a tree, checking select all selects rows under collapsed parents.
 - With `server-side`, it selects only the rows the grid has.
+
+### Status: done
+
+Changes as planned, with these details:
+
+- The shared list is `selectableKeys`, kept on the grid and rebuilt at the end of `setRows()`, where `filteredRoots` and the selection are already settled. `updateStates()`, `selectAllRows()`, and `renderSelectAll()` all read it, so the "all selected" state and the checkbox can't disagree.
+- `renderSelectAll()` reads "checked" only when the list isn't empty, so a grid with no matching rows shows "clear" rather than "checked".
+- The announcement waits 300ms for the selection to settle, since toggling a checkbox can follow straight after a click: "Selected 8 of 8 rows."
+- The timer is cleared in `disconnectedCallback()`.
+- Tests in `tests/grid.spec.ts` ("orb-grid pagination"): selecting across pages and clearing from another page, the mixed state, a search-limited select all that leaves the box mixed when the search clears, and the earlier page-only expectations removed. All pass in Chromium and WebKit.
+- Docs: the Pagination section and its manual test, plus the `select-all` prop JSDoc, now say every page, and `server-side` covers the page the grid has.
+- The tree and `server-side` cases aren't separate specs. Trees share the same walk (the `cascade()` call in `renderSelectAll()`), and `server-side` has no client-side pages to get wrong.
 
 ---
 
@@ -180,6 +199,18 @@ Right now `renderSelectAll()` uses `this.bodyRows`, which is only the current pa
 - In cards with `single`: tapping B after A selects only B.
 - Switching from cards to a table brings the checkboxes back, with the same rows checked.
 - Arrow keys in cards never land on a hidden control.
+
+### Status: done
+
+Changes as planned, with these details:
+
+- `offset` and `selectCol` leave out the selection column in cards, and `updateLayout()` calls `setRows()` when the mode changes, so places and slots move with it. `render()` skips `renderSelectCell()` in cards, so `at()` never finds a hidden control.
+- One `clickCard()` handles the press on a body row. It finds the row from `rowEls`, then only looks at the path **inside** a cell for `FOCUSABLE`, the tree chevron, an `orb-popover` or `orb-overlay`, and the select all chip. Cells themselves match `FOCUSABLE` (they carry `tabindex`), so checking the whole path would have skipped every card. That was the first bug the new specs caught.
+- `single` uses `setRowSelected(key, true)`, which keeps the row selected when it's tapped again, like a radio. `multiple` uses `toggleSelection()`, so trees cascade.
+- Select all is shared: `setAllSelected(on)` backs both the header checkbox and the new `button.select-all-chip` (`part="select-all"`), so the chip and the checkbox can't disagree. The chip has `aria-pressed` rather than a checkbox's `checked`.
+- `--grid-selected-border-color` is `light-dark(--orb-primary-500, --orb-primary-300)`. Selected cards get the selected tint and that border, and a `2px solid Highlight` outline in `forced-colors`.
+- Tests: the cards block in `tests/grid.spec.ts` became eight specs. The old "Space and the checkbox" spec is replaced by "Space selects a card". `card()` was dropped: Playwright can't match text across a slot, so specs read `getSelectedRows()` names and the shadow row's `aria-selected` instead. 57 pass in Chromium and WebKit.
+- Manual check: the demo's manual test now covers tapping, the chip, and buttons in cells.
 
 ---
 

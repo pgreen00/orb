@@ -1335,7 +1335,7 @@ export namespace Components {
          */
         "searchbox"?: string;
         /**
-          * Adds a checkbox to the header that selects or clears every body row. Only applies with `selection="multiple"` and a header row.
+          * Adds a checkbox to the header that selects or clears every row that passes the search and filters, on every page, and the rows under collapsed rows in a tree. It's checked when all of them are selected, and mixed when some are. Only applies with `selection="multiple"` and a header row. With `server-side`, it covers the rows the grid has, which is one page. In cards, it's a button at the end of the header row instead.
           * @default false
          */
         "selectAll": boolean;
@@ -1348,7 +1348,7 @@ export namespace Components {
          */
         "selectRows": (rows: (HTMLElement | HTMLElement[])[], selected?: boolean) => Promise<void>;
         /**
-          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row.
+          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row. Cards have no selection controls: tapping a card selects it instead.
           * @default "none"
          */
         "selection": "none" | "single" | "multiple";
@@ -5668,12 +5668,12 @@ declare namespace LocalJSX {
          */
         "searchbox"?: string;
         /**
-          * Adds a checkbox to the header that selects or clears every body row. Only applies with `selection="multiple"` and a header row.
+          * Adds a checkbox to the header that selects or clears every row that passes the search and filters, on every page, and the rows under collapsed rows in a tree. It's checked when all of them are selected, and mixed when some are. Only applies with `selection="multiple"` and a header row. With `server-side`, it covers the rows the grid has, which is one page. In cards, it's a button at the end of the header row instead.
           * @default false
          */
         "selectAll"?: boolean;
         /**
-          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row.
+          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row. Cards have no selection controls: tapping a card selects it instead.
           * @default "none"
          */
         "selection"?: "none" | "single" | "multiple";

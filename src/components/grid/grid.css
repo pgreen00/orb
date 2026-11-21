@@ -9,7 +9,8 @@
  * @prop --grid-header-background: Background of the header and footer rows
  * @prop --grid-stripe-background: Background of every other body row, with `striped`
  * @prop --grid-hover-background: Background of the row under the pointer, with `hover`
- * @prop --grid-selected-background: Background of the selected row, with `selection="single"`
+ * @prop --grid-selected-background: Background of the selected row, with `selection="single"`, and of selected cards
+ * @prop --grid-selected-border-color: Border of selected cards, when the rows show as cards
  * @prop --grid-success-background: Background of cells and rows with a `success` status
  * @prop --grid-warning-background: Background of cells and rows with a `warning` status
  * @prop --grid-danger-background: Background of cells and rows with a `danger` status
@@ -30,9 +31,9 @@
  * @prop --grid-col-width-md: Width of columns whose header has `width="md"`
  * @prop --grid-col-width-lg: Width of columns whose header has `width="lg"`
  * @prop --grid-col-width-xl: Width of columns whose header has `width="xl"`
- * @prop --grid-max-width: Largest width of the grid, before it scrolls sideways
+ * @prop --grid-max-width: Largest width of the grid, before it scrolls sideways. The grid fills its container, and its content never makes the container wider, so give it a width in a container that sizes to its content.
  * @prop --grid-max-height: Largest height of the grid, before it scrolls. `sticky-header` needs it.
- * @prop --grid-min-width: Smallest width of the grid's content. A wider minimum than the grid scrolls sideways.
+ * @prop --grid-min-width: Smallest width of the grid's content, not of the grid. A wider minimum than the grid scrolls sideways.
  * @prop --grid-sticky-top: How far below the top of the grid the sticky header sticks
  * @prop --grid-tree-indent: How far each level of a tree grid is indented
  * @prop --grid-card-gap: Space between cards, when the rows show as cards
@@ -52,6 +53,7 @@
   --grid-stripe-background: color-mix(in srgb, var(--grid-background), var(--orb-text-color) 4%);
   --grid-hover-background: color-mix(in srgb, var(--grid-background), var(--orb-text-color) 9%);
   --grid-selected-background: color-mix(in srgb, var(--grid-background), var(--orb-primary-500) 28%);
+  --grid-selected-border-color: light-dark(var(--orb-primary-500), var(--orb-primary-300));
   --grid-success-background: color-mix(in srgb, var(--grid-background), var(--orb-success-500) 18%);
   --grid-warning-background: color-mix(in srgb, var(--grid-background), var(--orb-warning-500) 20%);
   --grid-danger-background: color-mix(in srgb, var(--grid-background), var(--orb-danger-500) 16%);
@@ -98,6 +100,12 @@
   /* A grid wider than its container scrolls sideways inside its own box,
      instead of spilling out. Moving focus scrolls the focused cell into view. */
   overflow: auto;
+  /* The grid's width comes from its container, not its content, so wide rows
+     can't push the page wider than the screen. The columns scroll inside the
+     grid instead. A container that sizes to its content gets no width from
+     the grid, so give the grid or the container a width, such as
+     `width: 100vw`, or a `max-width` the content fills. */
+  contain: inline-size;
   scrollbar-width: thin;
   background-color: var(--grid-background);
   color: var(--orb-text-color);
@@ -580,6 +588,25 @@
   background-color: var(--grid-header-background);
 }
 
+/* A selected card is tinted and outlined, since it has no checkbox */
+:host(:state(cards)) .body[aria-selected="true"] {
+  --_row-background: var(--grid-selected-background);
+  border-color: var(--grid-selected-border-color);
+}
+
+/* Select all and clear selection, at the end of the header row's chips */
+:host(:state(cards)) .select-all-chip {
+  flex: none;
+  margin-inline-start: auto;
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-sm);
+  border: var(--grid-border-width) solid var(--grid-border-color);
+  border-radius: var(--orb-radius-pill);
+  background-color: var(--grid-header-background);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 /* A card with open details joins the details card below it */
 :host(:state(cards)) .has-details {
   border-end-start-radius: 0;
@@ -595,7 +622,8 @@
 
 @media (forced-colors: active) {
   /* The tint is removed, so selected rows need another mark */
-  .tint[aria-selected="true"] {
+  .tint[aria-selected="true"],
+  :host(:state(cards)) .body[aria-selected="true"] {
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }

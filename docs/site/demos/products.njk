@@ -22,10 +22,14 @@ permalink: "/demos/products/"
   <script type="module" src="/build/loader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.0/dist/iconify-icon.min.js"></script>
   <style>
+    /* A width, not a width from its content: the grid inside doesn't make its
+       container wider, so the page wouldn't fill the window otherwise. */
     .page {
       display: flex;
       flex-direction: column;
       gap: var(--orb-spacing-md);
+      box-sizing: border-box;
+      width: 100vw;
       max-width: 80rem;
       margin-inline: auto;
       padding: var(--orb-spacing-lg);
@@ -70,7 +74,7 @@ permalink: "/demos/products/"
           <iconify-icon icon="mdi:arrow-left" width="24" aria-hidden="true"></iconify-icon>
         </a>
         <h1>Server-Side Grid</h1>
-      </orb-stack
+      </orb-stack>
       <p>
         An <code>orb-grid</code> with <code>server-side</code> set, over 100,000 products.
         The grid doesn't sort, search, filter, or page anything itself. It emits
@@ -79,7 +83,6 @@ permalink: "/demos/products/"
         then replaces the body cells with one page of results. Each query waits
         200ms first, like a network round trip.
       </p>
-      <p></p>
     </header>
 
     <div class="controls">
