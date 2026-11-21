@@ -153,6 +153,60 @@ document.querySelector("#plan-grid").addEventListener("orbSelectionChange", (eve
 - Tab into the grid and press Down, then Home. Focus is on the row's radio button. Press Space. The row is selected.
 - With a screen reader, each radio button is announced as "Select Starter" and so on, with its checked state.
 
+#### Keyboard Selection
+
+`selection="keyboard"` has no controls. It selects like a file list in Finder or Explorer: rows are tinted when selected, and moving with the keyboard selects. It works well with `navigation="row"`, which focuses whole rows, but it works in cells too.
+
+| Keys | What they do |
+| --- | --- |
+| Up, Down, Home, End, Page Up, Page Down | Move, and select the row they land on |
+| Shift + Up, Down, Home, End, Page Up, Page Down | Select from where the selection started to the row they land on, replacing the rest |
+| Ctrl or Cmd + Up, Down | Move without selecting |
+| Space | Select only the row with focus |
+| Shift + Space | Select the range to the row with focus |
+| Ctrl or Cmd + Space | Add the row, or remove it from the selection |
+| Ctrl or Cmd + A | Select every row, on every page |
+| Letters | Jump to the next row whose name starts with what you typed |
+
+The range starts from where you last selected with a click or Space, or from the row with focus. It follows the order shown, on every page, and skips the children of collapsed rows.
+
+With the pointer:
+- Click selects only that row.
+- Shift + click selects the range.
+- Ctrl or Cmd + click adds or removes that row.
+- Ctrl or Cmd + Shift + click adds the range.
+- A tap toggles the row, since a touch screen has no modifier keys.
+
+A click on a button, link, or other control inside a cell does that control's job instead. Double-clicking a row activates it, the same as Enter.
+
+`select-all` does nothing with `keyboard`, since there's no header checkbox. Ctrl or Cmd + A covers it.
+
+::: live-code-demo
+
+```html
+<orb-grid selection="keyboard" navigation="row" aria-label="Files">
+  <orb-cell section="head">Name</orb-cell>
+  <orb-cell section="head">Kind</orb-cell>
+  <orb-cell section="head" numeric>Size</orb-cell>
+
+  <orb-cell>Budget.xlsx</orb-cell><orb-cell>Spreadsheet</orb-cell><orb-cell>24</orb-cell>
+  <orb-cell>Notes.txt</orb-cell><orb-cell>Text</orb-cell><orb-cell>2</orb-cell>
+  <orb-cell>Photos</orb-cell><orb-cell>Folder</orb-cell><orb-cell>—</orb-cell>
+  <orb-cell>Report.pdf</orb-cell><orb-cell>PDF</orb-cell><orb-cell>340</orb-cell>
+  <orb-cell>Sales.csv</orb-cell><orb-cell>Spreadsheet</orb-cell><orb-cell>18</orb-cell>
+</orb-grid>
+```
+
+:::
+
+**Manual test:**
+- Tab into the grid's rows, then press Down a few times. Each row is tinted as focus lands on it, and only one is selected.
+- Press Shift + Down twice. The three rows are selected. Press Shift + Up. The last row is no longer selected.
+- Press Ctrl or Cmd + Down. Focus moves and the selection stays. Press Ctrl or Cmd + Space. That row is added to the selection, without the rows between.
+- Press Ctrl or Cmd + A. Every row is selected. Press B, then N. Focus jumps to "Notes.txt" and selects it.
+- Click a row. Only it is selected. Shift + click another. Every row between them is selected. Ctrl or Cmd + click a third. It's added.
+- No radio buttons or checkboxes show anywhere.
+
 ### Reordering
 
 Add `reorder`, and each body row gets a drag handle at its start. Press and hold the handle, then drag the row up or down. It uses the browser's drag and drop, so a picture of the row follows the pointer, the row left behind fades, and a line shows where it will land. Touch dragging depends on the browser's drag and drop support. The grid moves the row's cells in the page, so the markup always matches the order on screen.

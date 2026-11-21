@@ -9,7 +9,7 @@
  * @prop --grid-header-background: Background of the header and footer rows
  * @prop --grid-stripe-background: Background of every other body row, with `striped`
  * @prop --grid-hover-background: Background of the row under the pointer, with `hover`
- * @prop --grid-selected-background: Background of the selected row, with `selection="single"`, and of selected cards
+ * @prop --grid-selected-background: Background of the selected row, with `selection="single"` or `selection="keyboard"`, and of selected cards
  * @prop --grid-selected-border-color: Border of selected cards, when the rows show as cards
  * @prop --grid-success-background: Background of cells and rows with a `success` status
  * @prop --grid-warning-background: Background of cells and rows with a `warning` status
@@ -292,9 +292,27 @@
   --_row-background: var(--grid-danger-background);
 }
 
-/* Only single selection tints the row. With multiple, the checkbox shows it. */
+/* Only single and keyboard selection tint the row. With multiple, the checkbox shows it. */
 :where(.tint[aria-selected="true"]) {
   --_row-background: var(--grid-selected-background);
+}
+
+/* Keyboard selection picks rows, so Shift + click mustn't select text */
+:host([selection="keyboard"]) [role="row"].body > slot::slotted(*),
+:host([selection="keyboard"]) [role="row"].body .lead-cell {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Content a user types in keeps its own selection */
+:host([selection="keyboard"]) [role="row"].body > slot::slotted(input),
+:host([selection="keyboard"]) [role="row"].body > slot::slotted(textarea),
+:host([selection="keyboard"]) [role="row"].body > slot::slotted([contenteditable]:not([contenteditable="false"])),
+:host([selection="keyboard"])
+  [role="row"].body
+  > slot::slotted(* *:is(input, textarea, select, [contenteditable]:not([contenteditable="false"]))) {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* A row picked up from the keyboard, and a dragged row while the browser takes

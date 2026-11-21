@@ -369,7 +369,7 @@ These go in the row press handler from Phase 3.
 ### Screen readers
 
 - Rows get `aria-selected`.
-- After a range or select all, announce the count once things settle (debounced, like `filtersChanged()`): "12 rows selected."
+- After a range or select all, announce the count once things settle (debounced, like `filtersChanged()`): "Selected 12 of 20 rows.", from the existing `announceSelection()`.
 
 ### Docs and tests
 
@@ -380,6 +380,23 @@ These go in the row press handler from Phase 3.
   - Ctrl/Cmd + A selects every page.
   - Type-ahead "b" focuses and selects the first row starting with B.
   - No radios or checkboxes are rendered.
+
+### Status: done
+
+Changes as planned, with these details:
+
+- `keyboard` joins `selecting`, and `keyboardSelecting` gates the paths specific to it. `offset` and `selectCol` leave out the column, and `render()` skips `renderSelectCell()` with it. Rows get the `tint` class, so the selected tint works without a checkbox.
+- `aria-multiselectable` is set for `keyboard` too, since it can select many rows.
+- `selectionOrder()` walks `filteredRoots`, leaving out rows that only show for a match and the children of collapsed rows, the same walk as `exportRows({ rows: "view" })`. Ranges are slices of it.
+- The anchor resets in `setRows()` when it no longer shows, and is taken from the focused row when a range starts without one.
+- The keys are split. `keyboardKeys()` handles the keys only keyboard selection uses (Ctrl/Cmd + A, Space, and letters). `onKeyDown()` then runs the same code as before, now `navigationKeys()`, and calls `followSelection()` when focus landed on another row. Moving within a row changes nothing, and Ctrl or Cmd moves focus alone.
+- A keyboard page turn records its modifiers in `pendingSelectFollow`, and `componentDidRender()` applies them after focus lands on the new page's first row, beside `pendingPageFocus`. With pagination, Shift + Page Down selects from the anchor to that first row, as the plan says, not the whole new page.
+- Shift + click replaces the range, Ctrl or Cmd + Shift + click adds it, and Ctrl or Cmd + click toggles one row, matching Finder. A non-mouse pointer tap toggles. `clickCard()` became `clickRow()`, shared with cards.
+- `pointerdown` records the pointer type and modifiers. `mousedown` with Shift calls `preventDefault()`, and `grid.css` sets `user-select: none` on body cells in keyboard mode, restoring it on inputs, textareas, and `contenteditable`. Chromium warns that the `mousedown` listener is passive and can't prevent the default; Shift + click still selects the range and not text in the specs, so it's kept.
+- A double click activates a row, the same as Enter.
+- **Ctrl + click can't be exercised on macOS in Chromium or WebKit**: the platform treats it as a right click and never sends a `click`. The spec uses Command instead, which is the macOS shortcut anyway. The grid reads both.
+- Tests: a new "orb-grid keyboard selection" block with eight specs. 86 pass across Chromium and WebKit, 4 skipped.
+- Docs: a "Keyboard Selection" subsection with a key table, the pointer rules, a file-list demo, and manual tests. The `selection` JSDoc and `--grid-selected-background` describe it.
 
 ---
 

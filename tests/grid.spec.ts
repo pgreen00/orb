@@ -251,6 +251,125 @@ test.describe("orb-grid selection", () => {
   });
 });
 
+test.describe("orb-grid keyboard selection", () => {
+  const keyboard = (attrs = 'selection="keyboard"', names = NAMES.slice(0, 4)) => markup(attrs, names);
+
+  /** Selected row names, in the order the rows are in */
+  const selected = async (page: Page) => {
+    const names = await selectedNames(page);
+    return (await rowOrder(page)).filter((name) => names.includes(name));
+  };
+
+  test("has no selection controls, and Arrow Down selects one row", async ({ page }) => {
+    await mount(page, keyboard());
+    await expect(grid(page).locator('[part~="select-cell"]')).toHaveCount(0);
+    await expect(grid(page).locator("orb-checkbox, .radio")).toHaveCount(0);
+
+    expect(await activate(page)).toBe(true);
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => selectedNames(page)).toEqual(["Bob"]);
+  });
+
+  test("Shift + Down extends the range, and Shift + Up shrinks it", async ({ page }) => {
+    await mount(page, keyboard());
+    await activate(page, 1);
+    await page.keyboard.press("Space");
+    await expect.poll(() => selectedNames(page)).toEqual(["Bob"]);
+
+    await page.keyboard.press("Shift+ArrowDown");
+    await page.keyboard.press("Shift+ArrowDown");
+    expect(await selected(page)).toEqual(["Bob", "Cara", "Dan"]);
+
+    await page.keyboard.press("Shift+ArrowUp");
+    expect(await selected(page)).toEqual(["Bob", "Cara"]);
+  });
+
+  test("Ctrl + Down moves focus without selecting, and Space adds a row", async ({ page }) => {
+    await mount(page, keyboard());
+    await activate(page);
+    await page.keyboard.press("Space");
+    await expect.poll(() => selectedNames(page)).toEqual(["Alice"]);
+
+    await page.keyboard.press("Control+ArrowDown");
+    await page.keyboard.press("Control+ArrowDown");
+    // Focus moved to Cara, and the selection didn't follow
+    expect(await focusedRowName(page)).toBe("Cara");
+    expect(await selectedNames(page)).toEqual(["Alice"]);
+
+    await page.keyboard.press("Control+Space");
+    await expect.poll(() => selected(page)).toEqual(["Alice", "Cara"]);
+  });
+
+  test("Ctrl + A selects every page", async ({ page }) => {
+    await mount(
+      page,
+      `<div>${keyboard('selection="keyboard" pagination="pages"', NAMES)}<orb-pagination id="pages" page-size="3"></orb-pagination></div>`,
+    );
+    await activate(page);
+    await page.keyboard.press("Control+a");
+    await expect.poll(() => selectedCount(page)).toBe(8);
+  });
+
+  test("typing a letter focuses and selects the next row that starts with it", async ({ page }) => {
+    await mount(page, keyboard());
+    await activate(page);
+    await page.keyboard.press("b");
+    await expect.poll(() => focusedRowName(page)).toBe("Bob");
+    await expect.poll(() => selectedNames(page)).toEqual(["Bob"]);
+  });
+
+  test("Shift + click selects a range, and Command + click toggles a row", async ({ page }) => {
+    await mount(page, keyboard());
+    await cells(page).nth(1).click();
+    await expect.poll(() => selectedNames(page)).toEqual(["Alice"]);
+
+    await cells(page).nth(3).click({ modifiers: ["Shift"] });
+    await expect.poll(() => selected(page)).toEqual(["Alice", "Bob", "Cara"]);
+
+    // Command + click adds a row that isn't next to the range. On macOS a
+    // Ctrl + click is a right click, which browsers don't send as a click.
+    await cells(page).nth(4).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selected(page)).toEqual(["Alice", "Bob", "Cara", "Dan"]);
+
+    // Again removes it, and leaves the anchor where it was
+    await cells(page).nth(2).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selected(page)).toEqual(["Alice", "Cara", "Dan"]);
+  });
+
+  test("a click on a button inside a cell doesn't select", async ({ page }) => {
+    await mount(page, keyboard());
+    await grid(page).evaluate((el) => {
+      const button = document.createElement("button");
+      button.textContent = "Edit";
+      el.querySelectorAll(":scope > orb-cell")[2].append(button);
+    });
+    await page.locator("orb-grid orb-cell button").click();
+    await page.waitForTimeout(100);
+    expect(await selectedCount(page)).toBe(0);
+  });
+
+  test("Shift + click in a tree skips the children of a collapsed row", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid selection="keyboard">
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell expanded>Docs</orb-cell>
+        <orb-cell depth="1">Resume</orb-cell>
+        <orb-cell>Photos</orb-cell>
+        <orb-cell>Music</orb-cell>
+      </orb-grid>`,
+    );
+
+    // Collapse Docs, so its children aren't shown to be selected
+    await cells(page).nth(1).locator(".tree-toggle").click();
+    await expect.poll(() => rowOrder(page)).toEqual(["Docs", "Photos", "Music"]);
+
+    await cells(page).filter({ hasText: "Docs" }).click();
+    await cells(page).filter({ hasText: "Music" }).click({ modifiers: ["Shift"] });
+    await expect.poll(() => selected(page)).toEqual(["Docs", "Photos", "Music"]);
+  });
+});
+
 test.describe("orb-grid pagination", () => {
   const paged = (attrs = 'selection="multiple"') => `
     <div>

@@ -1352,10 +1352,10 @@ export namespace Components {
          */
         "selectRows": (rows: (HTMLElement | HTMLElement[])[], selected?: boolean) => Promise<void>;
         /**
-          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row. Cards have no selection controls: tapping a card selects it instead.
+          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row. Cards have no selection controls: tapping a card selects it instead.  `keyboard` has no controls either. It selects like a desktop file list: moving with the arrow keys selects, Shift extends the range, Ctrl or Cmd moves focus alone, and typing a letter jumps to a row.
           * @default "none"
          */
-        "selection": "none" | "single" | "multiple";
+        "selection": "none" | "single" | "multiple" | "keyboard";
         /**
           * Gives every cell its own box, with rounded corners and space between them, instead of sharing lines.
           * @default false
@@ -5682,10 +5682,10 @@ declare namespace LocalJSX {
          */
         "selectAll"?: boolean;
         /**
-          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row. Cards have no selection controls: tapping a card selects it instead.
+          * Whether body rows can be selected. `single` allows one selected row at a time, and `multiple` allows any number. The grid adds a first column with a radio button or an `orb-checkbox` in each body row. Space on any cell or row also toggles its row. Cards have no selection controls: tapping a card selects it instead.  `keyboard` has no controls either. It selects like a desktop file list: moving with the arrow keys selects, Shift extends the range, Ctrl or Cmd moves focus alone, and typing a letter jumps to a row.
           * @default "none"
          */
-        "selection"?: "none" | "single" | "multiple";
+        "selection"?: "none" | "single" | "multiple" | "keyboard";
         /**
           * Gives every cell its own box, with rounded corners and space between them, instead of sharing lines.
           * @default false
@@ -7390,7 +7390,7 @@ declare namespace LocalJSX {
         "columns": number;
         "name": string;
         "navigation": "cell" | "row";
-        "selection": "none" | "single" | "multiple";
+        "selection": "none" | "single" | "multiple" | "keyboard";
         "selectAll": boolean;
         "reorder": boolean;
         "pagination": string;

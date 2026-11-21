@@ -561,8 +561,12 @@ export class Grid {
    * a radio button or an `orb-checkbox` in each body row. Space on any cell or
    * row also toggles its row. Cards have no selection controls: tapping a card
    * selects it instead.
+   *
+   * `keyboard` has no controls either. It selects like a desktop file list:
+   * moving with the arrow keys selects, Shift extends the range, Ctrl or Cmd
+   * moves focus alone, and typing a letter jumps to a row.
    */
-  @Prop() selection: "none" | "single" | "multiple" = "none";
+  @Prop() selection: "none" | "single" | "multiple" | "keyboard" = "none";
 
   /**
    * Adds a checkbox to the header that selects or clears every row that
@@ -787,6 +791,12 @@ export class Grid {
   private matchCount = 0;
   /** Tree rows the user collapsed while a filter was opening them */
   private collapsedWhileFiltering = new Set<HTMLElement>();
+  /** Where Shift ranges start, with `selection="keyboard"` */
+  private anchorKey?: HTMLElement;
+  /** The letters typed so far, to jump to a row, with `selection="keyboard"` */
+  private typeahead: { text: string; timer?: ReturnType<typeof setTimeout> } = { text: "" };
+  /** The modifiers of a page turn, to apply selection once focus lands */
+  private pendingSelectFollow?: { shift: boolean; ctrl: boolean };
   /** The track of the "No matching rows" row, when nothing matches */
   private emptyTrack?: number;
   /** The bound search field */
@@ -973,6 +983,8 @@ export class Grid {
         if (this.navigation === "row") this.focusRow(index);
         else this.focusCell(this.nearestIn(this.rows[index].track, col), this.rows[index].track, col);
       }
+      // Keyboard selection follows the focus onto the new page
+      this.applyPendingSelection();
     }
     // A moved row renders in another row element, so focus follows it there.
     if (this.pendingFocus) {
@@ -1446,7 +1458,7 @@ export class Grid {
    */
   @Method()
   async selectAllRows(): Promise<void> {
-    if (this.selection !== "multiple") return;
+    if (this.selection !== "multiple" && !this.keyboardSelecting) return;
     const next = new Set(this.selected);
     for (const key of this.selectableKeys) next.add(key);
     this.changeSelection(next);
@@ -2040,12 +2052,13 @@ export class Grid {
 
   private onSelectionModeChange() {
     this.internals.ariaMultiSelectable =
-      this.selection === "multiple" ? "true" : null;
+      this.selection === "multiple" || this.keyboardSelecting ? "true" : null;
     if (!this.selecting && this.selected.size) {
       this.setSelected(new Set());
     } else if (this.selection === "single" && this.selected.size > 1) {
       this.setSelected(new Set([...this.selected].slice(0, 1)));
     }
+    if (!this.keyboardSelecting) this.anchorKey = undefined;
   }
 
   private setRows() {
@@ -2467,6 +2480,9 @@ export class Grid {
     walkSelectable(this.filteredRoots);
     this.selectableKeys = selectable;
 
+    // A range starts from a row that shows, so a hidden or removed anchor goes
+    if (this.anchorKey && !selectable.includes(this.anchorKey)) this.anchorKey = undefined;
+
     // In a tree, children added under a selected row are selected too, such
     // as children loaded when the row opens. Then each parent is updated from
     // its children, since rows may have been added or removed.
@@ -2607,7 +2623,9 @@ export class Grid {
    */
   private get offset() {
     return (
-      (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0) + (!this.selecting || this.cardMode ? 0 : 1)
+      (this.reorder ? 1 : 0) +
+      (this.hasDetails ? 1 : 0) +
+      (!this.selecting || this.keyboardSelecting || this.cardMode ? 0 : 1)
     );
   }
 
@@ -2616,7 +2634,12 @@ export class Grid {
    * undefined, which counts as none, the same as navigation counts as cell.
    */
   private get selecting() {
-    return this.selection === "single" || this.selection === "multiple";
+    return this.selection === "single" || this.selection === "multiple" || this.selection === "keyboard";
+  }
+
+  /** Whether selection happens without controls, from presses and keys */
+  private get keyboardSelecting() {
+    return this.selection === "keyboard";
   }
 
   /** The column of the drag handles, from 0 */
@@ -2629,9 +2652,11 @@ export class Grid {
     return this.hasDetails ? (this.reorder ? 1 : 0) : -1;
   }
 
-  /** The column of the selection controls, from 0. Cards have none. */
+  /** The column of the selection controls, from 0. Cards and keyboard selection have none. */
   private get selectCol() {
-    return !this.selecting || this.cardMode ? -1 : (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0);
+    return !this.selecting || this.keyboardSelecting || this.cardMode
+      ? -1
+      : (this.reorder ? 1 : 0) + (this.hasDetails ? 1 : 0);
   }
 
   private get bodyRows() {
@@ -2897,11 +2922,70 @@ export class Grid {
         : new Set(this.selected);
     // A mixed parent isn't selected, so Space selects all of it.
     if (this.cascades) this.cascade(next, key, !isSelected);
-    else if (this.selection === "multiple") {
+    else if (this.selection === "multiple" || this.keyboardSelecting) {
       if (isSelected) next.delete(key);
       else next.add(key);
     }
     this.setSelected(next);
+  }
+
+  /**
+   * Every body row that passes the search and filters, on every page, in the
+   * order shown, leaving out the children of collapsed rows. Shift ranges and
+   * type-ahead go in this order.
+   */
+  private selectionOrder() {
+    const keys: HTMLElement[] = [];
+    const walk = (views: ViewNode[]) =>
+      views.forEach((view) => {
+        if (!view.forced) keys.push(view.node.cells[0]);
+        if (this.isOpen(view)) walk(view.children);
+      });
+    walk(this.filteredRoots);
+    return keys;
+  }
+
+  /** With keyboard selection, the row a range starts from is the focused one */
+  private ensureAnchor() {
+    if (!this.keyboardSelecting || this.anchorKey) return;
+    const focused = this.focusedRowKey();
+    this.anchorKey = focused && this.selected.has(focused) ? focused : [...this.selected][0];
+  }
+
+  /** Selects only these rows, and makes the first the range's start. Emits `orbSelectionChange`. */
+  private selectOnly(keys: HTMLElement[]) {
+    this.anchorKey = keys[0];
+    this.changeSelection(new Set(keys));
+    this.announceSelection();
+  }
+
+  /**
+   * Selects the rows from the anchor to `key`, in the order shown. The anchor
+   * is the last row selected on its own, or the focused row.
+   */
+  private selectRange(key: HTMLElement) {
+    this.ensureAnchor();
+    const order = this.selectionOrder();
+    const from = this.anchorKey ? order.indexOf(this.anchorKey) : -1;
+    const to = order.indexOf(key);
+    if (to < 0) return;
+    const [start, end] = from < 0 ? [to, to] : [Math.min(from, to), Math.max(from, to)];
+    this.changeSelection(new Set(order.slice(start, end + 1)));
+    this.announceSelection();
+  }
+
+  /** Adds the rows from the anchor to `key`, keeping the rest. Emits `orbSelectionChange`. */
+  private addRange(key: HTMLElement) {
+    this.ensureAnchor();
+    const order = this.selectionOrder();
+    const from = this.anchorKey ? order.indexOf(this.anchorKey) : -1;
+    const to = order.indexOf(key);
+    if (to < 0) return;
+    const [start, end] = from < 0 ? [to, to] : [Math.min(from, to), Math.max(from, to)];
+    const next = new Set(this.selected);
+    for (const k of order.slice(start, end + 1)) next.add(k);
+    this.changeSelection(next);
+    this.announceSelection();
   }
 
   /**
@@ -3016,7 +3100,38 @@ export class Grid {
       }
     }
 
-    this.clickCard(path);
+    this.clickRow(path);
+  }
+
+  /** The kind of pointer that last clicked, for touch toggling */
+  private lastPointerType = "mouse";
+  /** The modifiers of the last click, for Shift ranges and Ctrl toggles */
+  private lastClick = { shift: false, ctrl: false };
+
+  /**
+   * Notes the pointer and its modifiers before the click, and in keyboard
+   * selection keeps Shift + click from selecting text across rows.
+   */
+  @Listen("pointerdown")
+  onPointerDown(ev: PointerEvent) {
+    this.lastPointerType = ev.pointerType || "mouse";
+    this.lastClick = { shift: ev.shiftKey, ctrl: ev.ctrlKey || ev.metaKey };
+  }
+
+  @Listen("mousedown")
+  onMouseDown(ev: MouseEvent) {
+    if (this.keyboardSelecting && ev.shiftKey) ev.preventDefault();
+  }
+
+  /** A double click on a cell or row activates it, like Enter, in keyboard selection */
+  @Listen("dblclick")
+  onDoubleClick(ev: MouseEvent) {
+    if (!this.keyboardSelecting) return;
+    const where = this.locate(ev);
+    if (!where || (where.kind !== "cell" && where.kind !== "row")) return;
+    const row = this.rows[where.rowIndex];
+    if (!row || row.section !== "body") return;
+    this.activate(where.rowIndex, where.kind === "row" ? undefined : where.cell);
   }
 
   /**
@@ -3034,12 +3149,12 @@ export class Grid {
   }
 
   /**
-   * Tapping a card selects it, since cards have no selection controls. A
-   * press on the details toggle, the tree chevron, or anything focusable
-   * inside a cell does its own thing instead.
+   * A click on a body row selects it, for cards and keyboard selection,
+   * since neither has selection controls. A press on the details toggle, the
+   * tree chevron, or anything focusable inside a cell does its own thing.
    */
-  private clickCard(path: Element[]) {
-    if (!this.cardMode || !this.selecting) return;
+  private clickRow(path: Element[]) {
+    if ((!this.cardMode && !this.keyboardSelecting) || !this.selecting) return;
     let key: HTMLElement | undefined;
     for (const [k, el] of this.rowEls) {
       if (path.includes(el)) key = k;
@@ -3048,7 +3163,7 @@ export class Grid {
     const row = this.rows.find((r) => r.cells[0] === key);
     if (!row || row.section !== "body") return;
 
-    // Where the press went, inside the row: the card's own text selects,
+    // Where the press went, inside the row: the row's own text selects,
     // everything else that does something keeps doing it. A cell itself is
     // focusable, so only what's inside one counts.
     const at = path.indexOf(this.rowEls.get(key) as Element);
@@ -3063,6 +3178,16 @@ export class Grid {
         n.localName === "orb-overlay" ||
         n.classList.contains("select-all-chip"));
     if (inCell.some(skip)) return;
+
+    if (this.keyboardSelecting) {
+      // No modifier keys on touch, so a tap toggles
+      if (this.lastPointerType !== "mouse") this.toggleSelection(this.rows.indexOf(row));
+      else if (this.lastClick.shift && this.lastClick.ctrl) this.addRange(key);
+      else if (this.lastClick.shift) this.selectRange(key);
+      else if (this.lastClick.ctrl) this.toggleSelection(this.rows.indexOf(row));
+      else this.selectOnly([key]);
+      return;
+    }
 
     if (this.selection === "single") this.setRowSelected(key, true);
     else this.toggleSelection(this.rows.indexOf(row));
@@ -3394,6 +3519,117 @@ export class Grid {
     if (!where) return;
 
     if (where.kind === "handle" && this.handleKey(ev, this.rows[where.rowIndex].cells[0])) return;
+
+    if (this.keyboardSelecting && this.keyboardKeys(ev, where)) return;
+
+    // With keyboard selection, moving to another row selects it. The key's
+    // handlers move focus, and this follows once they're done.
+    const follow = this.keyboardSelecting && (where.kind === "cell" || where.kind === "row");
+    const before = follow ? this.rows[where.rowIndex]?.cells[0] : undefined;
+    if (follow) this.ensureAnchor();
+    this.navigationKeys(ev, where);
+    if (follow) this.followSelection(before, ev);
+  }
+
+  /**
+   * Keys that only keyboard selection uses. Returns whether the key was
+   * handled, so navigation doesn't see it.
+   */
+  private keyboardKeys(ev: KeyboardEvent, where: NonNullable<ReturnType<Grid["locate"]>>) {
+    const ctrl = ev.ctrlKey || ev.metaKey;
+    const body = where.kind === "cell" || where.kind === "row";
+    const row = body ? this.rows[where.rowIndex] : undefined;
+    if (!row || row.section !== "body") return false;
+    const key = row.cells[0];
+
+    // Ctrl or Cmd + A selects every row, as long as focus isn't in content,
+    // where it has to keep selecting text
+    if (ctrl && ev.key.toLowerCase() === "a") {
+      ev.preventDefault();
+      this.selectAllRows();
+      return true;
+    }
+
+    if (ev.key === " ") {
+      ev.preventDefault();
+      if (ev.shiftKey) this.selectRange(key);
+      else if (ctrl) this.toggleSelection(where.rowIndex);
+      else this.selectOnly([key]);
+      return true;
+    }
+
+    // A printable letter jumps to the next row that starts with the letters
+    // typed so far
+    if (!ctrl && !ev.altKey && ev.key.length === 1 && ev.key.trim()) {
+      ev.preventDefault();
+      this.typeAhead(ev.key);
+      return true;
+    }
+
+    return false;
+  }
+
+  /** Selects the row focus landed on, following the key's modifiers */
+  private followSelection(before: HTMLElement | undefined, ev: KeyboardEvent) {
+    const after = this.focusedRowKey();
+    // A page turn applies selection once its new rows have focus
+    if (this.paginator && this.pendingPageFocus != null) {
+      this.pendingSelectFollow = { shift: ev.shiftKey, ctrl: ev.ctrlKey || ev.metaKey };
+      return;
+    }
+    // Staying in the row, from Left, Right, Home, or End in a row, changes nothing
+    if (!after || after === before) return;
+    if (ev.shiftKey) this.selectRange(after);
+    // Ctrl or Cmd moves focus alone, so the selection stays
+    else if (!(ev.ctrlKey || ev.metaKey)) this.selectOnly([after]);
+  }
+
+  /** Selects the rows from the start of a keyboard page turn once focus lands */
+  private applyPendingSelection() {
+    const follow = this.pendingSelectFollow;
+    if (!follow) return;
+    this.pendingSelectFollow = undefined;
+    const after = this.focusedRowKey();
+    if (!after) return;
+    if (follow.shift) this.selectRange(after);
+    else if (!follow.ctrl) this.selectOnly([after]);
+  }
+
+  /**
+   * Moves focus to, and selects, the next row whose name starts with the
+   * letters typed so far, wrapping around. Typing one letter again cycles
+   * through the rows that start with it, as a file list does.
+   */
+  private typeAhead(ch: string) {
+    const letter = ch.toLowerCase();
+    const typed = this.typeahead.text;
+    const repeat = typed === letter;
+    // A repeated letter starts a new search, from the row after the focused one
+    this.typeahead.text = repeat ? letter : typed + letter;
+    clearTimeout(this.typeahead.timer);
+    this.typeahead.timer = setTimeout(() => (this.typeahead.text = ""), 500);
+
+    const order = this.selectionOrder();
+    if (!order.length) return;
+    const name = (key: HTMLElement) => {
+      const row = this.allBodyRows.find((r) => r.cells[0] === key);
+      const header = row?.cells.find((cell) => cell.hasAttribute("row-header")) ?? row?.cells[0];
+      return fold(header?.textContent ?? "");
+    };
+    const match = (key: HTMLElement) => name(key).startsWith(this.typeahead.text);
+    // Start after the focused row, or from the top
+    const focused = this.focusedRowKey();
+    const from = focused ? order.indexOf(focused) + 1 : 0;
+    const rotated = [...order.slice(from), ...order.slice(0, from)];
+    const found = rotated.find(match);
+    if (!found) return;
+
+    this.selectOnly([found]);
+    void this.revealRow(found, { focus: true });
+  }
+
+  /** The arrow keys, Home and End, Space, Enter, and Page Up and Down */
+  private navigationKeys(ev: KeyboardEvent, where: NonNullable<ReturnType<Grid["locate"]>>) {
 
     // A selection control handles Space and Enter itself, so the row isn't
     // toggled twice.
@@ -3914,9 +4150,9 @@ export class Grid {
                 stripe: this.striped && stripe,
                 hover: this.hover && body,
                 [`status-${status}`]: STATUSES.includes(status),
-                // A checkbox is enough to show a selected row, so only single
-                // selection tints it.
-                tint: this.selection === "single",
+                // A checkbox is enough to show a selected row, so single
+                // selection and keyboard selection tint it.
+                tint: this.selection === "single" || this.keyboardSelecting,
                 moving: key === this.grabbedKey,
                 dragging: key === this.dragKey,
                 // Joins the card to its details card below it
@@ -3939,7 +4175,7 @@ export class Grid {
               {row.section !== "details" && [
                 this.reorder && this.renderHandleCell(row),
                 this.hasDetails && this.renderToggleCell(row),
-                this.selecting && !this.cardMode && this.renderSelectCell(row),
+                this.selecting && !this.keyboardSelecting && !this.cardMode && this.renderSelectCell(row),
               ]}
               {/* Cards have no lead cell, so select all sits at the end of
                   the first header row instead */}
