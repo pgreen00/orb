@@ -35,6 +35,15 @@
  *   with `page.mouse`.
  * - Phase 7: trees reorder, so the "blocked" announcement is only for sorting
  *   and filtering.
+ * - Phase 8: `interactive` opens rows with `orbRowOpen`, and Enter opens them
+ *   instead of activating, which F2 still does.
+ * - Phase 9: `orbReorder` has `rows`, keyboard selection selects on a plain
+ *   press, and a drag moves a group when a selected row is pressed.
+ * - Phase 10: with `server-side`, selecting the page's rows offers every
+ *   matching row in a banner, and `allMatchingSelected` says when that's on.
+ *
+ * WebKit reports a slot's new assignment a moment after it's made, so a spec
+ * that checks the rows right after a move polls for the order instead.
  */
 import { test, expect, type Page } from "@playwright/test";
 import { mount } from "./utils";
@@ -86,7 +95,11 @@ const markup = (attrs: string, names = NAMES.slice(0, 4)) => `
  */
 const activate = (page: Page, index = 0) =>
   grid(page).evaluate((el, i) => {
-    const cell = el.querySelectorAll<HTMLElement>(":scope > orb-cell")[i + 1];
+    // The body cells, which come after the header and footer
+    const body = [...el.querySelectorAll(":scope > orb-cell")].filter(
+      (cell) => cell.getAttribute("section") !== "head" && cell.getAttribute("section") !== "foot",
+    );
+    const cell = body[i];
     cell.focus();
     return cell === document.activeElement;
   }, index);
@@ -996,5 +1009,807 @@ test.describe("orb-grid trees", () => {
     await grid(page).evaluate(async (el: any) => el.collapseAll());
     await expect.poll(() => rowOrder(page)).toEqual(["Docs", "Photos"]);
     expect(await focusedRowName(page)).toBe("Photos");
+  });
+});
+
+test.describe("orb-grid tree reordering", () => {
+  const tree = `
+    <orb-grid reorder>
+      <orb-cell section="head">Name</orb-cell>
+      <orb-cell expanded>Docs</orb-cell>
+      <orb-cell depth="1">Resume</orb-cell>
+      <orb-cell>Photos</orb-cell>
+      <orb-cell>Notes.txt</orb-cell>
+    </orb-grid>`;
+
+  /** Each body row as its name and depth, from the markup */
+  const levels = (page: Page) =>
+    grid(page).evaluate((el) =>
+      [...el.querySelectorAll(":scope > orb-cell")]
+        .filter((cell) => cell.getAttribute("section") !== "head" && cell.textContent!.trim())
+        .map((cell) => `${cell.textContent!.trim()}:${cell.getAttribute("depth") ?? "0"}`),
+    );
+
+  /** Records each `orbReorder` detail, as the parts these specs check */
+  const recordMoves = (page: Page) =>
+    page.evaluate(() => {
+      (window as any).moves = [];
+      document.querySelector("orb-grid")!.addEventListener("orbReorder", (event: any) => {
+        const d = event.detail;
+        (window as any).moves.push({
+          row: d.row[0].textContent.trim(),
+          descendants: d.descendants.map((cells: HTMLElement[]) => cells[0].textContent!.trim()),
+          parent: d.parent?.[0].textContent.trim(),
+          previousParent: d.previousParent?.[0].textContent.trim(),
+          index: d.index,
+          depth: d.depth,
+        });
+      });
+    });
+
+  test("Alt + Shift + Right and Left indent and outdent a row", async ({ page }) => {
+    await mount(page, tree);
+    await recordMoves(page);
+
+    // Notes.txt becomes the last child of Photos
+    await cells(page).filter({ hasText: "Notes.txt" }).focus();
+    await page.keyboard.press("Alt+Shift+ArrowRight");
+    await expect.poll(() => levels(page)).toEqual(["Docs:0", "Resume:1", "Photos:0", "Notes.txt:1"]);
+    await expect(grid(page).locator('[role="status"]')).toContainText("into Photos, level 2, 1 of 1");
+
+    await page.keyboard.press("Alt+Shift+ArrowLeft");
+    await expect.poll(() => levels(page)).toEqual(["Docs:0", "Resume:1", "Photos:0", "Notes.txt:0"]);
+
+    expect(await page.evaluate(() => (window as any).moves)).toEqual([
+      { row: "Notes.txt", descendants: [], parent: "Photos", previousParent: undefined, index: 0, depth: 2 },
+      { row: "Notes.txt", descendants: [], parent: undefined, previousParent: "Photos", index: 2, depth: 1 },
+    ]);
+  });
+
+  test("Alt + Up and Down swap with siblings, and say so at either end", async ({ page }) => {
+    await mount(page, tree);
+    // Resume is the only child of Docs, so it can't move, and says so
+    await cells(page).filter({ hasText: "Resume" }).focus();
+    await page.keyboard.press("Alt+ArrowDown");
+    await expect(grid(page).locator('[role="status"]')).toHaveText("Last in Docs.");
+    await expect.poll(() => levels(page)).toEqual(["Docs:0", "Resume:1", "Photos:0", "Notes.txt:0"]);
+
+    // Notes.txt moves above Photos
+    await cells(page).filter({ hasText: "Notes.txt" }).focus();
+    await page.keyboard.press("Alt+ArrowUp");
+    await expect.poll(() => levels(page)).toEqual(["Docs:0", "Resume:1", "Notes.txt:0", "Photos:0"]);
+  });
+
+  test("moving a parent moves the rows under it, with their depths", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid reorder>
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell expanded>Docs</orb-cell>
+        <orb-cell depth="1" expanded>Notes</orb-cell>
+        <orb-cell depth="2">Draft.txt</orb-cell>
+        <orb-cell expandable>Photos</orb-cell>
+      </orb-grid>`,
+    );
+    await recordMoves(page);
+    expect(await levels(page)).toEqual(["Docs:0", "Notes:1", "Draft.txt:2", "Photos:0"]);
+
+    // Notes, and Draft.txt under it, go into Photos
+    await grid(page).evaluate((el: any) => {
+      const cell = (name: string) =>
+        [...el.querySelectorAll(":scope > orb-cell")].find(
+          (c: HTMLElement) => c.textContent!.trim() === name,
+        );
+      el.moveRows([cell("Notes")], { parent: cell("Photos"), index: 0 });
+    });
+    await expect.poll(() => levels(page)).toEqual([
+      "Docs:0",
+      "Photos:0",
+      "Notes:1",
+      "Draft.txt:2",
+    ]);
+
+    expect(await page.evaluate(() => (window as any).moves)).toEqual([
+      {
+        row: "Notes",
+        descendants: ["Draft.txt"],
+        parent: "Photos",
+        previousParent: "Docs",
+        index: 0,
+        depth: 2,
+      },
+    ]);
+  });
+
+  test("a row can't be dropped into itself or its own children", async ({ page }) => {
+    await mount(page, tree);
+    const moved = await grid(page).evaluate((el: any) => ({
+      intoItself: el.moveRows([el.querySelectorAll(":scope > orb-cell")[1]], {
+        parent: el.querySelectorAll(":scope > orb-cell")[1],
+        index: 0,
+      }),
+      intoChild: el.moveRows([el.querySelectorAll(":scope > orb-cell")[1]], {
+        parent: el.querySelectorAll(":scope > orb-cell")[2],
+        index: 0,
+      }),
+    }));
+    expect(moved).toEqual({ intoItself: false, intoChild: false });
+    expect(await levels(page)).toEqual(["Docs:0", "Resume:1", "Photos:0", "Notes.txt:0"]);
+  });
+
+  test("dragging into a collapsed folder makes it the last child, and opens it", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid reorder>
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell expandable>Folder</orb-cell>
+        <orb-cell>Notes.txt</orb-cell>
+      </orb-grid>`,
+    );
+    await recordMoves(page);
+    const folder = (await cells(page).filter({ hasText: "Folder" }).boundingBox())!;
+    const notes = (await cells(page).filter({ hasText: "Notes.txt" }).boundingBox())!;
+
+    await page.mouse.move(notes.x + 10, notes.y + notes.height / 2);
+    await page.mouse.down();
+    // The middle of the folder is its "into" zone
+    await page.mouse.move(notes.x + 10, folder.y + folder.height / 2, { steps: 8 });
+    await page.mouse.up();
+
+    await expect.poll(() => levels(page)).toEqual(["Folder:0", "Notes.txt:1"]);
+    await expect(cells(page).filter({ hasText: "Folder" })).toHaveAttribute("expanded", "");
+    expect(await page.evaluate(() => (window as any).moves)).toEqual([
+      { row: "Notes.txt", descendants: [], parent: "Folder", previousParent: undefined, index: 0, depth: 2 },
+    ]);
+  });
+
+  test("the moved row keeps its selection, and its old parent's follows", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid reorder selection="multiple">
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell expanded>Docs</orb-cell>
+        <orb-cell depth="1">Resume</orb-cell>
+        <orb-cell depth="1">Cover</orb-cell>
+        <orb-cell expandable>Photos</orb-cell>
+      </orb-grid>`,
+    );
+    // One of Docs's two children, so Docs is mixed
+    await toggle(page, "Resume");
+    await expect(control(page, "Docs")).toHaveAttribute("checked", "mixed");
+
+    // Resume leaves Docs, and goes into Photos, with the same selection
+    await grid(page).evaluate((el: any) => {
+      const cell = (name: string) =>
+        [...el.querySelectorAll(":scope > orb-cell")].find(
+          (c: HTMLElement) => c.textContent!.trim() === name,
+        );
+      el.moveRows([cell("Resume")], { parent: cell("Photos"), index: 0 });
+    });
+    await expect.poll(() => levels(page)).toEqual(["Docs:0", "Cover:1", "Photos:0", "Resume:1"]);
+
+    await expect(control(page, "Resume")).toHaveAttribute("checked", "true");
+    // Docs has Cover left, which isn't selected, so it's neither selected nor mixed
+    await expect(control(page, "Docs")).toHaveAttribute("checked", "false");
+    // Photos follows its only child
+    await expect(control(page, "Photos")).toHaveAttribute("checked", "true");
+  });
+
+  test("moving is blocked while filtering, and says why", async ({ page }) => {
+    await mount(page, tree);
+    await grid(page).evaluate((el) => ((el as any).search = "Notes"));
+    await expect.poll(() => rowOrder(page)).not.toContain("Resume");
+
+    await cells(page).filter({ hasText: "Notes.txt" }).focus();
+    await page.keyboard.press("Alt+ArrowUp");
+    await expect(grid(page).locator('[role="status"]')).toContainText("while a search or filter is on");
+  });
+});
+
+test.describe("orb-grid opening rows", () => {
+  const interactive = (attrs = "") => markup(`interactive ${attrs}`);
+
+  /** Records each `orbRowOpen` detail, as the parts these specs check */
+  const recordOpens = (page: Page) =>
+    page.evaluate(() => {
+      (window as any).opens = [];
+      (window as any).activations = [];
+      const el = document.querySelector("orb-grid")!;
+      el.addEventListener("orbRowOpen", (event: any) => {
+        const d = event.detail;
+        (window as any).opens.push({
+          row: d.row[0].textContent.trim(),
+          cell: d.cell?.textContent.trim(),
+          source: d.source,
+        });
+      });
+      el.addEventListener("orbActivate", () => (window as any).activations.push(true));
+    });
+
+  const opens = (page: Page) => page.evaluate(() => (window as any).opens);
+  const opensCount = (page: Page) =>
+    page.evaluate(() => (window as any).opens.length as number);
+
+  test("without selection, a click on a row's text opens it", async ({ page }) => {
+    await mount(page, interactive());
+    await recordOpens(page);
+
+    await cells(page).filter({ hasText: "Bob" }).click();
+    await expect.poll(() => opensCount(page)).toBe(1);
+    expect(await opens(page)).toEqual([{ row: "Bob", cell: "Bob", source: "pointer" }]);
+  });
+
+  test("a button in a cell, or a header, opens nothing", async ({ page }) => {
+    await mount(page, interactive());
+    await grid(page).evaluate((el) => {
+      const button = document.createElement("button");
+      button.textContent = "Edit";
+      el.querySelectorAll(":scope > orb-cell")[2].append(button);
+    });
+    await recordOpens(page);
+
+    await page.locator("orb-grid orb-cell button").click();
+    await cells(page).nth(0).click();
+    await page.waitForTimeout(100);
+    expect(await opensCount(page)).toBe(0);
+  });
+
+  test("Enter opens the row and keeps focus, and F2 still activates", async ({ page }) => {
+    await mount(page, interactive());
+    await recordOpens(page);
+
+    expect(await activate(page, 1)).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => opensCount(page)).toBe(1);
+    expect(await opens(page)).toEqual([{ row: "Bob", cell: "Bob", source: "keyboard" }]);
+    // Enter didn't move into the content
+    expect(await focusedRowName(page)).toBe("Bob");
+    expect(await page.evaluate(() => (window as any).activations)).toEqual([]);
+
+    await page.keyboard.press("F2");
+    await expect.poll(() => page.evaluate(() => (window as any).activations.length)).toBe(1);
+    expect(await opensCount(page)).toBe(1);
+  });
+
+  test("multiple: a click selects the row, and a double click opens it", async ({ page }) => {
+    await mount(page, interactive('selection="multiple"'));
+    await recordOpens(page);
+
+    await cells(page).filter({ hasText: "Bob" }).click();
+    await expect.poll(() => selectedNames(page)).toEqual(["Bob"]);
+    expect(await opensCount(page)).toBe(0);
+
+    // A second click opens it, and the row stays selected
+    await cells(page).filter({ hasText: "Bob" }).click();
+    await expect.poll(() => opensCount(page)).toBe(1);
+    expect(await opens(page)).toEqual([{ row: "Bob", cell: "Bob", source: "pointer" }]);
+    await expect.poll(() => selectedNames(page)).toEqual(["Bob"]);
+  });
+
+  test("multiple: a double click selects the row once and opens it once", async ({ page }) => {
+    await mount(page, interactive('selection="multiple"'));
+    await recordOpens(page);
+
+    await cells(page).filter({ hasText: "Cara" }).dblclick();
+    await expect.poll(() => opensCount(page)).toBe(1);
+    // The second click of the double click didn't toggle it back off
+    await expect.poll(() => selectedNames(page)).toEqual(["Cara"]);
+    await expect(control(page, "Cara")).toHaveAttribute("checked", "true");
+  });
+
+  test("single: a click selects only that row", async ({ page }) => {
+    await mount(page, interactive('selection="single"'));
+    await recordOpens(page);
+
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await expect.poll(() => selectedNames(page)).toEqual(["Alice"]);
+    // Another row becomes the only one selected, like a radio button
+    await cells(page).filter({ hasText: "Dan" }).click();
+    await expect.poll(() => selectedNames(page)).toEqual(["Dan"]);
+    expect(await opensCount(page)).toBe(0);
+  });
+
+  test("a click selects even when the row is a tree row", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid interactive selection="multiple">
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell expanded>Docs</orb-cell>
+        <orb-cell depth="1">Resume</orb-cell>
+      </orb-grid>`,
+    );
+    await cells(page).filter({ hasText: "Resume" }).click();
+    // A child's row is selected along with its parent, which cascades
+    await expect.poll(() => selectedNames(page)).toEqual(["Docs", "Resume"]);
+  });
+
+  test("keyboard: a double click selects the row and opens it, without activating", async ({ page }) => {
+    await mount(page, interactive('selection="keyboard"'));
+    await recordOpens(page);
+
+    await cells(page).filter({ hasText: "Cara" }).dblclick();
+    await expect.poll(() => opensCount(page)).toBe(1);
+    await expect.poll(() => selectedNames(page)).toEqual(["Cara"]);
+    expect(await opens(page)).toEqual([{ row: "Cara", cell: "Cara", source: "pointer" }]);
+    // A double click in keyboard selection activates, unless the grid is interactive
+    expect(await page.evaluate(() => (window as any).activations)).toEqual([]);
+  });
+
+  test("cards: two taps select the card and open it", async ({ page, browserName }) => {
+    // The touch screen is only built into Chromium's context
+    test.skip(browserName !== "chromium", "touch runs in Chromium");
+    const touch = await page.context().browser()!.newContext({ hasTouch: true, viewport: { width: 480, height: 800 } });
+    const mobile = await touch.newPage();
+    try {
+      await mount(
+        mobile,
+        `<orb-grid layout="cards" interactive selection="multiple">
+          <orb-cell section="head">Name</orb-cell>
+          ${NAMES.slice(0, 2).map((name) => `<orb-cell>${name}</orb-cell>`).join("")}
+        </orb-grid>`,
+      );
+      await mobile.evaluate(() => {
+        (window as any).opens = [];
+        document.querySelector("orb-grid")!.addEventListener("orbRowOpen", (event: any) =>
+          (window as any).opens.push(event.detail.row[0].textContent.trim()),
+        );
+      });
+
+      const box = (await mobile.locator("orb-grid > orb-cell").nth(1).boundingBox())!;
+      const tap = () => mobile.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await tap();
+      await tap();
+
+      await expect
+        .poll(() => mobile.evaluate(async () => ((await (document.querySelector("orb-grid") as any).getSelectedRows()) as HTMLElement[][]).length))
+        .toBe(1);
+      await expect.poll(() => mobile.evaluate(() => (window as any).opens)).toEqual(["Alice"]);
+    } finally {
+      await touch.close();
+    }
+  });
+
+  test("with reorder, dragging a row opens nothing", async ({ page }) => {
+    await mount(page, interactive("reorder"));
+    await recordOpens(page);
+
+    const start = (await cells(page).filter({ hasText: "Alice" }).boundingBox())!;
+    const last = (await grid(page).locator('[role="row"].body').last().boundingBox())!;
+    await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(start.x + start.width / 2, last.y + last.height - 2, { steps: 8 });
+    await page.mouse.up();
+
+    await expect.poll(() => rowOrder(page)).toEqual(["Bob", "Cara", "Dan", "Alice"]);
+    await page.waitForTimeout(100);
+    expect(await opensCount(page)).toBe(0);
+  });
+
+  test("without interactive, a click on a row's text selects nothing", async ({ page }) => {
+    await mount(page, markup('selection="multiple"'));
+    await recordOpens(page);
+
+    await cells(page).filter({ hasText: "Alice" }).dblclick();
+    await cells(page).filter({ hasText: "Bob" }).click();
+    await activate(page, 0);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(100);
+    expect(await opensCount(page)).toBe(0);
+    expect(await selectedCount(page)).toBe(0);
+  });
+});
+
+test.describe("orb-grid moving several rows", () => {
+  /** Records each `orbReorder`, as the parts these specs check */
+  const recordMoves = (page: Page) =>
+    page.evaluate(() => {
+      (window as any).moves = [];
+      document.querySelector("orb-grid")!.addEventListener("orbReorder", (event: any) => {
+        const d = event.detail;
+        (window as any).moves.push({
+          rows: d.rows.map((cells: HTMLElement[]) => cells[0].textContent!.trim()),
+          descendants: d.descendants.map((cells: HTMLElement[]) => cells[0].textContent!.trim()),
+          index: d.index,
+          depth: d.depth,
+        });
+      });
+    });
+  const moves = (page: Page) => page.evaluate(() => (window as any).moves);
+
+  /** Presses a row's text, moves to `toY` in steps, and releases */
+  const dragRow = async (page: Page, from: string, toY: number, steps = 8) => {
+    const start = (await cells(page).filter({ hasText: from }).boundingBox())!;
+    const x = start.x + start.width / 2;
+    const y = start.y + start.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let i = 1; i <= steps; i++) {
+      await page.mouse.move(x, y + ((toY - y) * i) / steps);
+    }
+    await page.mouse.up();
+  };
+
+  /** The bottom edge of the named row, which is just below its middle */
+  const bottomOf = async (page: Page, name: string) => {
+    const box = (await cells(page).filter({ hasText: name }).boundingBox())!;
+    return box.y + box.height - 2;
+  };
+
+  const reorderable = (attrs = 'selection="keyboard"') => markup(`reorder ${attrs}`);
+
+  test("dragging a selected row moves the selection, in order", async ({ page }) => {
+    await mount(page, reorderable());
+    await recordMoves(page);
+
+    // Alice and Cara are selected, with Bob between them
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await cells(page).filter({ hasText: "Cara" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedCount(page)).toBe(2);
+
+    await dragRow(page, "Cara", await bottomOf(page, "Dan"));
+
+    await expect.poll(() => rowOrder(page)).toEqual(["Bob", "Dan", "Alice", "Cara"]);
+    expect(await moves(page)).toEqual([{ rows: ["Alice", "Cara"], descendants: [], index: 2, depth: 1 }]);
+    // The selection moved with the rows
+    await expect.poll(() => selectedNames(page)).toEqual(["Alice", "Cara"]);
+  });
+
+  test("pressing an unselected row selects it and drags only it", async ({ page }) => {
+    await mount(page, reorderable());
+    await recordMoves(page);
+
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await cells(page).filter({ hasText: "Bob" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedCount(page)).toBe(2);
+
+    // Dan isn't selected, so the press selects only it first. It goes just
+    // below Alice, which is above Bob's middle.
+    await dragRow(page, "Dan", (await cells(page).filter({ hasText: "Alice" }).boundingBox())!.y + 36);
+
+    await expect.poll(() => rowOrder(page)).toEqual(["Alice", "Dan", "Bob", "Cara"]);
+    expect((await moves(page)).map((m: any) => m.rows)).toEqual([["Dan"]]);
+    await expect.poll(() => selectedNames(page)).toEqual(["Dan"]);
+  });
+
+  test("a click on a selected row, without dragging, narrows the selection to it", async ({ page }) => {
+    await mount(page, reorderable());
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await cells(page).filter({ hasText: "Dan" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedCount(page)).toBe(2);
+
+    // A press on a selected row changes nothing, and its click narrows it
+    await cells(page).filter({ hasText: "Dan" }).click();
+    await expect.poll(() => selectedNames(page)).toEqual(["Dan"]);
+    expect(await rowOrder(page)).toEqual(["Alice", "Bob", "Cara", "Dan"]);
+  });
+
+  test("a parent's child moves inside it, not on its own", async ({ page }) => {
+    await mount(
+      page,
+      `<orb-grid reorder selection="multiple">
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell expanded>Docs</orb-cell>
+        <orb-cell depth="1">Resume</orb-cell>
+        <orb-cell depth="1">Cover</orb-cell>
+        <orb-cell>Photos</orb-cell>
+      </orb-grid>`,
+    );
+    await recordMoves(page);
+
+    // Docs selects its children, so the group is Docs and Photos
+    await toggle(page, "Docs");
+    await toggle(page, "Photos");
+    await expect.poll(() => selectedCount(page)).toBe(4);
+
+    await grid(page).evaluate((el: any) => {
+      const cell = (name: string) =>
+        [...el.querySelectorAll(":scope > orb-cell")].find((c: HTMLElement) => c.textContent!.trim() === name);
+      el.moveRows([cell("Docs"), cell("Resume")], { parent: cell("Photos"), index: 0 });
+    });
+
+    const [move] = await moves(page);
+    // Resume moves inside Docs's block, so it's not a row of its own
+    expect(move.rows).toEqual(["Docs"]);
+    expect(move.descendants).toEqual(["Resume", "Cover"]);
+    expect(move.depth).toBe(2);
+    // Photos stays at the top level, and Docs, with Resume and Cover, goes
+    // after it. WebKit assigns the rows' slots a moment after the move, so
+    // this waits for the new order.
+    await expect.poll(() => rowOrder(page)).toEqual(["Photos", "Docs", "Resume", "Cover"]);
+  });
+
+  test("a group can't be dropped into one of its own rows", async ({ page }) => {
+    await mount(page, reorderable());
+    const moved = await grid(page).evaluate((el: any) => {
+      const cell = (i: number) => el.querySelectorAll(":scope > orb-cell")[i];
+      return el.moveRows([cell(1), cell(2)], { parent: cell(2), index: 0 });
+    });
+    expect(moved).toBe(false);
+    expect(await rowOrder(page)).toEqual(["Alice", "Bob", "Cara", "Dan"]);
+  });
+
+  test("Alt + Down moves a group of rows next to each other", async ({ page }) => {
+    await mount(page, reorderable());
+    await recordMoves(page);
+
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await cells(page).filter({ hasText: "Bob" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedCount(page)).toBe(2);
+
+    await cells(page).filter({ hasText: "Alice" }).focus();
+    await page.keyboard.press("Alt+ArrowDown");
+
+    await expect.poll(() => rowOrder(page)).toEqual(["Cara", "Alice", "Bob", "Dan"]);
+    expect((await moves(page)).map((m: any) => m.rows)).toEqual([["Alice", "Bob"]]);
+    await expect(grid(page).locator('[role="status"]')).toContainText("Moved 2 rows, starting at row 2 of 4.");
+  });
+
+  test("rows that aren't next to each other can't move together with the keyboard", async ({ page }) => {
+    await mount(page, reorderable());
+    await recordMoves(page);
+
+    // Alice and Dan are selected, with rows between them
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await cells(page).filter({ hasText: "Dan" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedCount(page)).toBe(2);
+
+    await cells(page).filter({ hasText: "Alice" }).focus();
+    await page.keyboard.press("Alt+ArrowDown");
+
+    expect(await rowOrder(page)).toEqual(["Alice", "Bob", "Cara", "Dan"]);
+    expect(await moves(page)).toEqual([]);
+    await expect(grid(page).locator('[role="status"]')).toContainText("next to each other");
+  });
+
+  test("with multiple, dragging a checked row moves only that row", async ({ page }) => {
+    await mount(page, reorderable('selection="multiple"'));
+    await recordMoves(page);
+    await toggle(page, "Alice");
+    await toggle(page, "Bob");
+
+    // A checkbox is enough to act on rows, so a drag still moves the pressed one
+    await dragRow(page, "Alice", await bottomOf(page, "Dan"));
+
+    await expect.poll(() => rowOrder(page)).toEqual(["Bob", "Cara", "Dan", "Alice"]);
+    expect((await moves(page)).map((m: any) => m.rows)).toEqual([["Alice"]]);
+    expect(await selectedCount(page)).toBe(2);
+  });
+
+  test("a selected row on another page moves with the group", async ({ page }) => {
+    await mount(
+      page,
+      `<div>${markup('selection="keyboard" reorder pagination="pages"', NAMES)}<orb-pagination id="pages" page-size="3"></orb-pagination></div>`,
+    );
+    await recordMoves(page);
+
+    // Hiro is on page 3, and Alice and Bob on page 1
+    await page.locator('orb-pagination [aria-label="Page 3"]').click();
+    await expect.poll(() => rowOrder(page)).toEqual(["Grace", "Hiro"]);
+    await cells(page).filter({ hasText: "Hiro" }).click();
+    await page.locator('orb-pagination [aria-label="Page 1"]').click();
+    await expect.poll(() => rowOrder(page)).toEqual(["Alice", "Bob", "Cara"]);
+    await cells(page).filter({ hasText: "Alice" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedNames(page)).toEqual(["Alice", "Hiro"]);
+
+    await dragRow(page, "Alice", await bottomOf(page, "Cara"));
+
+    // Alice and Hiro land after Cara, so page 1 shows Alice last, and Hiro
+    // starts page 2
+    const [move] = await moves(page);
+    expect(move.rows).toEqual(["Alice", "Hiro"]);
+    await expect.poll(() => rowOrder(page)).toEqual(["Bob", "Cara", "Alice"]);
+    await page.locator('orb-pagination [aria-label="Page 2"]').click();
+    await expect.poll(() => rowOrder(page)).toEqual(["Hiro", "Dan", "Eve"]);
+  });
+
+  test("the lifted row shows how many rows move", async ({ page }) => {
+    await mount(page, reorderable());
+    await cells(page).filter({ hasText: "Alice" }).click();
+    await cells(page).filter({ hasText: "Bob" }).click({ modifiers: ["Meta"] });
+    await expect.poll(() => selectedCount(page)).toBe(2);
+
+    const start = (await cells(page).filter({ hasText: "Bob" }).boundingBox())!;
+    await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(start.x + start.width / 2, start.y + 40, { steps: 6 });
+
+    const badge = grid(page).locator('[part~="drag-count"]');
+    await expect(badge).toHaveText("2");
+    // Alice stays in place, dimmed, while Bob is lifted
+    const alice = grid(page).locator('[role="row"].body').first();
+    await expect(alice).toHaveClass(/drag-group/);
+
+    await page.keyboard.press("Escape");
+    await page.mouse.up();
+    await expect(badge).toHaveCount(0);
+    expect(await rowOrder(page)).toEqual(["Alice", "Bob", "Cara", "Dan"]);
+  });
+});
+
+test.describe("orb-grid select all matching", () => {
+  /** A grid that pretends the server has more rows than the page shows */
+  const server = (attrs = 'select-all selection="multiple"', total = "100") => `
+    <div>
+      <orb-grid server-side pagination="pages" ${attrs}>
+        <orb-cell section="head">Name</orb-cell>
+        <orb-cell section="head">Role</orb-cell>
+        <orb-cell>Alice</orb-cell><orb-cell>Engineer</orb-cell>
+        <orb-cell>Bob</orb-cell><orb-cell>Engineer</orb-cell>
+        <orb-cell>Cara</orb-cell><orb-cell>Designer</orb-cell>
+      </orb-grid>
+      <orb-pagination id="pages" page-size="3"${total ? ` total="${total}"` : ""}></orb-pagination>
+    </div>`;
+
+  const banner = (page: Page) => grid(page).locator('[part~="matching-row"]');
+  const button = (page: Page) => grid(page).locator('[part~="matching-button"]');
+  const heading = (page: Page) => grid(page).locator('[part~="matching-row"] .matching-text');
+  const allMatching = (page: Page) =>
+    grid(page).evaluate((el) => (el as any).allMatchingSelected as boolean);
+  const selectAll = (page: Page) => grid(page).locator('orb-checkbox[part~="select-all"]');
+
+  /** Records each `orbSelectAllMatching` detail, as the parts these specs check */
+  const recordMatching = (page: Page) =>
+    page.evaluate(() => {
+      (window as any).matching = [];
+      document.querySelector("orb-grid")!.addEventListener("orbSelectAllMatching", (event: any) => {
+        const d = event.detail;
+        (window as any).matching.push({ selected: d.selected, total: d.total, page: d.query.page });
+      });
+    });
+  const matching = (page: Page) => page.evaluate(() => (window as any).matching);
+
+  /** Replaces the body rows with another page's, as the app does when the server answers */
+  const replaceRows = (page: Page, rows: string[][]) =>
+    grid(page).evaluate((el, rows) => {
+      for (const cell of [...el.querySelectorAll(":scope > orb-cell")]) {
+        if (cell.getAttribute("section") !== "head") cell.remove();
+      }
+      for (const cells of rows) {
+        for (const text of cells) {
+          const cell = document.createElement("orb-cell");
+          cell.textContent = text;
+          el.append(cell);
+        }
+      }
+    }, rows);
+
+  test("selecting every row shows the banner, and its button selects the rest", async ({ page }) => {
+    await mount(page, server());
+    await recordMatching(page);
+    // Nothing shows while no row is selected
+    await expect(banner(page)).toHaveCount(0);
+
+    await selectAll(page).click({ force: true });
+    await expect(banner(page)).toHaveCount(1);
+    // The banner is the first row under the header
+    expect((await rowOrder(page)).length).toBe(3);
+    await expect(heading(page)).toHaveText("All 3 rows on this page are selected.");
+    await expect(button(page)).toHaveText("Select all 100 rows");
+
+    await button(page).click();
+    await expect.poll(() => allMatching(page)).toBe(true);
+    expect(await matching(page)).toEqual([{ selected: true, total: 100, page: 1 }]);
+    await expect(heading(page)).toHaveText("All 100 rows are selected.");
+    await expect(button(page)).toHaveText("Clear selection");
+    // The header's select all stays checked
+    await expect(selectAll(page)).toHaveAttribute("checked", "true");
+  });
+
+  test("preventDefault keeps it off", async ({ page }) => {
+    await mount(page, server());
+    await page.evaluate(() =>
+      document.querySelector("orb-grid")!.addEventListener("orbSelectAllMatching", (event) => event.preventDefault()),
+    );
+    await selectAll(page).click({ force: true });
+    await button(page).click();
+    await page.waitForTimeout(100);
+    expect(await allMatching(page)).toBe(false);
+    await expect(button(page)).toHaveText("Select all 100 rows");
+  });
+
+  test("turning to another page selects its rows", async ({ page }) => {
+    await mount(page, server());
+    await selectAll(page).click({ force: true });
+    await button(page).click();
+    await expect.poll(() => allMatching(page)).toBe(true);
+
+    await replaceRows(page, [
+      ["Dan", "Engineer"],
+      ["Eve", "Designer"],
+      ["Frank", "Engineer"],
+    ]);
+    await expect.poll(() => selectedCount(page)).toBe(3);
+    expect(await selectedNames(page)).toEqual(["Dan", "Eve", "Frank"]);
+    await expect(banner(page)).toHaveCount(1);
+    await expect(selectAll(page)).toHaveAttribute("checked", "true");
+  });
+
+  test("deselecting a row turns it off, and keeps the others", async ({ page }) => {
+    await mount(page, server());
+    await recordMatching(page);
+    await selectAll(page).click({ force: true });
+    await button(page).click();
+    await expect.poll(() => allMatching(page)).toBe(true);
+
+    await toggle(page, "Bob");
+    await expect.poll(() => allMatching(page)).toBe(false);
+    expect(await selectedNames(page)).toEqual(["Alice", "Cara"]);
+    await expect(banner(page)).toHaveCount(0);
+    expect(await matching(page)).toEqual([
+      { selected: true, total: 100, page: 1 },
+      { selected: false, total: 100, page: 1 },
+    ]);
+  });
+
+  test("changing the search turns it off", async ({ page }) => {
+    await mount(page, server());
+    await recordMatching(page);
+    await selectAll(page).click({ force: true });
+    await button(page).click();
+    await expect.poll(() => allMatching(page)).toBe(true);
+
+    await grid(page).evaluate((el) => ((el as any).search = "Ali"));
+    // The server sends rows the search alone matches
+    await replaceRows(page, [["Alice", "Engineer"]]);
+    await expect.poll(() => allMatching(page)).toBe(false);
+    await expect(banner(page)).toHaveCount(0);
+    expect((await matching(page)).at(-1)).toEqual({ selected: false, total: 100, page: 1 });
+  });
+
+  test("keyboard: Ctrl + A twice selects every matching row", async ({ page }) => {
+    await mount(page, server('selection="keyboard"'));
+    await recordMatching(page);
+
+    await activate(page);
+    await page.keyboard.press("Control+a");
+    await expect.poll(() => selectedCount(page)).toBe(3);
+    await expect(banner(page)).toHaveCount(1);
+    await expect(button(page)).toHaveText("Select all 100 rows");
+    expect(await allMatching(page)).toBe(false);
+
+    // Focus is where the first press left it, still in a body row
+    await page.keyboard.press("Control+a");
+    await expect.poll(() => allMatching(page)).toBe(true);
+    expect(await matching(page)).toEqual([{ selected: true, total: 100, page: 1 }]);
+  });
+
+  // The arrow keys reach the banner's button as a stop of its own, and Space
+  // presses it.
+  test("Down from the header reaches the banner, and Space presses it", async ({ page }) => {
+    await mount(page, server());
+    await recordMatching(page);
+    await selectAll(page).click({ force: true });
+    await expect(banner(page)).toHaveCount(1);
+
+    await grid(page).locator("orb-cell").first().focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(button(page)).toBeFocused();
+    await expect(button(page)).toHaveAttribute("tabindex", "0");
+    await page.keyboard.press("Space");
+    await expect.poll(() => allMatching(page)).toBe(true);
+
+    // Down again goes on to the first body row
+    await page.keyboard.press("ArrowDown");
+    await expect(cells(page).nth(2)).toBeFocused();
+  });
+
+  test("there's no banner without a total, or when it covers the rows", async ({ page }) => {
+    // No `total`: the grid doesn't know how many rows match
+    await mount(page, server('select-all selection="multiple"', ""));
+    await selectAll(page).click({ force: true });
+    await page.waitForTimeout(100);
+    await expect(banner(page)).toHaveCount(0);
+
+    // A total of the rows the grid has means nothing is off the page
+    await mount(page, server('select-all selection="multiple"', "3"));
+    await selectAll(page).click({ force: true });
+    await page.waitForTimeout(100);
+    await expect(banner(page)).toHaveCount(0);
+
+    // Without `server-side`, select all already covers every page
+    await mount(page, markup('selection="multiple" select-all'));
+    await selectAll(page).click({ force: true });
+    await page.waitForTimeout(100);
+    await expect(grid(page).locator('[part~="matching-row"]')).toHaveCount(0);
   });
 });

@@ -12,7 +12,7 @@ import { CardLayout } from "./components/card/card";
 import { MessageTransport } from "./components/channel/transport";
 import { SendDetail } from "./components/channel/model/types";
 import { Element } from "@stencil/core";
-import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+import { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowOpenDetail, GridSelectAllMatchingDetail, GridSortDetail } from "./components/grid/grid";
 import { MaskDefinition } from "./components/mask-input/mask";
 import { Placement } from "@floating-ui/dom";
 import { MenuSearchDetail, MenuSelectDetail } from "./components/menu/menu";
@@ -39,7 +39,7 @@ export { CardLayout } from "./components/card/card";
 export { MessageTransport } from "./components/channel/transport";
 export { SendDetail } from "./components/channel/model/types";
 export { Element } from "@stencil/core";
-export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowToggleDetail, GridSortDetail } from "./components/grid/grid";
+export { GridActivateDetail, GridExportOptions, GridFilterDetail, GridQueryDetail, GridReorderDetail, GridRowExpandDetail, GridRowOpenDetail, GridSelectAllMatchingDetail, GridSortDetail } from "./components/grid/grid";
 export { MaskDefinition } from "./components/mask-input/mask";
 export { Placement } from "@floating-ui/dom";
 export { MenuSearchDetail, MenuSelectDetail } from "./components/menu/menu";
@@ -1222,6 +1222,11 @@ export namespace Components {
      */
     interface OrbGrid {
         /**
+          * Whether every row matching the query is selected, including rows the grid hasn't loaded. With `server-side`, selecting every row the grid has shows a banner that offers this. When it's on, every page's rows are selected, and `orbSelectAllMatching` has reported it. Set it to act on every matching row yourself, since the grid only has the rows it shows.
+          * @default false
+         */
+        "allMatchingSelected": boolean;
+        /**
           * Which lines show. `all` shows every line, `outer` only the grid's edge, `rows` only lines between rows and above and below the grid, and `none` no lines.
           * @default "all"
          */
@@ -1285,7 +1290,7 @@ export namespace Components {
          */
         "hover": boolean;
         /**
-          * Shows a pointer cursor over body rows, for rows that do something when clicked.
+          * Shows a pointer cursor over body rows, and opens a row when it's clicked, or, with `selection`, double clicked or double tapped, by emitting `orbRowOpen`. A click that doesn't open a row selects it. Enter opens it from the keyboard.
           * @default false
          */
         "interactive": boolean;
@@ -1312,7 +1317,7 @@ export namespace Components {
          */
         "print": (options?: GridExportOptions) => Promise<void>;
         /**
-          * Lets rows be moved. Press and drag anywhere on a body row to move it, on touch screens with a long press first. The row follows the pointer, and a line shows where it will land. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.  While rows can be moved, their text can't be selected with the mouse.
+          * Lets rows be moved. Press and drag anywhere on a body row to move it, on touch screens with a long press first. The row follows the pointer, and a line shows where it will land. Alt + Up and Down move the focused row from any cell. In a tree grid, a row moves with the rows under it, and can be dropped into another row. Rows only move within the body, and a cell's row span doesn't move with it.  While rows can be moved, their text can't be selected with the mouse.
           * @default false
          */
         "reorder": boolean;
@@ -3581,6 +3586,7 @@ declare global {
     };
     interface HTMLOrbGridElementEventMap {
         "orbActivate": GridActivateDetail;
+        "orbRowOpen": GridRowOpenDetail;
         "orbSelectionChange": HTMLElement[][];
         "orbReorder": GridReorderDetail;
         "orbSortChange": GridSortDetail;
@@ -3588,6 +3594,7 @@ declare global {
         "orbRowExpand": GridRowExpandDetail;
         "orbFilterChange": GridFilterDetail;
         "orbQueryChange": GridQueryDetail;
+        "orbSelectAllMatching": GridSelectAllMatchingDetail;
     }
     /**
      * A data grid built from markup.
@@ -5556,6 +5563,11 @@ declare namespace LocalJSX {
      */
     interface OrbGrid {
         /**
+          * Whether every row matching the query is selected, including rows the grid hasn't loaded. With `server-side`, selecting every row the grid has shows a banner that offers this. When it's on, every page's rows are selected, and `orbSelectAllMatching` has reported it. Set it to act on every matching row yourself, since the grid only has the rows it shows.
+          * @default false
+         */
+        "allMatchingSelected"?: boolean;
+        /**
           * Which lines show. `all` shows every line, `outer` only the grid's edge, `rows` only lines between rows and above and below the grid, and `none` no lines.
           * @default "all"
          */
@@ -5603,7 +5615,7 @@ declare namespace LocalJSX {
          */
         "hover"?: boolean;
         /**
-          * Shows a pointer cursor over body rows, for rows that do something when clicked.
+          * Shows a pointer cursor over body rows, and opens a row when it's clicked, or, with `selection`, double clicked or double tapped, by emitting `orbRowOpen`. A click that doesn't open a row selects it. Enter opens it from the keyboard.
           * @default false
          */
         "interactive"?: boolean;
@@ -5622,7 +5634,7 @@ declare namespace LocalJSX {
          */
         "navigation"?: "cell" | "row";
         /**
-          * Emits when the user presses Enter on a cell, or on a row with `navigation="row"`. Call `preventDefault()` to keep focus where it is. Otherwise focus moves to the first focusable element in the cell or row.
+          * Emits when the user presses Enter on a cell, or on a row with `navigation="row"`. Call `preventDefault()` to keep focus where it is. Otherwise focus moves to the first focusable element in the cell or row. With `interactive`, Enter emits `orbRowOpen` instead. F2 still does this.
          */
         "onOrbActivate"?: (event: OrbGridCustomEvent<GridActivateDetail>) => void;
         /**
@@ -5634,7 +5646,7 @@ declare namespace LocalJSX {
          */
         "onOrbQueryChange"?: (event: OrbGridCustomEvent<GridQueryDetail>) => void;
         /**
-          * Emits before a row moves, with its old and new index among the body rows. Call `preventDefault()` to keep it in place, for example to reorder your own data and render the grid again.
+          * Emits before rows move, with every moved row's cells as `rows` in their new order, their old and new index among the body rows, and, in a tree grid, the new and old parents, where the rows start among their new siblings, and their new depth. `row`, `from`, and `to` describe the first of them. Call `preventDefault()` to keep them in place, for example to reorder your own data and render the grid again.
          */
         "onOrbReorder"?: (event: OrbGridCustomEvent<GridReorderDetail>) => void;
         /**
@@ -5642,9 +5654,17 @@ declare namespace LocalJSX {
          */
         "onOrbRowExpand"?: (event: OrbGridCustomEvent<GridRowExpandDetail>) => void;
         /**
+          * Emits when the user opens a body row in an `interactive` grid: a click when rows can't be selected, or a double click or double tap when `selection` is set. Enter also opens the row, and F2 still emits `orbActivate`. The grid does nothing by default, so it isn't cancelable.
+         */
+        "onOrbRowOpen"?: (event: OrbGridCustomEvent<GridRowOpenDetail>) => void;
+        /**
           * Emits before a row's details open or close. Call `preventDefault()` to keep them as they are, or use it to load the details' content.
          */
         "onOrbRowToggle"?: (event: OrbGridCustomEvent<GridRowToggleDetail>) => void;
+        /**
+          * Emits when every row matching the query is selected, or no longer is, with `server-side`. Call `preventDefault()` to keep it from turning on, for example to ask first or to apply a limit. It does nothing when it turns off.
+         */
+        "onOrbSelectAllMatching"?: (event: OrbGridCustomEvent<GridSelectAllMatchingDetail>) => void;
         /**
           * Emits when the selected rows change. The detail is each selected row's cells.
          */
@@ -5658,7 +5678,7 @@ declare namespace LocalJSX {
          */
         "pagination"?: string;
         /**
-          * Lets rows be moved. Press and drag anywhere on a body row to move it, on touch screens with a long press first. The row follows the pointer, and a line shows where it will land. Alt + Up and Down move the focused row from any cell. Rows only move within the body, and a cell's row span doesn't move with it.  While rows can be moved, their text can't be selected with the mouse.
+          * Lets rows be moved. Press and drag anywhere on a body row to move it, on touch screens with a long press first. The row follows the pointer, and a line shows where it will land. Alt + Up and Down move the focused row from any cell. In a tree grid, a row moves with the rows under it, and can be dropped into another row. Rows only move within the body, and a cell's row span doesn't move with it.  While rows can be moved, their text can't be selected with the mouse.
           * @default false
          */
         "reorder"?: boolean;
@@ -7409,6 +7429,7 @@ declare namespace LocalJSX {
         "stickyColumn": boolean;
         "rowHeaders": boolean;
         "serverSide": boolean;
+        "allMatchingSelected": boolean;
         "busy": boolean;
         "layout": "table" | "cards" | "auto";
         "cardBreakpoint": string;

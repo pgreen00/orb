@@ -39,7 +39,11 @@ These are the choices the plan makes. Each one can be changed before work starts
 | Drag engine | Pointer Events replace HTML drag and drop. That gives one code path for mouse, touch, and pen, a long press on touch, and no Firefox `<button>` drag problem. The cost is that the grid has to draw the dragged row and scroll the page itself. |
 | Starting a drag | Mouse: press and move more than 4px. Touch and pen: hold for 400ms without moving more than 8px, then drag. Moving sooner scrolls the page as usual. |
 | Keyboard reordering | Alt + Up and Down from any cell or row, which already works. The "pick up with Space" mode goes away along with the handles. |
-| Moving multiple selected rows | Out of scope for v1. A drag moves only the row that was pressed (see Open questions). |
+| Moving multiple selected rows | Out of scope for Phases 0–7, where a drag moves only the row that was pressed. Phase 9 adds it for `keyboard` selection. |
+| Opening rows (Phase 8) | A new `orbRowOpen` event, not `orbActivate`, which keeps meaning "go into this cell". It emits only with `interactive`: a click with no selection, a double click or double tap with any selection, and Enter in both cases. F2 still emits `orbActivate`. |
+| Moving several rows (Phase 9) | Only with `selection="keyboard"`. Pressing an unselected row selects it straight away, as in Finder. A drag gathers the selected rows at the drop point. The keyboard moves them only when they're siblings next to each other. One `orbReorder`, with a new `rows` field. |
+| Server-side select all (Phase 10) | A banner after the header offers "Select all 1,284 rows" when every row the grid has is selected and the pagination's `total` is larger. A mutable `allMatchingSelected` prop and a cancelable `orbSelectAllMatching` event tell the app. Deselecting a row or changing the query turns it off. |
+| Type-ahead in other modes | Deferred. It stays in `keyboard` mode. |
 | Tree reordering | A row moves together with its whole subtree and its details. It can drop before or after any row at that row's level, or onto a row to become its last child. Rows can't be moved while a search or filter is on in a tree grid. |
 | Layout containment | `contain: inline-size` on the grid in every layout, so its content never makes its container wider. The grid then always fills its container and scrolls inside it. |
 | Select all with pagination | Selects every row that passes the search and filters, on every page, the same as `selectAllRows()`. Unchecking clears those same rows. Rows hidden by a filter keep their selection. With `server-side`, it covers the rows the grid has, which is one page. |
@@ -60,8 +64,11 @@ These are the choices the plan makes. Each one can be changed before work starts
 | 5. `selection="keyboard"` | Selection model, keys, clicks, type-ahead, live region | 3–4d |
 | 6. Reordering without handles | Pointer drag engine, long press, auto-scroll, removing handles | 3–4d |
 | 7. Tree reordering | Moving subtrees, drop zones, keyboard indent and outdent, event detail | 3–4d |
+| 8. Opening rows | `orbRowOpen`, double-click detection that works for touch, Enter and F2 in interactive grids | 1.5–2d |
+| 9. Moving several rows | Selecting on press, `moveRows()` with several rows, the count badge, keyboard block moves | 2.5–3.5d |
+| 10. Server-side select all | The banner, its keyboard access, `allMatchingSelected`, `orbSelectAllMatching` | 2–3d |
 
-**Total: about 15–20 days.** Each phase ends with its tests and its part of `grid.md`. Phases 1 and 2 are independent and small, so they can ship first.
+**Total: about 15–20 days for Phases 0–7, and 6–8.5 more for Phases 8–10.** Each phase ends with its tests and its part of `grid.md`. Phases 1 and 2 are independent and small, so they can ship first.
 
 ```mermaid
 flowchart TD
@@ -72,9 +79,14 @@ flowchart TD
     P3 --> P5[5. selection keyboard]
     P5 --> P6[6. Reordering without handles]
     P6 --> P7[7. Tree reordering]
+    P7 --> P8[8. Opening rows]
+    P8 --> P9[9. Moving several rows]
+    P2 --> P10[10. Server-side select all]
 ```
 
 Phase 3 builds the "press on a row" handling. Phase 5 extends it with the desktop rules, and Phase 6 has to work alongside it (a press can select, start a drag, or both), so these phases run in order.
+
+Phases 8 and 9 both change what a press on a row does. Phase 8 goes first, so Phase 9's "select on press" is written against the final click handling, including double clicks. Phase 10 only builds on Phase 2's select all, so it can be done at any point.
 
 ---
 
@@ -552,6 +564,317 @@ Not plain Alt + Left and Right, since browsers on Windows and Linux use them for
   - The moved row keeps its selection, and the old parent's checkbox is updated.
   - Moving is blocked while filtering, with the announcement.
 
+### Status: done
+
+Changes as planned, with these details:
+
+- `reorderBlocked` no longer refuses trees. It blocks a sort, and now also a search or filter, with the message the plan gives.
+- `moveRows(key, { parent?, index })` replaces `moveRow()`. The index is among the siblings *without* the moving row, so a downward step lands after its next sibling instead of back where it was. The block (the row and everything under it, depth first, each with its details) moves as one, and every depth shifts by the same amount. A closed parent opens so the row shows, and the old parent's last child leaving clears its cascade.
+- `stepRow()` works among siblings. At either end it announces "First in Docs.", "Last in Docs.", "First row.", or "Last row."
+- `indentRow()` puts the row under its previous sibling, and `outdentRow()` puts it right after its parent. Both announce level and place, as "Moved Notes into Docs, level 2, 3 of 3."
+- The pointer has drop zones by row: the top quarter before, the bottom quarter after, the middle into a row that has or can have `expandable` children. On a leaf, the middle splits into before or after. A 700ms hover in the middle opens a closed row and recalculates. Rows under the dragged row are left out of the targets, and `moveRows()` also refuses a parent under itself.
+- The drop line is indented by `--_drop-depth`, and an "into" target gets the `drop-into` class with a 2px outline.
+- `GridReorderDetail` gains `descendants`, `parent`, `previousParent`, `index`, and `depth`. Existing listeners that only read `row`, `from`, and `to` keep working.
+- **Selection with cascading**: a moved row is not a child its parent just gained. Before `setRows()`, the new parent's known children include it, so a selected parent doesn't suddenly select it. The old parent follows its remaining children, and when its last child leaves and it can't hold more, its own selection clears.
+- Tests: a new "orb-grid tree reordering" block with seven specs. 113 pass across Chromium and WebKit, 3 skipped.
+- Docs: "Tree Grids" covers the drop zones, the keys, and the blocking rules, with an outline demo and manual tests. The "Reordering", "Keyboard", and "Accessibility" sections are updated for the removed handle.
+
+---
+
+## Phase 8: Opening rows with `interactive`
+
+Resolves open question 2. Today `interactive` only sets `cursor: pointer`, so every app wires its own click listener, and in cards with selection a tap both selects and opens. This phase gives the grid one event for "open this row", and a double click (or double tap) when rows can also be selected.
+
+### A new event, not `orbActivate`
+
+`orbActivate` can't be reused:
+
+- It means "go into this cell". Unless it's canceled, focus moves to the first control in the cell. A click that opens a row shouldn't move focus onto the row's first button, so every app would need `preventDefault()`.
+- Apps already use it for entering cells, as the Interactive Cells demo does. If it also meant "open the row", listeners couldn't tell the two apart.
+- F2 already does what Enter does today, so `orbActivate` keeps a key in interactive grids.
+
+The new event:
+
+```ts
+export type GridRowOpenDetail = {
+  /** The cells of the row being opened */
+  row: HTMLElement[];
+  /** The cell that was clicked, or had focus for Enter. Undefined for a focused row with `navigation="row"`. */
+  cell?: HTMLElement;
+  /** How the row was opened */
+  source: "pointer" | "keyboard";
+  /** The click or key press, for reading modifier keys, such as to open the row in a new tab */
+  event: MouseEvent | KeyboardEvent;
+};
+
+/** Emits when the user opens a body row in an `interactive` grid. */
+@Event() orbRowOpen: EventEmitter<GridRowOpenDetail>;
+```
+
+It isn't cancelable, since the grid does nothing by default.
+
+### When it emits
+
+Only with `interactive`, and only for body rows. Header, footer, details, and empty rows never open.
+
+| Selection | Pointer, in tables and cards | Keyboard |
+|---|---|---|
+| none | A click | Enter on a body cell or row |
+| `single`, `multiple` | A click selects the row, as if it were tapped in cards. A double click or double tap opens it | Enter |
+| `keyboard` | A click selects the row, as it does today. A double click or double tap opens it | Enter |
+
+It never emits for:
+
+- a press on focusable content in a cell, the details toggle, the tree chevron, a selection control, or an `orb-popover` or `orb-overlay` in a cell (the same skip rules as `clickRow()`);
+- the click after a drag (Phase 6's `suppressClick`).
+
+Keys in interactive grids:
+
+- **Enter** on a body cell or row emits `orbRowOpen`, and focus stays where it is. Enter on a sortable header still sorts, Enter on a chip in cards still opens its sheet, and Enter on a selection control is still the control's.
+- **F2** still emits `orbActivate` and moves into the content.
+- Space is unchanged.
+
+Without `interactive`, nothing changes, and `orbRowOpen` never emits.
+
+### Selecting on the first click
+
+With `single` or `multiple` in a table, a row has a control in the lead column, and clicking the row's own text does nothing today. In an interactive grid, the row is the thing to press, so a plain click selects it:
+
+- `single` selects the row and nothing else, like a radio button.
+- `multiple` toggles the row, so a click adds it to the selection or removes it, as tapping a card does.
+
+The selection change only happens when the click opens nothing, so the second click of a double click doesn't select the row and then unselect it. Cards already select on a tap, and `keyboard` already selects on a click: both keep their rules, including modifier clicks and ranges in `keyboard`.
+
+The press rules still apply, so a click on a button, link, or other control inside a cell stays the control's. With `reorder`, a press that turns into a drag doesn't select, since the click after it is skipped.
+
+### Detecting a double click
+
+Browsers don't fire `dblclick` reliably for touch, so the grid counts clicks itself.
+
+1. Pull the press test out of `clickRow()` into `pressedRow(path): { key, cell } | undefined`, so the click handler, `clickRow()`, and this phase use the same rules.
+2. In `onClick()`, after the tree chevron, header, and chip checks:
+   - No selection: emit `orbRowOpen` for the pressed row.
+   - With selection: the click is the second of a double click when it's on the same row as the last one, and:
+     - for a mouse, `ev.detail === 2`, which follows the system's double-click speed;
+     - for touch and pen, it's within 400ms and 10px of the last click.
+   - On a double click, emit `orbRowOpen` and **skip that click's selection change**, so a double tap on a card in `multiple` doesn't select it and then clear it. Then forget the last click, so a third click starts over.
+   - Otherwise, remember the click in `lastRowClick: { key, time, x, y }` and call `clickRow()`, which selects the row as described above.
+3. `clickRow()` selects on a click for tables in interactive grids too: `single` with `setRowSelected(key, true)`, and `multiple` with `toggleSelection()`.
+4. `suppressClick` also forgets the last click.
+5. Phase 5's `onDoubleClick()` returns early with `interactive`, so `keyboard` mode doesn't emit `orbActivate` as well. Without `interactive`, a double click in `keyboard` mode still activates, so the rule stays "a double click does what Enter does".
+6. Emit last in the handler, since the app may navigate away or replace the rows.
+
+### Side effects
+
+- **Text selection on double click.** A double click selects a word. Make `onMouseDown()` `@Listen("mousedown", { passive: false })`, and call `preventDefault()` when `ev.detail >= 2` on a body row of an interactive grid with selection, unless the press is in an input, textarea, or `contenteditable`. This also fixes Phase 5's "Unable to preventDefault inside passive event listener" warning for Shift + click.
+- **Double-tap zoom.** `:host([interactive]) .body { touch-action: manipulation; }`. Scrolling and pinch zoom still work, and the second tap reaches the grid.
+- **Cursor.** With `reorder`, the `grab` cursor wins over `pointer`, since pressing starts a drag. It already does, by source order, so add a comment saying so.
+
+### Docs and tests
+
+- `grid.md`: a new "Opening Rows" section after Interactive Cells, with the table above, how a click selects, the Enter and F2 split, and a demo: an inbox list with `interactive hover selection="multiple"`, and a status line naming the row that opened and how. Add manual tests.
+- Update the JSDoc of `interactive` and `orbActivate` ("With `interactive`, Enter emits `orbRowOpen` instead. F2 still does this."), the Keyboard table (Enter and F2 rows), and the Keyboard Selection note about double clicks.
+- Tests, in a new "orb-grid opening rows" block:
+  - No selection: clicking a cell's text emits one `orbRowOpen` with `row`, `cell`, and `source: "pointer"`. Clicking a button in a cell, or a header, emits nothing.
+  - Enter on a cell emits `orbRowOpen` with `source: "keyboard"`, no `orbActivate`, and focus stays. F2 emits `orbActivate`.
+  - `multiple`: one click selects the row and emits nothing. A double click then opens it once, and opens nothing else.
+  - `single`: a click selects the row, and clicking another row selects only that one.
+  - Without `interactive`, a click on a table's row text selects nothing.
+  - `keyboard`: a double click selects the row only, emits `orbRowOpen` once, and emits no `orbActivate`.
+  - Cards with `multiple`, in a `hasTouch` context: two taps with `page.touchscreen.tap()` leave the card selected and emit once.
+  - With `reorder` and no selection: a drag then release emits nothing.
+  - Without `interactive`: nothing emits.
+
+### Status: done
+
+Changes as planned, with these details:
+
+- `pressedRow(path)` now holds the press rules that `clickRow()`, `openRow()`, and `onMouseDown()` share. `clickRow()` is unchanged in what it does.
+- `onClick()` calls `openRow()` after the header and chip checks, instead of at the end. Whether a click opens a row depends only on the row it landed in, so this is the same, and it's where `clickRow()` was.
+- The double click check is `detail` for a mouse, by the pointer that the `pointerdown` before the click recorded. Only a mouse goes by `detail`, since a touch's first tap is 0 and its second is 2, while a pen's are 1 and 2. Touch and pen go by 400ms and 10px. A mouse click after a double click (`detail` above 2) starts over.
+- `onMouseDown()` only blocks the word selection when a double click would open a row, which is with `interactive` and `selection` and a press on the row's own content. It's `{ passive: false }` now too, which removes the Shift + click warning in keyboard selection.
+- Enter opens the row only for body rows, so Enter on a footer cell still activates. F2 is unchanged.
+- Tests: a new "orb-grid opening rows" block with eight specs. The touch spec skips in WebKit, whose contexts have no touch screen in Playwright, and lives in a `hasTouch` context of its own. 128 pass across Chromium and WebKit, 4 skipped.
+- Docs: a new "Opening Rows" section with the table, the detail's fields, the Enter and F2 split, an inbox demo, and manual tests. The Keyboard table, the `orbActivate` paragraph, and Keyboard Selection are updated, and Accessibility has a line for Enter and F2.
+
+**Selecting on the first click** was added afterwards. `clickRow()` now runs for any interactive grid, not just cards and keyboard selection, so a click on a table row's text selects it: `single` selects only it, and `multiple` toggles it. Cards and `keyboard` keep their own rules, modifier clicks and ranges included. The change is the one condition, since the selection step only runs when the click opens nothing, which keeps the second click of a double click from toggling the row back off. The opening-rows block now has four specs for it, and the `multiple` spec checks that a click selects before a second click opens.
+
+---
+
+## Phase 9: Moving several selected rows
+
+Resolves open question 1. It applies to `selection="keyboard"`, the mode that follows Finder, in tables and cards. With `multiple`, a drag still moves only the row that was pressed: checkboxes pick rows to act on, not to grab.
+
+### Which rows move
+
+- Pressing a selected row while more than one row is selected moves the selection. Pressing a row that isn't selected moves only that row.
+- The rows that move are the selected rows in tree order, leaving out any row whose ancestor is selected too, since it already moves inside that ancestor's block.
+- Selected rows on other pages move too, as in Finder. They're in the markup, and the announcement says how many moved.
+- They land together, in their current order, at the drop point, as siblings under the drop's parent. Each block's depth changes by its own amount.
+
+### Selecting on press, as Finder does
+
+Today `keyboard` mode selects on click. Change it so that a press and drag moves what the user expects:
+
+- A mouse press with the primary button and no modifier keys on a row that **isn't selected** selects it alone straight away, in `pointerdown`. A drag then moves that row.
+- A press on a row that **is selected** changes nothing yet. The click narrows the selection to that row, as now. A drag skips that click, so the whole selection moves.
+- Presses with Shift, Ctrl, or Cmd still act on the click.
+- Touch is unchanged: a tap toggles on the click, and a long press drags, moving the selection when the held row is selected.
+- The usual skip rules apply (controls, chevron, details toggle).
+
+With Phase 8, the first click of a double click on an unselected row selects it on press, and the second one opens it.
+
+### `moveRows()` takes several rows
+
+The signature becomes `moveRows(keys: HTMLElement[], target: { parent?: HTMLElement; index: number })`. One-row callers pass `[key]`.
+
+1. The blocks are each key's subtree, with details, in the keys' order.
+2. Refuse when `target.parent` is in any of the blocks.
+3. The landing siblings are the target's siblings without any of the blocks. Clamp the index to them.
+4. Insert every block, in order, before the sibling at the index, or after the parent's last descendant, or after the last row.
+5. Each block's first row gets the new depth, and the rows under it shift by the same amount (the new depth minus its old depth).
+6. Open the new parent. Add every key to `knownChildren` for the new parent, and run Phase 7's "lost its last child" check for each old parent.
+7. Emit one `orbReorder`, then `setRows()`, and focus stays on the pressed row.
+
+### Event detail
+
+Add one field to `GridReorderDetail`:
+
+```ts
+/** Every moved row's cells, in their new order. `[row]` when one row moves. */
+rows: HTMLElement[][];
+```
+
+The other fields describe the first of them: `row` is `rows[0]`, `from` and `to` are its indexes, `previousParent` is its old parent, `index` is where the group starts among its new siblings, and `depth` is its new depth. `descendants` holds the rows under every moved row. An app that renders from data removes each row in `rows`, then inserts them under `parent`, from `index`, in order. Existing listeners keep working.
+
+### Dragging
+
+- The pressed row lifts and follows the pointer, as in Phase 6. The other moving rows stay where they are, dimmed to 0.4 opacity with a `drag-group` class, and their cells get the existing `moving` state.
+- When more than one row moves, the lifted row shows how many: `<span class="drag-count" part="drag-count" aria-hidden="true">3</span>`, positioned at its inline end. It counts the moving rows, not the rows under them.
+- Drop targets leave out every moving block, so the group can't be dropped inside itself.
+- Escape puts everything back.
+- Announce "Moved 3 rows, starting at row 4 of 10." in a flat grid, and "Moved 3 rows into Docs, level 2, starting at 1 of 4." in a tree.
+
+### Keyboard
+
+Alt + Up and Down, and Alt + Shift + Right and Left, on a selected row while more than one row is selected:
+
+- When the moving rows are siblings next to each other, they move as one block: Up and Down by one sibling, Right under the sibling above the block, Left to just after the parent. One `orbReorder`, as for a drag.
+- When they aren't next to each other, or have different parents, nothing moves, and the grid announces "Select rows next to each other to move them together with the keyboard." A drag gathers them instead.
+- At either end, the Phase 7 announcements apply ("First in Docs.").
+- On a row that isn't selected, or with only one row selected, one row moves, as now.
+
+### Docs and tests
+
+- `grid.md`: Keyboard Selection and Reordering cover moving several rows, selecting on press, the count badge, the keyboard rule, and `rows` in the `orbReorder` detail. Add the `drag-count` part.
+- Tests:
+  - Flat grid with `keyboard` and `reorder`: select rows 1 and 3, drag row 3 below row 4. Both land after row 4, in order, with one `orbReorder` whose `rows` lists them.
+  - Pressing a row that isn't selected and dragging it selects it and moves only it.
+  - A click without a drag on a selected row narrows the selection to it.
+  - Tree: select a parent, its child, and another row. The child isn't in `rows`, and `descendants` includes it.
+  - Dropping onto a row in the group does nothing.
+  - Alt + Down moves a selection of rows next to each other. With rows that aren't next to each other, it announces and moves nothing.
+  - With `multiple`, dragging a checked row moves only that row.
+  - A selected row on another page moves with the group.
+  - The count badge shows during the drag.
+
+### Status: done
+
+Changes as planned, with these details:
+
+- `moveRows(keys, target)` takes the rows to move, and `moveRows([key], …)` is what every one-row caller passes. A key under another key in the list moves inside that ancestor block, so only the top of each block is a moved row.
+- `target.index` stays a place among the siblings with the moving rows taken out, as it was, so `stepRow()`, the tree drop zones, and the drag pass the same kind of index. The flat drag builds that index from the rows that stay, which is what its drop line shows.
+- A group that is not one block lands as one: the moving rows that are among the new siblings stay between the group blocks, so a drop after a row that stays puts the whole group there.
+- `groupOrder()` is now just the rows that are not under another, so it never refuses a drag. The next-to-each-other rule moved to `contiguous()`, which the keyboard uses: `stepRow()`, `indentRow()`, and `outdentRow()` move nothing when the selection is not a group, and announce why.
+- Selecting on press is for a plain mouse press in `keyboard` mode. The row the press chose is remembered, and its click leaves the selection alone rather than narrowing it back, so a drag that moves a group keeps it.
+- The count badge is a `drag-count` part. Rows moving with the pressed row get a `drag-group` class at 0.4 opacity, and their cells get the existing `moving` state.
+- `GridReorderDetail.rows` holds every moved row cells. `row`, `from`, and `to` describe the first.
+- Tests: a new "orb-grid moving several rows" block with ten specs. The tree spec polls for the new order, since WebKit reports a new slot assignment a moment after a move, which made a single check flap.
+- Docs: Keyboard Selection covers selecting on press. Reordering has a "Moving Several Rows" section with the badge, the group rules, `rows`, and the keyboard rule, its manual tests cover both, and the Keyboard table and Accessibility checklist are updated.
+
+---
+
+## Phase 10: Selecting every matching row on the server
+
+Resolves open question 3. With `server-side`, select all covers only the rows the grid has. This phase adds a banner, as Gmail has, that offers to select every row matching the query, and tells the app when that's on. The grid still can't select rows it doesn't have, so the app acts on the query.
+
+### When the banner shows
+
+All of these:
+
+- `server-side`, with a bound `orb-pagination` whose `total` is set. Server-side grids set it already.
+- Rows can be selected all at once: `selection="multiple"` with `select-all`, or `selection="keyboard"` (Ctrl or Cmd + A).
+- Every row the grid has is selected, and `total` is larger than the number of rows the grid has.
+
+The grid has no infinite scrolling, so large server-side data sets are always paged, and the pagination's `total` is always the source of the count. If it isn't set, there's no banner.
+
+### What it looks like
+
+A row across the whole grid, right after the header rows:
+
+- Offering: "All 25 rows on this page are selected." and a button, "Select all 1,284 rows".
+- On: "All 1,284 rows are selected." and a button, "Clear selection".
+
+Numbers use `toLocaleString()`. Parts: `matching-row`, `matching-cell`, and `matching-button`. In cards, it's a card of its own.
+
+In `setRows()`, reserve a track after the last header track for it, the way `emptyTrack` is reserved, so body tracks move down by one while it shows. It's a `role="row"` with one `role="gridcell"` spanning every column, and it counts toward `aria-rowcount`, like the empty row.
+
+### The state
+
+- A new mutable prop, `allMatchingSelected = false`. It's true while every row matching the query is selected, including rows the grid hasn't loaded. Apps read it to act on every matching row, and can set it.
+- A new event, `orbSelectAllMatching`, with `{ selected: boolean; total: number; query: GridQueryDetail }`. It emits when the state turns on, and `preventDefault()` keeps it off, for example to ask first or apply a limit. It also emits when the state turns off, when `preventDefault()` does nothing.
+
+It **turns on** from the banner's button, from Ctrl or Cmd + A in `keyboard` mode when every row the grid has is already selected and the banner is offering, or from setting the prop.
+
+It **turns off** from:
+
+- the banner's "Clear selection", which also clears the selection;
+- unchecking the header's select all;
+- deselecting any row (the other rows stay selected, as in Gmail);
+- a change to the search, filters, or sort, since the matching rows are different;
+- `clearSelection()`, a change of `selection`, or setting the prop to false.
+
+It **stays on** across page turns. While it's on, `setRows()` selects every row the grid gets, and `orbSelectionChange` reports the rows the grid has. The header's select all shows as checked.
+
+`getSelectedRows()` still returns the rows the grid has. The docs point to `allMatchingSelected` and `getQuery()` for the rest.
+
+Announcements: while offering, "Selected all 25 rows on this page. 1,284 rows match." When it turns on, "All 1,284 rows are selected."
+
+### Keyboard access
+
+The banner's button is part of the grid's keyboard navigation, the same as the selection controls:
+
+- `at()` returns it for the banner's track, in any column, and `placementOf()` gives it the full width.
+- `locate()` treats it as a control, so it handles its own Space and Enter.
+- It's the Tab stop when it's the active cell. Down from the header reaches it, and Down again goes to the first body row.
+
+### Docs and tests
+
+- `grid.md`, Server-Side Data: the banner, the prop, and the event, with a demo that fakes a server, and manual tests. Mention it under Selection. Add JSDoc for the prop, the event, and the parts.
+- Tests, with a fake server: `server-side`, a pagination with `total="100"`, and 3 rows:
+  - Checking select all shows the banner with "Select all 100 rows". Pressing it emits `{ selected: true, total: 100, query }`, sets the prop, and the banner then says all 100 are selected.
+  - `preventDefault()` keeps it off.
+  - Replacing the body cells with page 2's rows selects them.
+  - Deselecting one row turns it off, emits `selected: false`, and the other rows stay selected.
+  - Changing the search turns it off.
+  - `keyboard` mode: Ctrl + A twice turns it on.
+  - Down from the header reaches the banner's button, and Space presses it.
+  - No banner without a `total`, when `total` equals the rows the grid has, or without `server-side`.
+
+### Status: done
+
+Changes as planned, with these details:
+
+- The banner is a real row of the layout, with no cells, placed in the track right after the header rows, so `placements`, the matrix, `rowEls`, and the arrow keys reach it like any other row. `at()` returns its button for any column in its track, `placementOf()` gives it the full width, `locate()` reports it as a control, and `updateTabStops()` makes its button the Tab stop when it's the active cell. `navigationKeys()` presses it on Space and Enter.
+- It shows when every row the grid has is selected and the total is larger, or while `allMatchingSelected` is on. Deselecting a row hides it, as in Gmail, since it would no longer be every row on the page. Selecting them all again offers it once more.
+- Whether it shows changes where the body rows sit, so `setRows()` lays out again once when the banner comes or goes, guarded by `layingOut` so the second pass can't loop. `setSelected()` asks for that pass, since nothing else re-renders when the selection changes.
+- Turning it on selects the rows the grid has without going through `setSelected()`, so the event order is `orbSelectAllMatching`, then `orbSelectionChange`. `setRows()` selects every page's rows while it's on, before the banner is worked out, so a new page comes in selected.
+- Turning it off from the banner's button or the header's select all clears the selection too. Deselecting one row, a search, filter, or sort change, and a change of `selection` each turn it off on their own.
+- `orbSelectAllMatching` is cancelable as planned, but a non-cancelable event can't tell the two directions apart with `preventDefault()`, so the emitter still fires on the way on and does nothing if it's canceled.
+- The header's select all shows checked while it's on, and its `checked` attribute is set on the first render, so the specs read it.
+- Tests: a new "orb-grid select all matching" block with eight specs and a fake server. `activate()` in the specs now picks body cells rather than the header, since server-side grids have two header cells.
+- Docs: a new "Select All Matching Rows" section under Server-Side Data, with the banner, the prop and event, a demo, and manual tests. Selection links to it, and Accessibility has a line for the banner.
+
 ---
 
 ## Breaking changes
@@ -566,11 +889,14 @@ These go in the release notes.
 | Card header chips | Clicking opens the sheet instead of sorting. No funnel buttons or sort arrows except for the active sort. |
 | Drag handles removed | The `handle-cell` and `handle` parts are gone, and so is Space or Enter on a handle to pick a row up. Dragging works from anywhere on the row, and Alt + arrows still work. |
 | `orbReorder` detail | New fields only, so existing listeners keep working |
+| Enter in `interactive` grids (Phase 8) | Enter on a body cell or row emits `orbRowOpen` instead of `orbActivate`, and focus no longer moves into the cell. F2 still emits `orbActivate` and moves into the cell. |
+| Clicks in `interactive` grids (Phase 8) | A click on a body row now emits `orbRowOpen`, or a double click when rows can be selected. Apps that listened for clicks themselves can switch to the event. |
 
 ## Open questions
 
-1. **Moving multiple rows**: with `keyboard` selection, should dragging a selected row move every selected row, as Finder does? It needs `moveRows()` to take a set of rows and `orbReorder` to report them all. It would come after Phase 7.
-2. **`interactive` with selection in cards**: when an app opens a row on click and selection is on, a tap both selects and opens it. Should `interactive` turn off tap to select, or should a double tap open the row?
-3. **Server-side select all**: should there be a hook for "Select all 100,000 matching rows", like Gmail's banner? The grid can't select rows it doesn't have, but it could emit an event for the app to handle.
-4. **Type-ahead in other modes**: should type-ahead work in every grid, not only `keyboard`?
+1. ~~**Moving multiple rows**~~: resolved in Phase 9.
+2. ~~**`interactive` with selection in cards**~~: resolved in Phase 8. A tap selects, and a double tap opens.
+3. ~~**Server-side select all**~~: resolved in Phase 10.
+4. **Type-ahead in other modes**: deferred. It stays in `keyboard` mode for now.
 5. **The tree reorder keys** (Alt + Shift + Left and Right): check with screen reader users that they don't clash with VoiceOver, NVDA, or JAWS shortcuts before the release.
+

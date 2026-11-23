@@ -41,7 +41,27 @@ export type GridActivateDetail = {
   cell?: HTMLElement;
 };
 
-export type GridRowToggleDetail = {
+export type GridRowOpenDetail = {
+  /** The cells of the row being opened */
+  row: HTMLElement[];
+  /** The cell that was clicked, or had focus for Enter. Undefined for a focused row with `navigation="row"`. */
+  cell?: HTMLElement;
+  /** How the row was opened */
+  source: "pointer" | "keyboard";
+  /** The click or key press, for reading modifier keys, such as to open the row in a new tab */
+  event: MouseEvent | KeyboardEvent;
+};
+
+export type GridSelectAllMatchingDetail = {
+  /** Whether every row matching the query is now selected */
+  selected: boolean;
+  /** How many rows match the query, from the pagination's `total` */
+  total: number;
+  /** The query the matching rows answer */
+  query: GridQueryDetail;
+};
+
+type GridRowToggleDetail = {
   /** The cells of the row whose details are opening or closing */
   row: HTMLElement[];
   /** The row's `orb-row-details` */
@@ -94,12 +114,24 @@ export type GridSortDetail = {
 };
 
 export type GridReorderDetail = {
-  /** The cells of the row being moved */
+  /** The cells of the row being moved, which is the first of `rows` */
   row: HTMLElement[];
+  /** Every moved row's cells, in their new order. `[row]` when one row moves. */
+  rows: HTMLElement[][];
+  /** The rows that move with it, under it in a tree, each as its cells */
+  descendants: HTMLElement[][];
   /** The row's index among the body rows before the move */
   from: number;
   /** The row's index among the body rows after the move */
   to: number;
+  /** The new parent's cells, or undefined at the top level. Under `previousParent`'s subtree otherwise */
+  parent?: HTMLElement[];
+  /** The old parent's cells, or undefined when the row was at the top level */
+  previousParent?: HTMLElement[];
+  /** The row's index among its new parent's children, or the top level's rows */
+  index: number;
+  /** The row's level after the move: 1 at the top level */
+  depth: number;
 };
 
 const SECTIONS: Section[] = ["head", "body", "foot"];
@@ -490,6 +522,9 @@ const FOCUSABLE = [
  * @part drop-indicator - The line that shows where a dragged row will land
  * @part empty-row - The row shown when the search and filters hide every row
  * @part empty-cell - The cell in the empty row
+ * @part matching-row - The banner that offers to select every matching row, with `server-side`
+ * @part matching-cell - The cell in the banner
+ * @part matching-button - The banner's button
  *
  * @slot empty - Replaces "No matching rows" when nothing matches. Give the element `slot="empty"`.
  */
@@ -580,8 +615,9 @@ export class Grid {
    * Lets rows be moved. Press and drag anywhere on a body row to move it, on
    * touch screens with a long press first. The row follows the pointer, and a
    * line shows where it will land. Alt + Up and Down move the focused row
-   * from any cell. Rows only move within the body, and a cell's row span
-   * doesn't move with it.
+   * from any cell. In a tree grid, a row moves with the rows under it, and
+   * can be dropped into another row. Rows only move within the body, and a
+   * cell's row span doesn't move with it.
    *
    * While rows can be moved, their text can't be selected with the mouse.
    */
@@ -615,7 +651,12 @@ export class Grid {
   /** Tints the body row under the pointer, on devices that hover. */
   @Prop({ reflect: true }) hover = false;
 
-  /** Shows a pointer cursor over body rows, for rows that do something when clicked. */
+  /**
+   * Shows a pointer cursor over body rows, and opens a row when it's clicked,
+   * or, with `selection`, double clicked or double tapped, by emitting
+   * `orbRowOpen`. A click that doesn't open a row selects it. Enter opens it
+   * from the keyboard.
+   */
   @Prop({ reflect: true }) interactive = false;
 
   /**
@@ -672,6 +713,15 @@ export class Grid {
   @Prop({ reflect: true }) serverSide = false;
 
   /**
+   * Whether every row matching the query is selected, including rows the grid
+   * hasn't loaded. With `server-side`, selecting every row the grid has shows
+   * a banner that offers this. When it's on, every page's rows are selected,
+   * and `orbSelectAllMatching` has reported it. Set it to act on every
+   * matching row yourself, since the grid only has the rows it shows.
+   */
+  @Prop({ mutable: true }) allMatchingSelected = false;
+
+  /**
    * Marks the grid as loading, such as while new rows are fetched. Sets
    * `aria-busy` and the `busy` state. Style the state to show it.
    */
@@ -696,16 +746,28 @@ export class Grid {
    * Emits when the user presses Enter on a cell, or on a row with
    * `navigation="row"`. Call `preventDefault()` to keep focus where it is.
    * Otherwise focus moves to the first focusable element in the cell or row.
+   * With `interactive`, Enter emits `orbRowOpen` instead. F2 still does this.
    */
   @Event({ cancelable: true }) orbActivate: EventEmitter<GridActivateDetail>;
+
+  /**
+   * Emits when the user opens a body row in an `interactive` grid: a click
+   * when rows can't be selected, or a double click or double tap when
+   * `selection` is set. Enter also opens the row, and F2 still emits
+   * `orbActivate`. The grid does nothing by default, so it isn't cancelable.
+   */
+  @Event() orbRowOpen: EventEmitter<GridRowOpenDetail>;
 
   /** Emits when the selected rows change. The detail is each selected row's cells. */
   @Event() orbSelectionChange: EventEmitter<HTMLElement[][]>;
 
   /**
-   * Emits before a row moves, with its old and new index among the body rows.
-   * Call `preventDefault()` to keep it in place, for example to reorder your
-   * own data and render the grid again.
+   * Emits before rows move, with every moved row's cells as `rows` in their
+   * new order, their old and new index among the body rows, and, in a tree
+   * grid, the new and old parents, where the rows start among their new
+   * siblings, and their new depth. `row`, `from`, and `to` describe the first
+   * of them. Call `preventDefault()` to keep them in place, for example to
+   * reorder your own data and render the grid again.
    */
   @Event({ cancelable: true }) orbReorder: EventEmitter<GridReorderDetail>;
 
@@ -740,6 +802,14 @@ export class Grid {
    */
   @Event() orbQueryChange: EventEmitter<GridQueryDetail>;
 
+  /**
+   * Emits when every row matching the query is selected, or no longer is,
+   * with `server-side`. Call `preventDefault()` to keep it from turning on,
+   * for example to ask first or to apply a limit. It does nothing when it
+   * turns off.
+   */
+  @Event({ cancelable: true }) orbSelectAllMatching: EventEmitter<GridSelectAllMatchingDetail>;
+
   @State() rows: Row[] = [];
   @State() columnCount = 1;
   /** Selected rows, keyed by each row's first cell */
@@ -768,6 +838,8 @@ export class Grid {
    */
   private press?: {
     key: HTMLElement;
+    /** Every row that would move, by its first cell. Only `key` unless a drag moves a group */
+    keys: HTMLElement[];
     pointerId: number;
     startX: number;
     startY: number;
@@ -777,8 +849,18 @@ export class Grid {
   };
   /** The translate of the row being dragged, in pixels */
   private dragOffset = 0;
-  /** The index the dragged row would land at, among the body rows */
-  private dragTo = 0;
+  /** The rows moving with the dragged row, when more than one moves, by their first cells */
+  @State() dragGroup: HTMLElement[] = [];
+  /** The blocks a drag is moving, by their first cells, so any row in one is dimmed */
+  private dragBlocks = new Set<HTMLElement>();
+  /** The row a press chose for keyboard selection, so its click leaves the selection alone */
+  private selectedOnPress?: HTMLElement;
+  /** Where a dragged row would land in a tree, and whether it goes into the row */
+  private dropTarget?: { parent?: HTMLElement; index: number; into?: HTMLElement; depth: number };
+  /** The row a long hover would open, while it's in the drag's "into" zone */
+  private dropHover?: { key: HTMLElement; timer: ReturnType<typeof setTimeout> };
+  /** How far the drop line is indented, by the level of the row's landing place */
+  @State() dropDepth = 0;
   /** Skips the click that follows a drag */
   private suppressClick = false;
   /** Auto-scrolls a dragged row while the pointer is near an edge */
@@ -810,8 +892,14 @@ export class Grid {
   private typeahead: { text: string; timer?: ReturnType<typeof setTimeout> } = { text: "" };
   /** The modifiers of a page turn, to apply selection once focus lands */
   private pendingSelectFollow?: { shift: boolean; ctrl: boolean };
+  /** Set while `setRows()` lays out again for the banner, so it only does it once */
+  private layingOut = false;
   /** The track of the "No matching rows" row, when nothing matches */
   private emptyTrack?: number;
+  /** The track of the "Select all matching rows" banner, while it offers or reports */
+  private matchingTrack?: number;
+  /** The banner's button, for the keyboard and for its place in the grid */
+  private matchingEl?: HTMLElement;
   /** The bound search field */
   private searchEl?: HTMLElement;
   /** Every body row in the tree, sorted, before the search and filters */
@@ -1568,6 +1656,8 @@ export class Grid {
    */
   @Method()
   async resetView(): Promise<void> {
+    // A click elsewhere turns off selecting every matching row, as Gmail does
+    if (this.allMatchingSelected) this.allMatchingSelected = false;
     const filtered = this.clearFilterValues();
     for (const cell of this.host.querySelectorAll(":scope > orb-cell[sort]")) cell.removeAttribute("sort");
     this.observer.takeRecords();
@@ -1889,6 +1979,8 @@ export class Grid {
    */
   private filtersChanged() {
     if (this.batching) return;
+    // The rows that match change with the search and filters
+    this.setAllMatching(false);
     this.collapsedWhileFiltering.clear();
     if (this.paginator) this.paginator.page = 1;
     this.setRows();
@@ -2291,10 +2383,16 @@ export class Grid {
     // When the search and filters hide every row, a row says so, under the header
     const empty = this.filtering && viewBody.length === 0;
     this.emptyTrack = undefined;
-
-    // Each section is laid out on its own, like a table's thead, tbody, and
-    // tfoot, so row spans don't reach into the next section.
+    // The banner sits under the header rows, above the body rows, and takes
+    // a track of its own when it shows. The selection settles further on, so
+    // it shows when it showed before, and `setRows()` runs again if it changes.
+    const banner = this.matchingShows;
+    this.matchingTrack = undefined;
     for (const { section, cells } of view) {
+      if (section === "body" && banner) {
+        this.matchingTrack = trackOffset++;
+        rows.push({ section: "body", cells: [], track: this.matchingTrack, span: 1 });
+      }
       const placed = layoutSection(cells, columns);
       const rowCount = placed.length ? Math.max(...placed.map((p) => p.track)) + 1 : 0;
 
@@ -2443,22 +2541,26 @@ export class Grid {
     this.ariaRowCount = undefined;
     if (paginator) {
       const head = rows.filter((r) => r.section === "head").length;
-      const body = rows.filter((r) => r.section === "body" || r.section === "details").length;
+      const matching = this.matchingTrack != null ? 1 : 0;
+      const body = rows.filter((r) => (r.section === "body" || r.section === "details") && r.cells.length).length;
       const foot = rows.filter((r) => r.section === "foot").length;
       const allBody = Math.max(rowsInAll ?? 0, rowsBefore + body);
       let h = 0;
       let b = 0;
       let f = 0;
       for (const row of rows) {
+        // The banner isn't one of the matching rows, so it takes no number
         const index =
           row.section === "head"
             ? ++h
             : row.section === "foot"
-              ? head + allBody + (empty ? 1 : 0) + ++f
-              : head + rowsBefore + ++b;
-        this.ariaRowIndex.set(row, index);
+              ? head + matching + allBody + (empty ? 1 : 0) + ++f
+              : row.cells.length
+                ? head + matching + rowsBefore + ++b
+                : undefined;
+        if (index != null) this.ariaRowIndex.set(row, index);
       }
-      this.ariaRowCount = head + allBody + (empty ? 1 : 0) + foot;
+      this.ariaRowCount = head + matching + allBody + (empty ? 1 : 0) + foot;
     }
     this.internals.ariaRowCount = this.ariaRowCount != null ? String(this.ariaRowCount) : null;
     this.rows = rows;
@@ -2480,6 +2582,29 @@ export class Grid {
       });
     walkSelectable(this.filteredRoots);
     this.selectableKeys = selectable;
+
+    // While every matching row is selected, every page the grid gets is too,
+    // since the grid can't select rows it doesn't have
+    if (this.allMatchingSelected && this.selecting) {
+      const missing = selectable.find((key) => !this.selected.has(key));
+      if (missing) {
+        const next = new Set(this.selected);
+        for (const key of selectable) next.add(key);
+        this.setSelected(next);
+      }
+    }
+
+    // The banner comes and goes with the selection, which is settled by now
+    if (this.matchingShows !== banner) {
+      this.observer.takeRecords();
+      this.layingOut = true;
+      try {
+        this.setRows();
+      } finally {
+        this.layingOut = false;
+      }
+      return;
+    }
 
     // A range starts from a row that shows, so a hidden or removed anchor goes
     if (this.anchorKey && !selectable.includes(this.anchorKey)) this.anchorKey = undefined;
@@ -2579,6 +2704,7 @@ export class Grid {
 
     if (this.navigation !== "row") {
       const controls = [...this.controlEls.values()];
+      if (this.matchingEl) controls.push(this.matchingEl);
       if (
         !this.activeCell ||
         !(cells.includes(this.activeCell) || controls.includes(this.activeCell))
@@ -2616,6 +2742,11 @@ export class Grid {
       const active = this.navigation !== "row" && control === this.activeCell;
       setAttr(control, "tabindex", active ? "0" : "-1");
     }
+    // The banner's button, when it shows, is a stop of its own
+    if (this.matchingEl) {
+      const active = this.navigation !== "row" && this.matchingEl === this.activeCell;
+      setAttr(this.matchingEl, "tabindex", active ? "0" : "-1");
+    }
   }
 
   /**
@@ -2623,6 +2754,41 @@ export class Grid {
    * selection controls, each when it's used. Cards leave out the selection
    * controls, since tapping a card selects it.
    */
+  /** Whether every row the grid has is selected, for the banner and its state */
+  private get rowsAllSelected() {
+    const keys = this.selectableKeys;
+    return keys.length > 0 && keys.every((key) => this.selected.has(key));
+  }
+
+  /**
+   * How many rows match the query, from the pagination total, or undefined
+   * when it is not set. With `server-side`, only the server knows the count.
+   */
+  private get matchingTotal() {
+    if (!this.serverSide || !this.paginator || this.ownsTotal) return undefined;
+    const total = Number(this.paginator.total);
+    return Number.isFinite(total) && total > 0 ? total : undefined;
+  }
+
+  /**
+   * Whether rows can be selected all at once: `multiple` with `select-all`, or
+   * `keyboard`, where Ctrl or Cmd + A selects every row.
+   */
+  private get selectsAllRows() {
+    return this.selecting && (this.keyboardSelecting || (this.selection === "multiple" && this.selectAll));
+  }
+
+  /**
+   * Whether the banner shows: with `server-side`, when it offers every
+   * matching row or reports that they are all selected.
+   */
+  private get matchingShows() {
+    const total = this.matchingTotal;
+    if (total == null || !this.selectsAllRows) return false;
+    // Offering, once every row the grid has is selected, or on
+    return this.allMatchingSelected || (this.rowsAllSelected && total > this.allBodyRows.length);
+  }
+
   private get offset() {
     return (
       (this.hasDetails ? 1 : 0) +
@@ -2676,6 +2842,9 @@ export class Grid {
 
   /** Where a cell or a lead column control sits */
   private placementOf(el: HTMLElement): Placement | undefined {
+    if (this.matchingTrack != null && el === this.matchingEl) {
+      return { track: this.matchingTrack, col: 0, colspan: this.columnCount + this.offset, rowspan: 1 };
+    }
     const p = this.placements.get(el);
     if (p) return p;
     const row = this.controlRow(el);
@@ -2730,6 +2899,10 @@ export class Grid {
     // Keys in a header's popover or sheet belong to it, not to the cell
     if (this.inCellOverlay(path as Element[])) return null;
     const target = path[0];
+    // The banner is a stop of its own, and its button does its own thing
+    if (this.matchingEl && path.includes(this.matchingEl)) {
+      return { kind: "control" as const, cell: this.matchingEl, rowIndex: this.bodyIndexOf(this.matchingEl) };
+    }
     // Toggles behave like selection controls: they handle their own Space and Enter.
     const control = [...this.toggleEls.values(), ...this.controlEls.values()].find((el) =>
       path.includes(el),
@@ -2757,7 +2930,14 @@ export class Grid {
     };
   }
 
+  /** What the banner's button does: select every matching row, or clear the selection */
+  private pressMatching() {
+    if (this.allMatchingSelected) this.setAllSelected(false);
+    else this.setAllMatching(true);
+  }
+
   private at(track: number, col: number) {
+    if (this.matchingTrack != null && track === this.matchingTrack) return this.matchingEl;
     if (col < this.offset) {
       const els =
         col === this.toggleCol
@@ -2880,7 +3060,15 @@ export class Grid {
    */
   private setSelected(next: Set<HTMLElement>) {
     if (this.cascades) this.settleParents(next);
+    // Rows the grid has, deselected one by one, stop it covering every
+    // matching row. Selecting them all again offers it once more.
+    if (this.allMatchingSelected && ![...this.selectableKeys].every((key) => next.has(key))) {
+      this.setAllMatching(false);
+    }
     this.selected = next;
+    // The banner comes and goes with the selection, and takes a track of its
+    // own, so the rows are laid out around it
+    if (!this.layingOut && (this.matchingShows || this.matchingTrack != null)) this.setRows();
     this.queueFormValue();
     this.orbSelectionChange.emit(
       this.allBodyRows.filter((r) => next.has(r.cells[0])).map((r) => r.cells),
@@ -2993,6 +3181,8 @@ export class Grid {
    */
   private setSort(cell: HTMLElement, direction: "ascending" | "descending" | "none") {
     if (this.orbSortChange.emit({ cell, direction }).defaultPrevented) return;
+    // Different rows match, so the banner can no longer claim them all
+    this.setAllMatching(false);
 
     for (const other of this.host.querySelectorAll(":scope > orb-cell[sort]")) {
       if (other !== cell) other.removeAttribute("sort");
@@ -3041,6 +3231,7 @@ export class Grid {
     // The click that follows a drag doesn't select, sort, or activate
     if (this.suppressClick) {
       this.suppressClick = false;
+      this.lastRowClick = undefined;
       return;
     }
     const path = ev.composedPath() as Element[];
@@ -3094,7 +3285,52 @@ export class Grid {
       }
     }
 
+    // With an interactive grid, a press on a body row opens it when rows
+    // can't be selected, or on a double click. A click that opens nothing
+    // selects the row, as a tap does in cards.
+    if (this.interactive && this.openRow(path, ev)) return;
+
     this.clickRow(path);
+  }
+
+  /** The last click on a body row, to spot a double click or double tap */
+  private lastRowClick?: { key: HTMLElement; time: number; x: number; y: number };
+
+  /**
+   * Whether the current click is the second of a double click on the same row:
+   * by `detail` for a mouse, which follows the system's double-click speed,
+   * and by time and distance for touch and pen, which don't fire `dblclick`
+   * reliably. A touch's first tap is `detail` 0 and its second is 2, while a
+   * pen's are 1 and 2, so only a mouse goes by `detail` alone.
+   */
+  private isDoublePress(ev: MouseEvent, key: HTMLElement) {
+    const mouse = this.lastPointerType === "mouse";
+    const detail = ev.detail || 0;
+    // A click after a double click starts over
+    if (mouse && detail > 2) return false;
+    const last = this.lastRowClick;
+    if (!last || last.key !== key) return false;
+    if (mouse && detail >= 2) return true;
+    return Date.now() - last.time < 400 && Math.hypot(ev.clientX - last.x, ev.clientY - last.y) < 10;
+  }
+
+  /**
+   * Opens the body row a click went into, with `interactive`. Returns whether
+   * it was a click that opens a row, so the click doesn't also select it.
+   */
+  private openRow(path: Element[], ev: MouseEvent) {
+    const pressed = this.pressedRow(path);
+    if (!pressed) return false;
+    const { key, cell } = pressed;
+    if (this.selecting && !this.isDoublePress(ev, key)) {
+      this.lastRowClick = { key, time: Date.now(), x: ev.clientX, y: ev.clientY };
+      return false;
+    }
+    // A double click opens the row, and the third click starts again
+    if (this.selecting) this.lastRowClick = undefined;
+    const row = this.rows.find((r) => r.cells[0] === key);
+    if (row) this.orbRowOpen.emit({ row: row.cells, cell, source: "pointer", event: ev });
+    return true;
   }
 
   /** The kind of pointer that last clicked, for touch toggling */
@@ -3120,7 +3356,50 @@ export class Grid {
     if (!row || row.section !== "body") return;
     const key = row.cells[0];
     if (!this.canDragPress(ev, key)) return;
-    this.beginPress(ev, key);
+    this.beginPress(ev, key, this.pressKeys(key, ev));
+  }
+
+  /**
+   * The rows a press drags. In keyboard selection, a press on a row that's
+   * selected while others are drags the whole selection, as Finder does. A
+   * plain mouse press on a row that isn't selects it alone first, so the drag
+   * moves it.
+   */
+  private pressKeys(key: HTMLElement, ev: PointerEvent) {
+    if (!this.keyboardSelecting) return [key];
+    // Presses with modifiers act on the click, not on a drag
+    const plain = ev.pointerType === "mouse" && this.isPrimaryPress(ev);
+    if (!this.selected.has(key)) {
+      if (!plain) return [key];
+      this.selectOnly([key]);
+      // The click that follows, after a drag or not, leaves this selection
+      this.selectedOnPress = key;
+      return [key];
+    }
+    const group = this.selectedGroup();
+    return !ev.shiftKey && !ev.ctrlKey && !ev.metaKey && group.includes(key) ? group : [key];
+  }
+
+  /**
+   * Whether a press just chose the row, so the click that follows it leaves
+   * the selection alone. Cleared by the next press.
+   */
+  private pressChose(key: HTMLElement) {
+    const chosen = this.selectedOnPress === key;
+    this.selectedOnPress = undefined;
+    return chosen;
+  }
+
+  /** Whether a press is a plain mouse press, which selects a row straight away */
+  private isPrimaryPress(ev: PointerEvent) {
+    return (
+      (ev.pointerType === "mouse" || !ev.pointerType) &&
+      ev.button === 0 &&
+      !ev.shiftKey &&
+      !ev.ctrlKey &&
+      !ev.metaKey &&
+      !ev.altKey
+    );
   }
 
   @Listen("pointermove")
@@ -3169,15 +3448,31 @@ export class Grid {
     this.endPress(false);
   }
 
-  @Listen("mousedown")
+  @Listen("mousedown", { passive: false })
   onMouseDown(ev: MouseEvent) {
     if (this.keyboardSelecting && ev.shiftKey) ev.preventDefault();
+
+    // A double click on a row that opens it would also select a word, so the
+    // second press keeps the text as it is. Fields keep their own text editing.
+    if (ev.detail < 2 || !this.interactive || !this.selecting) return;
+    const path = ev.composedPath() as Element[];
+    const editing = path.some(
+      (n) =>
+        n instanceof globalThis.Element &&
+        (n.localName === "input" ||
+          n.localName === "textarea" ||
+          (n as HTMLElement).isContentEditable),
+    );
+    if (!editing && this.pressedRow(path)) ev.preventDefault();
   }
 
-  /** A double click on a cell or row activates it, like Enter, in keyboard selection */
+  /**
+   * A double click on a cell or row activates it, like Enter, in keyboard
+   * selection. With `interactive`, the click opens the row instead.
+   */
   @Listen("dblclick")
   onDoubleClick(ev: MouseEvent) {
-    if (!this.keyboardSelecting) return;
+    if (!this.keyboardSelecting || this.interactive) return;
     const where = this.locate(ev);
     if (!where || (where.kind !== "cell" && where.kind !== "row")) return;
     const row = this.rows[where.rowIndex];
@@ -3201,20 +3496,52 @@ export class Grid {
 
   /**
    * A click on a body row selects it, for cards and keyboard selection,
-   * since neither has selection controls. A press on the details toggle, the
-   * tree chevron, or anything focusable inside a cell does its own thing.
+   * since neither has selection controls, and for any interactive grid, where
+   * the row itself is what's pressed. A press on the details toggle, the tree
+   * chevron, or anything focusable inside a cell does its own thing.
    */
   private clickRow(path: Element[]) {
-    if ((!this.cardMode && !this.keyboardSelecting) || !this.selecting) return;
+    if ((!this.cardMode && !this.keyboardSelecting && !this.interactive) || !this.selecting) return;
+    const pressed = this.pressedRow(path);
+    if (!pressed) return;
+    const { key } = pressed;
+    const row = this.rows.find((r) => r.cells[0] === key);
+    if (!row) return;
+
+    if (this.keyboardSelecting) {
+      // No modifier keys on touch, so a tap toggles. A click that follows a
+      // press which already chose the row, such as a drag that moved it,
+      // leaves the selection as the press left it.
+      if (this.lastPointerType !== "mouse") {
+        if (this.pressChose(key)) return;
+        this.toggleSelection(this.rows.indexOf(row));
+      }
+      else if (this.lastClick.shift && this.lastClick.ctrl) this.addRange(key);
+      else if (this.lastClick.shift) this.selectRange(key);
+      else if (this.lastClick.ctrl) this.toggleSelection(this.rows.indexOf(row));
+      else this.selectOnly([key]);
+      return;
+    }
+
+    if (this.selection === "single") this.setRowSelected(key, true);
+    else this.toggleSelection(this.rows.indexOf(row));
+  }
+
+  /**
+   * The body row a press at this path went into, and the cell it went into,
+   * if any. A press on the details toggle, the tree chevron, or anything
+   * focusable inside a cell belongs to that thing, so this returns nothing.
+   */
+  private pressedRow(path: Element[]) {
     let key: HTMLElement | undefined;
     for (const [k, el] of this.rowEls) {
       if (path.includes(el)) key = k;
     }
-    if (!key) return;
+    if (!key) return undefined;
     const row = this.rows.find((r) => r.cells[0] === key);
-    if (!row || row.section !== "body") return;
+    if (!row || row.section !== "body") return undefined;
 
-    // Where the press went, inside the row: the row's own text selects,
+    // Where the press went, inside the row: the row's own text counts,
     // everything else that does something keeps doing it. A cell itself is
     // focusable, so only what's inside one counts.
     const at = path.indexOf(this.rowEls.get(key) as Element);
@@ -3229,20 +3556,8 @@ export class Grid {
         n.localName === "orb-popover" ||
         n.localName === "orb-overlay" ||
         n.classList.contains("select-all-chip"));
-    if (inCell.some(skip)) return;
-
-    if (this.keyboardSelecting) {
-      // No modifier keys on touch, so a tap toggles
-      if (this.lastPointerType !== "mouse") this.toggleSelection(this.rows.indexOf(row));
-      else if (this.lastClick.shift && this.lastClick.ctrl) this.addRange(key);
-      else if (this.lastClick.shift) this.selectRange(key);
-      else if (this.lastClick.ctrl) this.toggleSelection(this.rows.indexOf(row));
-      else this.selectOnly([key]);
-      return;
-    }
-
-    if (this.selection === "single") this.setRowSelected(key, true);
-    else this.toggleSelection(this.rows.indexOf(row));
+    if (inCell.some(skip)) return undefined;
+    return { key, cell };
   }
 
   /** Sets the live region text, so screen readers hear each reordering step. */
@@ -3256,17 +3571,429 @@ export class Grid {
   }
 
   /**
-   * Moves a body row to a new index among the body rows by moving its cells
-   * in the page. Emits `orbReorder` first, and does nothing if it's canceled.
-   */
-  /**
    * Why rows can't be moved right now, if they can't: a sort decides their
-   * order, and tree grids don't support moving rows yet.
+   * order, or a search or filter hides rows, which makes a drop position
+   * ambiguous.
    */
   private get reorderBlocked() {
-    if (this.isTree) return "Rows can't be moved in a tree grid.";
     if (this.sorted) return "Rows can't be moved while they're sorted. Clear the sort first.";
+    if (this.filtering) return "Rows can't be moved while a search or filter is on. Clear it first.";
     return undefined;
+  }
+
+  /** A row and every row under it, in tree order, each as its cells */
+  private blockOf(key: HTMLElement): HTMLElement[][] {
+    const blocks: HTMLElement[][] = [];
+    const walk = (node: TreeNode) => {
+      blocks.push(node.cells);
+      node.children.forEach(walk);
+    };
+    const node = this.treeNodes.get(key);
+    if (node) walk(node);
+    else {
+      const row = this.allBodyRows.find((r) => r.cells[0] === key);
+      if (row) blocks.push(row.cells);
+    }
+    return blocks;
+  }
+
+  /** The rows a row's siblings are among: its parent's children, or the top level */
+  private siblingsOf(key: HTMLElement) {
+    const node = this.treeNodes.get(key);
+    return node?.parent ? node.parent.children : this.sortedRoots;
+  }
+
+  /** Whether `key` is the row itself, or under it in the tree */
+  private isWithin(key: HTMLElement, ancestor: HTMLElement) {
+    for (let node = this.treeNodes.get(key); node; node = node.parent) {
+      if (node.cells[0] === ancestor) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Moves rows, with the rows under them, as one group, to a place in the
+   * tree: as the parent's children at `index`, or at the top level when
+   * there's no parent. Each row's block keeps its order, and its place among
+   * the group. Emits `orbReorder` first, and does nothing if it's canceled.
+   *
+   * A key whose ancestor is a key moves inside that ancestor's block, so only
+   * the first key of each block is a moved row. Keys that aren't a group to
+   * move together, such as rows with different parents, move one at a time.
+   */
+  private moveRows(keys: HTMLElement[], target: { parent?: HTMLElement; index: number }): boolean {
+    if (this.reorderBlocked) return false;
+    if (!keys.length) return false;
+    if (!this.groupOrder(keys)) return false;
+    const group = this.groupKeys(keys);
+    if (!group.length) return false;
+    const movingKeys = this.groupKeys(group);
+    const { parent, index } = target;
+    // A row can't go into itself or anywhere under it
+    if (parent && movingKeys.some((key) => this.isWithin(parent, key))) return false;
+    const row = this.allBodyRows.find((r) => r.cells[0] === group[0]);
+    if (!row) return false;
+
+    const siblings = (parent ? this.treeNodes.get(parent)?.children : this.sortedRoots) ?? [];
+    const isMoving = (cells: HTMLElement[]) => movingKeys.some((key) => this.isWithin(cells[0], key));
+    const later = siblings.filter((n) => !isMoving(n.cells));
+    // The index counts only the siblings that stay, so a row taken out doesn't
+    // shift the place the group goes. A drop below all of them is after them.
+    const at = Math.min(Math.max(index, 0), later.length);
+    // A group lands as one, so the moving rows that are among the siblings go
+    // back between its own blocks
+    const landing = [...later.slice(0, at), ...siblings.filter((n) => isMoving(n.cells)), ...later.slice(at)];
+
+    // Each top-level block, in the group's order. A key that isn't there on
+    // its own, because its ancestor moves too, is inside its ancestor's block.
+    const blocks = movingKeys.flatMap((key) => {
+      const cells = this.blockOf(key);
+      return cells.length ? [{ key, cells }] : [];
+    });
+    const rows = blocks.map((b) => b.cells[0]);
+    const descendants = blocks.flatMap((b) => b.cells.slice(1));
+    const previous = this.treeNodes.get(group[0])?.parent?.cells[0];
+    // What the old parent had under it, before the move changes the tree
+    const previousChildren = new Set(this.treeNodes.get(previous ?? keys[0])?.children.map((c) => c.cells[0]) ?? []);
+    const newDepth = parent ? depthOf(parent) + 1 : 0;
+
+    // The row's place among all body rows, before and after, as in markup order
+    const from = this.allBodyRows.findIndex((r) => r.cells[0] === group[0]);
+    const beforeOrder = this.allBodyRows.map((r) => r.cells[0]);
+    const rest = beforeOrder.filter((k) => !movingKeys.includes(k));
+    const anchorKey = later[at]?.cells[0];
+    const to = anchorKey ? rest.indexOf(anchorKey) : rest.length;
+
+    const detail: GridReorderDetail = {
+      row: row.cells,
+      rows,
+      descendants,
+      from,
+      to,
+      parent: parent ? this.allBodyRows.find((r) => r.cells[0] === parent)?.cells : undefined,
+      previousParent: previous ? this.allBodyRows.find((r) => r.cells[0] === previous)?.cells : undefined,
+      index: at,
+      depth: newDepth + 1,
+    };
+    if (this.orbReorder.emit(detail).defaultPrevented) return false;
+
+    // The blocks go after the group's own rows among the new siblings
+    const next = landing[at + group.length];
+
+    // Focus stays with the moved row. A cell blurs when it's moved in the
+    // page, and the grid's own elements are reused by whichever row renders in
+    // their place.
+    const key = group[0];
+    const focusedCell = rows.find((cells) => cells.some((c) => c === document.activeElement));
+    const shadowFocus = this.host.shadowRoot.activeElement;
+    if (shadowFocus && shadowFocus === this.controlEls.get(key)) {
+      this.pendingFocus = { kind: "control", key };
+    } else if (shadowFocus && shadowFocus === this.rowEls.get(key)) {
+      this.activeRowKey = key;
+      this.pendingFocus = { kind: "row", key };
+    }
+
+    // The rows in every block, with their details, go into the page as they
+    // were, one block after another
+    const elements: HTMLElement[] = [];
+    for (const { cells } of blocks) {
+      for (const row of cells) {
+        elements.push(...row);
+        const details = this.detailsOf.get(row[0]);
+        if (details) elements.push(details);
+      }
+    }
+
+    // Every row in a block moves by the same amount: the new level of its
+    // first row, less the old one
+    for (const { cells } of blocks) {
+      const shift = newDepth - depthOf(cells[0][0]);
+      if (!shift) continue;
+      for (const row of cells) {
+        const depth = depthOf(row[0]) + shift;
+        setAttr(row[0], "depth", depth > 0 ? String(depth) : null);
+      }
+    }
+
+    // The blocks go before the sibling that follows them, or after the last
+    // row of their new parent's subtree, or after the last row
+    if (next) {
+      next.cells[0].before(...elements);
+    } else if (parent) {
+      const parentNode = this.treeNodes.get(parent);
+      const last = this.lastIn(parentNode);
+      if (last) {
+        const details = this.detailsOf.get(last.cells[0]);
+        const anchor = details ?? last.cells[last.cells.length - 1];
+        anchor.after(...elements);
+      } else {
+        const details = this.detailsOf.get(parent);
+        const anchor = details ?? parent;
+        anchor.after(...elements);
+      }
+    } else {
+      const last = this.allBodyRows.filter((r) => !movingKeys.includes(r.cells[0])).pop();
+      if (!last) return false;
+      const details = this.detailsOf.get(last.cells[0]);
+      (details ?? last.cells[last.cells.length - 1]).after(...elements);
+    }
+
+    // The row can be seen where it landed, so open a closed parent
+    if (parent && !parent.hasAttribute("expanded")) setAttr(parent, "expanded", "");
+    // A moved row isn't a child the parent gained, so it keeps its own
+    // selection: both parents remember it as a child they know, and the new
+    // parent remembers what it had before
+    if (parent) {
+      const known = this.knownChildren.get(parent) ?? new Set<HTMLElement>();
+      for (const k of group) known.add(k);
+      for (const child of this.treeNodes.get(parent)?.children ?? []) known.add(child.cells[0]);
+      this.knownChildren.set(parent, known);
+    }
+
+    // Rebuild now, not when the observer runs, so focus and announcements
+    // see the new order.
+    this.observer.takeRecords();
+    this.setRows();
+    // The old parent follows its children, and a row that lost its last child
+    // no longer has any to follow, so its own selection clears
+    if (previous && this.cascades) {
+      const remains = this.treeNodes.get(previous)?.children.length ?? 0;
+      const known = group.some((k) => previousChildren.has(k));
+      if (!remains && !previous.hasAttribute("expandable") && known) {
+        const next = new Set(this.selected);
+        if (next.delete(previous)) this.setSelected(next);
+      }
+    }
+    if (focusedCell) focusInView(focusedCell.find((c) => c === document.activeElement) ?? focusedCell[0]);
+    return true;
+  }
+
+  /**
+   * Rows a group moves as one block: the selected rows in tree order, leaving
+   * out any row whose ancestor is selected too, since it moves inside that
+   * ancestor's block. Rows on other pages count too.
+   */
+  private selectedGroup() {
+    const order = this.allBodyRows.map((r) => r.cells[0]);
+    return order.filter(
+      (key) =>
+        this.selected.has(key) &&
+        !order.some((other) => this.selected.has(other) && other !== key && this.isWithin(key, other)),
+    );
+  }
+
+  /**
+   * The rows in a group, in tree order, leaving out any row under another, and
+   * every row each one moves with. Nothing for rows that aren't all there.
+   */
+  private groupKeys(keys: HTMLElement[]) {
+    if (!keys.length) return [];
+    const order = this.allBodyRows.map((r) => r.cells[0]);
+    const keysIn = keys.filter((key) => order.includes(key));
+    const roots = keysIn.filter(
+      (key) => !keysIn.some((other) => other !== key && this.isWithin(key, other)),
+    );
+    return roots.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  }
+
+  /**
+   * The rows that move as one, in tree order: every row from `keys` that isn't
+   * under another of them. Rows that aren't next to each other still move,
+   * gathered together, when they come from a drag.
+   */
+  private groupOrder(keys: HTMLElement[]) {
+    const roots = this.groupKeys(keys);
+    return roots.length ? roots : undefined;
+  }
+
+  /** The last row of a node's subtree, depth first */
+  private lastIn(node?: TreeNode): TreeNode | undefined {
+    if (!node) return undefined;
+    let last = node;
+    for (const child of node.children) last = this.lastIn(child) ?? last;
+    return last;
+  }
+
+  /**
+   * Moves the focused row, or the group of rows it's part of, one step up or
+   * down among the siblings it's next to, and announces where it is.
+   */
+  private stepRow(key: HTMLElement, down: boolean) {
+    const group = this.movingGroup(key);
+    if (!group) return;
+    if (group.length > 1) return this.stepGroup(group, down);
+    const siblings = this.siblingsOf(key);
+    const index = siblings.findIndex((n) => n.cells[0] === key);
+    const node = siblings[index];
+    const parent = node?.parent?.cells[0];
+    const name = parent ? this.rowName(parent) : "";
+    if (index < 0 || (down ? index >= siblings.length - 1 : index === 0)) {
+      this.announce(
+        parent
+          ? `${down ? "Last" : "First"} in ${name}.`
+          : `${down ? "Last" : "First"} row.`,
+      );
+      return;
+    }
+    // The index is where it lands once it's taken out, so moving down keeps it
+    // after its next sibling
+    const target = down ? index + 1 : index - 1;
+    if (this.moveRows([key], { parent, index: target })) {
+      this.announcePosition(key);
+    }
+  }
+
+  /**
+   * The selected rows that move with `key`, when the keyboard moves them: the
+   * whole group, just `key`, or undefined when more rows are selected that
+   * aren't a group, which the keyboard can't move.
+   */
+  private movingGroup(key: HTMLElement) {
+    const group = this.selectedGroup();
+    if (group.length < 2) return [key];
+    if (!group.includes(key)) return [key];
+    return this.contiguous(group);
+  }
+
+  /**
+   * A group of rows that are next to each other in the tree, under one
+   * parent, or undefined with the announcement that says why. The keyboard
+   * moves groups this way; a drag gathers rows that aren't next to each other.
+   */
+  private contiguous(group: HTMLElement[]) {
+    if (group.length < 2) return group;
+    const parent = this.treeNodes.get(group[0])?.parent;
+    if (group.some((key) => this.treeNodes.get(key)?.parent !== parent)) {
+      this.announce("Select rows next to each other to move them together with the keyboard.");
+      return undefined;
+    }
+    const siblings = parent ? parent.children : this.sortedRoots;
+    const spots = siblings.flatMap((node, i) =>
+      group.some((key) => this.isWithin(node.cells[0], key)) ? [i] : [],
+    );
+    if (spots.some((spot, i) => i > 0 && spot !== spots[i - 1] + 1)) {
+      this.announce("Select rows next to each other to move them together with the keyboard.");
+      return undefined;
+    }
+    return group;
+  }
+
+  /** Moves a group of rows next to each other by one sibling, and announces where it landed */
+  private stepGroup(group: HTMLElement[], down: boolean) {
+    const first = group[0];
+    const parent = this.treeNodes.get(first)?.parent?.cells[0];
+    const siblings = this.siblingsOf(first);
+    const at = siblings.findIndex((n) => n.cells[0] === first);
+    if (at < 0) return;
+    if (down ? at + group.length >= siblings.length : at === 0) {
+      this.announce(
+        parent ? `${down ? "Last" : "First"} in ${this.rowName(parent)}.` : `${down ? "Last" : "First"} row.`,
+      );
+      return;
+    }
+    const index = down ? at + 1 : at - 1;
+    if (this.moveRows(group, { parent, index })) this.announceGroup(group, parent);
+  }
+
+  /** Indents a tree row: it becomes the last child of its previous sibling */
+  private indentRow(key: HTMLElement) {
+    const group = this.movingGroup(key);
+    if (!group) return;
+    if (group.length > 1) return this.indentGroup(group);
+    const siblings = this.siblingsOf(key);
+    const index = siblings.findIndex((n) => n.cells[0] === key);
+    if (index <= 0) {
+      this.announce("No row above it to move under.");
+      return;
+    }
+    const above = siblings[index - 1].cells[0];
+    const count = this.treeNodes.get(above)?.children.length ?? 0;
+    if (this.moveRows([key], { parent: above, index: count })) {
+      if (!above.hasAttribute("expanded")) setAttr(above, "expanded", "");
+      this.announcePosition(key);
+    }
+  }
+
+  /** Indents a group: it becomes the last children of the sibling above it */
+  private indentGroup(group: HTMLElement[]) {
+    const first = group[0];
+    const siblings = this.siblingsOf(first);
+    const index = siblings.findIndex((n) => n.cells[0] === first);
+    if (index <= 0) {
+      this.announce("No row above it to move under.");
+      return;
+    }
+    const above = siblings[index - 1].cells[0];
+    const count = this.treeNodes.get(above)?.children.length ?? 0;
+    if (this.moveRows(group, { parent: above, index: count })) {
+      if (!above.hasAttribute("expanded")) setAttr(above, "expanded", "");
+      this.announceGroup(group, above);
+    }
+  }
+
+  /** Outdents a tree row: it becomes the next sibling of its parent */
+  private outdentRow(key: HTMLElement) {
+    const group = this.movingGroup(key);
+    if (!group) return;
+    if (group.length > 1) return this.outdentGroup(group);
+    const parent = this.treeNodes.get(key)?.parent?.cells[0];
+    if (!parent) {
+      this.announce("Already at the top level.");
+      return;
+    }
+    const siblings = this.siblingsOf(parent);
+    const index = siblings.findIndex((n) => n.cells[0] === parent);
+    const grandparent = this.treeNodes.get(parent)?.parent?.cells[0];
+    if (index < 0) return;
+    // It follows its parent's subtree, so it goes right after the parent
+    if (this.moveRows([key], { parent: grandparent, index: index + 1 })) {
+      this.announcePosition(key);
+    }
+  }
+
+  /** Outdents a group: it becomes the next siblings of its parent */
+  private outdentGroup(group: HTMLElement[]) {
+    const parent = this.treeNodes.get(group[0])?.parent?.cells[0];
+    if (!parent) {
+      this.announce("Already at the top level.");
+      return;
+    }
+    const siblings = this.siblingsOf(parent);
+    const index = siblings.findIndex((n) => n.cells[0] === parent);
+    const grandparent = this.treeNodes.get(parent)?.parent?.cells[0];
+    if (index < 0) return;
+    if (this.moveRows(group, { parent: grandparent, index: index + 1 })) {
+      this.announceGroup(group, grandparent);
+    }
+  }
+
+  /**
+   * Announces moved rows as one group: how many moved, and where the first
+   * landed, as "Moved 3 rows into Docs, level 2, starting at 1 of 4." in a
+   * tree, or "Moved 3 rows, starting at row 4 of 10." in a flat grid.
+   */
+  private announceGroup(group: HTMLElement[], parent?: HTMLElement) {
+    const first = group[0];
+    const parentKey = parent ?? this.treeNodes.get(first)?.parent?.cells[0];
+    const place = parentKey ? ` into ${this.rowName(parentKey)}` : "";
+    const siblings = this.siblingsOf(first);
+    const index = siblings.findIndex((n) => n.cells[0] === first);
+    const at = parentKey
+      ? `level ${depthOf(first) + 1}, starting at ${index + 1} of ${siblings.length}`
+      : `starting at row ${this.bodyIndexOf(first) + 1} of ${this.bodyRows.length}`;
+    this.announce(`Moved ${group.length} rows${place}, ${at}.`);
+  }
+
+  /** Announces a moved tree row's name, level, and place among its siblings */
+  private announcePosition(key: HTMLElement) {
+    const siblings = this.siblingsOf(key);
+    const index = siblings.findIndex((n) => n.cells[0] === key);
+    const level = depthOf(key) + 1;
+    const parent = this.treeNodes.get(key)?.parent?.cells[0];
+    const place = parent ? ` into ${this.rowName(parent)}` : "";
+    this.announce(
+      `Moved ${this.rowName(key)}${place}, level ${level}, ${index + 1} of ${siblings.length}.`,
+    );
   }
 
   /**
@@ -3316,64 +4043,6 @@ export class Grid {
     }
   }
 
-  private moveRow(key: HTMLElement, to: number) {
-    if (this.reorderBlocked) return false;
-    const body = this.bodyRows;
-    const from = body.findIndex((r) => r.cells[0] === key);
-    if (from < 0 || to < 0 || to >= body.length || to === from) return false;
-    const row = body[from];
-    const others = body.filter((r) => r !== row);
-
-    // The event reports indexes among all the body rows, not just this page.
-    const allKeys = this.allBodyRows.map((r) => r.cells[0]);
-    const globalFrom = allKeys.indexOf(key);
-    const rest = allKeys.filter((k) => k !== key);
-    const globalTo =
-      to < others.length
-        ? rest.indexOf(others[to].cells[0])
-        : rest.indexOf(others[others.length - 1].cells[0]) + 1;
-    if (this.orbReorder.emit({ row: row.cells, from: globalFrom, to: globalTo }).defaultPrevented) {
-      return false;
-    }
-
-    // Focus stays with the moved row. A cell blurs when it's moved in the
-    // page, and the grid's own elements are reused by whichever row renders in
-    // their place.
-    const focusedCell = row.cells.find((c) => c === document.activeElement);
-    const shadowFocus = this.host.shadowRoot.activeElement;
-    if (shadowFocus && shadowFocus === this.controlEls.get(key)) {
-      this.pendingFocus = { kind: "control", key };
-    } else if (shadowFocus && shadowFocus === this.rowEls.get(key)) {
-      this.activeRowKey = key;
-      this.pendingFocus = { kind: "row", key };
-    }
-
-    // A row's details move with it, right after its cells.
-    const details = this.detailsOf.get(key);
-    const moving = details ? [...row.cells, details] : row.cells;
-    if (to < others.length) {
-      others[to].cells[0].before(...moving);
-    } else {
-      const last = others[others.length - 1].cells;
-      const anchor = this.detailsOf.get(last[0]) ?? last[last.length - 1];
-      anchor.after(...moving);
-    }
-    // Rebuild now, not when the observer runs, so focus and announcements
-    // see the new order.
-    this.observer.takeRecords();
-    this.setRows();
-    if (focusedCell) focusInView(focusedCell);
-    return true;
-  }
-
-  /** Moves a row one step up or down, and announces where it is. */
-  private stepRow(key: HTMLElement, down: boolean) {
-    const to = this.bodyIndexOf(key) + (down ? 1 : -1);
-    if (this.moveRow(key, to)) {
-      this.announce(`${this.rowName(key)}, row ${to + 1} of ${this.bodyRows.length}.`);
-    }
-  }
-
   /**
    * Whether a press at this event can start a drag: the primary button is
    * down, and it's on the row's own content, not on something that does
@@ -3399,9 +4068,10 @@ export class Grid {
   }
 
   /** Starts a drag, or holds the press on touch until the row is held long enough */
-  private beginPress(ev: PointerEvent, key: HTMLElement) {
+  private beginPress(ev: PointerEvent, key: HTMLElement, keys: HTMLElement[]) {
     const press = {
       key,
+      keys,
       pointerId: ev.pointerId,
       startX: ev.clientX,
       startY: ev.clientY,
@@ -3424,8 +4094,13 @@ export class Grid {
     press.dragging = true;
     press.startX = x;
     press.startY = y;
+    // The rows that move: the whole group when more than one row moves, so
+    // every row in it says it's moving, and none of them can be dropped into
+    const keys = press.keys.length > 1 ? press.keys : [press.key];
+    this.dragGroup = keys.length > 1 ? keys : [];
+    this.dragBlocks = new Set(keys.flatMap((key) => this.subtree(key)));
     this.dragKey = press.key;
-    this.dragTo = this.bodyIndexOf(press.key);
+    this.dropTarget = { index: this.bodyIndexOf(press.key), depth: depthOf(press.key) };
     this.dragOffset = 0;
     const rowEl = this.rowEls.get(press.key);
     try {
@@ -3454,17 +4129,114 @@ export class Grid {
     this.autoScroll(y);
   }
 
-  /** The index the dragged row would land at, from where `clientY` is among the rows */
+  /**
+   * Finds where the dragged row would land from where `clientY` is among the
+   * rows. Every row that moves is left out, so the group lands as one, where
+   * the pointer is.
+   */
   private updateDropTarget(clientY: number) {
     const key = this.press?.key ?? this.dragKey;
     if (!key) return;
-    const others = this.bodyRows.filter((r) => r.cells[0] !== key);
+    if (this.isTree) return this.updateTreeDropTarget(clientY);
+    const others = this.bodyRows.filter((r) => !this.dragBlocks.has(r.cells[0]));
     if (!others.length) return;
     const rects = others.map((r) => this.rowEls.get(r.cells[0]).getBoundingClientRect());
-    this.dragTo = rects.filter((rect) => clientY > rect.top + rect.height / 2).length;
-    const edge = this.dragTo < rects.length ? rects[this.dragTo].top : rects[rects.length - 1].bottom;
+    // The row under the pointer, or the last one below it, and whether the
+    // pointer is past its middle. The index is among the rows that stay, so a
+    // drop below the last of them is after it, and a drop after a moving row
+    // is where that row already is.
+    const found = rects.findIndex((rect) => clientY < rect.bottom);
+    const target = found < 0 ? rects.length - 1 : found;
+    const rect = rects[target];
+    const after = clientY > rect.top + rect.height / 2;
+    // The place among the rows that stay, which is all there is in a flat grid:
+    // before the target row, or after it
+    const to = target + (after ? 1 : 0);
+    this.dropTarget = { index: to, depth: 0 };
+    this.drawDropLine(after ? rect.bottom : rect.top, 0);
+  }
+
+  /**
+   * In a tree, a row's top quarter drops before it at its level, its bottom
+   * quarter after it, and its middle goes into it, as its last child, when it
+   * can have children.
+   */
+  private updateTreeDropTarget(clientY: number) {
+    // Every row in a moving block is left out, so a group can't go into itself
+    const rows = this.bodyRows.filter((r) => !this.dragBlocks.has(r.cells[0]));
+    if (!rows.length) return;
+    // The row under the pointer, or the one after the gap between rows
+    let target = rows.find((r) => {
+      const rect = this.rowEls.get(r.cells[0]).getBoundingClientRect();
+      return clientY < rect.bottom;
+    });
+    const above = !target;
+    if (!target) target = rows[rows.length - 1];
+    const targetKey = target.cells[0];
+    const rect = this.rowEls.get(targetKey).getBoundingClientRect();
+    const top = rect.top;
+    const zone = above ? 1 : (clientY - top) / Math.max(1, rect.height);
+    const info = this.treeInfo.get(targetKey);
+    const node = this.treeNodes.get(targetKey);
+    const canHold = !!info?.hasChildren || targetKey.hasAttribute("expandable");
+    const into = canHold && zone > 0.25 && zone < 0.75;
+
+    if (into) {
+      const count = node?.children.length ?? 0;
+      this.dropTarget = { parent: targetKey, index: count, into: targetKey, depth: depthOf(targetKey) + 1 };
+      this.planHoverOpen(targetKey);
+      this.dropTop = undefined;
+      return;
+    }
+    this.planHoverOpen(undefined);
+
+    // Before or after the row, at its level: a place among its siblings, so
+    // before it is where it is, and after it is the next place. After an open
+    // row with children is before its first child, which is where it shows.
+    const before = zone <= 0.25;
+    const level = depthOf(targetKey);
+    if (before) {
+      const siblings = this.siblingsOf(targetKey);
+      const index = siblings.findIndex((n) => n.cells[0] === targetKey);
+      const parent = this.treeNodes.get(targetKey)?.parent?.cells[0];
+      this.dropTarget = { parent, index, depth: level };
+      this.drawDropLine(rect.top, level);
+    } else if (node && info?.open && node.children.length) {
+      const first = node.children[0].cells[0];
+      const firstRect = this.rowEls.get(first).getBoundingClientRect();
+      this.dropTarget = { parent: targetKey, index: 0, depth: level + 1 };
+      this.drawDropLine(firstRect.top, level + 1);
+    } else {
+      const siblings = this.siblingsOf(targetKey);
+      const index = siblings.findIndex((n) => n.cells[0] === targetKey);
+      const parent = this.treeNodes.get(targetKey)?.parent?.cells[0];
+      this.dropTarget = { parent, index: index + 1, depth: level };
+      this.drawDropLine(rect.bottom, level);
+    }
+  }
+
+  /** Opens a collapsed row after the pointer rests in its "into" zone */
+  private planHoverOpen(key?: HTMLElement) {
+    const hover = this.dropHover;
+    if (hover?.key === key) return;
+    if (hover) clearTimeout(hover.timer);
+    this.dropHover = undefined;
+    const info = key && this.treeInfo.get(key);
+    if (!key || !info?.hasChildren || info.open) return;
+    const timer = setTimeout(() => {
+      this.dropHover = undefined;
+      this.toggleExpanded(key, true);
+      const press = this.press;
+      if (press?.dragging) this.updateDropTarget(press.startY + this.dragOffset);
+    }, 700);
+    this.dropHover = { key, timer };
+  }
+
+  /** Places the drop line at a row's edge, indented to the level the row would land at */
+  private drawDropLine(edge: number, level: number) {
     const hostRect = this.host.getBoundingClientRect();
     const top = edge - hostRect.top - this.host.clientTop + this.host.scrollTop;
+    this.dropDepth = level;
     if (top !== this.dropTop) this.dropTop = top;
   }
 
@@ -3505,7 +4277,7 @@ export class Grid {
       return;
     }
     const { key, pointerId } = press;
-    const to = this.dragTo;
+    const target = this.dropTarget;
     this.press = undefined;
     const rowEl = this.rowEls.get(key);
     try {
@@ -3519,8 +4291,11 @@ export class Grid {
     // The click that follows a drag does nothing, so it doesn't select the row
     this.suppressClick = true;
     setTimeout(() => (this.suppressClick = false), 0);
-    if (commit && this.moveRow(key, to)) {
-      this.announce(`Moved ${this.rowName(key)} to row ${to + 1} of ${this.bodyRows.length}.`);
+    const keys = press.keys;
+    if (commit && target && this.moveRows(keys, { parent: target.parent, index: target.index })) {
+      const moved = this.groupKeys(keys);
+      if (moved.length > 1) this.announceGroup(moved, target.parent);
+      else this.announcePosition(key);
     }
   }
 
@@ -3534,8 +4309,14 @@ export class Grid {
       setTimeout(() => rowEl.style.transition = "", 160);
     }
     document.removeEventListener("touchmove", this.preventScroll);
+    if (this.dropHover) clearTimeout(this.dropHover.timer);
+    this.dropHover = undefined;
+    this.dropTarget = undefined;
     this.dragKey = undefined;
+    this.dragGroup = [];
+    this.dragBlocks = new Set();
     this.dropTop = undefined;
+    this.dropDepth = 0;
   }
 
   /** Emits `orbActivate`, then moves focus into the cell's or row's content. */
@@ -3584,6 +4365,13 @@ export class Grid {
         this.updateTabStops();
       }
     } else if (where.kind === "cell" || where.kind === "control") {
+      // The banner is a stop of its own, with no cell in the layout
+      if (this.matchingEl && where.cell === this.matchingEl) {
+        this.activeCell = this.matchingEl;
+        this.openCells = [];
+        this.updateTabStops();
+        return;
+      }
       // Keep the remembered slot when it's inside this cell, such as after
       // moving with the arrow keys.
       if (!this.position || this.at(this.position.track, this.position.col) !== where.cell) {
@@ -3662,7 +4450,11 @@ export class Grid {
     // where it has to keep selecting text
     if (ctrl && ev.key.toLowerCase() === "a") {
       ev.preventDefault();
-      this.selectAllRows();
+      // Pressing it again, with every row the grid has selected, selects every
+      // matching row
+      if (this.matchingShows && this.rowsAllSelected && !this.allMatchingSelected) {
+        this.setAllMatching(true);
+      } else this.selectAllRows();
       return true;
     }
 
@@ -3747,6 +4539,20 @@ export class Grid {
   /** The arrow keys, Home and End, Space, Enter, and Page Up and Down */
   private navigationKeys(ev: KeyboardEvent, where: NonNullable<ReturnType<Grid["locate"]>>) {
 
+    // The banner's button has no key handling of its own
+    if (where.kind === "control" && this.matchingEl && where.cell === this.matchingEl) {
+      if (ev.key === " " || ev.key === "Enter") {
+        ev.preventDefault();
+        this.pressMatching();
+        return;
+      }
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        this.focusCell(this.matchingEl);
+        return;
+      }
+    }
+
     // A selection control handles Space and Enter itself, so the row isn't
     // toggled twice.
     if (where.kind === "control" && (ev.key === " " || ev.key === "Enter")) return;
@@ -3802,6 +4608,22 @@ export class Grid {
       ev.preventDefault();
       if (this.reorderBlocked) this.announce(this.reorderBlocked);
       else this.stepRow(this.rows[rowIndex].cells[0], ev.key === "ArrowDown");
+      return;
+    }
+
+    // In a tree, Alt + Shift + Right indents a row, and Left outdents it
+    if (
+      this.reorder &&
+      this.isTree &&
+      ev.altKey &&
+      ev.shiftKey &&
+      (ev.key === "ArrowRight" || ev.key === "ArrowLeft") &&
+      this.rows[rowIndex]?.section === "body"
+    ) {
+      ev.preventDefault();
+      if (this.reorderBlocked) this.announce(this.reorderBlocked);
+      else if (ev.key === "ArrowRight") this.indentRow(this.rows[rowIndex].cells[0]);
+      else this.outdentRow(this.rows[rowIndex].cells[0]);
       return;
     }
 
@@ -3928,7 +4750,15 @@ export class Grid {
         break;
       case "Enter":
         if (!onRow && this.isSortableHeader(where.cell)) this.toggleSort(where.cell);
-        else this.activate(rowIndex, onRow ? undefined : where.cell);
+        // An interactive row opens, and focus stays where it is
+        else if (this.interactive && this.rows[rowIndex].section === "body") {
+          this.orbRowOpen.emit({
+            row: this.rows[rowIndex].cells,
+            cell: onRow ? undefined : where.cell,
+            source: "keyboard",
+            event: ev,
+          });
+        } else this.activate(rowIndex, onRow ? undefined : where.cell);
         break;
       case "PageDown":
       case "PageUp": {
@@ -4061,6 +4891,8 @@ export class Grid {
    * In a tree, rows under collapsed rows are included too.
    */
   private setAllSelected(on: boolean) {
+    // Clearing every row also turns off selecting every matching row
+    if (!on) this.setAllMatching(false);
     const next = new Set(this.selected);
     for (const key of this.selectableKeys) {
       if (this.cascades) this.cascade(next, key, on);
@@ -4068,13 +4900,45 @@ export class Grid {
       else next.delete(key);
     }
     this.setSelected(next);
+    // The banner can go with every row cleared
+    if (!this.layingOut) this.setRows();
     this.announceSelection();
   }
 
   /** Whether every selectable row is selected, for select all in cards */
   private get allSelected() {
-    const keys = this.selectableKeys;
-    return keys.length > 0 && keys.every((key) => this.selected.has(key));
+    return this.rowsAllSelected;
+  }
+
+  /**
+   * Selects every row matching the query, on every page, or stops. Emits
+   * `orbSelectAllMatching` in both directions, and only turning it on can be
+   * canceled. Turning it on selects the rows the grid has now.
+   */
+  private setAllMatching(on: boolean) {
+    if (on === this.allMatchingSelected) return;
+    const detail = { selected: on, total: this.matchingTotal ?? this.allBodyRows.length, query: this.query };
+    if (on && this.orbSelectAllMatching.emit(detail).defaultPrevented) return;
+    if (!on) {
+      this.allMatchingSelected = false;
+      this.orbSelectAllMatching.emit(detail);
+      this.announce("Cleared every matching row.");
+      // The rows are laid out again by the selection that follows, or here
+      if (!this.layingOut) this.setRows();
+      return;
+    }
+    this.allMatchingSelected = true;
+    // Every row the grid has, selected, so all of them are
+    const next = new Set(this.selectableKeys);
+    if (this.cascades) this.settleParents(next);
+    this.selected = next;
+    this.queueFormValue();
+    this.orbSelectionChange.emit(
+      this.allBodyRows.filter((r) => next.has(r.cells[0])).map((r) => r.cells),
+    );
+    this.announce(`All ${detail.total.toLocaleString()} rows are selected.`);
+    // The banner reports, rather than offers
+    if (!this.layingOut) this.setRows();
   }
 
   /**
@@ -4106,8 +4970,14 @@ export class Grid {
     const keys = this.selectableKeys;
     const count = keys.filter((key) => this.selected.has(key)).length;
     const someMixed = keys.some((key) => this.mixed.has(key));
-    const checked =
-      keys.length > 0 && count === keys.length ? "true" : count === 0 && !someMixed ? "false" : "mixed";
+    // While every matching row is selected, every row the grid has is too
+    const checked = this.allMatchingSelected
+      ? "true"
+      : keys.length > 0 && count === keys.length
+        ? "true"
+        : count === 0 && !someMixed
+          ? "false"
+          : "mixed";
     return (
       <orb-checkbox
         ref={(el?: HTMLElement) => el && this.controlEls.set(row.cells[0], el)}
@@ -4116,6 +4986,52 @@ export class Grid {
         checked={checked}
         onOrbCheckedChange={(e: CustomEvent<string>) => this.setAllSelected(e.detail === "true")}
       />
+    );
+  }
+
+  /**
+   * The banner that offers to select every row matching the query, once every
+   * row the grid has is selected, and reports it once they all are.
+   */
+  private renderMatchingRow(row: Row) {
+    const total = this.matchingTotal ?? 0;
+    const on = this.allMatchingSelected;
+    const count = this.bodyRows.filter((r) => r.cells.length).length;
+    return (
+      <div
+        role="row"
+        class="matching-row"
+        part="matching-row"
+        style={{ gridRow: String(row.track + 1), order: String(row.track) }}
+        aria-rowindex={this.ariaRowIndex.has(row) ? String(this.ariaRowIndex.get(row)) : undefined}
+      >
+        <div
+          role="gridcell"
+          class="matching-cell"
+          part="matching-cell"
+          style={{
+            "--_edge-start": "1",
+            "--_edge-end": "1",
+            "--_edge-top": "0",
+            "--_edge-bottom": "0",
+          }}
+        >
+          <span class="matching-text">
+            {on
+              ? `All ${total.toLocaleString()} rows are selected.`
+              : `All ${count.toLocaleString()} rows on this page are selected.`}
+          </span>
+          <button
+            type="button"
+            class="matching-button"
+            part="matching-button"
+            ref={(el?: HTMLElement) => (this.matchingEl = el)}
+            onClick={() => this.pressMatching()}
+          >
+            {on ? "Clear selection" : `Select all ${total.toLocaleString()} rows`}
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -4179,6 +5095,10 @@ export class Grid {
       <Host>
         <style>{`:host { --_data-columns: ${this.dataColumns}; ${leadColumns} }`}</style>
         {this.rows.map((row) => {
+          // The banner has no cells of its own, and spans every column
+          if (this.matchingTrack != null && row.track === this.matchingTrack && !row.cells.length) {
+            return this.renderMatchingRow(row);
+          }
           const key = row.cells[0];
           const body = row.section === "body";
           const selectable = this.selecting && body;
@@ -4200,6 +5120,11 @@ export class Grid {
                 // selection and keyboard selection tint it.
                 tint: this.selection === "single" || this.keyboardSelecting,
                 dragging: key === this.dragKey,
+                // The rest of a group that's moving, which stay where they are
+                // until the drop
+                "drag-group": body && this.dragGroup.includes(key) && key !== this.dragKey,
+                // The row a drag would go into, as its last child
+                "drop-into": key === this.dropTarget?.into,
                 // Joins the card to its details card below it
                 "has-details": body && !!this.detailsOf.get(key)?.hasAttribute("expanded"),
               }}
@@ -4230,12 +5155,21 @@ export class Grid {
                 this.cardMode &&
                 this.renderSelectChip()}
               <slot ref={(slot) => slot?.assign(...row.cells)} />
+              {body && key === this.dragKey && this.dragGroup.length > 1 && (
+                <span class="drag-count" part="drag-count" aria-hidden="true">
+                  {this.dragGroup.length}
+                </span>
+              )}
             </div>
           );
         })}
         {this.emptyTrack != null && this.renderEmptyRow()}
         {this.dropTop != null && (
-          <div class="drop-indicator" part="drop-indicator" style={{ top: `${this.dropTop}px` }} />
+          <div
+            class="drop-indicator"
+            part="drop-indicator"
+            style={{ top: `${this.dropTop}px`, "--_drop-depth": String(this.dropDepth) } as any}
+          />
         )}
         <div class="visually-hidden" role="status">
           {this.announcement}

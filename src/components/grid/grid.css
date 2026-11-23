@@ -343,6 +343,9 @@
 
 :host([interactive]) .body {
   cursor: pointer;
+  /* A double tap opens the row instead of zooming the page. Scrolling and
+     pinch zoom still work. */
+  touch-action: manipulation;
 }
 
 /* The header rows stay at the top while the grid scrolls. Each one sticks
@@ -424,6 +427,38 @@
   text-align: center;
 }
 
+/* The banner that offers to select every row matching the query. It spans
+   every column, under the header rows. */
+.matching-cell {
+  grid-column: 1 / -1;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--orb-spacing-xs) var(--orb-spacing-sm);
+  padding: var(--grid-cell-padding-y) var(--grid-cell-padding-x);
+  background-color: color-mix(in srgb, var(--grid-background), var(--orb-primary-500) 10%);
+  color: inherit;
+  text-align: center;
+}
+
+.matching-button {
+  padding: var(--orb-spacing-3xs) var(--orb-spacing-sm);
+  border: var(--grid-border-width) solid var(--grid-border-color);
+  border-radius: var(--orb-radius-pill);
+  background-color: var(--grid-background);
+  color: var(--orb-primary-text-color, inherit);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.matching-button:focus-visible {
+  outline: 2px solid var(--orb-primary-300);
+  outline-offset: 2px;
+}
+
 /* The details toggle: a chevron that points down while the details are open */
 .toggle {
   display: inline-flex;
@@ -471,13 +506,22 @@
   right: 0;
   height: 2px;
   translate: 0 -1px;
+  /* Indented to the level the moved row would land at */
+  margin-inline-start: calc(var(--_stick-end, 0px) + var(--_drop-depth, 0) * var(--grid-tree-indent, 1.25rem));
   background-color: var(--grid-drop-indicator-color);
   pointer-events: none;
   z-index: 1;
 }
 
+/* The row a dragged row would go into, as its last child */
+.drop-into {
+  outline: 2px solid var(--grid-drop-indicator-color);
+  outline-offset: -2px;
+}
+
 /* Rows in a grid that reorders can be pressed and dragged anywhere.
-   Selecting text in them with the mouse doesn't work, so a drag can start. */
+   Selecting text in them with the mouse doesn't work, so a drag can start.
+   The grab cursor wins over the pointer cursor of an interactive grid. */
 :host([reorder]) .body {
   cursor: grab;
   -webkit-user-select: none;
@@ -504,6 +548,31 @@
   z-index: 3;
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
   cursor: grabbing;
+}
+
+/* The rest of a group being dragged, which stay in place until the drop */
+.drag-group {
+  opacity: 0.4;
+}
+
+/* How many rows are moving, at the inline end of the lifted row */
+.drag-count {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--orb-spacing-sm);
+  translate: 0 -50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-inline-size: 1.5rem;
+  padding-inline: 0.4rem;
+  border-radius: 999px;
+  background-color: var(--grid-drop-indicator-color);
+  color: var(--orb-background-color);
+  font-size: var(--orb-font-size-xs);
+  font-weight: 600;
+  line-height: 1.5rem;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -562,7 +631,8 @@
 }
 
 :host(:state(cards)) [role="row"] > slot::slotted(*),
-:host(:state(cards)) .empty-cell {
+:host(:state(cards)) .empty-cell,
+:host(:state(cards)) .matching-cell {
   flex: 1 1 100%;
   min-width: 0;
   position: static;
@@ -645,6 +715,11 @@
   .dragging {
     outline: 2px dashed Highlight;
     outline-offset: -2px;
+  }
+
+  .drop-indicator,
+  .drop-into {
+    --grid-drop-indicator-color: Highlight;
   }
 
   .drop-indicator {

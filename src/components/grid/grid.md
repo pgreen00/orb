@@ -109,7 +109,7 @@ Without `columns`, the number of columns is the sum of the header cells' column 
 
 Set `selection` to `single` or `multiple`, and the grid adds a first column with a control in every body row: a radio button for `single`, and an `orb-checkbox` for `multiple`. Each control is named from its row's first cell, such as "Select Alice Johnson", so put something that identifies the row there. With `single`, the selected row is also tinted. With `multiple`, the checkboxes show which rows are selected, so rows aren't tinted. `orbSelectionChange` reports each selected row's cells.
 
-With `multiple`, add `select-all` for a checkbox in the header that selects or clears every row. It's checked when every row is selected, and mixed when only some are. The [interactive cells](#interactive-cells) demo uses it.
+With `multiple`, add `select-all` for a checkbox in the header that selects or clears every row. It's checked when every row is selected, and mixed when only some are. The [interactive cells](#interactive-cells) demo uses it. With `server-side`, selecting every row on the page offers every matching row in a [banner](#select-all-matching-rows).
 
 The controls are cells like any other, so the arrow keys reach them, and Space on any cell in the row toggles it too.
 
@@ -176,8 +176,9 @@ With the pointer:
 - Ctrl or Cmd + click adds or removes that row.
 - Ctrl or Cmd + Shift + click adds the range.
 - A tap toggles the row, since a touch screen has no modifier keys.
+- A press on a row that isn't selected selects it straight away, so with `reorder` a drag moves it, as in Finder. A press on a row that is selected leaves the selection alone until the click narrows it to that row.
 
-A click on a button, link, or other control inside a cell does that control's job instead. Double-clicking a row activates it, the same as Enter.
+A click on a button, link, or other control inside a cell does that control's job instead. Double-clicking a row activates it, the same as Enter, and with `interactive` it opens the row instead. See [Opening Rows](#opening-rows).
 
 `select-all` does nothing with `keyboard`, since there's no header checkbox. Ctrl or Cmd + A covers it.
 
@@ -215,9 +216,21 @@ Dragging in a grid taller than `--grid-max-height`, or near the edge of the wind
 
 With a pointer, everything else in the row keeps working: press a button or link, or the details toggle, to use it instead of dragging.
 
-`orbReorder` fires before each move, with the row's cells and its old and new index among the body rows. Call `preventDefault()` to keep the row where it is. Do that when a framework renders the cells from your data: update the data in the event instead, and let the framework render the new order.
+`orbReorder` fires before each move, with the row's cells, its old and new index among the body rows, and the new parent's and old parent's cells, its index among its siblings, and its depth. The last three only change in a tree grid. Call `preventDefault()` to keep the row where it is. Do that when a framework renders the cells from your data: update the data in the event instead, and let the framework render the new order.
 
-Rows only move within the body. A cell's row span doesn't move with its row, so reordering works best in grids without row spans. A sorted grid can't be reordered, since the sort decides the order: clear it first, or the keys and the pointer do nothing and say so.
+The detail's `rows` lists every moved row's cells, in their new order, and `descendants` lists the rows under them. When one row moves, `rows` is just that row, and the other fields describe it.
+
+#### Moving Several Rows
+
+With `selection="keyboard"`, pressing a selected row while others are selected drags the whole selection, in its order, leaving out any row whose parent is selected too, since it moves inside its parent. The other rows stay in place, dimmed, and the lifted row shows how many rows move. Rows on other pages move too. With `multiple`, a drag moves only the row that was pressed: the checkboxes pick rows for other actions, not for a drag.
+
+The count is the `drag-count` part, so it can be styled. Rows moving with the pressed row have the `drag-group` class, and their cells have the `moving` state.
+
+From the keyboard, Alt + Up and Down, and Alt + Shift + Right and Left, move the selection as one group when its rows are next to each other. When they aren't, or when they have different parents, nothing moves, and a screen reader hears that the rows have to be next to each other. A drag gathers rows that aren't next to each other instead.
+
+Rows only move within the body. A cell's row span doesn't move with its row, so reordering works best in grids without row spans. A sorted grid, or one with a search or filter on, can't be reordered: the order or the rows would be unclear, so clear it first, or the keys and the pointer do nothing and say so.
+
+In a [tree grid](#tree-grids), dragging also moves a row into another row, as its last child, and a row moves with the rows under it. Its top quarter drops it before the row, its bottom quarter after it, and its middle into it.
 
 **Text selection.** While `reorder` is set, a mouse drag moves rows, so text can't be selected in body rows with the mouse. Inputs, textareas, and `contenteditable` content keep their normal selection.
 
@@ -264,10 +277,11 @@ document.querySelector("#task-grid").addEventListener("orbReorder", (event) => {
 - Each body row has a checkbox first, and no handle. The header row has an empty cell above it.
 - Press and drag "Write the release notes" from its text, down past "Review the design". The row lifts and follows the pointer, and a line follows between the rows. Release. The row moves there, and the status line reports it.
 - Click a row's text without dragging. It's selected, and nothing moves.
+- Select two rows, then press and drag one of them. Both move, in their order, and the row being dragged shows a badge with the count. The other dims until the drop.
 - Start a drag, then press Escape before releasing. The row goes back, and nothing moves.
 - Drag a row toward the bottom of a page taller than the window. The page scrolls as you hold it there.
 - Select a row, then move it. It stays selected.
-- On any cell in a body row, press Alt + Down. The row moves down one, and focus stays on the same cell.
+- On any cell in a body row, press Alt + Down. The row moves down one, and focus stays on the same cell. With two rows next to each other selected, Alt + Down moves both, and a screen reader hears how many moved.
 - Sort a column, then try Alt + Down. The row doesn't move, and a screen reader hears that it can't while sorted.
 - On a touch screen, hold a row until it lifts, then drag. A quick swipe scrolls instead.
 
@@ -512,7 +526,7 @@ The tree works with the grid's other features:
 - Searching and filtering show matching rows, and the rows above them. A row that only shows for a match under it opens while the search is on, without changing its `expanded`. Rows under a matching row show as usual.
 - With `selection="multiple"`, a parent's checkbox follows its children. It's checked when all of them are selected, mixed when some are, and clear when none are. Checking or clearing a parent does the same to every row under it, including rows under collapsed rows. Children added under a checked parent, such as ones loaded when it opens, start checked. With `selection="single"`, rows are selected on their own.
 - Row details stay with their row, and hide along with it.
-- Reordering is off in tree grids.
+- With `reorder`, a row moves with every row under it. Dragging works as in a flat grid, but the row's top quarter drops it before the row at its level, its bottom quarter after it, and its middle drops it *into* the row as its last child, when the row has or can have children. Holding a row's middle opens it if it's closed, so it's easier to drop into. Dragging into a row that it's above, or anywhere under it, does nothing. From the keyboard, Alt + Up and Down swap it with its previous or next sibling, and Alt + Shift + Right moves it under its previous sibling, with Alt + Shift + Left moving it out to just after its parent. Moving is off while sorting or while a search or filter is on.
 
 ::: live-code-demo
 
@@ -596,6 +610,54 @@ document.querySelector("#file-grid").addEventListener("orbRowExpand", (event) =>
 - Close "utils", then search "icons". "src" and "utils" show and open to show "icons.tsx", and the other rows hide. Clear the search, and "utils" is closed again.
 - Search "components". The folder shows with its files, since the folder itself matches.
 - With a screen reader, each row is announced with its level, its place among its siblings, and whether it's expanded.
+
+With `reorder` too, rows move by pressing and dragging, as in a flat grid, and also into other rows:
+
+::: live-code-demo
+
+```html
+<orb-grid id="outline" reorder aria-label="Outline">
+  <orb-cell section="head">Section</orb-cell>
+  <orb-cell section="head">Words</orb-cell>
+
+  <orb-cell expanded>Introduction</orb-cell>
+  <orb-cell numeric>420</orb-cell>
+
+  <orb-cell depth="1">Background</orb-cell>
+  <orb-cell numeric>180</orb-cell>
+
+  <orb-cell depth="1">Goals</orb-cell>
+  <orb-cell numeric>240</orb-cell>
+
+  <orb-cell expandable>Methods</orb-cell>
+  <orb-cell numeric>0</orb-cell>
+
+  <orb-cell>Results</orb-cell>
+  <orb-cell numeric>610</orb-cell>
+</orb-grid>
+<p id="outline-status" role="status">Drag a row to move it.</p>
+```
+
+```javascript
+document.querySelector("#outline").addEventListener("orbReorder", (event) => {
+  const { row, parent, index } = event.detail;
+  const name = row[0].textContent.trim();
+  document.querySelector("#outline-status").textContent = parent
+    ? `Moved "${name}" into "${parent[0].textContent.trim()}", place ${index + 1}.`
+    : `Moved "${name}" to the top level, place ${index + 1}.`;
+});
+```
+
+:::
+
+**Manual test:**
+- Drag "Results" to the middle of "Methods". It becomes "Methods"'s only child, indented, and "Methods" opens. The status line says it went into "Methods".
+- Drag "Methods" onto "Goals". Nothing happens, since "Methods" can't go inside its own child.
+- Drag "Goals" to the very top of the first row. It becomes a top-level row, with "Goals" and its text moving together.
+- Focus "Background" and press Alt + Shift + Left. It moves out of "Introduction", just after it.
+- Press Alt + Shift + Right on it. It goes back under "Introduction", as its last child, and a screen reader hears its level and place.
+- Press Alt + Down on the last row. A screen reader hears "Last row.", and nothing moves.
+- Search in another tree that has `reorder`, then try to drag. Nothing moves, and a screen reader hears why.
 
 ### Labels
 
@@ -1151,7 +1213,7 @@ With `server-side`:
 - Set `busy` while rows load. It sets `aria-busy` and the `busy` state, and you style the state.
 - `orbFilterChange` has no `matches` or `total`, and the grid doesn't announce them. Announce the number of results yourself, such as in a `role="status"` element.
 - After Page Up or Page Down, focus moves to the new page's first row once its cells are in.
-- Selection, `selectAllRows()`, `revealRow()`, and tree rows only cover the rows the grid has. Selections don't carry across pages.
+- Selection, `selectAllRows()`, `revealRow()`, and tree rows only cover the rows the grid has. Selections don't carry across pages, unless [`allMatchingSelected`](#select-all-matching-rows) is on.
 - `print()`, `toTable()`, and `toCSV()` aren't available, since the grid doesn't have every row. Export on the server.
 - `orbReorder` reports indexes among the rows the grid has. Add the page's offset for an index among all rows.
 
@@ -1167,6 +1229,38 @@ When the cell that has focus is removed, such as when the rows are replaced, foc
 - While a query runs, the grid dims. With a screen reader, the grid is announced as busy.
 - With a screen reader, a row on page 3 is announced as row 52 or so, out of the total.
 
+#### Select All Matching Rows
+
+Selecting every row the page shows is only part of a large result. With `server-side`, a pagination whose `total` is set, and rows that can be selected all at once (`selection="multiple"` with `select-all`, or `selection="keyboard"`), selecting every row the grid has shows a banner under the header:
+
+> All 25 rows on this page are selected. **Select all 1,284 rows**
+
+Pressing the button turns on `allMatchingSelected`, and fires `orbSelectAllMatching` with `selected`, the `total`, and the `query`. From then on, every page's rows are selected as they arrive, the header's select all stays checked, and the banner reports instead: "All 1,284 rows are selected." Pressing **Clear selection** turns it off, and clears the selection.
+
+The grid still can't select rows it doesn't have, so act on the query, not on `getSelectedRows()`. `getSelectedRows()` returns only the rows the grid has, on every page it has seen.
+
+```javascript
+const grid = document.querySelector("#products-grid");
+
+grid.addEventListener("orbSelectAllMatching", async (event) => {
+  if (!event.detail.selected) return;
+  const { sort, search, filters } = event.detail.query;
+  // For example, archive every matching row on the server
+  await archiveMatching({ sort, search, filters });
+});
+```
+
+It turns off when you clear the selection, uncheck the header's select all, deselect any row, change the search, filters, or sort, or set the prop to `false`. With `selection="keyboard"`, pressing Ctrl or Cmd + A again, once every row the grid has is selected, turns it on. Call `preventDefault()` on `orbSelectAllMatching` to keep it from turning on, such as to ask first or to apply a limit.
+
+From the keyboard, Down from the header reaches the banner's button, and Space or Enter presses it. The banner is the `matching-row`, `matching-cell`, and `matching-button` parts.
+
+**Manual test** (with a fake server that reports 100 rows and sends 3):
+- Check the header's select all. A banner appears under the header, saying all 3 rows on the page are selected, with a button to select all 100.
+- Press the button. The banner says all 100 rows are selected, and the page's console logs one `orbSelectAllMatching` with `selected: true` and `total: 100`.
+- Turn the page, and let the server send other rows. They're selected, and the header's select all stays checked.
+- Uncheck one row. The banner disappears, `orbSelectAllMatching` fires with `selected: false`, and the other rows stay selected.
+- Focus a header cell, press Down. The banner's button takes the focus ring, and Space presses it.
+
 ### Keyboard
 
 The grid is a single Tab stop. Once it has focus, the keys move around inside it.
@@ -1177,14 +1271,13 @@ The grid is a single Tab stop. Once it has focus, the keys move around inside it
 | Home / End | First or last cell in the row. With `navigation="row"`, the first or last row |
 | Ctrl + Home / End | First or last cell in the grid |
 | Space | Toggle selection of the focused row, when `selection` is set. On a radio button, select its row |
-| Enter | Activate, then enter the cell's content. On a sortable header, sort |
-| F2 | Enter the cell's content |
+| Enter | Activate, then enter the cell's content. On a sortable header, sort. With `interactive`, open the row (see [Opening Rows](#opening-rows)) |
+| F2 | Enter the cell's content, even with `interactive` |
 | Alt + Down, on a header with `filter` | Open the header's filter. On a header that doesn't sort, Enter does too |
 | Page Up / Page Down | With `pagination`, the previous or next page. Otherwise, move about one screen of rows |
-| Space or Enter on a drag handle | Pick the row up, or drop it |
-| Up / Down, with a row picked up | Move the row |
-| Escape, with a row picked up | Put the row back where it started |
-| Alt + Up / Down | Move the focused row, when `reorder` is set |
+| Alt + Up / Down | Move the focused row, when `reorder` is set. With several rows selected next to each other, move them together. In a tree grid, among its siblings |
+| Alt + Shift + Right | In a tree grid, move the focused row under its previous sibling |
+| Alt + Shift + Left | In a tree grid, move the focused row out, to just after its parent |
 | Right / Left, with `navigation="row"` | Open or close the focused row's details. Left on open details goes back to their row |
 | Right, in a tree grid | On a collapsed row, expand it. With `navigation="row"`, on an expanded row, move to its first child |
 | Left, in a tree grid | On an expanded row, collapse it. On a collapsed row or a leaf, move to its parent |
@@ -1192,7 +1285,7 @@ The grid is a single Tab stop. Once it has focus, the keys move around inside it
 
 A cell that spans several columns or rows is one stop for the arrow keys. Moving out of it continues from the row or column you entered it from.
 
-Links, buttons, and fields inside a cell aren't in the Tab order, so Tab leaves the grid instead of stopping on every control. Press Enter on a cell to fire `orbActivate` and move focus to the first control inside it. Tab then moves between the controls in that cell, and Escape goes back to the cell. Clicking a control also enters its cell. Call `preventDefault()` on `orbActivate` to handle Enter yourself and keep focus on the cell.
+Links, buttons, and fields inside a cell aren't in the Tab order, so Tab leaves the grid instead of stopping on every control. Press Enter on a cell to fire `orbActivate` and move focus to the first control inside it. Tab then moves between the controls in that cell, and Escape goes back to the cell. Clicking a control also enters its cell. Call `preventDefault()` on `orbActivate` to handle Enter yourself and keep focus on the cell. With `interactive`, Enter opens the row with `orbRowOpen` instead, and F2 still enters the cell's content.
 
 ### Interactive Cells
 
@@ -1318,6 +1411,72 @@ With `navigation="row"`, focus moves between whole rows. The up and down arrows 
 - Press Space on a body row. It's selected, and selecting another row deselects the first.
 - Press Enter on a body row. Focus moves to its "Open sighting" link. Escape returns to the row.
 
+### Opening Rows
+
+With `interactive`, body rows do something when they're opened, such as go to a page about them. The grid shows a pointer cursor over them, and emits `orbRowOpen` when the user opens one. The grid does nothing else: the app decides what opening a row means.
+
+| Selection | Pointer | Keyboard |
+| --- | --- | --- |
+| none | A click | Enter on a cell or row |
+| `single`, `multiple` | A click selects the row, then a double click or double tap opens it | Enter on a cell or row |
+| `keyboard` | A click selects the row, then a double click or double tap opens it | Enter on a cell or row |
+
+Opening a row never fires for a press on a button, link, field, or other control inside a cell, nor for the end of a drag when `reorder` is set. With a sortable header, Enter still sorts, and in cards a header chip still opens its sheet.
+
+With `single` or `multiple` in a table, where a row has a control in the lead column and its text does nothing when clicked, a click on the row selects it, since the row is what's pressed. `single` selects only that row, and `multiple` toggles it. The click of a double click that opens a row doesn't change the selection again, so a double click selects the row once and opens it.
+
+The detail has the row's cells, the cell that was clicked or had focus as `cell`, how it opened as `source` (`"pointer"` or `"keyboard"`), and the click or key press as `event`, so you can read the modifier keys. For example, open the row in a new tab when Cmd or Ctrl is held.
+
+With `interactive`, Enter opens the row and leaves focus where it is, instead of moving into the cell's content. F2 still moves into the content, which fires `orbActivate` without `interactive`.
+
+::: live-code-demo
+
+```html
+<orb-grid id="inbox-grid" interactive hover selection="multiple">
+  <orb-cell section="head">From</orb-cell>
+  <orb-cell section="head">Subject</orb-cell>
+  <orb-cell section="head">Received</orb-cell>
+
+  <orb-cell>Ada Lovelace</orb-cell>
+  <orb-cell>Notes on the engine</orb-cell>
+  <orb-cell>9:12 AM</orb-cell>
+
+  <orb-cell>Grace Hopper</orb-cell>
+  <orb-cell>Compilers, revisited</orb-cell>
+  <orb-cell>8:40 AM</orb-cell>
+
+  <orb-cell>Alan Turing</orb-cell>
+  <orb-cell>On computable numbers</orb-cell>
+  <orb-cell>Yesterday</orb-cell>
+</orb-grid>
+<p id="inbox-status" role="status">Open a message to read it.</p>
+```
+
+```javascript
+const grid = document.querySelector("#inbox-grid");
+const status = document.querySelector("#inbox-status");
+
+grid.addEventListener("orbSelectionChange", (event) => {
+  status.textContent = `${event.detail.length} selected. Double click a message to open it.`;
+});
+
+grid.addEventListener("orbRowOpen", (event) => {
+  const { row, source, event: press } = event.detail;
+  const openInNewTab = (press.metaKey || press.ctrlKey) && source === "pointer";
+  const how = source === "keyboard" ? "Enter" : openInNewTab ? "a double click with a modifier" : "a double click";
+  status.textContent = `Opened "${row[1].textContent.trim()}" from ${row[0].textContent.trim()}, by ${how}.`;
+});
+```
+
+:::
+
+**Manual test:**
+- Click a row's text. The row is selected, and the status line says so. Double click it to open it, and the status line names the message.
+- In a table with `selection`, one click selects the row. A second click opens it, and the row stays selected.
+- Focus a body cell, then press Enter. The status line says it opened with Enter, and focus stays on the cell. F2 moves into the cell's content instead.
+- On a touch screen, tap a row twice. It opens, and the page doesn't zoom.
+
+
 ### Accessibility
 
 **Manual test checklist:**
@@ -1331,10 +1490,12 @@ With `navigation="row"`, focus moves between whole rows. The up and down arrows 
 - [ ] Controls inside cells have accessible names that make sense out of context, such as "Notes for Alice Johnson".
 - [ ] In forced colors mode, a selected row has an outline with `selection="single"`. With `multiple`, its checkbox shows the state.
 - [ ] The select all checkbox is announced as "Select all rows", with checked, not checked, or mixed.
+- [ ] With `server-side`, the banner that offers every matching row is read as a row, with its button named by its number of rows.
 - [ ] A grid that scrolls sideways can be scrolled by moving focus, since the grid is a Tab stop.
-- [ ] Each drag handle is announced as "Reorder" and the row's name, as a toggle button that's pressed while the row is picked up.
-- [ ] Picking up, moving, dropping, and canceling a row are each announced, with the row's position.
-- [ ] Rows can be reordered without a pointer, from a handle or with Alt + Up and Down.
+- [ ] Each body row announces Alt + Up and Alt + Down as its shortcuts, and reads as "Movable", when `reorder` is set and nothing blocks it.
+- [ ] Moving a row, and reaching the first or last place among its siblings, are each announced, with the row's level and position.
+- [ ] Moving several rows at once is announced with how many moved, and where the first landed.
+- [ ] Rows can be reordered without a pointer, with Alt + Up and Down.
 - [ ] A sortable header is announced with its sort state: ascending, descending, or none. Each sort is announced.
 - [ ] A details toggle is announced as "Details for" and the row's name, as expanded or collapsed. Open details are announced as a row with one cell.
 - [ ] Closed details aren't read by a screen reader and can't be reached with the keyboard.
@@ -1350,6 +1511,7 @@ With `navigation="row"`, focus moves between whole rows. The up and down arrows 
 - [ ] After a page change, the new page is announced by the pagination, and focus stays in the grid when the page was turned from the keyboard.
 - [ ] In forced colors mode, a row being moved has a dashed outline, and the drop line is visible.
 - [ ] A grid with an `orb-label` is announced with the label's text.
+- [ ] With `interactive`, Enter opens a row without moving focus, and F2 enters its content.
 - [ ] A cell with `row-header` is announced as a row header, and read as the row's header for the other cells in the row.
 - [ ] Text in tinted rows and cells has enough contrast, and statuses are also shown with text, not color alone.
 - [ ] A focused cell scrolled under a sticky header or column is still visible when focus moves to it.
