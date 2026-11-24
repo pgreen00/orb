@@ -1,5 +1,13 @@
 export type * from "./components.js";
 export { applyEventChange } from "./components/calendar/utils/recurrence.js";
+export {
+  createEventElement,
+  formatTime as formatCalendarTime,
+  parseTime as parseCalendarTime,
+  readEvent,
+  readSource,
+  writeEvent,
+} from "./components/calendar/utils/markup.js";
 export { createMessageWriter } from "./components/channel/writer.js";
 export type { MessageWriter, MessageWriterOptions, ToolCallInit } from "./components/channel/writer.js";
 export type { MessageTransport, OutgoingMessage, TransportHandlers } from "./components/channel/transport.js";

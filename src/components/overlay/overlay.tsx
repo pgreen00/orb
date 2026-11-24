@@ -139,15 +139,36 @@ export class Overlay extends ReadyController {
   @Watch("open")
   async onOpenChange(open: boolean) {
     await this.ready;
-    if (open && !this.dialogEl.open) {
-      this.resetBottomSheet()
-      await this.init?.()
-      this.cloneTemplate()
-      this.dialogEl.showModal();
-      await this.animateDialog(open).finished;
-      this.orbPresent.emit();
-    } else if (!open && this.dialogEl.open) {
-      await this.animateDialog(open).finished;
+    if (open) {
+      // A close still animating is stopped, so the dialog stays open. It's
+      // shown again below rather than closed and reopened
+      const reopening = !!this.closing;
+      // The close that set them is stopped, so they belong to nothing and aren't reported
+      if (reopening) {
+        this.role = undefined;
+        this.data = undefined;
+      }
+      this.closing?.cancel();
+      this.closing = undefined;
+      if (!this.dialogEl.open) {
+        this.resetBottomSheet()
+        await this.init?.()
+        this.cloneTemplate()
+        this.dialogEl.showModal();
+        // Canceled when a close starts before the open has finished: that close
+        // owns the dialog from here, so this open doesn't report presence
+        if (await this.animateDialog(open).finished.then(() => true, () => false)) {
+          this.orbPresent.emit();
+        }
+      } else if (reopening) {
+        if (await this.animateDialog(open).finished.then(() => true, () => false)) {
+          this.orbPresent.emit();
+        }
+      }
+    } else if (this.dialogEl.open) {
+      // Canceled when a reopen starts before the close has finished. The dialog
+      // stays open for that reopen, so nothing here is dismissed.
+      if (!(await this.animateDialog(open).finished.then(() => true, () => false))) return;
       this.dialogEl.close();
       this.destroyTemplate();
       await this.destroy?.();
@@ -238,6 +259,15 @@ export class Overlay extends ReadyController {
     });
   }
 
+  /**
+   * The dialog's open animation, while it's still running. A close that starts
+   * first stops it, so the dialog doesn't take a second close to shut, and a
+   * second click isn't swallowed by one that's left open.
+   */
+  private opening?: Animation;
+  /** A close still animating, which a reopen stops */
+  private closing?: Animation;
+
   private animateDialog(enter: boolean) {
     const to = this.side
       ? { [this.side]: "calc(var(--width) * -1)" }
@@ -245,11 +275,34 @@ export class Overlay extends ReadyController {
     const from = this.side ? { [this.side]: "0" } : { opacity: 1 };
     const keyframes = [to, from];
     if (!enter) keyframes.reverse();
+    this.opening?.cancel();
+    this.opening = undefined;
+    this.closing?.cancel();
+    this.closing = undefined;
     this.animateBackdrop(enter);
-    return this.dialogEl.animate(keyframes, {
+    const animation = this.dialogEl.animate(keyframes, {
       duration: 300,
       easing: "ease-in-out",
     });
+    if (enter) {
+      this.opening = animation;
+      // Canceled when a close stops it, so the rejection isn't reported
+      animation.finished.then(
+        () => {
+          if (this.opening === animation) this.opening = undefined;
+        },
+        () => undefined,
+      );
+    } else {
+      this.closing = animation;
+      animation.finished.then(
+        () => {
+          if (this.closing === animation) this.closing = undefined;
+        },
+        () => undefined,
+      );
+    }
+    return animation;
   }
 
   private pulse() {

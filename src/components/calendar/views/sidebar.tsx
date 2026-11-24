@@ -6,7 +6,8 @@ export interface SidebarProps {
   calendars: OrbCalendarSource[];
   isHidden: (cal: OrbCalendarSource) => boolean;
   onDateChange: (date: number) => void;
-  onToggleCalendar: (id: string, hidden: boolean) => void;
+  /** Shows or hides a calendar. Returns false when the change was canceled. */
+  onToggleCalendar: (id: string, hidden: boolean) => boolean;
 }
 
 export function Sidebar(props: SidebarProps) {
@@ -21,9 +22,15 @@ export function Sidebar(props: SidebarProps) {
             <orb-checkbox
               class="calendar-item"
               checked={props.isHidden(cal) ? "false" : "true"}
-              onOrbCheckedChange={(e: CustomEvent<string>) =>
-                props.onToggleCalendar(cal.id, e.detail !== "true")
-              }
+              onOrbCheckedChange={(e: CustomEvent<string>) => {
+                const hidden = e.detail !== "true";
+                if (props.onToggleCalendar(cal.id, hidden)) return;
+                // Canceled, so the box goes back to what the calendar has. The
+                // box toggles itself, and the same value isn't written again.
+                (e.currentTarget as HTMLOrbCheckboxElement).checked = props.isHidden(cal)
+                  ? "false"
+                  : "true";
+              }}
             >
               <span class="calendar-dot" style={{ background: resolveColor(cal.color) }} />
               {cal.name}

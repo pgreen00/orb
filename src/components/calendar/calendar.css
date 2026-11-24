@@ -44,6 +44,8 @@
   min-height: 0;
   overflow: hidden;
   background: var(--orb-calendar-bg);
+  /* The calendar's own width decides whether the sidebar fits, not the screen's */
+  container: orb-calendar / inline-size;
 }
 
 /* Sidebar */
@@ -84,6 +86,22 @@
 
 .mini-month {
   margin-top: auto;
+}
+
+/* The Calendars button stands in for the sidebar when the calendar is narrow. A container query can't read a custom property, so the breakpoint is fixed. */
+.sources-button {
+  display: none;
+  flex-shrink: 0;
+}
+
+@container orb-calendar (width < 48rem) {
+  .sidebar {
+    display: none;
+  }
+
+  .sources-button {
+    display: inline-flex;
+  }
 }
 
 /* Main area */
@@ -259,10 +277,6 @@
     border-radius: 50%;
   }
 
-  .pill-time {
-    flex-shrink: 0;
-    color: var(--orb-calendar-muted);
-  }
 
   .pill-title {
     min-width: 0;
@@ -282,6 +296,17 @@
   font-weight: var(--orb-font-semi-bold);
   text-align: left;
   cursor: pointer;
+}
+
+/* Read by screen readers only, such as an event's times in week and month views */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* All-day and multi-day bars */

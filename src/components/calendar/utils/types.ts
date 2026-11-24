@@ -11,6 +11,8 @@ export interface OrbCalendarSource {
   color: string;
   /** When true, this calendar's events are hidden. */
   hidden?: boolean;
+  /** Where its events come from, for the range on screen. `{start}` and `{end}` are replaced with the range. */
+  href?: string;
 }
 
 /**
@@ -73,10 +75,15 @@ export type OrbWeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export interface OrbCalendarEventClickDetail {
   occurrence: OrbCalendarOccurrence;
   nativeEvent: MouseEvent;
+  /** The `orb-calendar-event` the occurrence is drawn from */
+  element: HTMLElement;
 }
 
 export interface OrbCalendarMutation {
-  /** The new or edited event. For creates, the host assigns the id. */
+  /**
+   * The new or edited event: the one the user changed. For creates, the calendar
+   * gives it an id; for an occurrence, it's that occurrence's data.
+   */
   event: OrbCalendarEvent;
   /** For occurrence-scoped edits, the original occurrence start (epoch ms). */
   occurrenceStart?: number;
@@ -84,7 +91,42 @@ export interface OrbCalendarMutation {
   scope: OrbRecurrenceScope;
 }
 
+/**
+ * What a change event carries: the mutation, and the element of the event the
+ * user acted on. Setting its `id` is how an app gives an event the server's id.
+ */
+export interface OrbCalendarChangeDetail extends OrbCalendarMutation {
+  /** The event's own element, not its occurrences' */
+  element: HTMLElement;
+}
+
 export interface OrbCalendarRange {
   start: number;
   end: number;
+}
+
+/** What a source toggle is about, and the state it changes to */
+export interface OrbCalendarSourceToggleDetail {
+  /** The source's `id` */
+  id: string;
+  /** The source's name, for messages such as "Work is hidden" */
+  name: string;
+  /** The state it changes to */
+  hidden: boolean;
+  /** The `orb-calendar-source` element the calendar writes `hidden` on */
+  source?: HTMLElement;
+}
+
+/** What a source is about to load, before its request goes out */
+export interface OrbCalendarSourceLoadDetail {
+  /** The source's `id` */
+  id: string;
+  /** The `orb-calendar-source` element whose `href` is requested */
+  source: HTMLElement;
+  /** The first moment of the range, epoch ms */
+  start: number;
+  /** The moment after the range, epoch ms, not included in it */
+  end: number;
+  /** The URL the request goes to */
+  url: string;
 }

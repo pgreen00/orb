@@ -4,7 +4,7 @@ import { Config } from "@stencil/core";
 import { execSync } from "child_process";
 import { generateLoader } from "./scripts/generate-loader.mjs";
 import { generatePipeManifest } from "./scripts/generate-pipe-manifest.mjs";
-import { writeFileSync, appendFileSync, mkdirSync } from "fs";
+import { writeFileSync, mkdirSync } from "fs";
 import { compile } from "sass";
 
 generatePipeManifest({

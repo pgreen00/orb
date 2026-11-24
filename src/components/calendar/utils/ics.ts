@@ -46,8 +46,11 @@ function prop(name: string, value?: string): string[] {
 
 function buildVEvent(event: OrbCalendarEvent, dtstamp: string): string[] {
   const lines = ["BEGIN:VEVENT"];
-  // Overrides share their master's UID and carry a RECURRENCE-ID.
-  lines.push(...prop("UID", event.recurrenceParentId ?? event.id));
+  // Overrides share their master's UID and carry a RECURRENCE-ID. An event without
+  // an id gets one from its start and title, which stays the same across exports.
+  const uid =
+    event.recurrenceParentId || event.id || `anon-${event.start}-${event.title.replace(/\W+/g, "-").toLowerCase()}`;
+  lines.push(...prop("UID", uid));
   lines.push(...prop("DTSTAMP", dtstamp));
 
   if (event.allDay) {

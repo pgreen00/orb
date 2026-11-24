@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { OrbCalendarOccurrence } from "../utils/types";
-import { nextDay, sameDay } from "../utils/datetime";
+import { formatSpan, nextDay, sameDay, spokenSpan } from "../utils/datetime";
 import {
   isSpanningBar,
   layoutDayColumn,
@@ -19,6 +19,8 @@ export interface TimeGridProps {
   onEventClick: (occ: OrbCalendarOccurrence, ev: MouseEvent) => void;
   /** Receives the scroll container, so the calendar can scroll to `scrollToHour`. */
   registerScroll: (el: HTMLElement | null) => void;
+  /** Shows each event's times, as day view does. Otherwise they're read by screen readers only. */
+  showTimes: boolean;
 }
 
 export function TimeGrid(props: TimeGridProps) {
@@ -136,8 +138,12 @@ export function TimeGrid(props: TimeGridProps) {
                           props.onEventClick(occ, ev);
                         }}
                       >
-                        <span class="tg-event-time">{format(occ.start, "h:mm a")}</span>
                         <span class="tg-event-title">{occ.event.title}</span>
+                        {props.showTimes ? (
+                          <span class="tg-event-time">{formatSpan(occ.start, occ.end)}</span>
+                        ) : (
+                          <span class="visually-hidden">{spokenSpan(occ.start, occ.end)}</span>
+                        )}
                         <span class="tg-resize-handle" />
                       </button>
                     );

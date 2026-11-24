@@ -7,7 +7,7 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { Color } from "./utils/color";
 import { OverlayData } from "./components/overlay/overlay";
-import { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
+import { OrbCalendarChangeDetail, OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSourceLoadDetail, OrbCalendarSourceToggleDetail, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 import { CardLayout } from "./components/card/card";
 import { MessageTransport } from "./components/channel/transport";
 import { SendDetail } from "./components/channel/model/types";
@@ -34,7 +34,7 @@ import { ViewChangeDetail, ViewNavigateOptions } from "./components/view-manager
 import { WizardStepChangeDetail } from "./components/wizard/wizard";
 export { Color } from "./utils/color";
 export { OverlayData } from "./components/overlay/overlay";
-export { OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSource, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
+export { OrbCalendarChangeDetail, OrbCalendarEvent, OrbCalendarEventClickDetail, OrbCalendarMutation, OrbCalendarRange, OrbCalendarSourceLoadDetail, OrbCalendarSourceToggleDetail, OrbCalendarView, OrbWeekStart } from "./components/calendar/utils/types";
 export { CardLayout } from "./components/card/card";
 export { MessageTransport } from "./components/channel/transport";
 export { SendDetail } from "./components/channel/model/types";
@@ -174,18 +174,18 @@ export namespace Components {
     }
     /**
      * A full featured calendar.
+     * It reads its events and calendars from its children, `orb-calendar-event` and
+     * `orb-calendar-source`, and writes the user's changes back into them.
      */
     interface OrbCalendar {
         /**
-          * Named calendars and their colors. Without any, there's one implicit calendar.
-          * @default []
+          * Writes a change into the calendar's children, as the calendar does after its change events. Doesn't emit. For an app that saves first: call `preventDefault()` on the change event, save, then apply it here.
          */
-        "calendars": OrbCalendarSource[];
+        "applyChange": (mutation: OrbCalendarMutation, kind: "create" | "update" | "delete") => Promise<void>;
         /**
-          * The anchor date (epoch ms) that decides which range is shown
-          * @default Date.now()
+          * The anchor date that decides which range is shown: epoch ms, or an ISO date such as `2026-06-08`
          */
-        "date": number;
+        "date"?: number | string;
         /**
           * Last hour shown in day and week views
           * @default 24
@@ -206,18 +206,13 @@ export namespace Components {
          */
         "editable": boolean;
         /**
-          * The events to display. Owned by the host. The calendar never mutates it.
-          * @default []
-         */
-        "events": OrbCalendarEvent[];
-        /**
           * Builds a VCALENDAR string of all events, or only those in `calendarIds`
          */
         "exportICS": (opts?: { calendarIds?: string[]; }) => Promise<string>;
         /**
           * Goes to the given date (epoch ms)
          */
-        "goToDate": (date: number) => Promise<void>;
+        "goToDate": (date: number | string) => Promise<void>;
         /**
           * Goes to today
          */
@@ -250,6 +245,94 @@ export namespace Components {
           * @default 0
          */
         "weekStartsOn": OrbWeekStart;
+    }
+    /**
+     * An event in an `orb-calendar`. Its title is its text, and its times are
+     * `start` and `end` in ISO 8601 or epoch milliseconds.
+     * It holds data for the calendar and draws nothing itself. The calendar reads
+     * the element's attributes, so an event can be written entirely in markup:
+     * ```html
+     * <orb-calendar-event id="standup" calendar-id="work" start="2026-06-08T09:00" end="2026-06-08T09:30">
+     *   Standup
+     * </orb-calendar-event>
+     * ```
+     */
+    interface OrbCalendarEvent {
+        /**
+          * Whether the event lasts whole days, from `start` to `end`
+          * @default false
+         */
+        "allDay": boolean;
+        /**
+          * The `id` of the `orb-calendar-source` the event belongs to
+         */
+        "calendarId"?: string;
+        /**
+          * Its color, overriding the calendar's: a token, a token and shade, or any CSS color
+         */
+        "color"?: string;
+        /**
+          * When the event ends, exclusive. Without one, an all-day event lasts a day and a timed one an hour
+         */
+        "end"?: string | number;
+        /**
+          * Where it happens
+         */
+        "location"?: string;
+        /**
+          * Free text about it. May span lines.
+         */
+        "notes"?: string;
+        /**
+          * When true, the event can't be dragged, resized, or edited
+          * @default false
+         */
+        "readonly": boolean;
+        /**
+          * An RRULE without the `RRULE:` prefix, on a recurring master, such as `FREQ=WEEKLY;BYDAY=MO`
+         */
+        "recurrence"?: string;
+        /**
+          * Start times to skip, separated by spaces. Maps to ICS `EXDATE`.
+         */
+        "recurrenceExceptions"?: string;
+        /**
+          * On an override: the start of the occurrence it replaces
+         */
+        "recurrenceId"?: string | number;
+        /**
+          * On an override: the `id` of the master it replaces an occurrence of
+         */
+        "recurrenceParentId"?: string;
+        /**
+          * When the event starts: ISO 8601 with or without an offset, a date alone for local midnight, or epoch milliseconds
+         */
+        "start"?: string | number;
+        /**
+          * A link for it
+         */
+        "url"?: string;
+    }
+    /**
+     * A named calendar in an `orb-calendar`, such as Work or Home. Its `id` is the
+     * element's `id`, and events join it with their `calendar-id`.
+     * It holds data for the calendar and draws nothing itself. The calendar reads
+     * the element's attributes, so a source can be written entirely in markup. Give
+     * it an `href` and it loads its events from a server, for the range on screen.
+     */
+    interface OrbCalendarSource {
+        /**
+          * The color of this calendar's events: an orb token (`primary`), a token and shade (`primary-600`), or any CSS color
+         */
+        "color"?: string;
+        /**
+          * Where to load this calendar's events from, for the range on screen. `{start}` and `{end}` are replaced with the range, as local times with their offsets, and URL-encoded. `{end}` is the midnight after the last day shown, so the range runs up to but not including it. The response is HTML of `orb-calendar-event` elements. It includes every recurring event with an occurrence in the range, even one that started before it, and its overrides.
+         */
+        "href"?: string;
+        /**
+          * The name shown in the calendar's sidebar
+         */
+        "name"?: string;
     }
     /**
      * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
@@ -2776,6 +2859,14 @@ export interface OrbCalendarCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCalendarElement;
 }
+export interface OrbCalendarEventCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbCalendarEventElement;
+}
+export interface OrbCalendarSourceCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLOrbCalendarSourceElement;
+}
 export interface OrbCellCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLOrbCellElement;
@@ -2995,12 +3086,16 @@ declare global {
         "orbDateChange": number;
         "orbRangeChange": OrbCalendarRange;
         "orbEventClick": OrbCalendarEventClickDetail;
-        "orbEventCreate": OrbCalendarMutation;
-        "orbEventUpdate": OrbCalendarMutation;
-        "orbEventDelete": OrbCalendarMutation;
+        "orbEventCreate": OrbCalendarChangeDetail;
+        "orbEventUpdate": OrbCalendarChangeDetail;
+        "orbEventDelete": OrbCalendarChangeDetail;
+        "orbSourceToggle": OrbCalendarSourceToggleDetail;
+        "orbSourceLoad": OrbCalendarSourceLoadDetail;
     }
     /**
      * A full featured calendar.
+     * It reads its events and calendars from its children, `orb-calendar-event` and
+     * `orb-calendar-source`, and writes the user's changes back into them.
      */
     interface HTMLOrbCalendarElement extends Components.OrbCalendar, HTMLStencilElement {
         addEventListener<K extends keyof HTMLOrbCalendarElementEventMap>(type: K, listener: (this: HTMLOrbCalendarElement, ev: OrbCalendarCustomEvent<HTMLOrbCalendarElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -3015,6 +3110,58 @@ declare global {
     var HTMLOrbCalendarElement: {
         prototype: HTMLOrbCalendarElement;
         new (): HTMLOrbCalendarElement;
+    };
+    interface HTMLOrbCalendarEventElementEventMap {
+        "orbCalendarDataChange": void;
+    }
+    /**
+     * An event in an `orb-calendar`. Its title is its text, and its times are
+     * `start` and `end` in ISO 8601 or epoch milliseconds.
+     * It holds data for the calendar and draws nothing itself. The calendar reads
+     * the element's attributes, so an event can be written entirely in markup:
+     * ```html
+     * <orb-calendar-event id="standup" calendar-id="work" start="2026-06-08T09:00" end="2026-06-08T09:30">
+     *   Standup
+     * </orb-calendar-event>
+     * ```
+     */
+    interface HTMLOrbCalendarEventElement extends Components.OrbCalendarEvent, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbCalendarEventElementEventMap>(type: K, listener: (this: HTMLOrbCalendarEventElement, ev: OrbCalendarEventCustomEvent<HTMLOrbCalendarEventElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbCalendarEventElementEventMap>(type: K, listener: (this: HTMLOrbCalendarEventElement, ev: OrbCalendarEventCustomEvent<HTMLOrbCalendarEventElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbCalendarEventElement: {
+        prototype: HTMLOrbCalendarEventElement;
+        new (): HTMLOrbCalendarEventElement;
+    };
+    interface HTMLOrbCalendarSourceElementEventMap {
+        "orbCalendarDataChange": void;
+    }
+    /**
+     * A named calendar in an `orb-calendar`, such as Work or Home. Its `id` is the
+     * element's `id`, and events join it with their `calendar-id`.
+     * It holds data for the calendar and draws nothing itself. The calendar reads
+     * the element's attributes, so a source can be written entirely in markup. Give
+     * it an `href` and it loads its events from a server, for the range on screen.
+     */
+    interface HTMLOrbCalendarSourceElement extends Components.OrbCalendarSource, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLOrbCalendarSourceElementEventMap>(type: K, listener: (this: HTMLOrbCalendarSourceElement, ev: OrbCalendarSourceCustomEvent<HTMLOrbCalendarSourceElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLOrbCalendarSourceElementEventMap>(type: K, listener: (this: HTMLOrbCalendarSourceElement, ev: OrbCalendarSourceCustomEvent<HTMLOrbCalendarSourceElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLOrbCalendarSourceElement: {
+        prototype: HTMLOrbCalendarSourceElement;
+        new (): HTMLOrbCalendarSourceElement;
     };
     /**
      * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
@@ -4137,6 +4284,8 @@ declare global {
         "orb-button": HTMLOrbButtonElement;
         "orb-button-group": HTMLOrbButtonGroupElement;
         "orb-calendar": HTMLOrbCalendarElement;
+        "orb-calendar-event": HTMLOrbCalendarEventElement;
+        "orb-calendar-source": HTMLOrbCalendarSourceElement;
         "orb-card": HTMLOrbCardElement;
         "orb-cell": HTMLOrbCellElement;
         "orb-channel": HTMLOrbChannelElement;
@@ -4329,18 +4478,14 @@ declare namespace LocalJSX {
     }
     /**
      * A full featured calendar.
+     * It reads its events and calendars from its children, `orb-calendar-event` and
+     * `orb-calendar-source`, and writes the user's changes back into them.
      */
     interface OrbCalendar {
         /**
-          * Named calendars and their colors. Without any, there's one implicit calendar.
-          * @default []
+          * The anchor date that decides which range is shown: epoch ms, or an ISO date such as `2026-06-08`
          */
-        "calendars"?: OrbCalendarSource[];
-        /**
-          * The anchor date (epoch ms) that decides which range is shown
-          * @default Date.now()
-         */
-        "date"?: number;
+        "date"?: number | string;
         /**
           * Last hour shown in day and week views
           * @default 24
@@ -4357,11 +4502,6 @@ declare namespace LocalJSX {
          */
         "editable"?: boolean;
         /**
-          * The events to display. Owned by the host. The calendar never mutates it.
-          * @default []
-         */
-        "events"?: OrbCalendarEvent[];
-        /**
           * Emitted when the user changes the anchor date
          */
         "onOrbDateChange"?: (event: OrbCalendarCustomEvent<number>) => void;
@@ -4370,21 +4510,29 @@ declare namespace LocalJSX {
          */
         "onOrbEventClick"?: (event: OrbCalendarCustomEvent<OrbCalendarEventClickDetail>) => void;
         /**
-          * Emitted when the user saves a new event
+          * Emitted when the user saves a new event. The calendar adds it to its children unless canceled. Call `preventDefault()` to save it yourself first, then `applyChange()`, or to keep it out of the calendar.
          */
-        "onOrbEventCreate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        "onOrbEventCreate"?: (event: OrbCalendarCustomEvent<OrbCalendarChangeDetail>) => void;
         /**
-          * Emitted when the user deletes an event
+          * Emitted when the user deletes an event. The calendar removes it from its children unless canceled.
          */
-        "onOrbEventDelete"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        "onOrbEventDelete"?: (event: OrbCalendarCustomEvent<OrbCalendarChangeDetail>) => void;
         /**
-          * Emitted when the user edits, drags, or resizes an event
+          * Emitted when the user edits, drags, or resizes an event. The calendar writes it into its children unless canceled.
          */
-        "onOrbEventUpdate"?: (event: OrbCalendarCustomEvent<OrbCalendarMutation>) => void;
+        "onOrbEventUpdate"?: (event: OrbCalendarCustomEvent<OrbCalendarChangeDetail>) => void;
         /**
           * Emitted on load and whenever the visible range changes. Useful for lazy loading events.
          */
         "onOrbRangeChange"?: (event: OrbCalendarCustomEvent<OrbCalendarRange>) => void;
+        /**
+          * Emitted before a source with an `href` asks its server for the events of the range on screen. Call `preventDefault()` to skip the request, for example to fetch the events yourself, with the headers you need, and insert them as children.
+         */
+        "onOrbSourceLoad"?: (event: OrbCalendarCustomEvent<OrbCalendarSourceLoadDetail>) => void;
+        /**
+          * Emitted when the user shows or hides a calendar in the sidebar. Call `preventDefault()` to keep it as it is, for example to ask first. The calendar makes the change itself, by writing `hidden` on the `orb-calendar-source` element, so the sidebar shows it straight away.
+         */
+        "onOrbSourceToggle"?: (event: OrbCalendarCustomEvent<OrbCalendarSourceToggleDetail>) => void;
         /**
           * Emitted when the user changes the view
          */
@@ -4409,6 +4557,102 @@ declare namespace LocalJSX {
           * @default 0
          */
         "weekStartsOn"?: OrbWeekStart;
+    }
+    /**
+     * An event in an `orb-calendar`. Its title is its text, and its times are
+     * `start` and `end` in ISO 8601 or epoch milliseconds.
+     * It holds data for the calendar and draws nothing itself. The calendar reads
+     * the element's attributes, so an event can be written entirely in markup:
+     * ```html
+     * <orb-calendar-event id="standup" calendar-id="work" start="2026-06-08T09:00" end="2026-06-08T09:30">
+     *   Standup
+     * </orb-calendar-event>
+     * ```
+     */
+    interface OrbCalendarEvent {
+        /**
+          * Whether the event lasts whole days, from `start` to `end`
+          * @default false
+         */
+        "allDay"?: boolean;
+        /**
+          * The `id` of the `orb-calendar-source` the event belongs to
+         */
+        "calendarId"?: string;
+        /**
+          * Its color, overriding the calendar's: a token, a token and shade, or any CSS color
+         */
+        "color"?: string;
+        /**
+          * When the event ends, exclusive. Without one, an all-day event lasts a day and a timed one an hour
+         */
+        "end"?: string | number;
+        /**
+          * Where it happens
+         */
+        "location"?: string;
+        /**
+          * Free text about it. May span lines.
+         */
+        "notes"?: string;
+        /**
+          * Emitted when the event's data changes, so the calendar can update
+         */
+        "onOrbCalendarDataChange"?: (event: OrbCalendarEventCustomEvent<void>) => void;
+        /**
+          * When true, the event can't be dragged, resized, or edited
+          * @default false
+         */
+        "readonly"?: boolean;
+        /**
+          * An RRULE without the `RRULE:` prefix, on a recurring master, such as `FREQ=WEEKLY;BYDAY=MO`
+         */
+        "recurrence"?: string;
+        /**
+          * Start times to skip, separated by spaces. Maps to ICS `EXDATE`.
+         */
+        "recurrenceExceptions"?: string;
+        /**
+          * On an override: the start of the occurrence it replaces
+         */
+        "recurrenceId"?: string | number;
+        /**
+          * On an override: the `id` of the master it replaces an occurrence of
+         */
+        "recurrenceParentId"?: string;
+        /**
+          * When the event starts: ISO 8601 with or without an offset, a date alone for local midnight, or epoch milliseconds
+         */
+        "start"?: string | number;
+        /**
+          * A link for it
+         */
+        "url"?: string;
+    }
+    /**
+     * A named calendar in an `orb-calendar`, such as Work or Home. Its `id` is the
+     * element's `id`, and events join it with their `calendar-id`.
+     * It holds data for the calendar and draws nothing itself. The calendar reads
+     * the element's attributes, so a source can be written entirely in markup. Give
+     * it an `href` and it loads its events from a server, for the range on screen.
+     */
+    interface OrbCalendarSource {
+        /**
+          * The color of this calendar's events: an orb token (`primary`), a token and shade (`primary-600`), or any CSS color
+         */
+        "color"?: string;
+        /**
+          * Where to load this calendar's events from, for the range on screen. `{start}` and `{end}` are replaced with the range, as local times with their offsets, and URL-encoded. `{end}` is the midnight after the last day shown, so the range runs up to but not including it. The response is HTML of `orb-calendar-event` elements. It includes every recurring event with an occurrence in the range, even one that started before it, and its overrides.
+         */
+        "href"?: string;
+        /**
+          * The name shown in the calendar's sidebar
+         */
+        "name"?: string;
+        /**
+          * Emitted when the source's data changes, so the calendar can update
+         */
+        "onOrbCalendarDataChange"?: (event: OrbCalendarSourceCustomEvent<void>) => void;
     }
     /**
      * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
@@ -7159,13 +7403,33 @@ declare namespace LocalJSX {
     }
     interface OrbCalendarAttributes {
         "view": OrbCalendarView;
-        "date": number;
+        "date": string;
         "weekStartsOn": OrbWeekStart;
         "editable": boolean;
         "dayStartHour": number;
         "dayEndHour": number;
         "scrollToHour": number;
         "showSidebar": boolean;
+    }
+    interface OrbCalendarEventAttributes {
+        "start": string;
+        "end": string;
+        "allDay": boolean;
+        "calendarId": string;
+        "location": string;
+        "notes": string;
+        "url": string;
+        "color": string;
+        "readonly": boolean;
+        "recurrence": string;
+        "recurrenceExceptions": string;
+        "recurrenceParentId": string;
+        "recurrenceId": string;
+    }
+    interface OrbCalendarSourceAttributes {
+        "name": string;
+        "color": string;
+        "href": string;
     }
     interface OrbCardAttributes {
         "layout": CardLayout;
@@ -7748,6 +8012,8 @@ declare namespace LocalJSX {
         "orb-button": Omit<OrbButton, keyof OrbButtonAttributes> & { [K in keyof OrbButton & keyof OrbButtonAttributes]?: OrbButton[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `attr:${K}`]?: OrbButtonAttributes[K] } & { [K in keyof OrbButton & keyof OrbButtonAttributes as `prop:${K}`]?: OrbButton[K] };
         "orb-button-group": OrbButtonGroup;
         "orb-calendar": Omit<OrbCalendar, keyof OrbCalendarAttributes> & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes]?: OrbCalendar[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `attr:${K}`]?: OrbCalendarAttributes[K] } & { [K in keyof OrbCalendar & keyof OrbCalendarAttributes as `prop:${K}`]?: OrbCalendar[K] };
+        "orb-calendar-event": Omit<OrbCalendarEvent, keyof OrbCalendarEventAttributes> & { [K in keyof OrbCalendarEvent & keyof OrbCalendarEventAttributes]?: OrbCalendarEvent[K] } & { [K in keyof OrbCalendarEvent & keyof OrbCalendarEventAttributes as `attr:${K}`]?: OrbCalendarEventAttributes[K] } & { [K in keyof OrbCalendarEvent & keyof OrbCalendarEventAttributes as `prop:${K}`]?: OrbCalendarEvent[K] };
+        "orb-calendar-source": Omit<OrbCalendarSource, keyof OrbCalendarSourceAttributes> & { [K in keyof OrbCalendarSource & keyof OrbCalendarSourceAttributes]?: OrbCalendarSource[K] } & { [K in keyof OrbCalendarSource & keyof OrbCalendarSourceAttributes as `attr:${K}`]?: OrbCalendarSourceAttributes[K] } & { [K in keyof OrbCalendarSource & keyof OrbCalendarSourceAttributes as `prop:${K}`]?: OrbCalendarSource[K] };
         "orb-card": Omit<OrbCard, keyof OrbCardAttributes> & { [K in keyof OrbCard & keyof OrbCardAttributes]?: OrbCard[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `attr:${K}`]?: OrbCardAttributes[K] } & { [K in keyof OrbCard & keyof OrbCardAttributes as `prop:${K}`]?: OrbCard[K] };
         "orb-cell": Omit<OrbCell, keyof OrbCellAttributes> & { [K in keyof OrbCell & keyof OrbCellAttributes]?: OrbCell[K] } & { [K in keyof OrbCell & keyof OrbCellAttributes as `attr:${K}`]?: OrbCellAttributes[K] } & { [K in keyof OrbCell & keyof OrbCellAttributes as `prop:${K}`]?: OrbCell[K] };
         "orb-channel": Omit<OrbChannel, keyof OrbChannelAttributes> & { [K in keyof OrbChannel & keyof OrbChannelAttributes]?: OrbChannel[K] } & { [K in keyof OrbChannel & keyof OrbChannelAttributes as `attr:${K}`]?: OrbChannelAttributes[K] } & { [K in keyof OrbChannel & keyof OrbChannelAttributes as `prop:${K}`]?: OrbChannel[K] };
@@ -7845,8 +8111,30 @@ declare module "@stencil/core" {
             "orb-button-group": LocalJSX.IntrinsicElements["orb-button-group"] & JSXBase.HTMLAttributes<HTMLOrbButtonGroupElement>;
             /**
              * A full featured calendar.
+             * It reads its events and calendars from its children, `orb-calendar-event` and
+             * `orb-calendar-source`, and writes the user's changes back into them.
              */
             "orb-calendar": LocalJSX.IntrinsicElements["orb-calendar"] & JSXBase.HTMLAttributes<HTMLOrbCalendarElement>;
+            /**
+             * An event in an `orb-calendar`. Its title is its text, and its times are
+             * `start` and `end` in ISO 8601 or epoch milliseconds.
+             * It holds data for the calendar and draws nothing itself. The calendar reads
+             * the element's attributes, so an event can be written entirely in markup:
+             * ```html
+             * <orb-calendar-event id="standup" calendar-id="work" start="2026-06-08T09:00" end="2026-06-08T09:30">
+             *   Standup
+             * </orb-calendar-event>
+             * ```
+             */
+            "orb-calendar-event": LocalJSX.IntrinsicElements["orb-calendar-event"] & JSXBase.HTMLAttributes<HTMLOrbCalendarEventElement>;
+            /**
+             * A named calendar in an `orb-calendar`, such as Work or Home. Its `id` is the
+             * element's `id`, and events join it with their `calendar-id`.
+             * It holds data for the calendar and draws nothing itself. The calendar reads
+             * the element's attributes, so a source can be written entirely in markup. Give
+             * it an `href` and it loads its events from a server, for the range on screen.
+             */
+            "orb-calendar-source": LocalJSX.IntrinsicElements["orb-calendar-source"] & JSXBase.HTMLAttributes<HTMLOrbCalendarSourceElement>;
             /**
              * A container for related content. The `layout` prop picks the structure, and each layout has its own named slots.
              */

@@ -6,11 +6,28 @@ import {
   endOfDay,
   endOfMonth,
   endOfWeek,
+  format,
   startOfDay,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
 import { OrbCalendarRange, OrbCalendarView, OrbWeekStart } from "./types";
+
+/**
+ * An event's times as day view shows them: `9:00 – 10:30 AM`, with the meridiem
+ * once when both times share it, else `11:00 AM – 1:00 PM`.
+ */
+export function formatSpan(start: number, end: number): string {
+  const sameMeridiem = format(start, "a") === format(end, "a");
+  return sameMeridiem
+    ? `${format(start, "h:mm")} – ${format(end, "h:mm a")}`
+    : `${format(start, "h:mm a")} – ${format(end, "h:mm a")}`;
+}
+
+/** An event's times as a screen reader hears them, such as `9:00 AM to 10:30 AM` */
+export function spokenSpan(start: number, end: number): string {
+  return `${format(start, "h:mm a")} to ${format(end, "h:mm a")}`;
+}
 
 /**
  * The epoch-ms range rendered for a view and anchor date, in local time.

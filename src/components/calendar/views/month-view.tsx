@@ -1,6 +1,6 @@
 import { addDays, format, isSameMonth } from "date-fns";
 import { OrbCalendarOccurrence } from "../utils/types";
-import { daysInRange, nextDay, sameDay } from "../utils/datetime";
+import { daysInRange, nextDay, sameDay, spokenSpan } from "../utils/datetime";
 import { isSpanningBar, layoutSpanningBars } from "../utils/layout";
 
 const MAX_TIMED_PILLS = 3;
@@ -75,8 +75,8 @@ export function MonthView(props: MonthViewProps) {
                             }}
                           >
                             <span class="pill-dot" style={{ background: colorFor(occ) }} />
-                            <span class="pill-time">{format(occ.start, "h a")}</span>
                             <span class="pill-title">{occ.event.title}</span>
+                            <span class="visually-hidden">{spokenSpan(occ.start, occ.end)}</span>
                           </button>
                         ))}
                         {overflow > 0 && (

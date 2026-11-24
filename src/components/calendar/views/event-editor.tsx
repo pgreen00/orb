@@ -1,5 +1,6 @@
 import { startOfDay } from "date-fns";
 import { OrbCalendarEvent, OrbCalendarSource } from "../utils/types";
+import type { OrbCalendarMarkupEvent } from "../utils/markup";
 import { formatRRule, parseRRule } from "../utils/recurrence";
 import { fromInputValue, nextDay, toInputValue } from "../utils/datetime";
 
@@ -30,29 +31,45 @@ function presetFor(rrule?: string): string {
   return PRESETS.find((p) => p.rrule && p.rrule === rrule)?.key ?? "custom";
 }
 
+/**
+ * The rule a preset sets. "Custom" keeps the rule the event has, whatever it
+ * is, so the user can go on to edit it, and nothing they picked is lost.
+ */
+export function ruleFor(key: string, current?: string): string | undefined {
+  if (key !== "custom") return PRESETS.find((p) => p.key === key)?.rrule;
+  return current ?? "FREQ=WEEKLY";
+}
+
 const valueOf = (e: Event) =>
   (e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value;
 
 export interface EventEditorProps {
-  event: OrbCalendarEvent;
+  event: OrbCalendarMarkupEvent;
   calendars: OrbCalendarSource[];
   isRecurringInstance: boolean;
   onPatch: (patch: Partial<OrbCalendarEvent>) => void;
+  /**
+   * The Repeat preset the user picked, when they've picked one. Without it, the
+   * preset is read from the event's rule. A custom rule that starts as the
+   * weekly one can't be told apart from "Every Week" by its rule alone.
+   */
+  preset?: string;
+  onPreset?: (key: string) => void;
 }
 
 export function EventEditor(props: EventEditorProps) {
   const { event, calendars } = props;
   const allDay = !!event.allDay;
-  const preset = presetFor(event.recurrence);
+  const preset = props.preset ?? presetFor(event.recurrence);
   const custom = preset === "custom";
   const opts: Record<string, any> = custom ? parseRRule(event.recurrence) : {};
   const inputType = allDay ? "date" : "datetime-local";
 
   const setRepeatPreset = (key: string) => {
-    if (key === "custom") {
-      props.onPatch({ recurrence: event.recurrence ?? "FREQ=WEEKLY" });
+    if (props.onPreset) {
+      props.onPreset(key);
     } else {
-      props.onPatch({ recurrence: PRESETS.find((p) => p.key === key)?.rrule });
+      props.onPatch({ recurrence: ruleFor(key, event.recurrence) });
     }
   };
 
